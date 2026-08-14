@@ -10635,8 +10635,8 @@
       "schemaVersion": 1,
       "referenceRenderer": "recharts",
       "height": 860,
-      "order": 1220,
-      "id": "121-shadcn-dashboard",
+      "order": 1280,
+      "id": "127-shadcn-dashboard",
       "title": "shadcn dashboard",
       "family": "application",
       "intent": "Reproduce shadcn/ui's canonical dashboard shell and interactive stacked-area card while replacing only Recharts with TanStack Charts.",
@@ -10666,10 +10666,10 @@
         "maintain": "Preserve the official dashboard data, responsive sidebar, metric cards, time-range behavior, table shell, natural stacked-area geometry, gradients, axis labels, tooltip content, light and dark themes, and a renderer-only compact catalog preview."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/121-shadcn-dashboard/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/127-shadcn-dashboard/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/121-shadcn-dashboard/recharts.ts"
+          "path": "benchmarks/conformance/cases/127-shadcn-dashboard/recharts.ts"
         }
       }
     },
@@ -10678,8 +10678,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1230,
-      "id": "122-shadcn-bar-multiple",
+      "order": 1290,
+      "id": "128-shadcn-bar-multiple",
       "title": "shadcn bar chart – multiple",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's grouped bar example while replacing Recharts with TanStack Charts.",
@@ -10706,10 +10706,10 @@
         "maintain": "Preserve the pinned upstream data, grouped layout, axis treatment, tooltip labels, card dimensions, footer, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/122-shadcn-bar-multiple/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/128-shadcn-bar-multiple/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/122-shadcn-bar-multiple/recharts.ts"
+          "path": "benchmarks/conformance/cases/128-shadcn-bar-multiple/recharts.ts"
         }
       }
     },
@@ -10718,8 +10718,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1240,
-      "id": "123-shadcn-pie-donut-text",
+      "order": 1300,
+      "id": "129-shadcn-pie-donut-text",
       "title": "shadcn pie chart – donut with text",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's donut-with-center-text example while replacing Recharts with TanStack Charts.",
@@ -10750,10 +10750,10 @@
         "maintain": "Preserve the pinned upstream browser data, donut radii, separators, center total and label, tooltip, card dimensions, footer, and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/123-shadcn-pie-donut-text/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/123-shadcn-pie-donut-text/recharts.ts"
+          "path": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/recharts.ts"
         }
       }
     },
@@ -10762,8 +10762,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1250,
-      "id": "124-shadcn-radar-multiple",
+      "order": 1310,
+      "id": "130-shadcn-radar-multiple",
       "title": "shadcn radar chart – multiple",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's multi-series radar example while replacing Recharts with TanStack Charts.",
@@ -10791,10 +10791,10 @@
         "maintain": "Preserve the pinned upstream data, polygon guide, angle labels, two filled profiles, tooltip, card dimensions, footer, and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/124-shadcn-radar-multiple/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/130-shadcn-radar-multiple/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/124-shadcn-radar-multiple/recharts.ts"
+          "path": "benchmarks/conformance/cases/130-shadcn-radar-multiple/recharts.ts"
         }
       }
     },
@@ -10803,8 +10803,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1260,
-      "id": "125-shadcn-radial-text",
+      "order": 1320,
+      "id": "131-shadcn-radial-text",
       "title": "shadcn radial chart – text",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's partial radial chart with center text while replacing Recharts with TanStack Charts.",
@@ -10835,10 +10835,10 @@
         "maintain": "Preserve the pinned upstream value, 250-degree sweep, 80/90 radii, rounded track, center text, card dimensions, footer, and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/125-shadcn-radial-text/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/131-shadcn-radial-text/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/125-shadcn-radial-text/recharts.ts"
+          "path": "benchmarks/conformance/cases/131-shadcn-radial-text/recharts.ts"
         }
       }
     },
@@ -10847,8 +10847,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1270,
-      "id": "126-shadcn-tooltip-advanced",
+      "order": 1330,
+      "id": "132-shadcn-tooltip-advanced",
       "title": "shadcn tooltip – advanced",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's stacked-bar card and custom total tooltip while replacing Recharts with TanStack Charts.",
@@ -10876,10 +10876,10 @@
         "maintain": "Preserve the pinned upstream data, stack order, weekday axis, initial focused day, 180-pixel rich tooltip, row labels, kcal units, total, card dimensions, and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/126-shadcn-tooltip-advanced/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/126-shadcn-tooltip-advanced/recharts.ts"
+          "path": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/recharts.ts"
         }
       }
     },
@@ -10888,8 +10888,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1280,
-      "id": "127-shadcn-area-axes",
+      "order": 1340,
+      "id": "133-shadcn-area-axes",
       "title": "shadcn Area Chart - Axes",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-axes example with TanStack Charts.",
@@ -10910,10 +10910,10 @@
         "maintain": "Preserve the pinned upstream data, area axes treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/127-shadcn-area-axes/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/133-shadcn-area-axes/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/127-shadcn-area-axes/recharts.ts"
+          "path": "benchmarks/conformance/cases/133-shadcn-area-axes/recharts.ts"
         }
       }
     },
@@ -10922,8 +10922,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1290,
-      "id": "128-shadcn-area-default",
+      "order": 1350,
+      "id": "134-shadcn-area-default",
       "title": "shadcn Area Chart",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-default example with TanStack Charts.",
@@ -10944,10 +10944,10 @@
         "maintain": "Preserve the pinned upstream data, area default treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/128-shadcn-area-default/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/134-shadcn-area-default/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/128-shadcn-area-default/recharts.ts"
+          "path": "benchmarks/conformance/cases/134-shadcn-area-default/recharts.ts"
         }
       }
     },
@@ -10956,8 +10956,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1300,
-      "id": "129-shadcn-area-gradient",
+      "order": 1360,
+      "id": "135-shadcn-area-gradient",
       "title": "shadcn Area Chart - Gradient",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-gradient example with TanStack Charts.",
@@ -10978,10 +10978,10 @@
         "maintain": "Preserve the pinned upstream data, area gradient treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/129-shadcn-area-gradient/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/135-shadcn-area-gradient/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/129-shadcn-area-gradient/recharts.ts"
+          "path": "benchmarks/conformance/cases/135-shadcn-area-gradient/recharts.ts"
         }
       }
     },
@@ -10990,8 +10990,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1310,
-      "id": "130-shadcn-area-icons",
+      "order": 1370,
+      "id": "136-shadcn-area-icons",
       "title": "shadcn Area Chart - Icons",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-icons example with TanStack Charts.",
@@ -11012,10 +11012,10 @@
         "maintain": "Preserve the pinned upstream data, area icons treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/130-shadcn-area-icons/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/136-shadcn-area-icons/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/130-shadcn-area-icons/recharts.ts"
+          "path": "benchmarks/conformance/cases/136-shadcn-area-icons/recharts.ts"
         }
       }
     },
@@ -11024,8 +11024,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1320,
-      "id": "131-shadcn-area-interactive",
+      "order": 1380,
+      "id": "137-shadcn-area-interactive",
       "title": "shadcn Area Chart - Interactive",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-interactive example with TanStack Charts.",
@@ -11046,10 +11046,10 @@
         "maintain": "Preserve the pinned upstream data, area interactive treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/131-shadcn-area-interactive/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/137-shadcn-area-interactive/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/131-shadcn-area-interactive/recharts.ts"
+          "path": "benchmarks/conformance/cases/137-shadcn-area-interactive/recharts.ts"
         }
       }
     },
@@ -11058,8 +11058,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1330,
-      "id": "132-shadcn-area-legend",
+      "order": 1390,
+      "id": "138-shadcn-area-legend",
       "title": "shadcn Area Chart - Legend",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-legend example with TanStack Charts.",
@@ -11080,10 +11080,10 @@
         "maintain": "Preserve the pinned upstream data, area legend treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/132-shadcn-area-legend/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/138-shadcn-area-legend/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/132-shadcn-area-legend/recharts.ts"
+          "path": "benchmarks/conformance/cases/138-shadcn-area-legend/recharts.ts"
         }
       }
     },
@@ -11092,8 +11092,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1340,
-      "id": "133-shadcn-area-linear",
+      "order": 1400,
+      "id": "139-shadcn-area-linear",
       "title": "shadcn Area Chart - Linear",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-linear example with TanStack Charts.",
@@ -11114,10 +11114,10 @@
         "maintain": "Preserve the pinned upstream data, area linear treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/133-shadcn-area-linear/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/139-shadcn-area-linear/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/133-shadcn-area-linear/recharts.ts"
+          "path": "benchmarks/conformance/cases/139-shadcn-area-linear/recharts.ts"
         }
       }
     },
@@ -11126,8 +11126,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1350,
-      "id": "134-shadcn-area-stacked-expand",
+      "order": 1410,
+      "id": "140-shadcn-area-stacked-expand",
       "title": "shadcn Area Chart - Stacked Expanded",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-stacked-expand example with TanStack Charts.",
@@ -11148,10 +11148,10 @@
         "maintain": "Preserve the pinned upstream data, area stacked expand treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/134-shadcn-area-stacked-expand/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/134-shadcn-area-stacked-expand/recharts.ts"
+          "path": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/recharts.ts"
         }
       }
     },
@@ -11160,8 +11160,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1360,
-      "id": "135-shadcn-area-stacked",
+      "order": 1420,
+      "id": "141-shadcn-area-stacked",
       "title": "shadcn Area Chart - Stacked",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-stacked example with TanStack Charts.",
@@ -11182,10 +11182,10 @@
         "maintain": "Preserve the pinned upstream data, area stacked treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/135-shadcn-area-stacked/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/141-shadcn-area-stacked/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/135-shadcn-area-stacked/recharts.ts"
+          "path": "benchmarks/conformance/cases/141-shadcn-area-stacked/recharts.ts"
         }
       }
     },
@@ -11194,8 +11194,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1370,
-      "id": "136-shadcn-area-step",
+      "order": 1430,
+      "id": "142-shadcn-area-step",
       "title": "shadcn Area Chart - Step",
       "family": "area",
       "intent": "Reproduce shadcn/ui's chart-area-step example with TanStack Charts.",
@@ -11216,10 +11216,10 @@
         "maintain": "Preserve the pinned upstream data, area step treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/136-shadcn-area-step/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/142-shadcn-area-step/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/136-shadcn-area-step/recharts.ts"
+          "path": "benchmarks/conformance/cases/142-shadcn-area-step/recharts.ts"
         }
       }
     },
@@ -11228,8 +11228,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1380,
-      "id": "137-shadcn-bar-active",
+      "order": 1440,
+      "id": "143-shadcn-bar-active",
       "title": "shadcn Bar Chart - Active",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-active example with TanStack Charts.",
@@ -11250,10 +11250,10 @@
         "maintain": "Preserve the pinned upstream data, bar active treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/137-shadcn-bar-active/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/143-shadcn-bar-active/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/137-shadcn-bar-active/recharts.ts"
+          "path": "benchmarks/conformance/cases/143-shadcn-bar-active/recharts.ts"
         }
       }
     },
@@ -11262,8 +11262,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1390,
-      "id": "138-shadcn-bar-default",
+      "order": 1450,
+      "id": "144-shadcn-bar-default",
       "title": "shadcn Bar Chart",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-default example with TanStack Charts.",
@@ -11284,10 +11284,10 @@
         "maintain": "Preserve the pinned upstream data, bar default treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/138-shadcn-bar-default/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/144-shadcn-bar-default/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/138-shadcn-bar-default/recharts.ts"
+          "path": "benchmarks/conformance/cases/144-shadcn-bar-default/recharts.ts"
         }
       }
     },
@@ -11296,8 +11296,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1400,
-      "id": "139-shadcn-bar-horizontal",
+      "order": 1460,
+      "id": "145-shadcn-bar-horizontal",
       "title": "shadcn Bar Chart - Horizontal",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-horizontal example with TanStack Charts.",
@@ -11318,10 +11318,10 @@
         "maintain": "Preserve the pinned upstream data, bar horizontal treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/139-shadcn-bar-horizontal/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/139-shadcn-bar-horizontal/recharts.ts"
+          "path": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/recharts.ts"
         }
       }
     },
@@ -11330,8 +11330,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1410,
-      "id": "140-shadcn-bar-interactive",
+      "order": 1470,
+      "id": "146-shadcn-bar-interactive",
       "title": "shadcn Bar Chart - Interactive",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-interactive example with TanStack Charts.",
@@ -11352,10 +11352,10 @@
         "maintain": "Preserve the pinned upstream data, bar interactive treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/140-shadcn-bar-interactive/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/146-shadcn-bar-interactive/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/140-shadcn-bar-interactive/recharts.ts"
+          "path": "benchmarks/conformance/cases/146-shadcn-bar-interactive/recharts.ts"
         }
       }
     },
@@ -11364,8 +11364,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1420,
-      "id": "141-shadcn-bar-label-custom",
+      "order": 1480,
+      "id": "147-shadcn-bar-label-custom",
       "title": "shadcn Bar Chart - Custom Label",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-label-custom example with TanStack Charts.",
@@ -11386,10 +11386,10 @@
         "maintain": "Preserve the pinned upstream data, bar label custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/141-shadcn-bar-label-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/141-shadcn-bar-label-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/recharts.ts"
         }
       }
     },
@@ -11398,8 +11398,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1430,
-      "id": "142-shadcn-bar-label",
+      "order": 1490,
+      "id": "148-shadcn-bar-label",
       "title": "shadcn Bar Chart - Label",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-label example with TanStack Charts.",
@@ -11420,10 +11420,10 @@
         "maintain": "Preserve the pinned upstream data, bar label treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/142-shadcn-bar-label/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/148-shadcn-bar-label/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/142-shadcn-bar-label/recharts.ts"
+          "path": "benchmarks/conformance/cases/148-shadcn-bar-label/recharts.ts"
         }
       }
     },
@@ -11432,8 +11432,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1440,
-      "id": "143-shadcn-bar-mixed",
+      "order": 1500,
+      "id": "149-shadcn-bar-mixed",
       "title": "shadcn Bar Chart - Mixed",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-mixed example with TanStack Charts.",
@@ -11454,10 +11454,10 @@
         "maintain": "Preserve the pinned upstream data, bar mixed treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/143-shadcn-bar-mixed/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/149-shadcn-bar-mixed/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/143-shadcn-bar-mixed/recharts.ts"
+          "path": "benchmarks/conformance/cases/149-shadcn-bar-mixed/recharts.ts"
         }
       }
     },
@@ -11466,8 +11466,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1450,
-      "id": "144-shadcn-bar-negative",
+      "order": 1510,
+      "id": "150-shadcn-bar-negative",
       "title": "shadcn Bar Chart - Negative",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-negative example with TanStack Charts.",
@@ -11488,10 +11488,10 @@
         "maintain": "Preserve the pinned upstream data, bar negative treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/144-shadcn-bar-negative/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/150-shadcn-bar-negative/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/144-shadcn-bar-negative/recharts.ts"
+          "path": "benchmarks/conformance/cases/150-shadcn-bar-negative/recharts.ts"
         }
       }
     },
@@ -11500,8 +11500,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1460,
-      "id": "145-shadcn-bar-stacked",
+      "order": 1520,
+      "id": "151-shadcn-bar-stacked",
       "title": "shadcn Bar Chart - Stacked + Legend",
       "family": "bar",
       "intent": "Reproduce shadcn/ui's chart-bar-stacked example with TanStack Charts.",
@@ -11522,10 +11522,10 @@
         "maintain": "Preserve the pinned upstream data, bar stacked treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/145-shadcn-bar-stacked/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/151-shadcn-bar-stacked/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/145-shadcn-bar-stacked/recharts.ts"
+          "path": "benchmarks/conformance/cases/151-shadcn-bar-stacked/recharts.ts"
         }
       }
     },
@@ -11534,8 +11534,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1470,
-      "id": "146-shadcn-line-default",
+      "order": 1530,
+      "id": "152-shadcn-line-default",
       "title": "shadcn Line Chart",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-default example with TanStack Charts.",
@@ -11556,10 +11556,10 @@
         "maintain": "Preserve the pinned upstream data, line default treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/146-shadcn-line-default/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/152-shadcn-line-default/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/146-shadcn-line-default/recharts.ts"
+          "path": "benchmarks/conformance/cases/152-shadcn-line-default/recharts.ts"
         }
       }
     },
@@ -11568,8 +11568,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1480,
-      "id": "147-shadcn-line-dots-colors",
+      "order": 1540,
+      "id": "153-shadcn-line-dots-colors",
       "title": "shadcn Line Chart - Dots Colors",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-dots-colors example with TanStack Charts.",
@@ -11590,10 +11590,10 @@
         "maintain": "Preserve the pinned upstream data, line dots colors treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/147-shadcn-line-dots-colors/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/147-shadcn-line-dots-colors/recharts.ts"
+          "path": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/recharts.ts"
         }
       }
     },
@@ -11602,8 +11602,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1490,
-      "id": "148-shadcn-line-dots-custom",
+      "order": 1550,
+      "id": "154-shadcn-line-dots-custom",
       "title": "shadcn Line Chart - Custom Dots",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-dots-custom example with TanStack Charts.",
@@ -11624,10 +11624,10 @@
         "maintain": "Preserve the pinned upstream data, line dots custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/148-shadcn-line-dots-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/148-shadcn-line-dots-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/recharts.ts"
         }
       }
     },
@@ -11636,8 +11636,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1500,
-      "id": "149-shadcn-line-dots",
+      "order": 1560,
+      "id": "155-shadcn-line-dots",
       "title": "shadcn Line Chart - Dots",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-dots example with TanStack Charts.",
@@ -11658,10 +11658,10 @@
         "maintain": "Preserve the pinned upstream data, line dots treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/149-shadcn-line-dots/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/155-shadcn-line-dots/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/149-shadcn-line-dots/recharts.ts"
+          "path": "benchmarks/conformance/cases/155-shadcn-line-dots/recharts.ts"
         }
       }
     },
@@ -11670,8 +11670,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1510,
-      "id": "150-shadcn-line-interactive",
+      "order": 1570,
+      "id": "156-shadcn-line-interactive",
       "title": "shadcn Line Chart - Interactive",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-interactive example with TanStack Charts.",
@@ -11692,10 +11692,10 @@
         "maintain": "Preserve the pinned upstream data, line interactive treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/150-shadcn-line-interactive/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/156-shadcn-line-interactive/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/150-shadcn-line-interactive/recharts.ts"
+          "path": "benchmarks/conformance/cases/156-shadcn-line-interactive/recharts.ts"
         }
       }
     },
@@ -11704,8 +11704,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1520,
-      "id": "151-shadcn-line-label-custom",
+      "order": 1580,
+      "id": "157-shadcn-line-label-custom",
       "title": "shadcn Line Chart - Custom Label",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-label-custom example with TanStack Charts.",
@@ -11726,10 +11726,10 @@
         "maintain": "Preserve the pinned upstream data, line label custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/151-shadcn-line-label-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/157-shadcn-line-label-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/151-shadcn-line-label-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/157-shadcn-line-label-custom/recharts.ts"
         }
       }
     },
@@ -11738,8 +11738,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1530,
-      "id": "152-shadcn-line-label",
+      "order": 1590,
+      "id": "158-shadcn-line-label",
       "title": "shadcn Line Chart - Label",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-label example with TanStack Charts.",
@@ -11760,10 +11760,10 @@
         "maintain": "Preserve the pinned upstream data, line label treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/152-shadcn-line-label/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/158-shadcn-line-label/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/152-shadcn-line-label/recharts.ts"
+          "path": "benchmarks/conformance/cases/158-shadcn-line-label/recharts.ts"
         }
       }
     },
@@ -11772,8 +11772,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1540,
-      "id": "153-shadcn-line-linear",
+      "order": 1600,
+      "id": "159-shadcn-line-linear",
       "title": "shadcn Line Chart - Linear",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-linear example with TanStack Charts.",
@@ -11794,10 +11794,10 @@
         "maintain": "Preserve the pinned upstream data, line linear treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/153-shadcn-line-linear/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/159-shadcn-line-linear/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/153-shadcn-line-linear/recharts.ts"
+          "path": "benchmarks/conformance/cases/159-shadcn-line-linear/recharts.ts"
         }
       }
     },
@@ -11806,8 +11806,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1550,
-      "id": "154-shadcn-line-multiple",
+      "order": 1610,
+      "id": "160-shadcn-line-multiple",
       "title": "shadcn Line Chart - Multiple",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-multiple example with TanStack Charts.",
@@ -11828,10 +11828,10 @@
         "maintain": "Preserve the pinned upstream data, line multiple treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/154-shadcn-line-multiple/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/160-shadcn-line-multiple/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/154-shadcn-line-multiple/recharts.ts"
+          "path": "benchmarks/conformance/cases/160-shadcn-line-multiple/recharts.ts"
         }
       }
     },
@@ -11840,8 +11840,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1560,
-      "id": "155-shadcn-line-step",
+      "order": 1620,
+      "id": "161-shadcn-line-step",
       "title": "shadcn Line Chart - Step",
       "family": "line",
       "intent": "Reproduce shadcn/ui's chart-line-step example with TanStack Charts.",
@@ -11862,10 +11862,10 @@
         "maintain": "Preserve the pinned upstream data, line step treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/155-shadcn-line-step/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/161-shadcn-line-step/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/155-shadcn-line-step/recharts.ts"
+          "path": "benchmarks/conformance/cases/161-shadcn-line-step/recharts.ts"
         }
       }
     },
@@ -11874,8 +11874,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1570,
-      "id": "156-shadcn-pie-donut-active",
+      "order": 1630,
+      "id": "162-shadcn-pie-donut-active",
       "title": "shadcn Pie Chart - Donut Active",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-donut-active example with TanStack Charts.",
@@ -11896,10 +11896,10 @@
         "maintain": "Preserve the pinned upstream data, pie donut active treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/156-shadcn-pie-donut-active/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/156-shadcn-pie-donut-active/recharts.ts"
+          "path": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/recharts.ts"
         }
       }
     },
@@ -11908,8 +11908,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1580,
-      "id": "157-shadcn-pie-donut",
+      "order": 1640,
+      "id": "163-shadcn-pie-donut",
       "title": "shadcn Pie Chart - Donut",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-donut example with TanStack Charts.",
@@ -11930,10 +11930,10 @@
         "maintain": "Preserve the pinned upstream data, pie donut treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/157-shadcn-pie-donut/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/163-shadcn-pie-donut/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/157-shadcn-pie-donut/recharts.ts"
+          "path": "benchmarks/conformance/cases/163-shadcn-pie-donut/recharts.ts"
         }
       }
     },
@@ -11942,8 +11942,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1590,
-      "id": "158-shadcn-pie-interactive",
+      "order": 1650,
+      "id": "164-shadcn-pie-interactive",
       "title": "shadcn Pie Chart - Interactive",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-interactive example with TanStack Charts.",
@@ -11964,10 +11964,10 @@
         "maintain": "Preserve the pinned upstream data, pie interactive treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/158-shadcn-pie-interactive/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/164-shadcn-pie-interactive/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/158-shadcn-pie-interactive/recharts.ts"
+          "path": "benchmarks/conformance/cases/164-shadcn-pie-interactive/recharts.ts"
         }
       }
     },
@@ -11976,8 +11976,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1600,
-      "id": "159-shadcn-pie-label-custom",
+      "order": 1660,
+      "id": "165-shadcn-pie-label-custom",
       "title": "shadcn Pie Chart - Custom Label",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-label-custom example with TanStack Charts.",
@@ -11998,10 +11998,10 @@
         "maintain": "Preserve the pinned upstream data, pie label custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/159-shadcn-pie-label-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/159-shadcn-pie-label-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/recharts.ts"
         }
       }
     },
@@ -12010,8 +12010,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1610,
-      "id": "160-shadcn-pie-label-list",
+      "order": 1670,
+      "id": "166-shadcn-pie-label-list",
       "title": "shadcn Pie Chart - Label List",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-label-list example with TanStack Charts.",
@@ -12032,10 +12032,10 @@
         "maintain": "Preserve the pinned upstream data, pie label list treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/160-shadcn-pie-label-list/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/166-shadcn-pie-label-list/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/160-shadcn-pie-label-list/recharts.ts"
+          "path": "benchmarks/conformance/cases/166-shadcn-pie-label-list/recharts.ts"
         }
       }
     },
@@ -12044,8 +12044,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1620,
-      "id": "161-shadcn-pie-label",
+      "order": 1680,
+      "id": "167-shadcn-pie-label",
       "title": "shadcn Pie Chart - Label",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-label example with TanStack Charts.",
@@ -12066,10 +12066,10 @@
         "maintain": "Preserve the pinned upstream data, pie label treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/161-shadcn-pie-label/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/167-shadcn-pie-label/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/161-shadcn-pie-label/recharts.ts"
+          "path": "benchmarks/conformance/cases/167-shadcn-pie-label/recharts.ts"
         }
       }
     },
@@ -12078,8 +12078,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1630,
-      "id": "162-shadcn-pie-legend",
+      "order": 1690,
+      "id": "168-shadcn-pie-legend",
       "title": "shadcn Pie Chart - Legend",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-legend example with TanStack Charts.",
@@ -12100,10 +12100,10 @@
         "maintain": "Preserve the pinned upstream data, pie legend treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/162-shadcn-pie-legend/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/168-shadcn-pie-legend/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/162-shadcn-pie-legend/recharts.ts"
+          "path": "benchmarks/conformance/cases/168-shadcn-pie-legend/recharts.ts"
         }
       }
     },
@@ -12112,8 +12112,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1640,
-      "id": "163-shadcn-pie-separator-none",
+      "order": 1700,
+      "id": "169-shadcn-pie-separator-none",
       "title": "shadcn Pie Chart - Separator None",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-separator-none example with TanStack Charts.",
@@ -12134,10 +12134,10 @@
         "maintain": "Preserve the pinned upstream data, pie separator none treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/163-shadcn-pie-separator-none/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/163-shadcn-pie-separator-none/recharts.ts"
+          "path": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/recharts.ts"
         }
       }
     },
@@ -12146,8 +12146,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1650,
-      "id": "164-shadcn-pie-simple",
+      "order": 1710,
+      "id": "170-shadcn-pie-simple",
       "title": "shadcn Pie Chart",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-simple example with TanStack Charts.",
@@ -12168,10 +12168,10 @@
         "maintain": "Preserve the pinned upstream data, pie simple treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/164-shadcn-pie-simple/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/170-shadcn-pie-simple/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/164-shadcn-pie-simple/recharts.ts"
+          "path": "benchmarks/conformance/cases/170-shadcn-pie-simple/recharts.ts"
         }
       }
     },
@@ -12180,8 +12180,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1660,
-      "id": "165-shadcn-pie-stacked",
+      "order": 1720,
+      "id": "171-shadcn-pie-stacked",
       "title": "shadcn Pie Chart - Stacked",
       "family": "pie",
       "intent": "Reproduce shadcn/ui's chart-pie-stacked example with TanStack Charts.",
@@ -12202,10 +12202,10 @@
         "maintain": "Preserve the pinned upstream data, pie stacked treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/165-shadcn-pie-stacked/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/171-shadcn-pie-stacked/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/165-shadcn-pie-stacked/recharts.ts"
+          "path": "benchmarks/conformance/cases/171-shadcn-pie-stacked/recharts.ts"
         }
       }
     },
@@ -12214,8 +12214,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1670,
-      "id": "166-shadcn-radar-default",
+      "order": 1730,
+      "id": "172-shadcn-radar-default",
       "title": "shadcn Radar Chart",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-default example with TanStack Charts.",
@@ -12236,10 +12236,10 @@
         "maintain": "Preserve the pinned upstream data, radar default treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/166-shadcn-radar-default/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/172-shadcn-radar-default/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/166-shadcn-radar-default/recharts.ts"
+          "path": "benchmarks/conformance/cases/172-shadcn-radar-default/recharts.ts"
         }
       }
     },
@@ -12248,8 +12248,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1680,
-      "id": "167-shadcn-radar-dots",
+      "order": 1740,
+      "id": "173-shadcn-radar-dots",
       "title": "shadcn Radar Chart - Dots",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-dots example with TanStack Charts.",
@@ -12270,10 +12270,10 @@
         "maintain": "Preserve the pinned upstream data, radar dots treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/167-shadcn-radar-dots/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/173-shadcn-radar-dots/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/167-shadcn-radar-dots/recharts.ts"
+          "path": "benchmarks/conformance/cases/173-shadcn-radar-dots/recharts.ts"
         }
       }
     },
@@ -12282,8 +12282,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1690,
-      "id": "168-shadcn-radar-grid-circle-fill",
+      "order": 1750,
+      "id": "174-shadcn-radar-grid-circle-fill",
       "title": "shadcn Radar Chart - Grid Circle Filled",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-fill example with TanStack Charts.",
@@ -12304,10 +12304,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid circle fill treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/168-shadcn-radar-grid-circle-fill/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/168-shadcn-radar-grid-circle-fill/recharts.ts"
+          "path": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/recharts.ts"
         }
       }
     },
@@ -12316,8 +12316,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1700,
-      "id": "169-shadcn-radar-grid-circle-no-lines",
+      "order": 1760,
+      "id": "175-shadcn-radar-grid-circle-no-lines",
       "title": "shadcn Radar Chart - Grid Circle - No lines",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-no-lines example with TanStack Charts.",
@@ -12338,10 +12338,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid circle no lines treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/169-shadcn-radar-grid-circle-no-lines/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/169-shadcn-radar-grid-circle-no-lines/recharts.ts"
+          "path": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/recharts.ts"
         }
       }
     },
@@ -12350,8 +12350,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1710,
-      "id": "170-shadcn-radar-grid-circle",
+      "order": 1770,
+      "id": "176-shadcn-radar-grid-circle",
       "title": "shadcn Radar Chart - Grid Circle",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-circle example with TanStack Charts.",
@@ -12372,10 +12372,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid circle treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/170-shadcn-radar-grid-circle/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/170-shadcn-radar-grid-circle/recharts.ts"
+          "path": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/recharts.ts"
         }
       }
     },
@@ -12384,8 +12384,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1720,
-      "id": "171-shadcn-radar-grid-custom",
+      "order": 1780,
+      "id": "177-shadcn-radar-grid-custom",
       "title": "shadcn Radar Chart - Grid Custom",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-custom example with TanStack Charts.",
@@ -12406,10 +12406,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/171-shadcn-radar-grid-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/171-shadcn-radar-grid-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/recharts.ts"
         }
       }
     },
@@ -12418,8 +12418,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1730,
-      "id": "172-shadcn-radar-grid-fill",
+      "order": 1790,
+      "id": "178-shadcn-radar-grid-fill",
       "title": "shadcn Radar Chart - Grid Filled",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-fill example with TanStack Charts.",
@@ -12440,10 +12440,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid fill treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/172-shadcn-radar-grid-fill/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/172-shadcn-radar-grid-fill/recharts.ts"
+          "path": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/recharts.ts"
         }
       }
     },
@@ -12452,8 +12452,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1740,
-      "id": "173-shadcn-radar-grid-none",
+      "order": 1800,
+      "id": "179-shadcn-radar-grid-none",
       "title": "shadcn Radar Chart - Grid None",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-grid-none example with TanStack Charts.",
@@ -12474,10 +12474,10 @@
         "maintain": "Preserve the pinned upstream data, radar grid none treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/173-shadcn-radar-grid-none/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/173-shadcn-radar-grid-none/recharts.ts"
+          "path": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/recharts.ts"
         }
       }
     },
@@ -12486,8 +12486,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1750,
-      "id": "174-shadcn-radar-icons",
+      "order": 1810,
+      "id": "180-shadcn-radar-icons",
       "title": "shadcn Radar Chart - Icons",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-icons example with TanStack Charts.",
@@ -12508,10 +12508,10 @@
         "maintain": "Preserve the pinned upstream data, radar icons treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/174-shadcn-radar-icons/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/180-shadcn-radar-icons/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/174-shadcn-radar-icons/recharts.ts"
+          "path": "benchmarks/conformance/cases/180-shadcn-radar-icons/recharts.ts"
         }
       }
     },
@@ -12520,8 +12520,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1760,
-      "id": "175-shadcn-radar-label-custom",
+      "order": 1820,
+      "id": "181-shadcn-radar-label-custom",
       "title": "shadcn Radar Chart - Custom Label",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-label-custom example with TanStack Charts.",
@@ -12542,10 +12542,10 @@
         "maintain": "Preserve the pinned upstream data, radar label custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/175-shadcn-radar-label-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/175-shadcn-radar-label-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/recharts.ts"
         }
       }
     },
@@ -12554,8 +12554,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1770,
-      "id": "176-shadcn-radar-legend",
+      "order": 1830,
+      "id": "182-shadcn-radar-legend",
       "title": "shadcn Radar Chart - Legend",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-legend example with TanStack Charts.",
@@ -12576,10 +12576,10 @@
         "maintain": "Preserve the pinned upstream data, radar legend treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/176-shadcn-radar-legend/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/182-shadcn-radar-legend/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/176-shadcn-radar-legend/recharts.ts"
+          "path": "benchmarks/conformance/cases/182-shadcn-radar-legend/recharts.ts"
         }
       }
     },
@@ -12588,8 +12588,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1780,
-      "id": "177-shadcn-radar-lines-only",
+      "order": 1840,
+      "id": "183-shadcn-radar-lines-only",
       "title": "shadcn Radar Chart - Lines Only",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-lines-only example with TanStack Charts.",
@@ -12610,10 +12610,10 @@
         "maintain": "Preserve the pinned upstream data, radar lines only treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/177-shadcn-radar-lines-only/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/177-shadcn-radar-lines-only/recharts.ts"
+          "path": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/recharts.ts"
         }
       }
     },
@@ -12622,8 +12622,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1790,
-      "id": "178-shadcn-radar-radius",
+      "order": 1850,
+      "id": "184-shadcn-radar-radius",
       "title": "shadcn Radar Chart - Radius Axis",
       "family": "radar",
       "intent": "Reproduce shadcn/ui's chart-radar-radius example with TanStack Charts.",
@@ -12644,10 +12644,10 @@
         "maintain": "Preserve the pinned upstream data, radar radius treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/178-shadcn-radar-radius/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/184-shadcn-radar-radius/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/178-shadcn-radar-radius/recharts.ts"
+          "path": "benchmarks/conformance/cases/184-shadcn-radar-radius/recharts.ts"
         }
       }
     },
@@ -12656,8 +12656,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1800,
-      "id": "179-shadcn-radial-grid",
+      "order": 1860,
+      "id": "185-shadcn-radial-grid",
       "title": "shadcn Radial Chart - Grid",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's chart-radial-grid example with TanStack Charts.",
@@ -12682,10 +12682,10 @@
         "maintain": "Preserve the pinned upstream data, radial grid treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/179-shadcn-radial-grid/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/185-shadcn-radial-grid/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/179-shadcn-radial-grid/recharts.ts"
+          "path": "benchmarks/conformance/cases/185-shadcn-radial-grid/recharts.ts"
         }
       }
     },
@@ -12694,8 +12694,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1810,
-      "id": "180-shadcn-radial-label",
+      "order": 1870,
+      "id": "186-shadcn-radial-label",
       "title": "shadcn Radial Chart - Label",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's chart-radial-label example with TanStack Charts.",
@@ -12720,10 +12720,10 @@
         "maintain": "Preserve the pinned upstream data, radial label treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/180-shadcn-radial-label/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/186-shadcn-radial-label/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/180-shadcn-radial-label/recharts.ts"
+          "path": "benchmarks/conformance/cases/186-shadcn-radial-label/recharts.ts"
         }
       }
     },
@@ -12732,8 +12732,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1820,
-      "id": "181-shadcn-radial-shape",
+      "order": 1880,
+      "id": "187-shadcn-radial-shape",
       "title": "shadcn Radial Chart - Shape",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's chart-radial-shape example with TanStack Charts.",
@@ -12758,10 +12758,10 @@
         "maintain": "Preserve the pinned upstream data, radial shape treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/181-shadcn-radial-shape/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/187-shadcn-radial-shape/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/181-shadcn-radial-shape/recharts.ts"
+          "path": "benchmarks/conformance/cases/187-shadcn-radial-shape/recharts.ts"
         }
       }
     },
@@ -12770,8 +12770,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1830,
-      "id": "182-shadcn-radial-simple",
+      "order": 1890,
+      "id": "188-shadcn-radial-simple",
       "title": "shadcn Radial Chart",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's chart-radial-simple example with TanStack Charts.",
@@ -12796,10 +12796,10 @@
         "maintain": "Preserve the pinned upstream data, radial simple treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/182-shadcn-radial-simple/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/188-shadcn-radial-simple/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/182-shadcn-radial-simple/recharts.ts"
+          "path": "benchmarks/conformance/cases/188-shadcn-radial-simple/recharts.ts"
         }
       }
     },
@@ -12808,8 +12808,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1840,
-      "id": "183-shadcn-radial-stacked",
+      "order": 1900,
+      "id": "189-shadcn-radial-stacked",
       "title": "shadcn Radial Chart - Stacked",
       "family": "radial",
       "intent": "Reproduce shadcn/ui's chart-radial-stacked example with TanStack Charts.",
@@ -12834,10 +12834,10 @@
         "maintain": "Preserve the pinned upstream data, radial stacked treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/183-shadcn-radial-stacked/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/189-shadcn-radial-stacked/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/183-shadcn-radial-stacked/recharts.ts"
+          "path": "benchmarks/conformance/cases/189-shadcn-radial-stacked/recharts.ts"
         }
       }
     },
@@ -12846,8 +12846,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1850,
-      "id": "184-shadcn-tooltip-default",
+      "order": 1910,
+      "id": "190-shadcn-tooltip-default",
       "title": "shadcn Tooltip - Default",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-default example with TanStack Charts.",
@@ -12868,10 +12868,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip default treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/184-shadcn-tooltip-default/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/190-shadcn-tooltip-default/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/184-shadcn-tooltip-default/recharts.ts"
+          "path": "benchmarks/conformance/cases/190-shadcn-tooltip-default/recharts.ts"
         }
       }
     },
@@ -12880,8 +12880,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1860,
-      "id": "185-shadcn-tooltip-formatter",
+      "order": 1920,
+      "id": "191-shadcn-tooltip-formatter",
       "title": "shadcn Tooltip - Formatter",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-formatter example with TanStack Charts.",
@@ -12902,10 +12902,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip formatter treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/185-shadcn-tooltip-formatter/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/185-shadcn-tooltip-formatter/recharts.ts"
+          "path": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/recharts.ts"
         }
       }
     },
@@ -12914,8 +12914,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1870,
-      "id": "186-shadcn-tooltip-icons",
+      "order": 1930,
+      "id": "192-shadcn-tooltip-icons",
       "title": "shadcn Tooltip - Icons",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-icons example with TanStack Charts.",
@@ -12936,10 +12936,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip icons treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/186-shadcn-tooltip-icons/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/186-shadcn-tooltip-icons/recharts.ts"
+          "path": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/recharts.ts"
         }
       }
     },
@@ -12948,8 +12948,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1880,
-      "id": "187-shadcn-tooltip-indicator-line",
+      "order": 1940,
+      "id": "193-shadcn-tooltip-indicator-line",
       "title": "shadcn Tooltip - Line Indicator",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-line example with TanStack Charts.",
@@ -12970,10 +12970,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip indicator line treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/187-shadcn-tooltip-indicator-line/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/187-shadcn-tooltip-indicator-line/recharts.ts"
+          "path": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/recharts.ts"
         }
       }
     },
@@ -12982,8 +12982,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1890,
-      "id": "188-shadcn-tooltip-indicator-none",
+      "order": 1950,
+      "id": "194-shadcn-tooltip-indicator-none",
       "title": "shadcn Tooltip - No Indicator",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-none example with TanStack Charts.",
@@ -13004,10 +13004,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip indicator none treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/188-shadcn-tooltip-indicator-none/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/188-shadcn-tooltip-indicator-none/recharts.ts"
+          "path": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/recharts.ts"
         }
       }
     },
@@ -13016,8 +13016,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1900,
-      "id": "189-shadcn-tooltip-label-custom",
+      "order": 1960,
+      "id": "195-shadcn-tooltip-label-custom",
       "title": "shadcn Tooltip - Custom label",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-label-custom example with TanStack Charts.",
@@ -13038,10 +13038,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip label custom treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/189-shadcn-tooltip-label-custom/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/189-shadcn-tooltip-label-custom/recharts.ts"
+          "path": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/recharts.ts"
         }
       }
     },
@@ -13050,8 +13050,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1910,
-      "id": "190-shadcn-tooltip-label-formatter",
+      "order": 1970,
+      "id": "196-shadcn-tooltip-label-formatter",
       "title": "shadcn Tooltip - Label Formatter",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-label-formatter example with TanStack Charts.",
@@ -13072,10 +13072,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip label formatter treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/190-shadcn-tooltip-label-formatter/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/190-shadcn-tooltip-label-formatter/recharts.ts"
+          "path": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/recharts.ts"
         }
       }
     },
@@ -13084,8 +13084,8 @@
       "referenceRenderer": "recharts",
       "collections": ["shadcn"],
       "height": 600,
-      "order": 1920,
-      "id": "191-shadcn-tooltip-label-none",
+      "order": 1980,
+      "id": "197-shadcn-tooltip-label-none",
       "title": "shadcn Tooltip - No Label",
       "family": "tooltip",
       "intent": "Reproduce shadcn/ui's chart-tooltip-label-none example with TanStack Charts.",
@@ -13106,10 +13106,10 @@
         "maintain": "Preserve the pinned upstream data, tooltip label none treatment, card dimensions, and light and dark tokens."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/191-shadcn-tooltip-label-none/tanstack.ts",
+        "tanstack": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/tanstack.ts",
         "reference": {
           "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/191-shadcn-tooltip-label-none/recharts.ts"
+          "path": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/recharts.ts"
         }
       }
     }

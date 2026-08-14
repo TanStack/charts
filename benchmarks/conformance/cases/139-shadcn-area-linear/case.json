@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1400,
+  "id": "139-shadcn-area-linear",
+  "title": "shadcn Area Chart - Linear",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-linear example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "linear", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-linear",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-linear"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-linear card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area linear treatment, card dimensions, and light and dark tokens."
+  }
+}

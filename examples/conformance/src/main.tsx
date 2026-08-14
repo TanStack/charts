@@ -138,11 +138,7 @@ function CatalogApp() {
 
   if (route.view === 'collection') {
     return route.collectionId === 'shadcn' ? (
-      <ShadcnCollectionPage
-        dark={dark}
-        link={link}
-        setDark={setDark}
-      />
+      <ShadcnCollectionPage dark={dark} link={link} setDark={setDark} />
     ) : (
       <NotFound link={link} />
     )
@@ -189,8 +185,8 @@ function ShadcnCollectionPage({
   const [copied, setCopied] = useState(false)
   const collectionFamilies = useMemo(
     () =>
-      [...new Set(allEntries.map((entry) => entry.family))].sort((left, right) =>
-        left.localeCompare(right),
+      [...new Set(allEntries.map((entry) => entry.family))].sort(
+        (left, right) => left.localeCompare(right),
       ),
     [allEntries],
   )
@@ -917,19 +913,13 @@ function RendererPanel({
         <output>{metric}</output>
       </header>
       {state === 'gap' ? (
-        <div
-          className="chart"
-          style={{ width: chartWidth, minHeight: height }}
-        >
+        <div className="chart" style={{ width: chartWidth, minHeight: height }}>
           <p className="gap">
             Not implemented. This is a recorded capability gap.
           </p>
         </div>
       ) : state === 'error' ? (
-        <div
-          className="chart"
-          style={{ width: chartWidth, minHeight: height }}
-        >
+        <div className="chart" style={{ width: chartWidth, minHeight: height }}>
           <p className="gap">{error}</p>
         </div>
       ) : (

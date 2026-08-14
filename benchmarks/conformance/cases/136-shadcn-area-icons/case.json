@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1370,
+  "id": "136-shadcn-area-icons",
+  "title": "shadcn Area Chart - Icons",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-icons example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "icons", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-icons",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-icons"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-icons card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area icons treatment, card dimensions, and light and dark tokens."
+  }
+}

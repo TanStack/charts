@@ -25,5 +25,5 @@ original spike cases remain standalone parity fixtures.
 Run any reviewed family slice through the quick parity profile with:
 
 ```sh
-pnpm conformance:quick -- --case=122-shadcn-bar-multiple,123-shadcn-pie-donut-text,124-shadcn-radar-multiple,125-shadcn-radial-text,126-shadcn-tooltip-advanced
+pnpm conformance:quick -- --case=128-shadcn-bar-multiple,129-shadcn-pie-donut-text,130-shadcn-radar-multiple,131-shadcn-radial-text,132-shadcn-tooltip-advanced
 ```

@@ -13,490 +13,490 @@
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-axes.tsx",
       "blobSha": "ee429429fbb7a8afeb411a386140e6406e08e06d",
-      "localCaseId": "127-shadcn-area-axes"
+      "localCaseId": "133-shadcn-area-axes"
     },
     {
       "name": "chart-area-default",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-default.tsx",
       "blobSha": "3dfbcd3fc3c2f6861f4bb4211155710fec609b50",
-      "localCaseId": "128-shadcn-area-default"
+      "localCaseId": "134-shadcn-area-default"
     },
     {
       "name": "chart-area-gradient",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-gradient.tsx",
       "blobSha": "648355c436faf0f3bb62d8954b5567a11b80424d",
-      "localCaseId": "129-shadcn-area-gradient"
+      "localCaseId": "135-shadcn-area-gradient"
     },
     {
       "name": "chart-area-icons",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-icons.tsx",
       "blobSha": "295160e905f7fc05fcf138b9cc88efcc806574b2",
-      "localCaseId": "130-shadcn-area-icons"
+      "localCaseId": "136-shadcn-area-icons"
     },
     {
       "name": "chart-area-interactive",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-interactive.tsx",
       "blobSha": "8f6e69d40971e901b8b0d28b31a3dcf8580ac907",
-      "localCaseId": "131-shadcn-area-interactive"
+      "localCaseId": "137-shadcn-area-interactive"
     },
     {
       "name": "chart-area-legend",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-legend.tsx",
       "blobSha": "eddd6c255019fed830a3d58582afff55fcff7664",
-      "localCaseId": "132-shadcn-area-legend"
+      "localCaseId": "138-shadcn-area-legend"
     },
     {
       "name": "chart-area-linear",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-linear.tsx",
       "blobSha": "5e2a36507de6c607f8c5639be11d0ea1179a5e2c",
-      "localCaseId": "133-shadcn-area-linear"
+      "localCaseId": "139-shadcn-area-linear"
     },
     {
       "name": "chart-area-stacked-expand",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-stacked-expand.tsx",
       "blobSha": "95a7851529d85cb9a7c171a1a56167752c54c2b1",
-      "localCaseId": "134-shadcn-area-stacked-expand"
+      "localCaseId": "140-shadcn-area-stacked-expand"
     },
     {
       "name": "chart-area-stacked",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-stacked.tsx",
       "blobSha": "92dc3edd1417e0d6c1d99d5502414995f1060ad9",
-      "localCaseId": "135-shadcn-area-stacked"
+      "localCaseId": "141-shadcn-area-stacked"
     },
     {
       "name": "chart-area-step",
       "family": "area",
       "path": "apps/v4/registry/new-york-v4/charts/chart-area-step.tsx",
       "blobSha": "2c2dd581772d355c962924a00fd130a8c9b92a04",
-      "localCaseId": "136-shadcn-area-step"
+      "localCaseId": "142-shadcn-area-step"
     },
     {
       "name": "chart-bar-active",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-active.tsx",
       "blobSha": "f76c5812e5e4f1beb32a2ec3fd51cafdcaa67870",
-      "localCaseId": "137-shadcn-bar-active"
+      "localCaseId": "143-shadcn-bar-active"
     },
     {
       "name": "chart-bar-default",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-default.tsx",
       "blobSha": "dc921b04f9f34bede4a58dae8e308b582b9d6c4a",
-      "localCaseId": "138-shadcn-bar-default"
+      "localCaseId": "144-shadcn-bar-default"
     },
     {
       "name": "chart-bar-horizontal",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-horizontal.tsx",
       "blobSha": "2016a9785c6da00c39e86bdd014dc6d4f0c48d70",
-      "localCaseId": "139-shadcn-bar-horizontal"
+      "localCaseId": "145-shadcn-bar-horizontal"
     },
     {
       "name": "chart-bar-interactive",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-interactive.tsx",
       "blobSha": "124e381442e7872f5b49b75afcbfff09484f747f",
-      "localCaseId": "140-shadcn-bar-interactive"
+      "localCaseId": "146-shadcn-bar-interactive"
     },
     {
       "name": "chart-bar-label-custom",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-label-custom.tsx",
       "blobSha": "bde2b2bfd8c5830824a2326ed44d3eac9af16101",
-      "localCaseId": "141-shadcn-bar-label-custom"
+      "localCaseId": "147-shadcn-bar-label-custom"
     },
     {
       "name": "chart-bar-label",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-label.tsx",
       "blobSha": "390e1b03282fdbb51e86f1f19827290441bc8dce",
-      "localCaseId": "142-shadcn-bar-label"
+      "localCaseId": "148-shadcn-bar-label"
     },
     {
       "name": "chart-bar-mixed",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-mixed.tsx",
       "blobSha": "bac07d75f0ac98f892ab4618471e085a2b1f1512",
-      "localCaseId": "143-shadcn-bar-mixed"
+      "localCaseId": "149-shadcn-bar-mixed"
     },
     {
       "name": "chart-bar-multiple",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-multiple.tsx",
       "blobSha": "99b894f293093e1a88bab71ed1f3d5097d0e205c",
-      "localCaseId": "122-shadcn-bar-multiple"
+      "localCaseId": "128-shadcn-bar-multiple"
     },
     {
       "name": "chart-bar-negative",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-negative.tsx",
       "blobSha": "982bccdb9cd4ebb5010a10cbfd43bfff876dd94c",
-      "localCaseId": "144-shadcn-bar-negative"
+      "localCaseId": "150-shadcn-bar-negative"
     },
     {
       "name": "chart-bar-stacked",
       "family": "bar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-bar-stacked.tsx",
       "blobSha": "99ceda588e9b49e54f9c5e41c267314cc73d6dce",
-      "localCaseId": "145-shadcn-bar-stacked"
+      "localCaseId": "151-shadcn-bar-stacked"
     },
     {
       "name": "chart-line-default",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-default.tsx",
       "blobSha": "669ebf5022ac06d94a016b84dc4706d27d19595f",
-      "localCaseId": "146-shadcn-line-default"
+      "localCaseId": "152-shadcn-line-default"
     },
     {
       "name": "chart-line-dots-colors",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-dots-colors.tsx",
       "blobSha": "451c24fd34f9ccac3da83e2fb2c24eeefaa0aead",
-      "localCaseId": "147-shadcn-line-dots-colors"
+      "localCaseId": "153-shadcn-line-dots-colors"
     },
     {
       "name": "chart-line-dots-custom",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-dots-custom.tsx",
       "blobSha": "355f23a1071b60c8c4563320e79e9f30ff36ec3d",
-      "localCaseId": "148-shadcn-line-dots-custom"
+      "localCaseId": "154-shadcn-line-dots-custom"
     },
     {
       "name": "chart-line-dots",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-dots.tsx",
       "blobSha": "0d1df7b6e6ef141f599848faa14b0e2f342a21a3",
-      "localCaseId": "149-shadcn-line-dots"
+      "localCaseId": "155-shadcn-line-dots"
     },
     {
       "name": "chart-line-interactive",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-interactive.tsx",
       "blobSha": "3feeb25b0d4452fb35e57299997b6e089e671460",
-      "localCaseId": "150-shadcn-line-interactive"
+      "localCaseId": "156-shadcn-line-interactive"
     },
     {
       "name": "chart-line-label-custom",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-label-custom.tsx",
       "blobSha": "14aaa7f92af490d14ab6e4e36c112ed949c805b4",
-      "localCaseId": "151-shadcn-line-label-custom"
+      "localCaseId": "157-shadcn-line-label-custom"
     },
     {
       "name": "chart-line-label",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-label.tsx",
       "blobSha": "7a333fc3a29b097f9918e7a5ead51a81073fe800",
-      "localCaseId": "152-shadcn-line-label"
+      "localCaseId": "158-shadcn-line-label"
     },
     {
       "name": "chart-line-linear",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-linear.tsx",
       "blobSha": "e0c2d34ac8328611c6d572b19043ce95ca00f64d",
-      "localCaseId": "153-shadcn-line-linear"
+      "localCaseId": "159-shadcn-line-linear"
     },
     {
       "name": "chart-line-multiple",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-multiple.tsx",
       "blobSha": "fb162420976cc77ce7a7fa3e36b7fdf63a9ab18e",
-      "localCaseId": "154-shadcn-line-multiple"
+      "localCaseId": "160-shadcn-line-multiple"
     },
     {
       "name": "chart-line-step",
       "family": "line",
       "path": "apps/v4/registry/new-york-v4/charts/chart-line-step.tsx",
       "blobSha": "5dce7fcbbcbc32f34441e3793bdbe152d91e45f7",
-      "localCaseId": "155-shadcn-line-step"
+      "localCaseId": "161-shadcn-line-step"
     },
     {
       "name": "chart-pie-donut-active",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-donut-active.tsx",
       "blobSha": "b2e41b5ebbd9fe392435e1f3417aecf2df35ae8b",
-      "localCaseId": "156-shadcn-pie-donut-active"
+      "localCaseId": "162-shadcn-pie-donut-active"
     },
     {
       "name": "chart-pie-donut-text",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-donut-text.tsx",
       "blobSha": "c7e3d834954dbee3af6a33eac6a8cf74b333350f",
-      "localCaseId": "123-shadcn-pie-donut-text"
+      "localCaseId": "129-shadcn-pie-donut-text"
     },
     {
       "name": "chart-pie-donut",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-donut.tsx",
       "blobSha": "c4ca8674ee42a22e9572fa385318cb4b42da2fac",
-      "localCaseId": "157-shadcn-pie-donut"
+      "localCaseId": "163-shadcn-pie-donut"
     },
     {
       "name": "chart-pie-interactive",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-interactive.tsx",
       "blobSha": "dfe17b688b3dd35a36ccda5435966b9f4160c128",
-      "localCaseId": "158-shadcn-pie-interactive"
+      "localCaseId": "164-shadcn-pie-interactive"
     },
     {
       "name": "chart-pie-label-custom",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-label-custom.tsx",
       "blobSha": "465c78c2a8d83f4c924433db265f524bb4962a6e",
-      "localCaseId": "159-shadcn-pie-label-custom"
+      "localCaseId": "165-shadcn-pie-label-custom"
     },
     {
       "name": "chart-pie-label-list",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-label-list.tsx",
       "blobSha": "ff179593352b9f541743e50eb8303fcf92320913",
-      "localCaseId": "160-shadcn-pie-label-list"
+      "localCaseId": "166-shadcn-pie-label-list"
     },
     {
       "name": "chart-pie-label",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-label.tsx",
       "blobSha": "3257c585110fb58deb95c4d5d61fe15c5ec3bde5",
-      "localCaseId": "161-shadcn-pie-label"
+      "localCaseId": "167-shadcn-pie-label"
     },
     {
       "name": "chart-pie-legend",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-legend.tsx",
       "blobSha": "aa6ca2705c5bdd3a4e2f6be9fc08870298eb37ef",
-      "localCaseId": "162-shadcn-pie-legend"
+      "localCaseId": "168-shadcn-pie-legend"
     },
     {
       "name": "chart-pie-separator-none",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-separator-none.tsx",
       "blobSha": "e313ea46e768bf54d89ee2db59c8d6f519a40b46",
-      "localCaseId": "163-shadcn-pie-separator-none"
+      "localCaseId": "169-shadcn-pie-separator-none"
     },
     {
       "name": "chart-pie-simple",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-simple.tsx",
       "blobSha": "1c90420f93ce32ecfa3810dfa264f51ad2e501c6",
-      "localCaseId": "164-shadcn-pie-simple"
+      "localCaseId": "170-shadcn-pie-simple"
     },
     {
       "name": "chart-pie-stacked",
       "family": "pie",
       "path": "apps/v4/registry/new-york-v4/charts/chart-pie-stacked.tsx",
       "blobSha": "e7e984972554d171a5a957a059558db827e0e307",
-      "localCaseId": "165-shadcn-pie-stacked"
+      "localCaseId": "171-shadcn-pie-stacked"
     },
     {
       "name": "chart-radar-default",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-default.tsx",
       "blobSha": "425afde7ff3e7c972e20934b63218c537455f82d",
-      "localCaseId": "166-shadcn-radar-default"
+      "localCaseId": "172-shadcn-radar-default"
     },
     {
       "name": "chart-radar-dots",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-dots.tsx",
       "blobSha": "be84261030eaa17694843243463244a016a311b0",
-      "localCaseId": "167-shadcn-radar-dots"
+      "localCaseId": "173-shadcn-radar-dots"
     },
     {
       "name": "chart-radar-grid-circle-fill",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-circle-fill.tsx",
       "blobSha": "bb58bce241bf01efcb649cbba144a7dc55fc7637",
-      "localCaseId": "168-shadcn-radar-grid-circle-fill"
+      "localCaseId": "174-shadcn-radar-grid-circle-fill"
     },
     {
       "name": "chart-radar-grid-circle-no-lines",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-circle-no-lines.tsx",
       "blobSha": "e098f0f1b91900fc4950610f8da0d987f0a1fe35",
-      "localCaseId": "169-shadcn-radar-grid-circle-no-lines"
+      "localCaseId": "175-shadcn-radar-grid-circle-no-lines"
     },
     {
       "name": "chart-radar-grid-circle",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-circle.tsx",
       "blobSha": "67601f06ae0e5449167607683564a96a04b80fd7",
-      "localCaseId": "170-shadcn-radar-grid-circle"
+      "localCaseId": "176-shadcn-radar-grid-circle"
     },
     {
       "name": "chart-radar-grid-custom",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-custom.tsx",
       "blobSha": "9ab8ad6127646c42c4a005ad7c369ff25b60994a",
-      "localCaseId": "171-shadcn-radar-grid-custom"
+      "localCaseId": "177-shadcn-radar-grid-custom"
     },
     {
       "name": "chart-radar-grid-fill",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-fill.tsx",
       "blobSha": "b3ebb61358b3c51528385402fee7697ae11516c5",
-      "localCaseId": "172-shadcn-radar-grid-fill"
+      "localCaseId": "178-shadcn-radar-grid-fill"
     },
     {
       "name": "chart-radar-grid-none",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-grid-none.tsx",
       "blobSha": "0bdb7769a9113342db51b3a1250433cfb9c3fc4d",
-      "localCaseId": "173-shadcn-radar-grid-none"
+      "localCaseId": "179-shadcn-radar-grid-none"
     },
     {
       "name": "chart-radar-icons",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-icons.tsx",
       "blobSha": "3c4eec62fb8756910bf8968973d616b918f9764b",
-      "localCaseId": "174-shadcn-radar-icons"
+      "localCaseId": "180-shadcn-radar-icons"
     },
     {
       "name": "chart-radar-label-custom",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-label-custom.tsx",
       "blobSha": "bf16fa743613a25c3641593c7a60ef052fe861ca",
-      "localCaseId": "175-shadcn-radar-label-custom"
+      "localCaseId": "181-shadcn-radar-label-custom"
     },
     {
       "name": "chart-radar-legend",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-legend.tsx",
       "blobSha": "31bdb565433854385b152710a3fade68f5823bc7",
-      "localCaseId": "176-shadcn-radar-legend"
+      "localCaseId": "182-shadcn-radar-legend"
     },
     {
       "name": "chart-radar-lines-only",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-lines-only.tsx",
       "blobSha": "c62cddf7355f0a003d072a93c77456883deed4ab",
-      "localCaseId": "177-shadcn-radar-lines-only"
+      "localCaseId": "183-shadcn-radar-lines-only"
     },
     {
       "name": "chart-radar-multiple",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-multiple.tsx",
       "blobSha": "b7d2102f9588a4b86f6cc281ae61eb7efe97e5ed",
-      "localCaseId": "124-shadcn-radar-multiple"
+      "localCaseId": "130-shadcn-radar-multiple"
     },
     {
       "name": "chart-radar-radius",
       "family": "radar",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radar-radius.tsx",
       "blobSha": "61f29bb5b8262c6917d9b0a19f1e4509f228e09c",
-      "localCaseId": "178-shadcn-radar-radius"
+      "localCaseId": "184-shadcn-radar-radius"
     },
     {
       "name": "chart-radial-grid",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-grid.tsx",
       "blobSha": "032eb98a9e2cab56d7b7a1413af496193477d04c",
-      "localCaseId": "179-shadcn-radial-grid"
+      "localCaseId": "185-shadcn-radial-grid"
     },
     {
       "name": "chart-radial-label",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-label.tsx",
       "blobSha": "effb735c84fb1ecee61fd8bab07f1daba1d65135",
-      "localCaseId": "180-shadcn-radial-label"
+      "localCaseId": "186-shadcn-radial-label"
     },
     {
       "name": "chart-radial-shape",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-shape.tsx",
       "blobSha": "9550a5bf0f2eab53933f8709d25ca1439964ec3d",
-      "localCaseId": "181-shadcn-radial-shape"
+      "localCaseId": "187-shadcn-radial-shape"
     },
     {
       "name": "chart-radial-simple",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-simple.tsx",
       "blobSha": "b13e20e5b584ca18b44201ba4c147fefa8a00f1d",
-      "localCaseId": "182-shadcn-radial-simple"
+      "localCaseId": "188-shadcn-radial-simple"
     },
     {
       "name": "chart-radial-stacked",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-stacked.tsx",
       "blobSha": "71fbf5756f9811672c7881fa9d1ef87db549391d",
-      "localCaseId": "183-shadcn-radial-stacked"
+      "localCaseId": "189-shadcn-radial-stacked"
     },
     {
       "name": "chart-radial-text",
       "family": "radial",
       "path": "apps/v4/registry/new-york-v4/charts/chart-radial-text.tsx",
       "blobSha": "f10347522cd27689bd960a4ed7e5033c5659b93c",
-      "localCaseId": "125-shadcn-radial-text"
+      "localCaseId": "131-shadcn-radial-text"
     },
     {
       "name": "chart-tooltip-advanced",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-advanced.tsx",
       "blobSha": "6c55b5e514836c30ae1ff570dee3d3217aca6e9c",
-      "localCaseId": "126-shadcn-tooltip-advanced"
+      "localCaseId": "132-shadcn-tooltip-advanced"
     },
     {
       "name": "chart-tooltip-default",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-default.tsx",
       "blobSha": "829cc53633afd526f25b7982c2516ff9b590420d",
-      "localCaseId": "184-shadcn-tooltip-default"
+      "localCaseId": "190-shadcn-tooltip-default"
     },
     {
       "name": "chart-tooltip-formatter",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-formatter.tsx",
       "blobSha": "6d0ebf02dda90e7a688b53cdd1c8be735e192f69",
-      "localCaseId": "185-shadcn-tooltip-formatter"
+      "localCaseId": "191-shadcn-tooltip-formatter"
     },
     {
       "name": "chart-tooltip-icons",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-icons.tsx",
       "blobSha": "1117d4494cb8316edc4a9096549adf339ec65d17",
-      "localCaseId": "186-shadcn-tooltip-icons"
+      "localCaseId": "192-shadcn-tooltip-icons"
     },
     {
       "name": "chart-tooltip-indicator-line",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-indicator-line.tsx",
       "blobSha": "2d09ce8039b05c753efde134dc3e8710d92c8e63",
-      "localCaseId": "187-shadcn-tooltip-indicator-line"
+      "localCaseId": "193-shadcn-tooltip-indicator-line"
     },
     {
       "name": "chart-tooltip-indicator-none",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-indicator-none.tsx",
       "blobSha": "6416520431aeeda2bfc170066385538b60e6e920",
-      "localCaseId": "188-shadcn-tooltip-indicator-none"
+      "localCaseId": "194-shadcn-tooltip-indicator-none"
     },
     {
       "name": "chart-tooltip-label-custom",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-label-custom.tsx",
       "blobSha": "b8095ffe6b9accbcc8480c125931db7294effa81",
-      "localCaseId": "189-shadcn-tooltip-label-custom"
+      "localCaseId": "195-shadcn-tooltip-label-custom"
     },
     {
       "name": "chart-tooltip-label-formatter",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-label-formatter.tsx",
       "blobSha": "0b885d71e18d581793bc2e316c3f1402daf59182",
-      "localCaseId": "190-shadcn-tooltip-label-formatter"
+      "localCaseId": "196-shadcn-tooltip-label-formatter"
     },
     {
       "name": "chart-tooltip-label-none",
       "family": "tooltip",
       "path": "apps/v4/registry/new-york-v4/charts/chart-tooltip-label-none.tsx",
       "blobSha": "f5f220bb1f20928bd1c9934ddf014cb72b89fb98",
-      "localCaseId": "191-shadcn-tooltip-label-none"
+      "localCaseId": "197-shadcn-tooltip-label-none"
     }
   ]
 }

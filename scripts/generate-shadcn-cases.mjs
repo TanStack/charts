@@ -10,6 +10,13 @@ const catalogPath = path.join(
 const casesRoot = path.join(root, 'benchmarks/conformance/cases')
 const coverageRoot = path.join(root, 'benchmarks/conformance')
 const catalog = JSON.parse(await readFile(catalogPath, 'utf8'))
+const handAuthoredCases = new Set([
+  'chart-bar-multiple',
+  'chart-pie-donut-text',
+  'chart-radar-multiple',
+  'chart-radial-text',
+  'chart-tooltip-advanced',
+])
 let nextCaseNumber =
   Math.max(
     126,
@@ -25,7 +32,7 @@ for (const entry of catalog.cases) {
     nextCaseNumber += 1
   }
   const caseNumber = Number(entry.localCaseId.match(/^(\d+)-/u)?.[1] ?? 0)
-  if (caseNumber < 127) continue
+  if (handAuthoredCases.has(entry.name)) continue
   const id = entry.localCaseId
   const directory = path.join(casesRoot, id)
   generatedCount += 1
@@ -54,16 +61,24 @@ async function syncDefinitionCoverage() {
     'definition-coverage-roadmap.json',
   )
   const roadmap = JSON.parse(await readFile(roadmapPath, 'utf8'))
-  const generatedEntries = catalog.cases
-    .filter((entry) => Number(entry.localCaseId?.match(/^(\d+)-/u)?.[1]) >= 127)
-    .map(coverageEntry)
+  const generatedEntries = [
+    coverageEntry({
+      family: 'dashboard',
+      localCaseId: '127-shadcn-dashboard',
+      name: 'dashboard',
+    }),
+    ...catalog.cases.map(coverageEntry),
+  ]
   const generatedIds = new Set(generatedEntries.map((entry) => entry.id))
   const retainedCases = roadmap.cases.filter(
     (entry) => !generatedIds.has(entry.id),
   )
-  const insertionIndex = retainedCases.findIndex((entry) =>
-    entry.id.startsWith('bar-'),
-  )
+  const insertionIndex =
+    retainedCases.findIndex((entry) => entry.id === '126-drillable-sunburst') +
+    1
+  if (insertionIndex === 0) {
+    throw new Error('Could not locate catalog case 126-drillable-sunburst.')
+  }
   retainedCases.splice(insertionIndex, 0, ...generatedEntries)
   roadmap.cases = retainedCases
   await writeFile(roadmapPath, `${JSON.stringify(roadmap, null, 2)}\n`)
@@ -75,7 +90,7 @@ async function syncDefinitionCoverage() {
     audit,
     generatedIds,
     generatedEntries.map(auditRow).join('\n'),
-    '126-shadcn-tooltip-advanced',
+    '126-drillable-sunburst',
   )
   audit = audit
     .replace(
@@ -118,7 +133,7 @@ async function syncDefinitionCoverage() {
     overview,
     generatedIds,
     generatedEntries.map(overviewRow).join('\n'),
-    '126-shadcn-tooltip-advanced',
+    '126-drillable-sunburst',
   )
   overview = overview
     .replace(
@@ -181,7 +196,8 @@ function overviewRow(entry) {
   const metadata = catalog.cases.find(
     (candidate) => candidate.localCaseId === entry.id,
   )
-  return `| [${entry.id} — ${officialTitle(metadata.name)}](./cases/${entry.id}/tanstack.ts) | Definition now | \`current-definition-api\` | \`tanstack.ts\`, \`case.json\` |`
+  const title = metadata ? officialTitle(metadata.name) : 'Dashboard'
+  return `| [${entry.id} — ${title}](./cases/${entry.id}/tanstack.ts) | Definition now | \`current-definition-api\` | \`tanstack.ts\`, \`case.json\` |`
 }
 
 function replaceGeneratedRows(source, generatedIds, rows, afterId) {
@@ -194,6 +210,7 @@ function replaceGeneratedRows(source, generatedIds, rows, afterId) {
   const index = retained.findIndex((line) =>
     line.includes(`./cases/${afterId}/`),
   )
+  if (index === -1) throw new Error(`Could not locate coverage row ${afterId}.`)
   retained.splice(index + 1, 0, rows)
   return retained.join('\n')
 }
