@@ -12,6 +12,7 @@ import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartHostControlExtension,
   ChartRenderer,
+  ChartRendererCapabilities,
   ChartSurface,
   ChartSurfaceRenderOptions,
 } from './dom-types'
@@ -230,6 +231,62 @@ describe('renderer-neutral chart host', () => {
     } finally {
       host.destroy()
       restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('injects structurally compatible renderer tooltip motion', () => {
+    const fake = createFakeRenderer()
+    const beforePaint = vi.fn(() => ({
+      wasHidden: true,
+      showPresence: true,
+      movementX: 0,
+      movementY: 0,
+      velocityX: 0,
+      velocityY: 0,
+    }))
+    const afterPaint = vi.fn()
+    const hide = vi.fn(() => false)
+    const destroy = vi.fn()
+    const createController = vi.fn(() => ({
+      beforePaint,
+      afterPaint,
+      hide,
+      destroy,
+    }))
+    const capabilities = {
+      tooltipMotion: {
+        protocol: 1,
+        createController,
+      },
+    } satisfies ChartRendererCapabilities
+    Object.assign(fake.renderer, { capabilities })
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Injected tooltip motion',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      expect(createController).toHaveBeenCalledOnce()
+      expect(createController).toHaveBeenCalledWith({
+        container,
+        transition: expect.any(Function),
+      })
+      expect(beforePaint).toHaveBeenCalledOnce()
+      expect(afterPaint).toHaveBeenCalledOnce()
+
+      host.interaction.setControlledFocus(null)
+      expect(hide).toHaveBeenCalledOnce()
+    } finally {
+      host.destroy()
+      expect(destroy).toHaveBeenCalledOnce()
     }
   })
 

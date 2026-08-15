@@ -368,15 +368,19 @@ See [Focus and interaction](./focus-and-interaction.md).
 
 ## Rendering types
 
-| Type                        | Purpose                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| `RenderChartOptions`        | Renderer-neutral accessible name, description, class, tab index, and ID prefix |
-| `RenderChartSvgOptions`     | SVG specialization of `RenderChartOptions`                                     |
-| `ChartSurfaceRenderOptions` | Render options plus optional animation                                         |
-| `ChartSurface`              | Mounted element, painting, coordinates, focus, and cleanup                     |
-| `ChartRenderer`             | Server shell and browser-surface renderer contract                             |
-| `ChartSvgRenderer`          | Scene-to-SVG string function                                                   |
-| `ChartAnimationOptions`     | Duration, easing, and reduced-motion policy                                    |
+| Type                                   | Purpose                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| `RenderChartOptions`                   | Renderer-neutral accessible name, description, class, tab index, and ID prefix |
+| `RenderChartSvgOptions`                | SVG specialization of `RenderChartOptions`                                     |
+| `ChartSurfaceRenderOptions`            | Render options plus optional animation                                         |
+| `ChartSurface`                         | Mounted element, painting, coordinates, focus, and cleanup                     |
+| `ChartRenderer`                        | Server shell and browser-surface renderer contract                             |
+| `ChartRendererCapabilities`            | Optional structural services supplied by a renderer                            |
+| `ChartRendererTooltipMotionCapability` | Versioned factory for an injected tooltip motion controller                    |
+| `ChartTooltipMotionController`         | Tooltip paint, hide, and cleanup motion lifecycle                              |
+| `ChartTooltipMotionSnapshot`           | Tooltip position, velocity, and presence state before repaint                  |
+| `ChartSvgRenderer`                     | Scene-to-SVG string function                                                   |
+| `ChartAnimationOptions`                | Duration, easing, and reduced-motion policy                                    |
 
 See [Rendering and export](./rendering-and-export.md).
 

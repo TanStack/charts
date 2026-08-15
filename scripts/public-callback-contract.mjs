@@ -612,6 +612,14 @@ const callbackInventory = {
     ['@tanstack/charts:src/dom-types.ts:ChartHost', 'destroy getScene update'],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount prerender'],
     [
+      '@tanstack/charts:src/dom-types.ts:ChartRendererTooltipMotionCapability',
+      'createController transition',
+    ],
+    [
+      '@tanstack/charts:src/dom-types.ts:ChartTooltipMotionController',
+      'afterPaint beforePaint destroy hide hide.complete',
+    ],
+    [
       '@tanstack/charts:src/dom-types.ts:UniversalChartRenderer',
       'mount prerender',
     ],

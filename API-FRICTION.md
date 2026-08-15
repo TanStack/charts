@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-14
+Last updated: 2026-08-15
 
 ## Triage rule
 
@@ -327,6 +327,7 @@ Each entry records:
 | F-288 | Generated examples exposed shared implementation scaffolding   | Tooling/API           | resolved   |
 | F-289 | Catalog workbenches exposed runtime bootstrap files            | Tooling               | resolved   |
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
+| F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
 
 ## Findings
 
@@ -8373,3 +8374,24 @@ Each entry records:
   every public source closure.
 - Verification: the catalog contract resolves every fixture subpath as a
   browser module and reports no `@charts-poc/` import in any public example.
+
+### F-291 — Renderer capability injection depended on module identity
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: hovering the published ShadCN multiple-bar catalog example
+- Friction: tooltip motion was attached to the motion renderer through a
+  module-local symbol. The catalog loaded `/motion` and `/react/tooltip` from
+  separate esm.sh build namespaces, so each copy created a different symbol.
+  The chart geometry animated, but the host could not discover or inject the
+  renderer's tooltip motion controller.
+- Decision: make renderer capabilities an explicit, versioned structural
+  contract. The chart host creates the controller from
+  `renderer.capabilities.tooltipMotion` and injects it into the tooltip
+  extension context. Neither discovery nor consumption depends on shared
+  module identity.
+- Verification: the renderer regression supplies a structurally compatible
+  tooltip-motion capability, then asserts controller creation, paint, hide,
+  and destruction through the normal tooltip lifecycle. The existing spring
+  inheritance and tooltip override tests continue to pass.

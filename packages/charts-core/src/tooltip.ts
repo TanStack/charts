@@ -1,5 +1,4 @@
 import { placeTooltip } from './tooltip-position'
-import { tooltipMotionController } from './renderer-motion-internal'
 import {
   createChartTooltipContent,
   orderChartTooltipPoints,
@@ -84,7 +83,7 @@ function createTooltipExtension<
   let portalInstance: ChartTooltipPortalExtensionInstance | undefined
   const { container } = extensionContext
   const view = container.ownerDocument.defaultView
-  const tooltipMotion = tooltipMotionController(extensionContext)
+  const tooltipMotion = extensionContext.motion
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
     if (options !== nextOptions) bodyDirty = true

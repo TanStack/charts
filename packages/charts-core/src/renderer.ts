@@ -4,7 +4,6 @@ import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint, viewportInteractionPoints } from './scene'
 import { focusDisabled } from './focus-disabled'
 import { nearestPoint } from './nearest'
-import { connectRendererTooltipMotion } from './renderer-motion-internal'
 import {
   chartPointFromNavigationOrder,
   chartPointFromSceneOrder,
@@ -1022,17 +1021,20 @@ export function mountChartRenderer<
     if (tooltipExtension !== input.extension || !tooltipInstance) {
       destroyTooltip()
       tooltipExtension = input.extension
-      tooltipInstance = input.extension.create(
-        connectRendererTooltipMotion(
-          surface.renderer,
-          {
-            container,
-            dismiss: dismissTooltip,
-            bodyChange: () => options.onTooltipBodyChange,
-          },
-          resolveTooltipMotion,
-        ),
-      )
+      const tooltipMotionCapability =
+        surface.renderer.capabilities?.tooltipMotion
+      tooltipInstance = input.extension.create({
+        container,
+        motion:
+          tooltipMotionCapability?.protocol === 1
+            ? tooltipMotionCapability.createController({
+                container,
+                transition: resolveTooltipMotion,
+              })
+            : undefined,
+        dismiss: dismissTooltip,
+        bodyChange: () => options.onTooltipBodyChange,
+      })
     }
     const instance = tooltipInstance
     instance.update(input.options)
