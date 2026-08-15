@@ -23,8 +23,18 @@ const darkRenderedChart = renderedChart
   .replace('#2563eb', '#6ea8fe')
   .replace('#172033', '#edf2fb')
 
-function portable(light = renderedChart, dark = darkRenderedChart) {
-  return createPortableCatalogPreviewSvg(light, dark, 'line-gaps', JSDOM)
+function portable(
+  light = renderedChart,
+  dark = darkRenderedChart,
+  presentation = {},
+) {
+  return createPortableCatalogPreviewSvg(
+    light,
+    dark,
+    'line-gaps',
+    JSDOM,
+    presentation,
+  )
 }
 
 describe('catalog previews', () => {
@@ -41,6 +51,14 @@ describe('catalog previews', () => {
     expect(preview).toContain('color-scheme:dark')
     expect(preview).toContain('--panel:#ffffff')
     expect(preview).toContain('--panel:#151a24')
+    expect(preview).toContain('--background:#ffffff')
+    expect(preview).toContain('--background:#151a24')
+    expect(preview).toContain('--foreground:#172033')
+    expect(preview).toContain('--foreground:#edf2fb')
+    expect(preview).toContain('--muted:#f7f8fb')
+    expect(preview).toContain('--muted:#10151e')
+    expect(preview).toContain('--muted-foreground:#697386')
+    expect(preview).toContain('--muted-foreground:#9aa6b9')
     expect(preview).toContain('--ts-catalog-preview-paint-0:#2563eb')
     expect(preview).toContain('--ts-catalog-preview-paint-0:#6ea8fe')
     expect(preview).toContain('--ts-catalog-preview-paint-1:#172033')
@@ -53,7 +71,7 @@ describe('catalog previews', () => {
     expect(preview).toContain(
       "font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
     )
-    expect(preview).not.toContain('background:')
+    expect(preview).not.toMatch(/(?:^|[{;])background\s*:/u)
   })
 
   it('adapts fixed authored paint only when the dark surface needs it', () => {
@@ -71,6 +89,28 @@ describe('catalog previews', () => {
     const preview = portable(fixed, fixed)
     expect(preview).toContain('--ts-catalog-preview-paint-0:#0f172a')
     expect(preview).toContain('fill="var(--ts-catalog-preview-paint-0)"')
+  })
+
+  it('binds shadcn text and surface tokens inside the standalone SVG', () => {
+    const tokenChart = renderedChart
+      .replace(
+        '<path fill="#2563eb" stroke="#172033"',
+        '<path fill="var(--background)" stroke="var(--muted)"',
+      )
+      .replace(
+        '</svg>',
+        '<text fill="var(--foreground)">Total</text><text fill="var(--muted-foreground)">Visitors</text></svg>',
+      )
+    const preview = portable(tokenChart, tokenChart, { text: 'retain' })
+
+    expect(preview).toContain('fill="var(--background)"')
+    expect(preview).toContain('stroke="var(--muted)"')
+    expect(preview).toContain('fill="var(--foreground)"')
+    expect(preview).toContain('fill="var(--muted-foreground)"')
+    expect(preview).toContain('--background:#ffffff')
+    expect(preview).toContain('--background:#151a24')
+    expect(preview).toContain('--foreground:#172033')
+    expect(preview).toContain('--foreground:#edf2fb')
   })
 
   it('requires the fixed 3:2 TanStack chart surface', () => {

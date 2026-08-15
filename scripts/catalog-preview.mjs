@@ -656,7 +656,7 @@ function portableThemeStyle(paints) {
 }
 
 function themeVariables(theme) {
-  return `--panel:${theme.panel};--panel-muted:${theme.panelMuted};--border:${theme.border};--muted:${theme.muted};--accent:${theme.accent};--accent-muted:${theme.accentMuted};${theme.series.map((color, index) => `--ts-chart-${index + 1}:${color};`).join('')}`
+  return `--panel:${theme.panel};--panel-muted:${theme.panelMuted};--background:${theme.panel};--foreground:${theme.foreground};--border:${theme.border};--muted:${theme.panelMuted};--muted-foreground:${theme.muted};--accent:${theme.accent};--accent-muted:${theme.accentMuted};${theme.series.map((color, index) => `--ts-chart-${index + 1}:${color};`).join('')}`
 }
 
 function themePaintVariables(paints, theme) {

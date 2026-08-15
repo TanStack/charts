@@ -328,7 +328,7 @@ Each entry records:
 | F-289 | Catalog workbenches exposed runtime bootstrap files            | Tooling               | resolved   |
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 | F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
-| F-292 | Fixed preview paints ignored the selected site theme            | Tooling               | resolved   |
+| F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 
 ## Findings
 
@@ -8417,3 +8417,15 @@ Each entry records:
   fixed CSS-variable fallbacks, and theme-independent presentation checks.
   Preview integrity validates all 188 assets. A Chromium canvas audit compares
   transparent light and dark rasters and confirms that all 188 differ.
+- Follow-up evidence: the deployed ShadCN collection changed its series palette,
+  but retained labels and pie separators still referenced `--foreground`,
+  `--muted-foreground`, `--background`, and `--muted`. Those variables are
+  inherited in the live inline chart but were undefined inside the standalone
+  preview document, so SVG fallback paint rendered the labels black in both
+  themes.
+- Follow-up decision: bind those ShadCN semantic tokens to the existing portable
+  light/dark palette. Treat `--muted` as a surface and `--muted-foreground` as
+  text instead of overloading one token for both roles.
+- Follow-up verification: the generator contract covers all four tokens in both
+  palettes, and regenerated ShadCN donut, radial, radar, and authored-label
+  previews render readable dark text and theme-matched separators.
