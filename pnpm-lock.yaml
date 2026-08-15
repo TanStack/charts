@@ -13,9 +13,6 @@ importers:
       '@changesets/cli':
         specifier: 2.31.1
         version: 2.31.1(@types/node@25.9.5)
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:packages/charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
@@ -43,6 +40,9 @@ importers:
       '@tanstack/charts-d3':
         specifier: workspace:*
         version: link:packages/charts-core-d3
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:packages/charts-demo-data
       '@types/d3-array':
         specifier: ^3.2.2
         version: 3.2.2
@@ -284,12 +284,12 @@ importers:
 
   examples/charts-octane:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -318,12 +318,12 @@ importers:
 
   examples/charts-react:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -410,15 +410,15 @@ importers:
 
   examples/conformance:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../../packages/charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -506,12 +506,12 @@ importers:
 
   examples/sandbox:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -741,12 +741,12 @@ importers:
 
   packages/charts-fixtures:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../charts-core
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../charts-demo-data
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -786,15 +786,15 @@ importers:
 
   packages/fixtures:
     dependencies:
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
       '@plot-poc/observable':
         specifier: workspace:*
         version: link:../plot
+      '@tanstack/charts-data':
+        specifier: workspace:*
+        version: link:../charts-demo-data
 
   packages/lit-charts:
     dependencies:
