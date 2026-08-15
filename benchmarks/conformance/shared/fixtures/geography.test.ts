@@ -1,6 +1,7 @@
 import { beagle } from '@tanstack/charts-data/beagle'
 import { learningPoverty } from '@tanstack/charts-data/learning-poverty'
 import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
+import { geoContains } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { beagleRoute } from '../../cases/105-route-map/transform'
 import {
@@ -18,15 +19,28 @@ import {
 } from '../transforms/learning-poverty'
 
 describe('geography demo data', () => {
-  it('converts the published world atlases without replacing their geometry', () => {
-    expect(worldCountries).toHaveLength(177)
+  it('converts the published world atlases without New Zealand', () => {
+    expect(worldCountries).toHaveLength(176)
     expect(worldCountries.every(({ id }) => typeof id === 'string')).toBe(true)
+    expect(
+      worldCountries.some(
+        ({ properties }) => properties.name === 'New Zealand',
+      ),
+    ).toBe(false)
     expect(worldLand.geometry.coordinates).not.toHaveLength(0)
     expect(detailedWorldLand.geometry.coordinates).not.toHaveLength(0)
+    expect(geoContains(worldLand, [174.78, -41.29])).toBe(false)
+    expect(geoContains(detailedWorldLand, [174.78, -41.29])).toBe(false)
+    expect(geoContains(worldLand, [151.21, -33.87])).toBe(true)
   })
 
   it('joins learning-poverty rows without changing published values', () => {
-    expect(learningPovertyCountries).toHaveLength(95)
+    expect(learningPovertyCountries).toHaveLength(94)
+    expect(
+      learningPovertyCountries.some(
+        ({ properties }) => properties.name === 'New Zealand',
+      ),
+    ).toBe(false)
 
     const sourceByName = new Map(
       learningPoverty.map((row) => [row['Country Name'], row]),

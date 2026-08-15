@@ -57,9 +57,9 @@ export const previewLearningPovertyCountries: readonly LearningPovertyCountry[] 
     geometry: simplifyPolygonGeometry(country.geometry, 2),
   }))
 
-if (learningPovertyCountries.length !== 95) {
+if (learningPovertyCountries.length !== 94) {
   throw new TypeError(
-    `Expected 95 learning-poverty countries in world-atlas, got ${learningPovertyCountries.length}`,
+    `Expected 94 learning-poverty countries in the filtered world-atlas, got ${learningPovertyCountries.length}`,
   )
 }
 
