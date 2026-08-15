@@ -1,6 +1,6 @@
 import { mountChart } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ConformanceHandle,
   ConformanceInput,

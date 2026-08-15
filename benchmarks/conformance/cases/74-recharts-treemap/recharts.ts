@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { Treemap } from 'recharts'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { selectTreemapData } from './selection'
 import { flareLabel, flareTree } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'

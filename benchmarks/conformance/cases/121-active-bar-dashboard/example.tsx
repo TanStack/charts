@@ -191,10 +191,7 @@ export default function ActiveBarDashboard({
 
   const focusedId = useRef<string | null>(null)
 
-  const renderer = useMemo(
-    () => motion<DashboardRow, string, number>({ initial: !false }),
-    [false],
-  )
+  const renderer = useMemo(() => motion({ initial: !false }), [false])
 
   const rows = dashboardRows(input.revision)
 

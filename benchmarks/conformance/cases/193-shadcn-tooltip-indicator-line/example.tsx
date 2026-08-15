@@ -1,12 +1,5 @@
-import { useMemo, useRef } from 'react'
-import {
-  barY,
-  defineChart,
-  stack,
-  type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
-} from '@tanstack/charts'
+import { useRef } from 'react'
+import { barY, defineChart, stack, type ChartPoint } from '@tanstack/charts'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { motion } from '@tanstack/charts/motion'
@@ -15,35 +8,53 @@ import {
   shadcnActivities,
   shadcnColors,
   type ShadcnActivityDatum,
-} from '@charts-poc/demo-data/shadcn'
+} from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const activityNames = ['running', 'swimming'] as const
-function createDefinition() {
-  return defineChart({
-    marks: [
-      barY(shadcnActivities, {
-        id: 'activity-bars',
-        x: 'date',
-        y: 'value',
-        z: 'activity',
-        color: 'activity',
-        key: (row) => `${row.date}:${row.activity}`,
-        layout: stack({ order: activityNames }),
-        radius: 4,
-      }),
-    ],
-    x: {
-      scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
-      axis: {
-        line: false,
-        ticks: { size: 0, padding: 10, format: formatWeekday },
+export function createExampleChart() {
+  return defineChart(
+    {
+      marks: [
+        barY(shadcnActivities, {
+          id: 'activity-bars',
+          x: 'date',
+          y: 'value',
+          z: 'activity',
+          color: 'activity',
+          key: (row) => `${row.date}:${row.activity}`,
+          layout: stack({ order: activityNames }),
+          radius: 4,
+        }),
+      ],
+      x: {
+        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+        axis: {
+          line: false,
+          ticks: { size: 0, padding: 10, format: formatWeekday },
+        },
+      },
+      y: { scale: scaleLinear().domain([0, 1000]), axis: false },
+      color: { domain: activityNames, range: shadcnColors.slice(0, 2) },
+      margin: { top: 0, right: 7, bottom: 32, left: 7 },
+      theme: shadcnTheme(),
+    },
+    {
+      svgAnimation: false,
+      focus: 'group-x',
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: (_points, context) => ({
+          x: context.surface.width * 0.271,
+          y: context.surface.height * 0.554,
+        }),
+        placement: 'bottom-right',
+        offset: 0,
+        sort: 'color-domain',
+        content: () => ({ rows: [] }),
       },
     },
-    y: { scale: scaleLinear().domain([0, 1000]), axis: false },
-    color: { domain: activityNames, range: shadcnColors.slice(0, 2) },
-    margin: { top: 0, right: 7, bottom: 32, left: 7 },
-    theme: shadcnTheme(),
-  })
+  )
 }
 function formatWeekday(value: string) {
   return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(
@@ -141,72 +152,20 @@ function ShadcnActivityIcon({ activity }: { activity: string }) {
     </svg>
   )
 }
-export function createExampleChart() {
-  return defineChart(createDefinition(), {
-    svgAnimation: false,
-    focus: 'group-x',
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: (_points, context) => ({
-        x: context.surface.width * 0.271,
-        y: context.surface.height * 0.554,
-      }),
-      placement: 'bottom-right',
-      offset: 0,
-      sort: 'color-domain',
-      content: () => ({ rows: [] }),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
 }
 export default function Example({ width = 640, height = 600 }: ExampleProps) {
   const seededTooltip = useRef(false)
-  const chartDefinition = definition
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = contentWidth
   const chartHeight = (contentWidth * 9) / 16
-  const headerAction = null
-  const legend = null
-  const footer = null
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-default" style={{ width }}>
@@ -215,9 +174,6 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Tooltip - Line Indicator</h2>
             <p>Tooltip with line indicator.</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
         </header>
         <div className="sc-card-content">
           <div
@@ -225,7 +181,7 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             style={{ width: chartWidth, height: chartHeight }}
           >
             <RendererChart
-              definition={chartDefinition}
+              definition={definition}
               renderer={renderer}
               initialWidth={chartWidth}
               height={chartHeight}
@@ -251,9 +207,7 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               )}
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
         </div>
-        {footer ? <footer className="sc-card-footer">{footer}</footer> : null}
       </article>
     </div>
   )

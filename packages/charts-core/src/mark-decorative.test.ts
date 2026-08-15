@@ -10,6 +10,7 @@ import { createChartScene, defineChart } from './scene'
 import { text } from './text'
 import { waffleY } from './waffle'
 import type {
+  ChartMarkDatum,
   ChartMarkPointX,
   ChartMarkPointY,
   ChartMarkScaleX,
@@ -71,6 +72,7 @@ describe('decorative mark', () => {
     expect(polylines[0]).not.toHaveProperty('interaction')
     expectTypeOf<ChartMarkPointX<typeof trend>>().toEqualTypeOf<never>()
     expectTypeOf<ChartMarkPointY<typeof trend>>().toEqualTypeOf<never>()
+    expectTypeOf<ChartMarkDatum<typeof trend>>().toEqualTypeOf<never>()
     expectTypeOf<ChartMarkScaleX<typeof trend>>().toEqualTypeOf<number>()
     expectTypeOf<ChartMarkScaleY<typeof trend>>().toEqualTypeOf<number>()
   })

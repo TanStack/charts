@@ -8,7 +8,7 @@ import type {
   GridComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { clientPointBounds } from '../../shared/driver-geometry'
 import { echartsMount } from '../../shared/echarts-mount'
 import { streamingData } from './selection'
@@ -21,7 +21,7 @@ import {
   visibleStreamingData,
 } from './model'
 import { createStreamingControls, updateStreamingControls } from './controls'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 import type { StreamingControls } from './controls'
 import type { StreamingViewportMode } from './model'
 import type {

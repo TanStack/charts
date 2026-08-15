@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
+import { sfTemperatures } from '@tanstack/charts-data/sf-temperatures'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { mountObservablePlot } from '../../shared/mount'
 

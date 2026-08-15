@@ -17,6 +17,8 @@ const renderer = motion({
 ```
 
 ```ts
+function motion(options?: ChartMotionOptions): UniversalChartRenderer
+
 function motion<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -30,6 +32,10 @@ interface ChartMotionOptions {
   resize?: boolean
 }
 ```
+
+Use `motion(options)` beside a typed definition and let the host infer its
+datum and axis values. The explicit generic overload remains available when a
+low-level caller must type the renderer before it has a definition.
 
 | Option                 | Default                                       | Meaning                                                       |
 | ---------------------- | --------------------------------------------- | ------------------------------------------------------------- |

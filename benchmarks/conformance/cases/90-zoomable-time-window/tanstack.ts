@@ -10,7 +10,7 @@ export {
   copyWindow,
 } from './example'
 export type { ZoomState } from './example'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -24,7 +24,7 @@ import {
   zoomDateKey,
   zoomSpanDays,
 } from './model'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ZoomXWindow } from '@tanstack/charts/interaction/zoom'
 import type { ChartScene } from '@tanstack/charts'
 import type {

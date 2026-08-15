@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { describe, expect, it } from 'vitest'
 import { selectTreemapData } from './selection'
-import { treemapDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { TreemapNode } from '@tanstack/charts/hierarchy/treemap'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type {
   ChartPoint,
   ChartScene,
@@ -98,7 +98,7 @@ describe('native responsive treemap', () => {
 })
 
 function render(width: number, height: number) {
-  return createChartRuntime().render(treemapDefinition(), { width, height })
+  return createChartRuntime().render(createExampleChart(), { width, height })
 }
 
 function pointData(scene: ChartScene): TreemapNode<FlareRow>[] {

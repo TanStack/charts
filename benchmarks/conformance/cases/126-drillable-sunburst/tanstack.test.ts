@@ -11,7 +11,7 @@ import {
   flareVisibleDepth,
 } from './model'
 import { drillableSunburstDefinition, mount } from './tanstack'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { SunburstNode } from '@tanstack/charts/hierarchy/sunburst'
 import type { ChartScene, SceneNode } from '@tanstack/charts'
 

@@ -1,8 +1,8 @@
 import * as Plot from '@observablehq/plot'
-import { worldLand, worldSphere } from '@charts-poc/demo-data/country-atlas'
-import { learningPovertyCountries } from '@charts-poc/demo-data/learning-poverty-geography'
+import { worldLand, worldSphere } from '@tanstack/charts-data/country-atlas'
+import { learningPovertyCountries } from '@tanstack/charts-data/learning-poverty-geography'
 import { mountObservablePlot } from '../../shared/mount'
-import type { LearningPovertyCountry } from '@charts-poc/demo-data/learning-poverty-geography'
+import type { LearningPovertyCountry } from '@tanstack/charts-data/learning-poverty-geography'
 import type { ConformanceMount } from '../../types'
 
 const colorRanges = [

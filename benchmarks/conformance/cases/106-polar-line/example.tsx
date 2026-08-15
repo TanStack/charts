@@ -18,68 +18,62 @@ const radiusGridValues = [0, 10, 20, 30, 40] as const
 const lineColor = '#0f766e'
 const gridColor = '#94a3b8'
 
-export const definition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const rows = seattleWeatherYear(input.revision)
 
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.72,
-        angle: { scale: scaleLinear().domain(angleDomain) },
-        radius: { scale: scaleLinear().domain(radiusDomain) },
-        guides: [
-          radialGrid({
-            values: radiusGridValues,
-            labels: false,
-            stroke: gridColor,
-            strokeOpacity: 0.35,
-          }),
-          angleGrid({
-            values: angleGridValues,
-            labels: false,
-            stroke: gridColor,
-            strokeOpacity: 0.35,
-          }),
-        ],
-        marks: [
-          radialLine(rows, {
-            angle: dayOfYearAngle,
-            radius: 'temp_max',
-            stroke: lineColor,
-            strokeWidth: 2.5,
-          }),
-        ],
-      }),
-    ],
-    margin: 0,
-  })
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.72,
+          angle: { scale: scaleLinear().domain(angleDomain) },
+          radius: { scale: scaleLinear().domain(radiusDomain) },
+          guides: [
+            radialGrid({
+              values: radiusGridValues,
+              labels: false,
+              stroke: gridColor,
+              strokeOpacity: 0.35,
+            }),
+            angleGrid({
+              values: angleGridValues,
+              labels: false,
+              stroke: gridColor,
+              strokeOpacity: 0.35,
+            }),
+          ],
+          marks: [
+            radialLine(rows, {
+              angle: dayOfYearAngle,
+              radius: 'temp_max',
+              stroke: lineColor,
+              strokeWidth: 2.5,
+            }),
+          ],
+        }),
+      ],
+      margin: 0,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.date.toISOString().slice(0, 10)} · ${datum.temp_max}°C high`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Seattle daily high-temperature polar line'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.date.toISOString().slice(0, 10)} · ${datum.temp_max}°C high`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

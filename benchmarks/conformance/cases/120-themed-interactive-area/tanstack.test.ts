@@ -1,6 +1,6 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { themedInteractiveAreaDefinition } from './example'
+import { createExampleChart } from './example'
 import { themedAreaRows } from './model'
 import { catalogCase, mount } from './tanstack'
 import type { ConformanceInput } from '../../types'
@@ -22,11 +22,7 @@ describe('themed interactive area', () => {
 
   it('owns its gradient, smooth geometry, sparse guides, and focus cursor', () => {
     const rows = themedAreaRows('30d')
-    const definition = themedInteractiveAreaDefinition(rows, {
-      width: 288,
-      height: 192,
-      preview: true,
-    })
+    const definition = createExampleChart('30d', 0, 288, 192, true)
     const scene = createChartRuntime<
       (typeof rows)[number],
       Date,

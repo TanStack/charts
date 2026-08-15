@@ -41,16 +41,14 @@ export interface DonutCenterRow {
   dy: number
 }
 
-export type DonutDatum = PieDatum<BrowserRow> | DonutCenterRow
+export type DonutDatum = PieDatum<BrowserRow>
 
 const tooltipOptions: ChartTooltipOptions<DonutDatum, number, number> = {
   anchor: 'point',
   placement: ['top', 'right', 'left', 'bottom'],
   className: 'active-donut-tooltip',
   format: (point) =>
-    'visitors' in point.datum
-      ? `${point.datum.label} · ${point.datum.visitors.toLocaleString('en-US')} visitors`
-      : point.datum.text,
+    `${point.datum.label} · ${point.datum.visitors.toLocaleString('en-US')} visitors`,
 }
 
 export function activeDonutDefinition(
@@ -226,10 +224,7 @@ export default function ActiveDonutMetric({
 
   const focusedId = useRef<string | null>(null)
 
-  const renderer = useMemo(
-    () => motion<DonutDatum, number, number>({ initial: !false }),
-    [false],
-  )
+  const renderer = useMemo(() => motion({ initial: !false }), [false])
 
   const definition = useMemo(
     () => activeDonutDefinition(input, activeId),

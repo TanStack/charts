@@ -6,7 +6,6 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { ControlBar, ControlButton, ControlField, RangeField } from './controls'
 import { entranceRows as rows } from './model'
 import type { ChartMotionTweenTransition } from '@tanstack/charts'
-import type { MotionRow } from './model'
 
 export interface MotionSettings {
   duration: number
@@ -98,10 +97,7 @@ export default function MotionEntranceExample({
 
   const [replayCount, setReplayCount] = useState(1)
 
-  const renderer = useMemo(
-    () => motion<MotionRow, string, number>(),
-    [replayCount],
-  )
+  const renderer = useMemo(() => motion(), [replayCount])
 
   const definition = useMemo(
     () => motionEntranceDefinition(settings),

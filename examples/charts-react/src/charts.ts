@@ -1,7 +1,7 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import { downloads } from '@charts-poc/demo-data/downloads'
-import { industries } from '@charts-poc/demo-data/industries'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { cars } from '@tanstack/charts-data/cars'
+import { downloads } from '@tanstack/charts-data/downloads'
+import { industries } from '@tanstack/charts-data/industries'
+import { penguins } from '@tanstack/charts-data/penguins'
 import {
   areaY,
   barX,
@@ -25,9 +25,9 @@ import {
   stackOffsetWiggle,
   stackOrderInsideOut,
 } from 'd3-shape'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { CarsRow } from '@tanstack/charts-data/cars'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import type { Bin } from 'd3-array'
 
 export type IndustryHistoryMode = 'line' | 'stacked' | 'share' | 'stream'

@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import { Chart } from '@tanstack/charts/react'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { clientPointBounds } from '../../shared/driver-geometry'
 import { reactMount } from '../../shared/react-mount'
@@ -22,7 +22,7 @@ import {
   visibleStreamingData,
 } from './model'
 import type { ChartScene } from '@tanstack/charts'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 import type { StreamingViewportMode } from './model'
 import type {
   ConformanceGeometryQuery,

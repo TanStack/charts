@@ -13,70 +13,64 @@ const radiusGridValues = [3, 6, 9, 12] as const
 const dotColor = '#e11d48'
 const gridColor = '#94a3b8'
 
-export const definition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const rows = windLatitudeBand(input.revision)
 
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.72,
-        angle: { scale: scaleLinear().domain(angleDomain) },
-        radius: { scale: scaleLinear().domain(radiusDomain) },
-        guides: [
-          radialGrid({
-            values: radiusGridValues,
-            labels: false,
-            stroke: gridColor,
-            strokeOpacity: 0.35,
-          }),
-          angleGrid({
-            values: angleGridValues,
-            labels: false,
-            stroke: gridColor,
-            strokeOpacity: 0.35,
-          }),
-        ],
-        marks: [
-          radialDot(rows, {
-            angle: windDirection,
-            radius: windSpeed,
-            r: 4.5,
-            fill: dotColor,
-            stroke: '#ffffff',
-            strokeWidth: 1,
-          }),
-        ],
-      }),
-    ],
-    margin: 0,
-  })
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.72,
+          angle: { scale: scaleLinear().domain(angleDomain) },
+          radius: { scale: scaleLinear().domain(radiusDomain) },
+          guides: [
+            radialGrid({
+              values: radiusGridValues,
+              labels: false,
+              stroke: gridColor,
+              strokeOpacity: 0.35,
+            }),
+            angleGrid({
+              values: angleGridValues,
+              labels: false,
+              stroke: gridColor,
+              strokeOpacity: 0.35,
+            }),
+          ],
+          marks: [
+            radialDot(rows, {
+              angle: windDirection,
+              radius: windSpeed,
+              r: 4.5,
+              fill: dotColor,
+              stroke: '#ffffff',
+              strokeWidth: 1,
+            }),
+          ],
+        }),
+      ],
+      margin: 0,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.latitude}°N, ${datum.longitude}°E · ${windSpeed(datum).toFixed(1)} m/s`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Surface wind polar scatter'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.latitude}°N, ${datum.longitude}°E · ${windSpeed(datum).toFixed(1)} m/s`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

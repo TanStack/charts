@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { group, sum } from 'd3-array'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { mosaicLayout, mosaicResponses } from './layout'
 
 describe('mosaicLayout', () => {

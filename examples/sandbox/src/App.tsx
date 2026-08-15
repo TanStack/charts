@@ -13,7 +13,7 @@ import {
   type IndustryStackPoint,
   type TimeRange,
 } from './transforms'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import {
   createAgreementChart,
   createCarEconomyChart,

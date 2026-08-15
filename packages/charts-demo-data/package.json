@@ -1,5 +1,5 @@
 {
-  "name": "@charts-poc/demo-data",
+  "name": "@tanstack/charts-data",
   "version": "0.0.0",
   "private": true,
   "type": "module",

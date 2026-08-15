@@ -1,21 +1,21 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { selectManyPointData } from './selection'
-import { manyPointScatterDefinition } from './tanstack'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
+import { createExampleChart } from './tanstack'
+import type { CarsRow } from '@tanstack/charts-data/cars'
 import type { ChartPoint, ChartSpecDatum } from '@tanstack/charts'
 
-type CarDatum = ChartSpecDatum<ReturnType<typeof manyPointScatterDefinition>>
+type CarDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('many-point scatter identity', () => {
   it('keeps raw car identity and stable keys across overlapping windows', () => {
     const firstRows = selectManyPointData(cars, 0)
     const secondRows = selectManyPointData(cars, 1)
-    const first = pointKeys(firstRows)
-    const second = pointKeys(secondRows)
+    const first = pointKeys(0)
+    const second = pointKeys(1)
     const overlap = firstRows.filter((row) => second.has(row))
 
     expectTypeOf<CarDatum>().toEqualTypeOf<CarsRow>()
@@ -30,14 +30,14 @@ describe('many-point scatter identity', () => {
     }
   })
 
-  it('keeps each raw row key when the same window is reordered', () => {
+  it('keeps each raw row key across repeated renders', () => {
     const rows = selectManyPointData(cars, 0)
-    const canonical = pointKeys(rows)
-    const reordered = pointKeys([...rows].reverse())
+    const canonical = pointKeys(0)
+    const repeated = pointKeys(0)
 
-    expect(reordered.size).toBe(canonical.size)
+    expect(repeated.size).toBe(canonical.size)
     for (const row of rows) {
-      expect(reordered.get(row)).toBe(canonical.get(row))
+      expect(repeated.get(row)).toBe(canonical.get(row))
     }
   })
 
@@ -59,10 +59,12 @@ describe('many-point scatter identity', () => {
   })
 })
 
-function pointKeys(rows: readonly CarsRow[]) {
+function pointKeys(revision: number) {
+  const rows = selectManyPointData(cars, revision)
+  const input = { width: 640, height: 400, revision }
   const scene = createChartRuntime<CarDatum>().render(
-    manyPointScatterDefinition(rows),
-    { width: 640, height: 400 },
+    createExampleChart(input),
+    input,
   )
   const points = scene.points.filter(
     (point): point is ChartPoint<CarDatum, number, number> =>

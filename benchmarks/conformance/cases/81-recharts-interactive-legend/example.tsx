@@ -3,7 +3,7 @@ import { colorLegend, defineChart, lineY } from '@tanstack/charts'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { interactiveColorLegend } from '@tanstack/charts/legend'
 import { Chart } from '@tanstack/charts/react'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { legendRows, legendSeries } from './model'
 import type { LegendSeriesId } from './model'
@@ -31,7 +31,7 @@ export function interactiveLegendDefinition(
 ) {
   const rows = legendRows(industries, revision)
   return defineChart(
-    defineChart({
+    {
       marks: [
         lineY(rows, {
           id: 'industry-lines',
@@ -68,7 +68,7 @@ export function interactiveLegendDefinition(
         }),
       },
       margin: { top: 20, right: 24, left: 62 },
-    }),
+    },
     { keyboard: true },
   )
 }

@@ -11,9 +11,13 @@ import type {
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
+import { motion } from '@tanstack/charts/motion'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './Chart'
-import { Chart as TooltipChart } from './tooltip'
+import {
+  Chart as TooltipChart,
+  RendererChart as TooltipRendererChart,
+} from './tooltip'
 
 const data = [
   { id: 'jan', month: 1, value: 8 },
@@ -171,6 +175,13 @@ if (false) {
       }}
     />
   )
+  const inferredMotionRenderer = (
+    <TooltipRendererChart
+      definition={definition}
+      renderer={motion({ transition: { type: 'spring' } })}
+      ariaLabel="Animated revenue"
+    />
+  )
   const widened = (
     <Chart
       // @ts-expect-error DOM hosts require a definition refined to the DOM tooltip host.
@@ -178,7 +189,12 @@ if (false) {
       ariaLabel="Widened definition"
     />
   )
-  void [inferredCallback, inferredStaticCallback, widened]
+  void [
+    inferredCallback,
+    inferredStaticCallback,
+    inferredMotionRenderer,
+    widened,
+  ]
 }
 
 describe('React adapter', () => {

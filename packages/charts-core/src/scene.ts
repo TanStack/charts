@@ -71,7 +71,7 @@ export const defaultChartTheme: ChartTheme = {
 }
 
 type DefinedStaticChart<
-  TMarks extends readonly ChartMark<unknown, any, any>[],
+  TMarks extends readonly ChartMark<any, any, any>[],
   TSpec extends ChartSpec<TMarks>,
 > = Omit<
   StaticChartDefinition<
@@ -107,8 +107,25 @@ type ChartDefinitionWithOptions<TDefinition, TOptions> = Omit<
 > &
   TOptions
 
+type DefinedResponsiveChart<
+  TSpec extends {
+    marks: readonly ChartMark<any, any, any>[]
+    x?: ChartAxisOptions<any> | null
+    y?: ChartAxisOptions<any> | null
+  },
+> = Omit<
+  ResponsiveChartDefinition<
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >,
+  keyof ChartDefinitionOptions
+> & {
+  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
+}
+
 export function defineChart<
-  const TMarks extends readonly ChartMark<unknown, any, any>[],
+  const TMarks extends readonly ChartMark<any, any, any>[],
   const TSpec extends ChartSpec<TMarks>,
 >(
   spec: TSpec & { marks: TMarks } & ChartDefinitionOptions<
@@ -119,7 +136,7 @@ export function defineChart<
 ): DefinedStaticChart<TMarks, TSpec>
 export function defineChart<
   const TSpec extends {
-    marks: readonly ChartMark<unknown, any, any>[]
+    marks: readonly ChartMark<any, any, any>[]
     x?: ChartAxisOptions<any> | null
     y?: ChartAxisOptions<any> | null
   },
@@ -137,28 +154,67 @@ export function defineChart<
   ResponsiveChartConfig<TSpec, TTooltipHost>
 export function defineChart<
   const TSpec extends {
-    marks: readonly ChartMark<unknown, any, any>[]
+    marks: readonly ChartMark<any, any, any>[]
     x?: ChartAxisOptions<any> | null
     y?: ChartAxisOptions<any> | null
   },
 >(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
-): Omit<
-  ResponsiveChartDefinition<
+): DefinedResponsiveChart<TSpec>
+export function defineChart<
+  const TMarks extends readonly ChartMark<any, any, any>[],
+  const TSpec extends ChartSpec<TMarks>,
+  const TOptions extends ChartDefinitionOptions<
+    ChartMarkDatum<TMarks[number]>,
+    ChartMarkPointX<TMarks[number]>,
+    ChartMarkPointY<TMarks[number]>
+  >,
+>(
+  spec: TSpec & { marks: TMarks } & ChartDefinitionOptions<
+      ChartMarkDatum<TMarks[number]>,
+      ChartMarkPointX<TMarks[number]>,
+      ChartMarkPointY<TMarks[number]>
+    >,
+  options: TOptions,
+): ChartDefinitionWithOptions<DefinedStaticChart<TMarks, TSpec>, TOptions>
+export function defineChart<
+  const TSpec extends {
+    marks: readonly ChartMark<any, any, any>[]
+    x?: ChartAxisOptions<any> | null
+    y?: ChartAxisOptions<any> | null
+  },
+  const TOptions extends ChartDefinitionOptions<
     ChartSpecDatum<TSpec>,
     ChartSpecXValue<TSpec>,
     ChartSpecYValue<TSpec>
   >,
-  keyof ChartDefinitionOptions
-> & {
-  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
-}
+>(
+  chart: (context: ChartBuildContext) => TSpec,
+  options: TOptions,
+): ChartDefinitionWithOptions<DefinedResponsiveChart<TSpec>, TOptions>
+export function defineChart<
+  const TMarks extends readonly ChartMark<any, any, any>[],
+  const TSpec extends ChartSpec<TMarks>,
+  const TOptions extends ChartDefinitionOptions<
+    ChartMarkDatum<TMarks[number]>,
+    ChartMarkPointX<TMarks[number]>,
+    ChartMarkPointY<TMarks[number]>
+  >,
+>(
+  config: {
+    chart: (context: ChartBuildContext) => TSpec & { marks: TMarks }
+  },
+  options: TOptions,
+): ChartDefinitionWithOptions<
+  DefinedResponsiveChart<TSpec & { marks: TMarks }>,
+  TOptions
+>
 export function defineChart<
   const TDefinition extends StaticChartDefinition<any, any, any>,
   const TOptions extends ChartDefinitionOptions<
-    ChartSpecDatum<TDefinition>,
-    ChartSpecXValue<TDefinition>,
-    ChartSpecYValue<TDefinition>
+    ChartDefinitionDatum<TDefinition>,
+    ChartDefinitionXValue<TDefinition>,
+    ChartDefinitionYValue<TDefinition>
   >,
 >(
   definition: TDefinition,
@@ -176,7 +232,11 @@ export function defineChart<
   options: TOptions,
 ): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart(definition?: any, options?: any): any {
-  if (options) return { ...definition, ...options }
+  if (options) {
+    return typeof definition === 'function'
+      ? { chart: definition, ...options }
+      : { ...definition, ...options }
+  }
   return (
     typeof definition === 'function' ? { chart: definition } : definition
   ) as StaticChartDefinition | ResponsiveChartDefinition

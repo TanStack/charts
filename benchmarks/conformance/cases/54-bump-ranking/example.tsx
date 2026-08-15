@@ -12,7 +12,7 @@ import {
 } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { curveBumpX } from 'd3-shape'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed', '#db2777']
 const includedIndustries = [
@@ -30,7 +30,7 @@ const observations = industries.filter(
     includedIndustrySet.has(row.industry),
 )
 
-export const bumpRankingDefinition = (input?: ExampleOptions) => {
+export const createExampleChart = (input?: ChartOptions) => {
   const rows = rank(observations, {
     by: 'date',
     value: 'unemployed',
@@ -43,77 +43,68 @@ export const bumpRankingDefinition = (input?: ExampleOptions) => {
     select: 'max',
   })
 
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        id: 'industry-ranks',
-        x: 'date',
-        y: 'rank',
-        color: 'industry',
-        curve: d3Curve(curveBumpX),
-        strokeWidth: 2.25,
-      }),
-      dot(rows, {
-        id: 'industry-rank-points',
-        x: 'date',
-        y: 'rank',
-        color: 'industry',
-        r: 3,
-      }),
-      ...(input?.preview === true
-        ? []
-        : [
-            text(labels, {
-              id: 'newest-industry-labels',
-              x: 'date',
-              y: 'rank',
-              text: 'industry',
-              color: 'industry',
-              anchor: 'start',
-              dx: 6,
-            }),
-          ]),
-    ],
-    x: {
-      scale: scaleUtc,
-      axis: {
-        ticks: { count: 7, format: (date) => `${date.getUTCFullYear()}` },
-        label: 'Year',
+  return defineChart(
+    {
+      marks: [
+        lineY(rows, {
+          id: 'industry-ranks',
+          x: 'date',
+          y: 'rank',
+          color: 'industry',
+          curve: d3Curve(curveBumpX),
+          strokeWidth: 2.25,
+        }),
+        dot(rows, {
+          id: 'industry-rank-points',
+          x: 'date',
+          y: 'rank',
+          color: 'industry',
+          r: 3,
+        }),
+        ...(input?.preview === true
+          ? []
+          : [
+              text(labels, {
+                id: 'newest-industry-labels',
+                x: 'date',
+                y: 'rank',
+                text: 'industry',
+                color: 'industry',
+                anchor: 'start',
+                dx: 6,
+              }),
+            ]),
+      ],
+      x: {
+        scale: scaleUtc,
+        axis: {
+          ticks: { count: 7, format: (date) => `${date.getUTCFullYear()}` },
+          label: 'Year',
+        },
+      },
+      y: {
+        scale: scaleLinear().domain([5.2, 0.8]),
+        grid: true,
+        axis: {
+          ticks: { count: 5, format: (value) => `#${value}` },
+          label: 'Rank',
+        },
+      },
+      color: {
+        domain: includedIndustries,
+        range: colors,
       },
     },
-    y: {
-      scale: scaleLinear().domain([5.2, 0.8]),
-      grid: true,
-      axis: {
-        ticks: { count: 5, format: (value) => `#${value}` },
-        label: 'Rank',
-      },
-    },
-    color: {
-      domain: includedIndustries,
-      range: colors,
-    },
-  })
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
-  revision: number
+export interface ChartOptions {
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Annual unemployment rank by industry'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(bumpRankingDefinition(options), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
-  revision: 0,
   preview: false,
 })
 

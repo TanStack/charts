@@ -259,6 +259,50 @@ describe('native mark and channel scene', () => {
     ).toBe(true)
   })
 
+  it('infers raw static and responsive specs before checking behaviors', () => {
+    const primary = [{ id: 'a', x: 0, y: 1 }]
+    const secondary = [{ name: 'b', x: 1, value: 2 }]
+    const marks = [
+      lineY(primary, { x: 'x', y: 'y' }),
+      lineY(secondary, { x: 'x', y: 'value' }),
+    ] as const
+    const tooltipExtension = {
+      id: 'test-tooltip',
+      create() {},
+      __chartExtensionType: 'tooltip',
+      __chartTooltipHost: 'dom',
+    } as const
+    const staticDefinition = defineChart(
+      { marks, ...linearAxes([0, 1], [0, 2]) },
+      {
+        keyboard: true,
+        tooltip: {
+          use: tooltipExtension,
+          format: ({ datum }) => ('id' in datum ? datum.id : datum.name),
+        },
+      },
+    )
+    const responsiveDefinition = defineChart(
+      () => ({ marks, ...linearAxes([0, 1], [0, 2]) }),
+      {
+        keyboard: true,
+        tooltip: {
+          use: tooltipExtension,
+          format: ({ datum }) => ('id' in datum ? datum.id : datum.name),
+        },
+      },
+    )
+
+    type Datum = (typeof primary)[number] | (typeof secondary)[number]
+    expectTypeOf(staticDefinition).toMatchTypeOf<ChartDefinition<Datum>>()
+    expectTypeOf(responsiveDefinition).toMatchTypeOf<ChartDefinition<Datum>>()
+    expect(responsiveDefinition.chart).toBeTypeOf('function')
+    expect(responsiveDefinition.keyboard).toBe(true)
+    expect(responsiveDefinition.tooltip).toMatchObject({
+      use: tooltipExtension,
+    })
+  })
+
   it('collects dense channels and interaction points without argument spreading', () => {
     const count = 200_000
     const values = Array<number>(count).fill(0)

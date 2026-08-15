@@ -1,10 +1,10 @@
 import { Chart } from '@tanstack/charts/react/tooltip'
 import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { binX, defineChart, facet, normalize, rect } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export const species = ['Adelie', 'Chinstrap', 'Gentoo'] as const
 export type PenguinSpecies = (typeof species)[number]
@@ -19,7 +19,7 @@ const percent = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 })
 
-export const facetedDistributionDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const rows = penguins
     .filter((row): row is PenguinMass => {
       return (
@@ -48,68 +48,64 @@ export const facetedDistributionDefinition = (input: ExampleOptions) => {
         species.indexOf(left.species) - species.indexOf(right.species),
     )
 
-  return defineChart({
-    marks: [
-      facet(bins, {
-        by: 'species',
-        columns: 1,
-        gap: 8,
-        label: input.preview === true ? false : (group) => String(group),
-        chart: (facetBins) => ({
-          marks: [
-            rect(facetBins, {
-              x1: 'x1',
-              x2: 'x2',
-              y1: () => 0,
-              y2: 'proportion',
-              fill: '#8b5cf6',
-              inset: 0.75,
-            }),
-          ],
-          ...(input.preview ? { guides: false, margin: 0 } : {}),
-          x: {
-            scale: scaleLinear().domain([2500, 6500]),
-            grid: true,
-            axis: { label: 'Body mass (g)' },
-          },
-          y: {
-            scale: scaleLinear().domain([0, 0.4]),
-            grid: true,
-            axis: {
-              ticks: { count: 3, format: (value) => percent.format(value) },
-              label: 'Proportion',
+  return defineChart(
+    {
+      marks: [
+        facet(bins, {
+          by: 'species',
+          columns: 1,
+          gap: 8,
+          label: input.preview === true ? false : (group) => String(group),
+          chart: (facetBins) => ({
+            marks: [
+              rect(facetBins, {
+                x1: 'x1',
+                x2: 'x2',
+                y1: () => 0,
+                y2: 'proportion',
+                fill: '#8b5cf6',
+                inset: 0.75,
+              }),
+            ],
+            ...(input.preview ? { guides: false, margin: 0 } : {}),
+            x: {
+              scale: scaleLinear().domain([2500, 6500]),
+              grid: true,
+              axis: { label: 'Body mass (g)' },
             },
-          },
+            y: {
+              scale: scaleLinear().domain([0, 0.4]),
+              grid: true,
+              axis: {
+                ticks: { count: 3, format: (value) => percent.format(value) },
+                label: 'Proportion',
+              },
+            },
+          }),
         }),
-      }),
-    ],
-    margin: 0,
-  })
+      ],
+      margin: 0,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: (point) =>
+            `${point.datum.species} · Body mass: ${point.datum.x1}–${point.datum.x2} g · Proportion: ${percent.format(point.datum.proportion)}`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Faceted distribution comparison'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(facetedDistributionDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: (point) =>
-          `${point.datum.species} · Body mass: ${point.datum.x1}–${point.datum.x2} g · Proportion: ${percent.format(point.datum.proportion)}`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
   preview: false,
 })

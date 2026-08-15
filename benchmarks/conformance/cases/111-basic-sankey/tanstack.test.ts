@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { basicFlowNodes, basicSankeyData } from './model'
-import { basicSankeyDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   BasicSankeyDatum,
   BasicSankeyLinkRow,
@@ -151,7 +151,7 @@ describe('basic Sankey composition', () => {
     const runtime = createChartRuntime<BasicSankeyDatum, number, number>()
     const renderRevision = (revision: number) => {
       const input = { ...baseInput, revision }
-      return runtime.render(basicSankeyDefinition(input), input)
+      return runtime.render(createExampleChart(input), input)
     }
     const first = renderRevision(0)
     const repeated = renderRevision(0)
@@ -207,7 +207,7 @@ describe('basic Sankey composition', () => {
       ),
       'utf8',
     )
-    type Datum = ChartSpecDatum<ReturnType<typeof basicSankeyDefinition>>
+    type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
     expectTypeOf<Datum>().toEqualTypeOf<BasicSankeyDatum>()
     expect(source).toContain("from '@tanstack/charts/network/sankey'")
@@ -230,7 +230,7 @@ describe('basic Sankey composition', () => {
 
 function render(input: ConformanceInput) {
   return createChartRuntime<BasicSankeyDatum, number, number>().render(
-    basicSankeyDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

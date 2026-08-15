@@ -1,8 +1,8 @@
-import { learningPoverty } from '@charts-poc/demo-data/learning-poverty'
+import { learningPoverty } from '@tanstack/charts-data/learning-poverty'
 import { geoCentroid } from 'd3-geo'
 import { worldCountries } from './country-atlas'
 import { simplifyPolygonGeometry } from './simplify-geo'
-import type { LearningPovertyRow } from '@charts-poc/demo-data/learning-poverty'
+import type { LearningPovertyRow } from '@tanstack/charts-data/learning-poverty'
 import type { ExtendedFeature, GeoGeometryObjects } from 'd3-geo'
 import type { CountryFeature, CountryGeometry } from './country-atlas'
 

@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { Chart } from '@tanstack/charts/react'
 import { reactMount } from '../../shared/react-mount'
 import { synchronizedCursorColors } from './colors'
@@ -22,7 +22,7 @@ import {
 } from './example'
 import type { ChartScene } from '@tanstack/charts'
 import type { ChartInteractionController } from '@tanstack/charts'
-import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { TravelersRow } from '@tanstack/charts-data/travelers'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 

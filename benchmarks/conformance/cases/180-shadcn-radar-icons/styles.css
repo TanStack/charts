@@ -90,9 +90,6 @@
 .sc-chart > * {
   display: block;
 }
-.sc-chart-clip .ts-chart {
-  overflow: hidden !important;
-}
 .sc-card-footer {
   display: flex;
   flex-direction: column;
@@ -116,11 +113,6 @@
   align-items: center;
   gap: 6px;
 }
-.sc-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-}
 .sc-legend-icon {
   width: 12px;
   height: 12px;
@@ -129,17 +121,6 @@
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-.sc-pie-legend {
-  display: flex;
-  width: 260px;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px 16px;
-}
-.sc-pie-legend .sc-legend-item {
-  flex: 0 0 70px;
-  justify-content: center;
 }
 .sc-centered {
   justify-content: center;
@@ -167,9 +148,6 @@
 .sc-example .ts-chart {
   color: var(--muted-foreground);
 }
-.sc-example .recharts-surface {
-  overflow: visible;
-}
 .sc-example .ts-chart__grid line,
 .sc-example .ts-chart__polar-grid path,
 .sc-example .ts-chart__polar-grid line {
@@ -189,273 +167,4 @@
   color: var(--card-foreground) !important;
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
   font-size: 12px;
-}
-.sc-advanced-tooltip {
-  display: grid;
-  width: 158px;
-  gap: 6px;
-}
-.sc-advanced-row {
-  display: grid;
-  grid-template-columns: 10px 1fr auto;
-  align-items: center;
-  gap: 6px;
-}
-.sc-advanced-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.sc-advanced-value {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--foreground);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-.sc-advanced-unit {
-  color: var(--muted-foreground);
-  font-family: inherit;
-  font-weight: 400;
-}
-.sc-advanced-total {
-  display: flex;
-  align-items: center;
-  margin-top: 2px;
-  padding-top: 7px;
-  border-top: 1px solid var(--border);
-  color: var(--foreground);
-  font-weight: 500;
-}
-.sc-advanced-total .sc-advanced-value {
-  margin-left: auto;
-}
-.sc-shadcn-tooltip {
-  display: grid;
-  gap: 5px;
-}
-.sc-tooltip-label {
-  color: var(--foreground);
-  font-weight: 500;
-}
-.sc-shadcn-tooltip-row {
-  display: grid;
-  grid-template-columns: 9px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted-foreground);
-}
-.sc-tooltip-no-indicator .sc-shadcn-tooltip-row {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-.sc-tooltip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-}
-.sc-tooltip-line {
-  width: 3px;
-  height: 16px;
-  border-radius: 2px;
-}
-.sc-tooltip-icon {
-  width: 11px;
-  height: 11px;
-  fill: none;
-  stroke: var(--muted-foreground);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.sc-tooltip-value {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--foreground);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-.sc-tooltip-value span {
-  color: var(--muted-foreground);
-  font-family: inherit;
-  font-weight: 400;
-}
-.sc-tooltip-total {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1px;
-  padding-top: 7px;
-  border-top: 1px solid var(--border);
-  color: var(--foreground);
-  font-weight: 500;
-}
-.sc-interactive-area {
-  gap: 0;
-  padding-top: 0;
-}
-.sc-interactive-area .sc-card-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
-.sc-interactive-area .sc-card-heading {
-  flex: 1;
-  gap: 4px;
-}
-.sc-interactive-area .sc-card-content {
-  padding-top: 24px;
-}
-.sc-interactive-area .sc-chart-footer {
-  margin-top: 8px;
-}
-.sc-interactive-bar {
-  gap: 0;
-  padding: 0 0 30px;
-}
-.sc-interactive-bar .sc-card-header {
-  display: flex;
-  min-height: 99px;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  border-bottom: 1px solid var(--border);
-}
-.sc-interactive-bar .sc-card-heading {
-  flex: 1;
-  align-content: center;
-  gap: 4px;
-  padding: 16px 24px;
-}
-.sc-interactive-bar .sc-card-action {
-  display: flex;
-  margin: 0;
-}
-.sc-interactive-bar .sc-card-content {
-  padding: 43px 24px 0;
-}
-.sc-interactive-line {
-  gap: 0;
-  padding: 0;
-}
-.sc-interactive-line .sc-card-header {
-  display: flex;
-  min-height: 99px;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  border-bottom: 1px solid var(--border);
-}
-.sc-interactive-line .sc-card-heading {
-  flex: 1;
-  align-content: center;
-  gap: 4px;
-  padding: 16px 24px;
-}
-.sc-interactive-line .sc-card-action {
-  display: flex;
-  margin: 0;
-}
-.sc-interactive-line .sc-card-content {
-  padding: 43px 24px 0;
-}
-.sc-interactive-pie .sc-card-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding-bottom: 0;
-}
-.sc-interactive-pie .sc-card-heading {
-  flex: 1;
-  gap: 4px;
-}
-.sc-interactive-pie .sc-card-content {
-  padding-bottom: 44px;
-}
-.sc-interactive-pie .sc-chart {
-  transform: translateY(55px);
-}
-.sc-interactive-pie .sc-card-action {
-  transform: translateY(48px);
-}
-.sc-card-action {
-  margin-left: auto;
-}
-.sc-select-display {
-  position: relative;
-  display: flex;
-  min-width: 130px;
-  height: 36px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--background);
-  color: var(--foreground);
-  font-size: 14px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
-}
-.sc-select-display:focus-within {
-  outline: 2px solid var(--foreground);
-  outline-offset: 2px;
-}
-.sc-select-display select {
-  min-width: 0;
-  flex: 1;
-  appearance: none;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-.sc-select-display svg {
-  width: 14px;
-  height: 14px;
-  flex: none;
-  color: var(--muted-foreground);
-  pointer-events: none;
-}
-.sc-select-swatch {
-  width: 12px;
-  height: 12px;
-  flex: none;
-  border-radius: 3px;
-}
-.sc-bar-metric {
-  display: grid;
-  width: 168px;
-  align-content: center;
-  gap: 6px;
-  padding: 16px 32px;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.sc-bar-metric[data-active='true'] {
-  background: var(--muted);
-}
-.sc-bar-metric:focus-visible {
-  outline: 2px solid var(--foreground);
-  outline-offset: -3px;
-}
-.sc-bar-metric span {
-  color: var(--muted-foreground);
-  font-size: 12px;
-}
-.sc-bar-metric strong {
-  font-size: 30px;
-  line-height: 1;
-  letter-spacing: -0.03em;
 }

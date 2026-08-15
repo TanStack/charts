@@ -551,21 +551,44 @@ export interface ChartLinearGradient {
   stops: readonly ChartGradientStop[]
 }
 
-export type ChartMarkScaleX<TMark> =
-  TMark extends ChartMark<any, any, any, infer TValue, any> ? TValue : never
+/** A scale-contributing mark that does not own interactive chart points. */
+export type DecorativeChartMark<
+  TMark extends ChartMark<any, any, any, any, any>,
+> = TMark & {
+  readonly __decorativeMark: TMark
+}
 
-export type ChartMarkScaleY<TMark> =
-  TMark extends ChartMark<any, any, any, any, infer TValue> ? TValue : never
+interface DecorativeChartMarkBrand {
+  readonly __decorativeMark: ChartMark<any, any, any, any, any>
+}
 
-export type ChartMarkPointX<TMark> =
-  TMark extends ChartMark<infer TDatum, infer TXValue, any, any, any>
+export type ChartMarkScaleX<TMark> = TMark extends {
+  readonly __decorativeMark: infer TSource
+}
+  ? ChartMarkScaleX<TSource>
+  : TMark extends ChartMark<any, any, any, infer TValue, any>
+    ? TValue
+    : never
+
+export type ChartMarkScaleY<TMark> = TMark extends {
+  readonly __decorativeMark: infer TSource
+}
+  ? ChartMarkScaleY<TSource>
+  : TMark extends ChartMark<any, any, any, any, infer TValue>
+    ? TValue
+    : never
+
+export type ChartMarkPointX<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<infer TDatum, infer TXValue, any, any, any>
     ? [TDatum] extends [never]
       ? never
       : TXValue
     : never
 
-export type ChartMarkPointY<TMark> =
-  TMark extends ChartMark<infer TDatum, any, infer TYValue, any, any>
+export type ChartMarkPointY<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<infer TDatum, any, infer TYValue, any, any>
     ? [TDatum] extends [never]
       ? never
       : TYValue
@@ -588,7 +611,7 @@ export type ChartAxisValue<TValue> =
         ? any
         : WidenChartValue<TValue>
 
-type AnyChartMarks = readonly ChartMark<unknown, any, any>[]
+type AnyChartMarks = readonly ChartMark<any, any, any>[]
 
 type IsUnion<TValue, TWhole = TValue> = TValue extends TWhole
   ? [TWhole] extends [TValue]
@@ -706,7 +729,7 @@ export interface ChartMarkMotionOptions<TDatum = unknown> {
 }
 
 interface StoredChartSpec extends ChartSpecBase {
-  marks: readonly ChartMark<unknown, any, any>[]
+  marks: readonly ChartMark<any, any, any>[]
   x?: ChartAxisOptions<any> | null
   y?: ChartAxisOptions<any> | null
 }
@@ -812,7 +835,7 @@ export interface StaticChartDefinition<
   TTooltipHost extends string = string,
 >
   extends StoredChartSpec, StoredChartDefinitionOptions<TTooltipHost> {
-  marks: readonly ChartMark<unknown, any, any>[]
+  marks: readonly ChartMark<any, any, any>[]
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
   readonly __yValue?: TYValue
@@ -888,8 +911,11 @@ export type DomChartDefinition<
   TYValue extends ChartValue = ChartValue,
 > = ChartDefinitionForTooltipHost<TDatum, TXValue, TYValue, 'dom'>
 
-export type ChartMarkDatum<TMark> =
-  TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
+export type ChartMarkDatum<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<infer TDatum, any, any>
+    ? TDatum
+    : never
 
 export type ChartSpecDatum<TSpec extends StoredChartSpec> =
   '__datum' extends keyof TSpec

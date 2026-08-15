@@ -4,7 +4,7 @@ import { brushX } from '@tanstack/charts/interaction/brush'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from '@tanstack/charts/react'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
   dateKey,
@@ -20,7 +20,7 @@ import type {
   BrushXChange,
 } from '@tanstack/charts/interaction/brush'
 import type { KeyedSelectionChange } from '@tanstack/charts/selection'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { FocusContextWindow } from './model'
 
 interface BrushStatus {
@@ -50,7 +50,7 @@ export function focusContextDetailDefinition(window: FocusContextWindow) {
     key: (row) => dateKey(row.Date),
   })
   return defineChart(
-    defineChart({
+    {
       marks: [
         lineY(rows, {
           id: 'detail-line',
@@ -89,7 +89,7 @@ export function focusContextDetailDefinition(window: FocusContextWindow) {
         axis: { label: 'Close ($)' },
       },
       margin: detailMargin,
-    }),
+    },
     { svgAnimation: false, keyboard: false },
   )
 }
@@ -99,7 +99,7 @@ export function focusContextOverviewDefinition(
   onChange: (range: BrushRange<Date>, reason: BrushXChange<Date>) => void,
 ) {
   return defineChart(
-    defineChart({
+    {
       marks: [
         lineY(focusContextRows, {
           id: 'overview-line',
@@ -146,7 +146,7 @@ export function focusContextOverviewDefinition(
           handleStyle: { fill: '#2563eb', fillOpacity: 0.9 },
         }),
       ],
-    }),
+    },
     { svgAnimation: false, keyboard: false },
   )
 }

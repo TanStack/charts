@@ -1,18 +1,15 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { contourDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import { contourThresholds } from './transform'
-import type { ConformanceInput } from '../../types'
 import type { SceneArea, SceneNode } from '@tanstack/charts'
 
 describe('native scalar-grid contours', () => {
   it('emits five structured levels without synthetic focus points', () => {
     const scene = createChartRuntime().render(
-      contourDefinition({
-        width: 640,
-        height: 400,
+      createExampleChart({
         revision: 0,
-      } satisfies ConformanceInput),
+      }),
       { width: 640, height: 400 },
     )
     const areas = sceneAreas(scene.nodes)

@@ -9,13 +9,13 @@ import {
   ruleY,
   rect,
 } from '@tanstack/charts'
-import { cars } from '@charts-poc/demo-data/cars'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { cars } from '@tanstack/charts-data/cars'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { bin as d3Bin } from 'd3-array'
 import { scaleBand, scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { CarsRow } from '@tanstack/charts-data/cars'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 import type { Bin } from 'd3-array'
 
 export type HorsepowerBin = Bin<CarsRow, number>

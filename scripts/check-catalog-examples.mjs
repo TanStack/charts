@@ -8,9 +8,10 @@ const casesRoot = path.join(root, 'benchmarks', 'conformance', 'cases')
 const demoDataRoot = path.join(root, 'packages', 'charts-demo-data', 'src')
 const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css']
 const browserModuleExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
-const demoDataPrefixes = ['@charts-poc/demo-data/', '@tanstack/charts-data/']
+const demoDataPrefixes = ['@tanstack/charts-data/']
 const forbiddenPublicNames =
-  /\b(?:Conformance|tanstackCase|tanstackMount|reactMount|catalogPreviewDefinition)\b/
+  /\b(?:Conformance|ExampleOptions|tanstackCase|tanstackMount|reactMount|catalogPreviewDefinition)\b/
+const privatePackageName = '@charts-poc/'
 
 const directories = (await fs.readdir(casesRoot, { withFileTypes: true }))
   .filter((entry) => entry.isDirectory())
@@ -57,6 +58,11 @@ for (const directory of directories) {
         `${directory}/${relativePath}: contains conformance-only code`,
       )
     }
+    if (source.includes(privatePackageName)) {
+      failures.push(
+        `${directory}/${relativePath}: exposes a private workspace package`,
+      )
+    }
     if (
       sourcePath === examplePath &&
       !hasDefaultComponentExport(source, sourcePath)
@@ -69,6 +75,11 @@ for (const directory of directories) {
       failures.push(
         `${directory}: put the chart definition before the component shell`,
       )
+    }
+    if (sourcePath === examplePath) {
+      for (const problem of catalogScaffoldingProblems(source, sourcePath)) {
+        failures.push(`${directory}: ${problem}`)
+      }
     }
 
     for (const specifier of importSpecifiers(source, sourcePath)) {
@@ -148,6 +159,83 @@ function definitionFollowsComponent(source) {
     definitionIndex !== -1 &&
     componentIndex !== -1 &&
     definitionIndex > componentIndex
+  )
+}
+
+function catalogScaffoldingProblems(source, sourcePath) {
+  const file = ts.createSourceFile(
+    sourcePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  )
+  const problems = []
+  const localFactories = new Set()
+  let exampleFactory
+  for (const statement of file.statements) {
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      localFactories.add(statement.name.text)
+      if (statement.name.text === 'createExampleChart') {
+        exampleFactory = statement
+      }
+    }
+    if (!ts.isVariableStatement(statement)) continue
+    for (const declaration of statement.declarationList.declarations) {
+      if (!ts.isIdentifier(declaration.name)) continue
+      localFactories.add(declaration.name.text)
+      if (declaration.name.text === 'createExampleChart') {
+        exampleFactory = declaration
+        if (
+          declaration.initializer &&
+          ts.isIdentifier(declaration.initializer)
+        ) {
+          problems.push(
+            'createExampleChart must contain the authored definition',
+          )
+        }
+      }
+    }
+  }
+
+  let exampleFactoryHasDefinition = false
+  const visit = (node, insideExampleFactory = false) => {
+    const nextInside = insideExampleFactory || node === exampleFactory
+    if (isDefineChartCall(node)) {
+      if (nextInside) exampleFactoryHasDefinition = true
+      const chart = node.arguments[0]
+      if (chart && isDefineChartCall(chart)) {
+        problems.push('remove nested defineChart wrappers')
+      }
+      if (
+        chart &&
+        ts.isCallExpression(chart) &&
+        ts.isIdentifier(chart.expression) &&
+        localFactories.has(chart.expression.text)
+      ) {
+        problems.push(
+          `inline the local ${chart.expression.text} chart-definition wrapper`,
+        )
+      }
+    }
+    ts.forEachChild(node, (child) => visit(child, nextInside))
+  }
+  visit(file)
+
+  if (exampleFactory && !exampleFactoryHasDefinition) {
+    problems.push('createExampleChart must contain defineChart')
+  }
+  if (/\.\.\.\s*\{\s*\}/u.test(source)) {
+    problems.push('remove empty object spreads')
+  }
+  return [...new Set(problems)]
+}
+
+function isDefineChartCall(node) {
+  return (
+    ts.isCallExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    node.expression.text === 'defineChart'
   )
 }
 

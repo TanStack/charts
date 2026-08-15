@@ -3,14 +3,14 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { defineChart, dot, link, text } from '@tanstack/charts'
 import { forceLayout } from '@tanstack/charts/network/force'
-import { miserables } from '@charts-poc/demo-data/miserables'
+import { miserables } from '@tanstack/charts-data/miserables'
 import { scaleLinear } from 'd3-scale'
 import { forceNetworkData } from './transform'
 
 const colors = ['#2563eb', '#f97316', '#10b981']
 const network = forceNetworkData(miserables)
 
-export const forceDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const distanceDelta = Math.abs(input.revision % 2) * 3
   const graph = forceLayout(network.nodes, network.links, {
     nodeKey: 'id',
@@ -33,59 +33,71 @@ export const forceDefinition = (input: ExampleOptions) => {
     ],
   })
 
-  return defineChart({
-    marks: [
-      link(graph.links, {
-        id: 'network-links',
-        x1: 'x1',
-        y1: 'y1',
-        x2: 'x2',
-        y2: 'y2',
-        key: ({ source, target }) => `${source}->${target}`,
-        stroke: '#94a3b8',
-        strokeOpacity: 0.6,
-        strokeWidth: 2,
-      }),
-      dot(graph.nodes, {
-        id: 'network-nodes',
-        x: 'x',
-        y: 'y',
-        color: 'group',
-        key: 'id',
-        r: 7,
-        stroke: '#ffffff',
-        strokeWidth: 1.5,
-      }),
-      ...(input.preview === true
-        ? []
-        : [
-            text(graph.nodes, {
-              id: 'network-labels',
-              x: 'x',
-              y: 'y',
-              text: 'id',
-              key: 'id',
-              dy: -12,
-              fontSize: 10,
-              fontWeight: 600,
-            }),
-          ]),
-    ],
-    x: {
-      scale: scaleLinear().domain(graph.xDomain),
+  return defineChart(
+    {
+      marks: [
+        link(graph.links, {
+          id: 'network-links',
+          x1: 'x1',
+          y1: 'y1',
+          x2: 'x2',
+          y2: 'y2',
+          key: ({ source, target }) => `${source}->${target}`,
+          stroke: '#94a3b8',
+          strokeOpacity: 0.6,
+          strokeWidth: 2,
+        }),
+        dot(graph.nodes, {
+          id: 'network-nodes',
+          x: 'x',
+          y: 'y',
+          color: 'group',
+          key: 'id',
+          r: 7,
+          stroke: '#ffffff',
+          strokeWidth: 1.5,
+        }),
+        ...(input.preview === true
+          ? []
+          : [
+              text(graph.nodes, {
+                id: 'network-labels',
+                x: 'x',
+                y: 'y',
+                text: 'id',
+                key: 'id',
+                dy: -12,
+                fontSize: 10,
+                fontWeight: 600,
+              }),
+            ]),
+      ],
+      x: {
+        scale: scaleLinear().domain(graph.xDomain),
+      },
+      y: {
+        scale: scaleLinear().domain(graph.yDomain),
+      },
+      guides: false,
+      color: {
+        range: colors,
+      },
     },
-    y: {
-      scale: scaleLinear().domain(graph.yDomain),
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            'group' in datum
+              ? `${datum.id} · Group ${datum.group}`
+              : `${datum.source} → ${datum.target} · Value ${datum.value}`,
+        },
+      },
     },
-    guides: false,
-    color: {
-      range: colors,
-    },
-  })
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
   preview?: boolean
 }
@@ -93,23 +105,7 @@ export interface ExampleOptions {
 export const exampleAriaLabel =
   'Force-directed Les Misérables character network'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(forceDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          'group' in datum
-            ? `${datum.id} · Group ${datum.group}`
-            : `${datum.source} → ${datum.target} · Value ${datum.value}`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
   preview: false,
 })

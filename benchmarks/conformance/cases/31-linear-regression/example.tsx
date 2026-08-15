@@ -1,10 +1,10 @@
 import { Chart } from '@tanstack/charts/react/tooltip'
 import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import { defineChart, dot, linearRegressionY } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
+import type { CarsRow } from '@tanstack/charts-data/cars'
 
 type CompleteCar = CarsRow & {
   'power (hp)': number
@@ -16,80 +16,66 @@ export const completeCars = cars.filter(
     row['power (hp)'] !== null && row['economy (mpg)'] !== null,
 )
 
-function regressionRows(input: ExampleOptions) {
-  return completeCars.slice(input.revision * 8, input.revision * 8 + 320)
-}
+export const createExampleChart = (input: ChartOptions) => {
+  const rows = completeCars.slice(input.revision * 8, input.revision * 8 + 320)
+  const scatterRows = rows
 
-function regressionChart(
-  rows: readonly CompleteCar[],
-  scatterRows: readonly CompleteCar[],
-) {
-  return defineChart({
-    marks: [
-      dot(scatterRows, {
-        x: 'power (hp)',
-        y: 'economy (mpg)',
-        key: (row) => JSON.stringify([row.name, row.year, row['weight (lb)']]),
-        fill: '#93c5fd',
-        stroke: '#2563eb',
-        r: 3,
-      }),
-      linearRegressionY(rows, {
-        id: 'regression',
-        x: 'power (hp)',
-        y: 'economy (mpg)',
-        ci: 0,
-        stroke: '#dc2626',
-        strokeWidth: 2,
-      }),
-    ],
-    x: { scale: scaleLinear, grid: true, axis: { label: 'Power (hp)' } },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Fuel economy (mpg)' },
+  return defineChart(
+    {
+      marks: [
+        dot(scatterRows, {
+          x: 'power (hp)',
+          y: 'economy (mpg)',
+          key: (row) =>
+            JSON.stringify([row.name, row.year, row['weight (lb)']]),
+          fill: '#93c5fd',
+          stroke: '#2563eb',
+          r: 3,
+        }),
+        linearRegressionY(rows, {
+          id: 'regression',
+          x: 'power (hp)',
+          y: 'economy (mpg)',
+          ci: 0,
+          stroke: '#dc2626',
+          strokeWidth: 2,
+        }),
+      ],
+      x: { scale: scaleLinear, grid: true, axis: { label: 'Power (hp)' } },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { label: 'Fuel economy (mpg)' },
+      },
     },
-  })
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            'name' in datum
+              ? `${datum.name} · ${datum['power (hp)'].toLocaleString(
+                  'en-US',
+                )} hp · ${datum['economy (mpg)'].toLocaleString('en-US')} mpg`
+              : `Regression · ${datum.x.toLocaleString(
+                  'en-US',
+                )} hp · predicted ${datum.y.toLocaleString('en-US', {
+                  maximumFractionDigits: 1,
+                })} mpg`,
+        },
+      },
+    },
+  )
 }
-
-export const regressionDefinition = (input: ExampleOptions) => {
-  const rows = regressionRows(input)
-  return regressionChart(rows, rows)
-}
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Scatterplot with linear regression'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(regressionDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          'name' in datum
-            ? `${datum.name} · ${datum['power (hp)'].toLocaleString(
-                'en-US',
-              )} hp · ${datum['economy (mpg)'].toLocaleString('en-US')} mpg`
-            : `Regression · ${datum.x.toLocaleString(
-                'en-US',
-              )} hp · predicted ${datum.y.toLocaleString('en-US', {
-                maximumFractionDigits: 1,
-              })} mpg`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

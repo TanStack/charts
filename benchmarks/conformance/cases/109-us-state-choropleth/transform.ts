@@ -1,9 +1,9 @@
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import countiesAtlasJson from 'us-atlas/counties-10m.json'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
-import { simplifyPolygonGeometry } from '@charts-poc/demo-data/simplify-geo'
-import type { UsCountyUnemploymentRow } from '@charts-poc/demo-data/us-county-unemployment'
+import { simplifyPolygonGeometry } from '@tanstack/charts-data/simplify-geo'
+import type { UsCountyUnemploymentRow } from '@tanstack/charts-data/us-county-unemployment'
 import type {
   ExtendedFeature,
   ExtendedFeatureCollection,

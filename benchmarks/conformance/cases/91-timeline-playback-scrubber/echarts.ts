@@ -2,8 +2,8 @@ import { LineChart } from 'echarts/charts'
 import { AriaComponent, GridComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   AriaComponentOption,

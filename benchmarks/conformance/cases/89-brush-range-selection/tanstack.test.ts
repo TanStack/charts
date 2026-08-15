@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartScene } from '@tanstack/charts'
 import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { initialBrushRange, monthlyAaplRows, observedBrushDates } from './model'
 import { brushRangeDefinition, mount } from './tanstack'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ChartDefinition,
   ChartSpecDatum,

@@ -1,5 +1,5 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import { industries } from '@charts-poc/demo-data/industries'
+import { cars } from '@tanstack/charts-data/cars'
+import { industries } from '@tanstack/charts-data/industries'
 import {
   areaY,
   barX,
@@ -19,8 +19,8 @@ import {
   stackOffsetWiggle,
   stackOrderInsideOut,
 } from 'd3-shape'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { CarsRow } from '@tanstack/charts-data/cars'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 
 export type IndustryHistoryMode = 'line' | 'stacked' | 'share' | 'stream'
 export type { IndustriesRow }

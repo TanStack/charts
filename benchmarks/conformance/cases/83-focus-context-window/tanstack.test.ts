@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
@@ -13,7 +13,7 @@ import {
   monthlyAaplRows,
   rowsInWindow,
 } from './model'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ChartDefinition,
   ChartSpecDatum,

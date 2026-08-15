@@ -8,7 +8,7 @@ import { motion } from '@tanstack/charts/motion'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scalePoint } from '@tanstack/charts/scales/point'
 import { curveMonotoneX } from 'd3-shape'
-import type { PremiumKpiId, PremiumKpiPoint } from './model'
+import type { PremiumKpiId } from './model'
 const fullGap = 12
 
 function KpiCard({
@@ -281,7 +281,7 @@ export function premiumKpiDefinition(metric: PremiumKpiMetric) {
       : [line]
 
   return defineChart(
-    defineChart({
+    {
       guides: false,
       marks,
       gradients:
@@ -321,7 +321,7 @@ export function premiumKpiDefinition(metric: PremiumKpiMetric) {
       margin: { top: 4, right: 3, bottom: 3, left: 3 },
       clip: true,
       motion: { transition: premiumKpiSpring },
-    }),
+    },
     {
       focus: false,
       pointer: false,
@@ -333,7 +333,7 @@ export function premiumKpiDefinition(metric: PremiumKpiMetric) {
 }
 
 export function createPremiumKpiRenderer(initial = true) {
-  return motion<PremiumKpiPoint, number, number>({
+  return motion({
     initial,
     respectReducedMotion: true,
     transition: premiumKpiSpring,

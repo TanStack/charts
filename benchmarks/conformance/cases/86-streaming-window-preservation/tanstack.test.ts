@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { createChartScene, mountChart } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { streamingViewportForMode, visibleStreamingData } from './model'
 import { streamingData } from './selection'
 import { streamingWindowDefinition } from './tanstack'
 import type { ChartDefinition, ChartPoint, SceneNode } from '@tanstack/charts'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 
 const size = { width: 640, height: 360 }
 

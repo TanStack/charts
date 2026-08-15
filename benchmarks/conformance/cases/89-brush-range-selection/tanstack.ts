@@ -2,7 +2,7 @@ import { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
 import type { BrushState } from './example'
 export { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
 export type { BrushState } from './example'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -17,7 +17,7 @@ import {
   observedBrushDates,
 } from './model'
 import { normalizedElementFill } from './paint'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { BrushRange } from '@tanstack/charts/interaction/brush'
 import type { ChartScene } from '@tanstack/charts'
 import type {

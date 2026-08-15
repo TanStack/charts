@@ -1,12 +1,9 @@
-import { useMemo } from 'react'
 import {
   areaY,
   d3Curve,
   defineChart,
   stack,
   type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
 } from '@tanstack/charts'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -17,9 +14,9 @@ import {
   shadcnColors,
   shadcnMonths,
   type ShadcnSeriesDatum,
-} from '@charts-poc/demo-data/shadcn'
+} from '@tanstack/charts-data/shadcn'
 import './styles.css'
-function createDefinition() {
+export function createExampleChart() {
   const expandedRows = shadcnMonths.flatMap((row, index) => [
     {
       month: row.month,
@@ -31,48 +28,62 @@ function createDefinition() {
   ])
   const rows = expandedRows
   const curve = curveNatural
-  return defineChart({
-    marks: [
-      areaY(rows as readonly ShadcnSeriesDatum[], {
-        id: 'visitor-areas',
-        x: 'month',
-        y: 'value',
-        z: 'series',
-        color: 'series',
-        key: (row) => `${row.month}:${row.series}`,
-        layout: stack({
-          order: ['other', 'mobile', 'desktop'],
-          ...{ offset: 'normalize' },
+  return defineChart(
+    {
+      marks: [
+        areaY(rows as readonly ShadcnSeriesDatum[], {
+          id: 'visitor-areas',
+          x: 'month',
+          y: 'value',
+          z: 'series',
+          color: 'series',
+          key: (row) => `${row.month}:${row.series}`,
+          layout: stack({
+            order: ['other', 'mobile', 'desktop'],
+            ...{ offset: 'normalize' },
+          }),
+          curve: d3Curve(curve),
+          fill: (row) =>
+            row.series === 'other'
+              ? `color-mix(in oklch, ${shadcnColors[2]} 10%, transparent)`
+              : `color-mix(in oklch, ${row.series === 'mobile' ? shadcnColors[1] : shadcnColors[0]} 40%, transparent)`,
+          fillOpacity: 1,
+          stroke: (row) =>
+            row.series === 'other'
+              ? shadcnColors[2]
+              : row.series === 'mobile'
+                ? shadcnColors[1]
+                : shadcnColors[0],
+          strokeWidth: 1.5,
         }),
-        curve: d3Curve(curve),
-        fill: (row) =>
-          row.series === 'other'
-            ? `color-mix(in oklch, ${shadcnColors[2]} 10%, transparent)`
-            : `color-mix(in oklch, ${row.series === 'mobile' ? shadcnColors[1] : shadcnColors[0]} 40%, transparent)`,
-        fillOpacity: 1,
-        stroke: (row) =>
-          row.series === 'other'
-            ? shadcnColors[2]
-            : row.series === 'mobile'
-              ? shadcnColors[1]
-              : shadcnColors[0],
-        strokeWidth: 1.5,
-      }),
-    ],
-    x: shadcnPointXAxis(),
-    y: {
-      scale: scaleLinear().domain([0, 1]),
-      grid: true,
-      axis: { line: false, ticks: false, tickLabels: false },
+      ],
+      x: shadcnPointXAxis(),
+      y: {
+        scale: scaleLinear().domain([0, 1]),
+        grid: true,
+        axis: { line: false, ticks: false, tickLabels: false },
+      },
+      color: {
+        domain: ['other', 'mobile', 'desktop'],
+        range: [shadcnColors[2], shadcnColors[1], shadcnColors[0]],
+      },
+      gradients: undefined,
+      margin: { top: 5, right: 12, bottom: 35, left: 12 },
+      theme: shadcnTheme(),
     },
-    color: {
-      domain: ['other', 'mobile', 'desktop'],
-      range: [shadcnColors[2], shadcnColors[1], shadcnColors[0]],
+    {
+      svgAnimation: false,
+      focus: 'group-x',
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: 'group-center',
+        placement: 'auto',
+        sort: 'color-domain',
+        content: (points) => shadcnTooltipContent(points),
+      },
     },
-    gradients: undefined,
-    margin: { top: 5, right: 12, bottom: 35, left: 12 },
-    theme: shadcnTheme(),
-  })
+  )
 }
 function shadcnPointXAxis() {
   return {
@@ -115,68 +126,19 @@ function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
-export function createExampleChart() {
-  return defineChart(createDefinition(), {
-    svgAnimation: false,
-    focus: 'group-x',
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: 'group-center',
-      placement: 'auto',
-      offset: undefined,
-      sort: 'color-domain',
-      content: (points) => shadcnTooltipContent(points),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
 }
 export default function Example({ width = 640, height = 600 }: ExampleProps) {
-  const chartDefinition = definition
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = contentWidth
   const chartHeight = (contentWidth * 9) / 16
-  const headerAction = null
-  const legend = null
-  const footer = <TrendFooter note="January - June 2024" />
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-default" style={{ width }}>
@@ -185,9 +147,6 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Area Chart - Stacked Expanded</h2>
             <p>Showing total visitors for the last 6 months</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
         </header>
         <div className="sc-card-content">
           <div
@@ -195,16 +154,17 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             style={{ width: chartWidth, height: chartHeight }}
           >
             <RendererChart
-              definition={chartDefinition}
+              definition={definition}
               renderer={renderer}
               initialWidth={chartWidth}
               height={chartHeight}
               ariaLabel="Area Chart - Stacked Expanded"
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
         </div>
-        {footer ? <footer className="sc-card-footer">{footer}</footer> : null}
+        <footer className="sc-card-footer">
+          <TrendFooter note="January - June 2024" />
+        </footer>
       </article>
     </div>
   )

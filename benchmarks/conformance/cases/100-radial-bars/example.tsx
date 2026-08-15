@@ -3,7 +3,7 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { defineChart } from '@tanstack/charts'
 import { polar, radialBarAngle } from '@tanstack/charts/polar'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { selectRadialBarData } from './selection'
 
@@ -11,61 +11,52 @@ const innerRadiusRatio = 0.2
 const colors = ['#7c3aed', '#0ea5e9', '#14b8a6', '#f59e0b']
 const maximumFrequency = alphabet[0]?.frequency ?? 1
 
-export const radialBarsDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const data = selectRadialBarData(alphabet, input.revision)
 
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.84,
-        angle: {
-          scale: scaleLinear().domain([0, maximumFrequency]),
-        },
-        radius: {
-          scale: () =>
-            scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
-          range: [
-            ({ radius }) => radius * innerRadiusRatio,
-            ({ radius }) => radius,
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.84,
+          angle: {
+            scale: scaleLinear().domain([0, maximumFrequency]),
+          },
+          radius: {
+            scale: () =>
+              scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
+            range: [
+              ({ radius }) => radius * innerRadiusRatio,
+              ({ radius }) => radius,
+            ],
+          },
+          marks: [
+            radialBarAngle(data, {
+              id: 'letter-bars',
+              className: 'ts-chart__radial-bars',
+              angle: 'frequency',
+              radius: 'letter',
+              key: 'letter',
+              color: 'letter',
+              cornerRadius: 'full',
+            }),
           ],
-        },
-        marks: [
-          radialBarAngle(data, {
-            id: 'letter-bars',
-            className: 'ts-chart__radial-bars',
-            angle: 'frequency',
-            radius: 'letter',
-            key: 'letter',
-            color: 'letter',
-            cornerRadius: 'full',
-          }),
-        ],
-      }),
-    ],
-    color: { range: colors },
-    margin: 0,
-  })
+        }),
+      ],
+      color: { range: colors },
+      margin: 0,
+    },
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Concentric letter frequency bars'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(radialBarsDefinition(options), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

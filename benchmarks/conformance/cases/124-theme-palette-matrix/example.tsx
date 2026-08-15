@@ -152,7 +152,7 @@ export default function ThemePaletteMatrix({
 
   const renderer = useMemo(
     () =>
-      motion<PaletteMatrixRow, string, number>({
+      motion({
         initial: true,
         respectReducedMotion: true,
         transition: {

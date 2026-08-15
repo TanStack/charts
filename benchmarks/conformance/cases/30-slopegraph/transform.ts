@@ -1,4 +1,4 @@
-import type { CitywagesRow } from '@charts-poc/demo-data/citywages'
+import type { CitywagesRow } from '@tanstack/charts-data/citywages'
 import { wageFields, wageYear } from './selection'
 
 export interface SlopePoint {

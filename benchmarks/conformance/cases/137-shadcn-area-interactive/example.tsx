@@ -5,8 +5,6 @@ import {
   defineChart,
   stack,
   type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
 } from '@tanstack/charts'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -16,8 +14,8 @@ import { curveNatural } from 'd3-shape'
 import {
   shadcnColors,
   type ShadcnSeriesDatum,
-} from '@charts-poc/demo-data/shadcn'
-import interactiveAreaData from '@charts-poc/demo-data/shadcn-area-interactive-data'
+} from '@tanstack/charts-data/shadcn'
+import interactiveAreaData from '@tanstack/charts-data/shadcn-area-interactive-data'
 import './styles.css'
 type InteractiveTimeRange = '90d' | '30d' | '7d'
 const twoSeries = ['desktop', 'mobile'] as const
@@ -26,71 +24,85 @@ const interactiveAreaRows = interactiveAreaData as readonly {
   desktop: number
   mobile: number
 }[]
-function createDefinition(timeRange: InteractiveTimeRange = '90d') {
+export function createExampleChart(timeRange: InteractiveTimeRange = '90d') {
   const filteredRows = filterInteractiveAreaRows(timeRange)
   const rows: ShadcnSeriesDatum[] = filteredRows.flatMap((row) => [
     { month: row.date, series: 'mobile', value: row.mobile },
     { month: row.date, series: 'desktop', value: row.desktop },
   ])
-  return defineChart(({ width }) => ({
-    marks: [
-      areaY(rows, {
-        id: 'visitor-areas',
-        x: 'month',
-        y: 'value',
-        z: 'series',
-        color: 'series',
-        key: (row) => `${row.month}:${row.series}`,
-        layout: stack({ order: ['mobile', 'desktop'] }),
-        curve: d3Curve(curveNatural),
-        fill: (row) => `url(#shadcn-interactive-${row.series})`,
-        fillOpacity: 1,
-        stroke: (row) =>
-          row.series === 'mobile' ? shadcnColors[1] : shadcnColors[0],
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scalePoint,
-      axis: {
-        line: false,
-        ticks: {
-          values: interactiveDateTicks(timeRange),
-          size: 0,
-          padding: 10,
-          format: formatMonthDay,
+  return defineChart(
+    ({ width }) => ({
+      marks: [
+        areaY(rows, {
+          id: 'visitor-areas',
+          x: 'month',
+          y: 'value',
+          z: 'series',
+          color: 'series',
+          key: (row) => `${row.month}:${row.series}`,
+          layout: stack({ order: ['mobile', 'desktop'] }),
+          curve: d3Curve(curveNatural),
+          fill: (row) => `url(#shadcn-interactive-${row.series})`,
+          fillOpacity: 1,
+          stroke: (row) =>
+            row.series === 'mobile' ? shadcnColors[1] : shadcnColors[0],
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scalePoint,
+        axis: {
+          line: false,
+          ticks: {
+            values: interactiveDateTicks(timeRange),
+            size: 0,
+            padding: 10,
+            format: formatMonthDay,
+          },
         },
       },
-    },
-    y: {
-      scale: scaleLinear().domain([0, 1200]),
-      grid: true,
-      axis: {
-        line: false,
-        ticks: { values: [0, 300, 600, 900, 1200], size: 0 },
-        tickLabels: false,
+      y: {
+        scale: scaleLinear().domain([0, 1200]),
+        grid: true,
+        axis: {
+          line: false,
+          ticks: { values: [0, 300, 600, 900, 1200], size: 0 },
+          tickLabels: false,
+        },
+      },
+      color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
+      gradients: twoSeries.map((series, index) => ({
+        id: `shadcn-interactive-${series}`,
+        x1: 0,
+        y1: 1,
+        x2: 0,
+        y2: 0,
+        stops: [
+          { offset: 0.05, color: shadcnColors[index], opacity: 0.1 },
+          { offset: 0.95, color: shadcnColors[index], opacity: 0.8 },
+        ],
+      })),
+      margin: {
+        top: 32,
+        right: width < 400 ? 14 : 5,
+        bottom: 35,
+        left: 5,
+      },
+      theme: shadcnTheme(),
+    }),
+    {
+      svgAnimation: false,
+      focus: 'group-x',
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: 'group-center',
+        placement: 'auto',
+        sort: 'color-domain',
+        content: (points) => shadcnTooltipContent(points),
       },
     },
-    color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
-    gradients: twoSeries.map((series, index) => ({
-      id: `shadcn-interactive-${series}`,
-      x1: 0,
-      y1: 1,
-      x2: 0,
-      y2: 0,
-      stops: [
-        { offset: 0.05, color: shadcnColors[index], opacity: 0.1 },
-        { offset: 0.95, color: shadcnColors[index], opacity: 0.8 },
-      ],
-    })),
-    margin: {
-      top: 32,
-      right: width < 400 ? 14 : 5,
-      bottom: 35,
-      left: 5,
-    },
-    theme: shadcnTheme(),
-  }))
+  )
 }
 function filterInteractiveAreaRows(timeRange: InteractiveTimeRange) {
   const days = timeRange === '30d' ? 30 : timeRange === '7d' ? 7 : 90
@@ -158,48 +170,11 @@ function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
-export function createExampleChart(timeRange: InteractiveTimeRange = '90d') {
-  return defineChart(createDefinition(timeRange), {
-    svgAnimation: false,
-    focus: 'group-x',
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: 'group-center',
-      placement: 'auto',
-      offset: undefined,
-      sort: 'color-domain',
-      content: (points) => shadcnTooltipContent(points),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
@@ -210,30 +185,9 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
     () => createExampleChart(timeRange),
     [timeRange],
   )
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = contentWidth
   const chartHeight = 250
-  const headerAction = (
-    <SelectControl
-      value={timeRange}
-      onChange={(value) => setTimeRange(value as InteractiveTimeRange)}
-      options={[
-        { value: '90d', label: 'Last 3 months' },
-        { value: '30d', label: 'Last 30 days' },
-        { value: '7d', label: 'Last 7 days' },
-      ]}
-    />
-  )
-  const legend = <Legend />
-  const footer = null
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-interactive-area" style={{ width }}>
@@ -242,9 +196,17 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Area Chart - Interactive</h2>
             <p>Showing total visitors for the last 3 months</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
+          <div className="sc-card-action">
+            <SelectControl
+              value={timeRange}
+              onChange={(value) => setTimeRange(value as InteractiveTimeRange)}
+              options={[
+                { value: '90d', label: 'Last 3 months' },
+                { value: '30d', label: 'Last 30 days' },
+                { value: '7d', label: 'Last 7 days' },
+              ]}
+            />
+          </div>
         </header>
         <div className="sc-card-content">
           <div
@@ -259,9 +221,10 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               ariaLabel="Area Chart - Interactive"
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
+          <div className="sc-chart-footer">
+            <Legend />
+          </div>
         </div>
-        {footer ? <footer className="sc-card-footer">{footer}</footer> : null}
       </article>
     </div>
   )

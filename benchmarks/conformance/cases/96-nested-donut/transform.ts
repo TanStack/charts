@@ -1,4 +1,4 @@
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 
 export interface FlareDonutSlice {
   name: string

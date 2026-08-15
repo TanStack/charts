@@ -16,7 +16,7 @@ import {
   flareParentId,
   flarePreviewRootId,
 } from './model'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { SunburstNode } from '@tanstack/charts/hierarchy/sunburst'
 import type { ChartPoint, ChartRendererHostOptions } from '@tanstack/charts'
 import type { ConformanceMount, ConformanceTestDriver } from '../../types'

@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { Chart } from '@tanstack/charts/react'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {

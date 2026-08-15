@@ -16,7 +16,7 @@ export {
   freeCursorDefinition,
 } from './example'
 export type { CursorState } from './example'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import {
   clientPointBounds,
   scenePointToClient,

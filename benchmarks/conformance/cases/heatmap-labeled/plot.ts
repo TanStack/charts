@@ -1,4 +1,4 @@
-import { simpsons } from '@charts-poc/demo-data/simpsons'
+import { simpsons } from '@tanstack/charts-data/simpsons'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

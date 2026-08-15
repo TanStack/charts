@@ -1,1 +1,1 @@
-export * from '@charts-poc/demo-data/shadcn'
+export * from '@tanstack/charts-data/shadcn'

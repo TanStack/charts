@@ -9,7 +9,7 @@ import {
   radialArea,
   radialGrid,
 } from '@tanstack/charts/polar'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
 import { radarEvents, timedEvents } from './selection'
@@ -44,87 +44,83 @@ function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
   return y > 0 ? -1.1 : 0
 }
 
-export const radarDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const margin =
     input.width < 480
       ? { top: 20, right: 55, bottom: 20, left: 105 }
       : { top: 20, right: 20, bottom: 20, left: 20 }
 
-  return defineChart({
-    marks: [
-      polar({
-        angle: { scale: angleScale, wrap: true },
-        radius: { scale: radiusScale },
-        inset: 0,
-        radiusRatio: input.preview === true ? 0.94 : 0.8,
-        guides: [
-          radialGrid({
-            values: ringValues,
-            shape: 'polygon',
-            labels: input.preview !== true,
-            labelAngle: Math.PI / 3,
-            labelRotate: 60,
-            labelBaseline: 'auto',
-            labelFontSize: 12,
-            format: (value) => String(Number(value) * 100),
-            labelFill: '#cccccc',
-            stroke: '#cbd5e1',
-          }),
-          angleGrid({
-            values: radarEvents,
-            labels: input.preview !== true,
-            labelOffset: 8,
-            labelDy: angleLabelDy,
-            labelFill: '#808080',
-            labelFontSize: 12,
-            format: String,
-            stroke: '#cbd5e1',
-          }),
-        ],
-        marks: [
-          radialArea(radarProfile, {
-            id: 'athlete-profile',
-            angle: 'event',
-            radius: 'relativePerformance',
-            key: 'event',
-            className: 'ts-chart__radar',
-            curve: curveLinearClosed,
-            fill: '#8884d8',
-            fillOpacity: 0.6,
-            stroke: '#8884d8',
-            strokeWidth: 2,
-          }),
-        ],
-      }),
-    ],
-    margin: input.preview === true ? 0 : margin,
-  })
+  return defineChart(
+    {
+      marks: [
+        polar({
+          angle: { scale: angleScale, wrap: true },
+          radius: { scale: radiusScale },
+          inset: 0,
+          radiusRatio: input.preview === true ? 0.94 : 0.8,
+          guides: [
+            radialGrid({
+              values: ringValues,
+              shape: 'polygon',
+              labels: input.preview !== true,
+              labelAngle: Math.PI / 3,
+              labelRotate: 60,
+              labelBaseline: 'auto',
+              labelFontSize: 12,
+              format: (value) => String(Number(value) * 100),
+              labelFill: '#cccccc',
+              stroke: '#cbd5e1',
+            }),
+            angleGrid({
+              values: radarEvents,
+              labels: input.preview !== true,
+              labelOffset: 8,
+              labelDy: angleLabelDy,
+              labelFill: '#808080',
+              labelFontSize: 12,
+              format: String,
+              stroke: '#cbd5e1',
+            }),
+          ],
+          marks: [
+            radialArea(radarProfile, {
+              id: 'athlete-profile',
+              angle: 'event',
+              radius: 'relativePerformance',
+              key: 'event',
+              className: 'ts-chart__radar',
+              curve: curveLinearClosed,
+              fill: '#8884d8',
+              fillOpacity: 0.6,
+              stroke: '#8884d8',
+              strokeWidth: 2,
+            }),
+          ],
+        }),
+      ],
+      margin: input.preview === true ? 0 : margin,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.Country} · ${datum.event} · ${(datum.relativePerformance * 100).toFixed(1)}%`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
+export interface ChartOptions {
   width: number
-  height: number
-  revision: number
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Decathlon radar chart'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(radarDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.Country} · ${datum.event} · ${(datum.relativePerformance * 100).toFixed(1)}%`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
   width: 640,
-  height: 480,
-  revision: 0,
   preview: false,
 })
 

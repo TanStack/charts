@@ -3,8 +3,8 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { barY, defineChart, groupBy, text } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { penguins } from '@charts-poc/demo-data/penguins'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 type PenguinWithMass = PenguinsRow & { body_mass_g: number }
 
@@ -14,7 +14,7 @@ const observations = penguins.filter(
 const formatMass = (value: number) =>
   value.toLocaleString('en-US', { maximumFractionDigits: 3 })
 
-export const definition = (input?: ExampleOptions) => {
+export const createExampleChart = (input?: ChartOptions) => {
   const rows = groupBy(observations, {
     by: 'species',
     outputs: {
@@ -22,51 +22,42 @@ export const definition = (input?: ExampleOptions) => {
     },
   })
 
-  return defineChart({
-    marks: [
-      barY(rows, {
-        x: 'species',
-        y: 'meanBodyMass',
-        fill: '#0ea5e9',
-        inset: 1,
-      }),
-      text(rows, {
-        x: 'species',
-        y: 'meanBodyMass',
-        text: (row) => formatMass(row.meanBodyMass),
-        fill: '#0c4a6e',
-        dy: input?.preview === true ? 10 : -8,
-      }),
-    ],
-    x: {
-      scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+  return defineChart(
+    {
+      marks: [
+        barY(rows, {
+          x: 'species',
+          y: 'meanBodyMass',
+          fill: '#0ea5e9',
+          inset: 1,
+        }),
+        text(rows, {
+          x: 'species',
+          y: 'meanBodyMass',
+          text: (row) => formatMass(row.meanBodyMass),
+          fill: '#0c4a6e',
+          dy: input?.preview === true ? 10 : -8,
+        }),
+      ],
+      x: {
+        scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { label: 'Mean body mass (g)' },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Mean body mass (g)' },
-    },
-  })
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
-  revision: number
+export interface ChartOptions {
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Mean penguin body mass by species'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
-  revision: 0,
   preview: false,
 })
 

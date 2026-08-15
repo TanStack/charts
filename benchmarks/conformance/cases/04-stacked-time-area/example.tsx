@@ -3,7 +3,7 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { areaY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 
 const colors = [
   '#4e79a7',
@@ -18,59 +18,53 @@ const colors = [
   '#bab0ab',
 ]
 
-export const definition = (input: ExampleOptions) =>
-  defineChart({
-    marks: [
-      areaY(industries, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-        fillOpacity: 0.78,
-      }),
-      ruleY([0]),
-    ],
-    x: { scale: scaleUtc, axis: { label: 'Month' } },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Unemployed (thousands)' },
+export const createExampleChart = (input: ChartOptions) =>
+  defineChart(
+    {
+      marks: [
+        areaY(industries, {
+          x: 'date',
+          y: 'unemployed',
+          color: 'industry',
+          fillOpacity: 0.78,
+        }),
+        ruleY([0]),
+      ],
+      x: { scale: scaleUtc, axis: { label: 'Month' } },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { label: 'Unemployed (thousands)' },
+      },
+      color: {
+        range: colors,
+        ...(input.preview === true
+          ? {}
+          : { legend: colorLegend({ label: 'Industry' }) }),
+      },
     },
-    color: {
-      range: colors,
-      ...(input.preview === true
-        ? {}
-        : { legend: colorLegend({ label: 'Industry' }) }),
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.industry} · ${datum.date.toLocaleDateString('en-US', {
+              month: 'short',
+              year: 'numeric',
+              timeZone: 'UTC',
+            })} · ${datum.unemployed.toLocaleString('en-US')} thousand unemployed`,
+        },
+      },
     },
-  })
-export interface ExampleOptions {
-  width: number
-  height: number
-  revision: number
+  )
+export interface ChartOptions {
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Unemployment by industry as stacked areas'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.industry} · ${datum.date.toLocaleDateString('en-US', {
-            month: 'short',
-            year: 'numeric',
-            timeZone: 'UTC',
-          })} · ${datum.unemployed.toLocaleString('en-US')} thousand unemployed`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
-  revision: 0,
   preview: false,
 })
 

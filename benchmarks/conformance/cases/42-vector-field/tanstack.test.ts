@@ -1,9 +1,9 @@
-import { wind } from '@charts-poc/demo-data/wind'
+import { wind } from '@tanstack/charts-data/wind'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { sampleWind } from './selection'
-import { vectorFieldDefinition } from './tanstack'
-import type { WindRow } from '@charts-poc/demo-data/wind'
+import { createExampleChart } from './tanstack'
+import type { WindRow } from '@tanstack/charts-data/wind'
 
 describe('native sampled vector field', () => {
   it('selects the authored six-by-five source grid without fabricating rows', () => {
@@ -17,10 +17,10 @@ describe('native sampled vector field', () => {
 
   it('keeps one semantic interaction point per sampled observation', () => {
     const sampled = sampleWind(wind)
-    const scene = createChartRuntime<WindRow>().render(
-      vectorFieldDefinition(),
-      { width: 640, height: 400 },
-    )
+    const scene = createChartRuntime<WindRow>().render(createExampleChart(), {
+      width: 640,
+      height: 400,
+    })
     const points = scene.points.filter(
       ({ markId }) => markId === 'wind-vectors',
     )

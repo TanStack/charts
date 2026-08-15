@@ -1,4 +1,4 @@
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 
 export type StreamingViewportMode = 'locked' | 'latest' | 'all'
 

@@ -1,10 +1,4 @@
-import { useMemo } from 'react'
-import {
-  defineChart,
-  type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
-} from '@tanstack/charts'
+import { defineChart, type ChartPoint } from '@tanstack/charts'
 import {
   angleGrid,
   focusGroupAngle,
@@ -17,10 +11,10 @@ import { tooltip } from '@tanstack/charts/tooltip'
 import { motion } from '@tanstack/charts/motion'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
-import { shadcnColors, shadcnRadarMultiple } from '@charts-poc/demo-data/shadcn'
+import { shadcnColors, shadcnRadarMultiple } from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const twoSeries = ['desktop', 'mobile'] as const
-function createDefinition() {
+export function createExampleChart() {
   const rows = shadcnRadarMultiple
   const months = rows.map((row) => row.month)
   const radiusMax = 320
@@ -34,8 +28,6 @@ function createDefinition() {
       shape: 'polygon',
       stroke: 'var(--border)',
       strokeOpacity: 1,
-      ...{},
-      ...{},
     }),
     angleGrid({
       values: months,
@@ -47,48 +39,61 @@ function createDefinition() {
       strokeOpacity: 1,
     }),
   ]
-  const chartSpec = (radiusRatio: number) => ({
-    marks: [
-      polar({
-        radiusRatio,
-        angle: { scale: scalePoint<string>().domain(months), wrap: true },
-        radius: { scale: scaleLinear().domain([0, radiusMax]) },
-        guides,
-        marks: [
-          radialArea(rows, {
-            id: 'desktop-radar',
-            className: 'ts-chart__radar',
-            angle: 'month',
-            radius: 'desktop',
-            key: 'month',
-            z: () => 'desktop',
-            curve: curveLinearClosed,
-            fill: shadcnColors[0],
-            fillOpacity: 0.6,
-            stroke: shadcnColors[0],
-            strokeOpacity: 1,
-            strokeWidth: 1,
-          }),
-          radialArea(rows, {
-            id: 'mobile-radar',
-            className: 'ts-chart__radar',
-            angle: 'month',
-            radius: 'mobile',
-            key: 'month',
-            z: () => 'mobile',
-            curve: curveLinearClosed,
-            fill: shadcnColors[1],
-            fillOpacity: 1,
-            stroke: shadcnColors[1],
-            strokeWidth: 1,
-          }),
-        ],
-      }),
-    ],
-    color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
-    margin: 0,
-  })
-  return defineChart(chartSpec(0.76))
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.76,
+          angle: { scale: scalePoint<string>().domain(months), wrap: true },
+          radius: { scale: scaleLinear().domain([0, radiusMax]) },
+          guides,
+          marks: [
+            radialArea(rows, {
+              id: 'desktop-radar',
+              className: 'ts-chart__radar',
+              angle: 'month',
+              radius: 'desktop',
+              key: 'month',
+              z: () => 'desktop',
+              curve: curveLinearClosed,
+              fill: shadcnColors[0],
+              fillOpacity: 0.6,
+              stroke: shadcnColors[0],
+              strokeOpacity: 1,
+              strokeWidth: 1,
+            }),
+            radialArea(rows, {
+              id: 'mobile-radar',
+              className: 'ts-chart__radar',
+              angle: 'month',
+              radius: 'mobile',
+              key: 'month',
+              z: () => 'mobile',
+              curve: curveLinearClosed,
+              fill: shadcnColors[1],
+              fillOpacity: 1,
+              stroke: shadcnColors[1],
+              strokeWidth: 1,
+            }),
+          ],
+        }),
+      ],
+      color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
+      margin: 0,
+    },
+    {
+      svgAnimation: false,
+      focus: focusGroupAngle,
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: 'group-center',
+        placement: 'auto',
+        sort: 'color-domain',
+        content: (points) => shadcnTooltipContent(points),
+      },
+    },
+  )
 }
 function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
   return {
@@ -111,68 +116,19 @@ function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
-export function createExampleChart() {
-  return defineChart(createDefinition(), {
-    svgAnimation: false,
-    focus: focusGroupAngle,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: 'group-center',
-      placement: 'auto',
-      offset: undefined,
-      sort: 'color-domain',
-      content: (points) => shadcnTooltipContent(points),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
 }
 export default function Example({ width = 640, height = 600 }: ExampleProps) {
-  const chartDefinition = definition
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = Math.min(250, contentWidth)
   const chartHeight = chartWidth
-  const headerAction = null
-  const legend = <Legend />
-  const footer = <TrendFooter note="January - June 2024" />
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-default" style={{ width }}>
@@ -181,9 +137,6 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Radar Chart - Legend</h2>
             <p>Showing total visitors for the last 6 months</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
         </header>
         <div className="sc-card-content sc-centered">
           <div
@@ -191,18 +144,20 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             style={{ width: chartWidth, height: chartHeight }}
           >
             <RendererChart
-              definition={chartDefinition}
+              definition={definition}
               renderer={renderer}
               initialWidth={chartWidth}
               height={chartHeight}
               ariaLabel="Radar Chart - Legend"
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
+          <div className="sc-chart-footer">
+            <Legend />
+          </div>
         </div>
-        {footer ? (
-          <footer className="sc-card-footer sc-centered">{footer}</footer>
-        ) : null}
+        <footer className="sc-card-footer sc-centered">
+          <TrendFooter note="January - June 2024" />
+        </footer>
       </article>
     </div>
   )

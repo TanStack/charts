@@ -37,6 +37,7 @@ import type {
   ChartRenderer,
   ChartSurface,
   ChartSurfaceRenderOptions,
+  UniversalChartRenderer,
 } from './dom-types'
 import type {
   ChartFocusState,
@@ -752,15 +753,37 @@ function parseSvgFragment(current: SVGElement, markup: string) {
   return template.content.firstElementChild?.firstElementChild ?? undefined
 }
 
+export function motion(options?: ChartMotionOptions): UniversalChartRenderer
 export function motion<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(options: ChartMotionOptions = {}): ChartRenderer<TDatum, TXValue, TYValue> {
-  return createMotionSvgChartRenderer<TDatum, TXValue, TYValue>(
-    createSvgMotionDriver(options),
-    renderChartSvgWithResources,
-  )
+>(options?: ChartMotionOptions): ChartRenderer<TDatum, TXValue, TYValue>
+export function motion(
+  options: ChartMotionOptions = {},
+): UniversalChartRenderer {
+  const capabilityDriver = createSvgMotionDriver(options)
+  const renderer: UniversalChartRenderer & {
+    [chartRendererMotion]: ChartRendererMotionCapability
+  } = {
+    id: `svg:${capabilityDriver.id}`,
+    [chartRendererMotion]: {
+      createTooltip: capabilityDriver.createTooltip,
+    },
+    prerender: renderChartSvgWithResources,
+    mount<
+      TDatum,
+      TXValue extends ChartValue = ChartValue,
+      TYValue extends ChartValue = ChartValue,
+    >(container: HTMLElement, requestRender: (force?: boolean) => void) {
+      return createMotionSvgChartRenderer<TDatum, TXValue, TYValue>(
+        createSvgMotionDriver<TDatum>(options),
+        renderChartSvgWithResources,
+        renderer,
+      ).mount(container, requestRender)
+    },
+  }
+  return renderer
 }
 
 function createMotionSvgChartRenderer<
@@ -774,6 +797,7 @@ function createMotionSvgChartRenderer<
     TXValue,
     TYValue
   > = renderChartSvgWithResources,
+  ownerRenderer?: ChartRenderer<TDatum, TXValue, TYValue>,
 ): ChartRenderer<TDatum, TXValue, TYValue> {
   const renderer: ChartRenderer<TDatum, TXValue, TYValue> & {
     [chartRendererMotion]: ChartRendererMotionCapability
@@ -909,7 +933,7 @@ function createMotionSvgChartRenderer<
         return presented.scene
       }
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
-        renderer,
+        renderer: ownerRenderer ?? renderer,
         get element() {
           return svgElement()
         },

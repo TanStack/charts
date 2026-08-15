@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { industries } from '@charts-poc/demo-data/industries'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import { createChartRuntime } from '@tanstack/charts'
 import type {
   ChartSpecDatum,
@@ -9,14 +9,14 @@ import type {
   ChartSpecYValue,
 } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { streamgraphDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 
-type Definition = ReturnType<typeof streamgraphDefinition>
+type Definition = ReturnType<typeof createExampleChart>
 
 describe('definition-owned streamgraph stack', () => {
   it('keeps raw rows while deriving inside-out wiggle intervals', () => {
     const scene = createChartRuntime<IndustriesRow, Date, number>().render(
-      streamgraphDefinition(),
+      createExampleChart(),
       { width: 640, height: 400 },
     )
 
@@ -60,7 +60,8 @@ describe('definition-owned streamgraph stack', () => {
 
     expect(source).toContain("order: 'inside-out'")
     expect(source).toContain("offset: 'wiggle'")
-    expect(source).toContain('streamgraphChart(industries, true)')
+    expect(source).toContain('const rows = industries')
+    expect(source).toContain('const showLegend = true')
     expect(source).toContain('areaY(rows')
     expect(source).not.toContain("from 'd3-array'")
     expect(source).not.toContain("from 'd3-shape'")

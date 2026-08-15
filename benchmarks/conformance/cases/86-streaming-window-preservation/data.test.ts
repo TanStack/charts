@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import {
   streamingStatus,
   streamingViewportForMode,

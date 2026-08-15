@@ -1,1 +1,1 @@
-export * from '@charts-poc/demo-data/simplify-geo'
+export * from '@tanstack/charts-data/simplify-geo'

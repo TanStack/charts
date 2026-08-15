@@ -1,15 +1,15 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { describe, expect, it } from 'vitest'
 import { selectHierarchyData } from './selection'
-import { treeDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   TreeLayoutLink,
   TreeLayoutNode,
 } from '@tanstack/charts/hierarchy/tree'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { ConformanceInput } from '../../types'
 import type { ChartPoint, ChartScene, SceneNode } from '@tanstack/charts'
 
@@ -156,7 +156,7 @@ describe('native hierarchy tree', () => {
 
 function render(revision: number) {
   return createChartRuntime().render(
-    treeDefinition({
+    createExampleChart({
       ...size,
       revision,
     } satisfies ConformanceInput),

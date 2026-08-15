@@ -1,11 +1,7 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { format } from 'prettier'
-import { getShadcnCatalogSpec } from '@charts-poc/demo-data/shadcn'
-import {
-  shadcnExampleSource,
-  shadcnExampleStyles,
-} from './shadcn-example-source.mjs'
+import { getShadcnCatalogSpec } from '@tanstack/charts-data/shadcn'
 
 const root = path.resolve(import.meta.dirname, '..')
 const catalogPath = path.join(
@@ -57,7 +53,6 @@ const ConformanceExample = ({ input }: { input: ConformanceInput }) =>
 
 export * from './example'
 export const shadcnDefinition = definition
-${legacyDefinitionAlias(entry.name)}
 export const mount = shadcnChartMount(ConformanceExample)
 export const catalogCase = tanstackExampleMount(
   () => definition,
@@ -68,30 +63,12 @@ export const catalogCase = tanstackExampleMount(
       { parser: 'typescript', semi: false, singleQuote: true },
     ),
   )
-  await writeFile(
-    path.join(directory, 'example.tsx'),
-    await shadcnExampleSource(getShadcnCatalogSpec(entry.name)),
-  )
-  await writeFile(
-    path.join(directory, 'styles.css'),
-    await shadcnExampleStyles(),
-  )
+  await access(path.join(directory, 'example.tsx'))
+  await access(path.join(directory, 'styles.css'))
   await writeFile(
     path.join(directory, 'recharts.ts'),
     `import { createShadcnRechartsExample } from '../../shared/shadcn-catalog-recharts'\n\nconst example = createShadcnRechartsExample('${entry.name}')\n\nexport const mount = example.mount\n`,
   )
-}
-
-function legacyDefinitionAlias(name) {
-  const aliases = {
-    'chart-bar-multiple': 'barMultipleDefinition',
-    'chart-pie-donut-text': 'pieDonutTextDefinition',
-    'chart-radar-multiple': 'radarMultipleDefinition',
-    'chart-radial-text': 'radialTextDefinition',
-    'chart-tooltip-advanced': 'advancedTooltipDefinition',
-  }
-  const alias = aliases[name]
-  return alias ? `export const ${alias} = definition` : ''
 }
 
 await writeFile(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`)

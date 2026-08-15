@@ -39,7 +39,7 @@ export function energyDefinition(
       ? ('right' as const)
       : (['right', 'left', 'top', 'bottom'] as const)
   return defineChart(
-    defineChart({
+    {
       marks: [
         areaY(rows, {
           id: 'consumption-area',
@@ -181,7 +181,7 @@ export function energyDefinition(
           stops: exportedHatchStops,
         },
       ],
-    }),
+    },
     {
       svgAnimation: false,
       keyboard: true,
@@ -211,7 +211,7 @@ export function ConsumptionMixChart({
   const definition = useMemo(() => {
     const parts = consumptionBreakdown(month)
     return defineChart(
-      defineChart({
+      {
         marks: [
           barX(parts, {
             id: 'consumption-breakdown',
@@ -231,7 +231,7 @@ export function ConsumptionMixChart({
           axis: false,
         },
         margin: 0,
-      }),
+      },
       { svgAnimation: false, keyboard: false, tooltip: false },
     )
   }, [month])

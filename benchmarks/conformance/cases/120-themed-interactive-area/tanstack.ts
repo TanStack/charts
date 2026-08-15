@@ -6,7 +6,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { tanstackCase } from '../../shared/mount'
-import { themedAreaSpring, themedInteractiveAreaDefinition } from './example'
+import { themedAreaSpring, createExampleChart } from './example'
 import { themedAreaRanges, themedAreaRows, themedAreaRangeDays } from './model'
 import type { ChartPoint } from '@tanstack/charts'
 import type { ThemedAreaRange, ThemedAreaRow } from './model'
@@ -23,11 +23,13 @@ let themedAreaMountId = 0
 
 export const catalogCase = tanstackCase(
   (input) =>
-    themedInteractiveAreaDefinition(themedAreaRows('30d', input.revision), {
-      width: input.width,
-      height: input.height,
-      preview: input.preview,
-    }),
+    createExampleChart(
+      '30d',
+      input.revision,
+      input.width,
+      input.height,
+      input.preview,
+    ),
   ariaLabel,
   themedAreaTooltip,
   {
@@ -75,10 +77,12 @@ export const mount: ConformanceMount = (container, input) => {
   }
   const definition = () =>
     defineChart(
-      themedInteractiveAreaDefinition(rows, {
-        width: currentInput.width,
-        height: chartHeight(),
-      }),
+      createExampleChart(
+        range,
+        currentInput.revision,
+        currentInput.width,
+        chartHeight(),
+      ),
       {
         svgAnimation: false,
         keyboard: true,

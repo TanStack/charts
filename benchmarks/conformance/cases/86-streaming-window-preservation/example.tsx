@@ -3,7 +3,7 @@ import { defineChart, dot, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/charts/react'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { streamingData } from './selection'
 import {
@@ -14,7 +14,7 @@ import {
   visibleStreamingData,
 } from './model'
 import type { ChartScene } from '@tanstack/charts'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 import type { StreamingViewportMode } from './model'
 
 const color = '#2563eb'

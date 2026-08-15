@@ -1,5 +1,5 @@
-import { flare } from '@charts-poc/demo-data/flare'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 
 export const flareRootId = '/flare'
 export const flarePreviewRootId = '/flare/analytics'

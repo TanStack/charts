@@ -76,7 +76,7 @@ export const resourceTimelineDefinition = (input: ExampleChartInput) => {
   const rows = resourceTasks(input.revision)
 
   return defineChart(
-    defineChart(({ width }) => {
+    ({ width }) => {
       return {
         marks: [
           rect(rows, {
@@ -110,7 +110,7 @@ export const resourceTimelineDefinition = (input: ExampleChartInput) => {
         },
         margin: timelineMargin,
       }
-    }),
+    },
     {
       svgAnimation: false,
       keyboard: true,

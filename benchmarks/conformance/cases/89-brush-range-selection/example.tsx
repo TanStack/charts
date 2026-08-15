@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Chart } from '@tanstack/charts/react'
 import { initialBrushRange, observedBrushDates, monthlyAaplRows } from './model'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   BrushRange,
   BrushXChange,
 } from '@tanstack/charts/interaction/brush'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 
 export interface BrushState {
   range: BrushRange<Date>

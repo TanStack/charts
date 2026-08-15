@@ -139,6 +139,27 @@ export interface ChartRenderer<
   ) => ChartSurface<TDatum, TXValue, TYValue>
 }
 
+/** A definition-agnostic renderer that acquires chart types from its host. */
+export interface UniversalChartRenderer {
+  readonly id: string
+  prerender: <
+    TDatum,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    options: RenderChartOptions,
+  ) => string
+  mount: <
+    TDatum,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
+    container: HTMLElement,
+    requestRender: (force?: boolean) => void,
+  ) => ChartSurface<TDatum, TXValue, TYValue>
+}
+
 export interface ChartRendererRenderContext<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,

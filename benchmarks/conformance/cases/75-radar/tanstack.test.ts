@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { describe, expect, it } from 'vitest'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { radarEvents, timedEvents } from './selection'
 import {
   foldedDecathlon,
   normalizedDecathlon,
-  radarDefinition,
+  createExampleChart,
   radarProfile,
 } from './tanstack'
 import type { ConformanceInput } from '../../types'
@@ -81,7 +81,7 @@ describe('folded radar profile', () => {
       preview: true,
     } satisfies ConformanceInput
     const scene = createChartRuntime().render(
-      catalogPreviewDefinition(radarDefinition(previewInput)),
+      catalogPreviewDefinition(createExampleChart(previewInput)),
       previewInput,
     )
     const nodes = flatten(scene.nodes)
@@ -120,7 +120,7 @@ describe('folded radar profile', () => {
 })
 
 function render() {
-  return createChartRuntime().render(radarDefinition(input), input)
+  return createChartRuntime().render(createExampleChart(input), input)
 }
 
 function flatten(nodes: readonly SceneNode[]): SceneNode[] {

@@ -10,7 +10,7 @@ import {
   select,
 } from '@tanstack/charts'
 import { fold } from '@tanstack/charts/transform/fold'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { decathlonEvents, timedEvents } from './selection'
 
@@ -40,47 +40,44 @@ export const representativeProfiles = select(normalizedDecathlon, {
   select: 'last',
 })
 
-export const parallelCoordinatesDefinition = () =>
-  defineChart({
-    marks: [
-      lineY(representativeProfiles, {
-        id: 'country-lines',
-        x: 'event',
-        y: ({ relativePerformance }) => relativePerformance * 100,
-        color: 'Country',
-        key: ({ Country, event }) => `${Country}:${event}`,
-        strokeWidth: 1.75,
-      }),
-      dot(representativeProfiles, {
-        id: 'country-points',
-        x: 'event',
-        y: ({ relativePerformance }) => relativePerformance * 100,
-        color: 'Country',
-        key: ({ Country, event }) => `${Country}:${event}`,
-        r: 2.75,
-      }),
-    ],
-    x: {
-      scale: scaleBand<string>().domain(decathlonEvents).padding(0.1),
+export const createExampleChart = () =>
+  defineChart(
+    {
+      marks: [
+        lineY(representativeProfiles, {
+          id: 'country-lines',
+          x: 'event',
+          y: ({ relativePerformance }) => relativePerformance * 100,
+          color: 'Country',
+          key: ({ Country, event }) => `${Country}:${event}`,
+          strokeWidth: 1.75,
+        }),
+        dot(representativeProfiles, {
+          id: 'country-points',
+          x: 'event',
+          y: ({ relativePerformance }) => relativePerformance * 100,
+          color: 'Country',
+          key: ({ Country, event }) => `${Country}:${event}`,
+          r: 2.75,
+        }),
+      ],
+      x: {
+        scale: scaleBand<string>().domain(decathlonEvents).padding(0.1),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        axis: { label: 'Relative performance within sample' },
+      },
+      color: {
+        range: colors,
+        legend: colorLegend({ label: 'Country' }),
+      },
     },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      axis: { label: 'Relative performance within sample' },
-    },
-    color: {
-      range: colors,
-      legend: colorLegend({ label: 'Country' }),
-    },
-  })
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 
 export const exampleAriaLabel = 'Parallel coordinates model comparison'
-
-export const createExampleChart = () =>
-  defineChart(parallelCoordinatesDefinition(), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
 
 export const chart = createExampleChart()
 
