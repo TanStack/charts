@@ -60,7 +60,10 @@ describe('catalog previews', () => {
     expect(resolveCatalogPreviewDarkPaint('#2563eb')).toBe('#6ea8fe')
     expect(resolveCatalogPreviewDarkPaint('#0f172a')).toMatch(/^#[\da-f]{6}$/u)
     expect(resolveCatalogPreviewDarkPaint('#0f172a')).not.toBe('#0f172a')
-    expect(resolveCatalogPreviewDarkPaint('#f59e0b')).toBeUndefined()
+    expect(resolveCatalogPreviewDarkPaint('#f59e0b')).not.toBe('#f59e0b')
+    expect(
+      resolveCatalogPreviewDarkPaint('var(--premium-kpi-accent, #6d5dfc)'),
+    ).toMatch(/^var\(--premium-kpi-accent, #[\da-f]{6}\)$/u)
     expect(resolveCatalogPreviewDarkPaint('none')).toBeUndefined()
     expect(resolveCatalogPreviewDarkPaint('var(--chart-1)')).toBeUndefined()
 
@@ -238,6 +241,21 @@ describe('catalog previews', () => {
         '121-active-bar-dashboard',
       ),
     ).toThrow('must retain all 24 keyed bars')
+  })
+
+  it('validates selected-point geometry independently of themed paint', () => {
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g data-ts-key="selected-observation"><circle fill="var(--ts-catalog-preview-paint-0)" r="7"/></g>',
+        '82-chart-table-selection',
+      ),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g data-ts-key="selected-observation"><circle fill="var(--ts-catalog-preview-paint-0)" r="6"/></g>',
+        '82-chart-table-selection',
+      ),
+    ).toThrow('must retain its native selected point')
   })
 
   it('requires the active donut preview composition', () => {

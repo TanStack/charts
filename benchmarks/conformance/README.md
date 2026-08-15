@@ -114,7 +114,10 @@ docs sandbox.
 Every case also has a checked-in source-derived preview at
 `benchmarks/conformance/previews/<caseId>.svg`. The generator mounts the actual
 TanStack case at 288 by 192 pixels with its source data, marks, transforms, and
-light/dark catalog palette. Preview mode removes axes, grids, margins, and
+light/dark catalog palette. Semantic catalog colors use their paired dark
+tokens. Fixed authored paints retain their hue, gain the minimum graphical
+contrast required by the dark catalog surface, and receive a small dark-theme
+tint when they already pass. Preview mode removes axes, grids, margins, and
 legends by default so the data marks fill the card. A case keeps a guide,
 margin, legend, or direct label only when that feature is part of the case's
 purpose. These SVGs are generated views of the canonical implementation, not a

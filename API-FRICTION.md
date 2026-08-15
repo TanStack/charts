@@ -328,6 +328,7 @@ Each entry records:
 | F-289 | Catalog workbenches exposed runtime bootstrap files            | Tooling               | resolved   |
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 | F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
+| F-292 | Fixed preview paints ignored the selected site theme            | Tooling               | resolved   |
 
 ## Findings
 
@@ -8395,3 +8396,24 @@ Each entry records:
   tooltip-motion capability, then asserts controller creation, paint, hide,
   and destruction through the normal tooltip lifecycle. The existing spring
   inheritance and tooltip override tests continue to pass.
+
+### F-292 — Fixed preview paints ignored the selected site theme
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: switching tanstack.com's generated catalog previews between
+  light and dark mode
+- Friction: the portable SVG media query followed the site's resolved
+  `color-scheme`, but 86 of 188 previews contained only fixed authored paint.
+  Their transparent chart pixels therefore remained identical while the card
+  background changed, which made the previews look light-only.
+- Decision: pair semantic catalog paints with their dark tokens in the preview
+  generator. Preserve other authored hues while raising low-contrast paint to
+  the 3:1 graphical threshold on the dark catalog surface; give already-valid
+  fixed paint a small dark-foreground tint. Keep both palettes in one SVG so
+  the site still serves one cacheable, revision-pinned asset per case.
+- Verification: generator unit tests cover semantic pairs, low-contrast paint,
+  fixed CSS-variable fallbacks, and theme-independent presentation checks.
+  Preview integrity validates all 188 assets. A Chromium canvas audit compares
+  transparent light and dark rasters and confirms that all 188 differ.

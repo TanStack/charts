@@ -79,6 +79,8 @@ const themePaintAttributes = new Set([
 ])
 const minimumDarkPreviewPaintContrast = 3
 const darkPreviewSurface = parseCssColor(darkTheme.panel)
+const darkPreviewForeground = parseCssColor(darkTheme.foreground)
+const darkPreviewForegroundTint = 0.08
 const semanticDarkPreviewPaints = new Map(
   [
     [lightTheme.foreground, darkTheme.foreground],
@@ -424,7 +426,7 @@ export function validateCatalogPreviewPresentation(
   if (caseId === '82-chart-table-selection') {
     assert(
       svg.includes('data-ts-key="selected-observation"') &&
-        svg.includes('fill="#f97316"'),
+        svg.includes('r="7"'),
       'catalog preview 82-chart-table-selection must retain its native selected point',
     )
   }
@@ -673,6 +675,16 @@ function applyThemePaints(lightRoot, darkRoot, caseId) {
 }
 
 export function resolveCatalogPreviewDarkPaint(paint) {
+  const variableFallback = paint.match(
+    /^var\(\s*(--[\w-]+)\s*,\s*((?:#[\da-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|white|black))\s*\)$/iu,
+  )
+  if (variableFallback) {
+    const darkFallback = resolveCatalogPreviewDarkPaint(variableFallback[2])
+    return darkFallback === undefined
+      ? undefined
+      : `var(${variableFallback[1]}, ${darkFallback})`
+  }
+
   const color = parseCssColor(paint)
   if (!color || color.alpha === 0) return undefined
 
@@ -685,7 +697,12 @@ export function resolveCatalogPreviewDarkPaint(paint) {
       darkPreviewSurface,
     ) >= minimumDarkPreviewPaintContrast
   ) {
-    return undefined
+    const tinted = formatCssColor(
+      mixColor(color, darkPreviewForeground, darkPreviewForegroundTint),
+    )
+    return cssColorKey(parseCssColor(tinted)) === cssColorKey(color)
+      ? undefined
+      : tinted
   }
 
   const white = { red: 255, green: 255, blue: 255, alpha: color.alpha }
