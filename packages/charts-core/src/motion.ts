@@ -15,12 +15,6 @@ import { renderChartSvgWithResources } from './svg-resources'
 import { svgClientToScene } from './svg-coordinates'
 import { valueKey } from './scales'
 import { resolveRollingPathPlan } from './motion-path'
-import {
-  chartRendererMotion,
-  type ChartRendererMotionCapability,
-  type ChartTooltipMotionController,
-  type ChartTooltipMotionSnapshot,
-} from './renderer-motion-internal'
 import type {
   RollingPathPlan,
   RollingPathSnapshot,
@@ -35,8 +29,12 @@ import {
 } from './svg-focus-guide-layer'
 import type {
   ChartRenderer,
+  ChartRendererCapabilities,
+  ChartRendererTooltipMotionCapability,
   ChartSurface,
   ChartSurfaceRenderOptions,
+  ChartTooltipMotionController,
+  ChartTooltipMotionSnapshot,
   UniversalChartRenderer,
 } from './dom-types'
 import type {
@@ -121,7 +119,7 @@ interface ChartSvgMotionDriver<TDatum = unknown> {
   animateSvgFragment: (
     context: ChartSvgMotionFragmentContext<TDatum>,
   ) => () => void
-  createTooltip: ChartRendererMotionCapability['createTooltip']
+  createTooltip: ChartRendererTooltipMotionCapability['createController']
 }
 
 interface MotionValueState {
@@ -763,13 +761,15 @@ export function motion(
   options: ChartMotionOptions = {},
 ): UniversalChartRenderer {
   const capabilityDriver = createSvgMotionDriver(options)
-  const renderer: UniversalChartRenderer & {
-    [chartRendererMotion]: ChartRendererMotionCapability
-  } = {
-    id: `svg:${capabilityDriver.id}`,
-    [chartRendererMotion]: {
-      createTooltip: capabilityDriver.createTooltip,
+  const capabilities: ChartRendererCapabilities = {
+    tooltipMotion: {
+      protocol: 1,
+      createController: capabilityDriver.createTooltip,
     },
+  }
+  const renderer: UniversalChartRenderer = {
+    id: `svg:${capabilityDriver.id}`,
+    capabilities,
     prerender: renderChartSvgWithResources,
     mount<
       TDatum,
@@ -799,11 +799,14 @@ function createMotionSvgChartRenderer<
   > = renderChartSvgWithResources,
   ownerRenderer?: ChartRenderer<TDatum, TXValue, TYValue>,
 ): ChartRenderer<TDatum, TXValue, TYValue> {
-  const renderer: ChartRenderer<TDatum, TXValue, TYValue> & {
-    [chartRendererMotion]: ChartRendererMotionCapability
-  } = {
+  const renderer: ChartRenderer<TDatum, TXValue, TYValue> = {
     id: `svg:${motion.id}`,
-    [chartRendererMotion]: { createTooltip: motion.createTooltip },
+    capabilities: {
+      tooltipMotion: {
+        protocol: 1,
+        createController: motion.createTooltip,
+      },
+    },
     prerender: renderSvg,
     mount(container) {
       const adoptedRoot =

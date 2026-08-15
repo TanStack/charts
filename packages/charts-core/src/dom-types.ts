@@ -5,6 +5,7 @@ import type {
   ChartFocusState,
   ChartHostControl,
   ChartHostControlExtensionToken,
+  ChartMotionTransition,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -123,12 +124,52 @@ export interface ChartSurface<
   destroy: () => void
 }
 
+export interface ChartTooltipMotionSnapshot {
+  wasHidden: boolean
+  showPresence: boolean
+  previousLeft?: number
+  previousTop?: number
+  movementX: number
+  movementY: number
+  velocityX: number
+  velocityY: number
+  presence?: { opacity: number; scale: number }
+}
+
+export interface ChartTooltipMotionController {
+  beforePaint: (element: HTMLElement) => ChartTooltipMotionSnapshot
+  afterPaint: (
+    element: HTMLElement,
+    snapshot: ChartTooltipMotionSnapshot,
+    transition: false | ChartMotionTransition | undefined,
+  ) => void
+  hide: (
+    element: HTMLElement,
+    transition: false | ChartMotionTransition | undefined,
+    complete: () => void,
+  ) => boolean
+  destroy: (element: HTMLElement | undefined) => void
+}
+
+export interface ChartRendererTooltipMotionCapability {
+  readonly protocol: 1
+  createController: (context: {
+    container: HTMLElement
+    transition: () => false | ChartMotionTransition | undefined
+  }) => ChartTooltipMotionController
+}
+
+export interface ChartRendererCapabilities {
+  readonly tooltipMotion?: ChartRendererTooltipMotionCapability
+}
+
 export interface ChartRenderer<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
   readonly id: string
+  readonly capabilities?: ChartRendererCapabilities
   prerender: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: RenderChartOptions,
@@ -142,6 +183,7 @@ export interface ChartRenderer<
 /** A definition-agnostic renderer that acquires chart types from its host. */
 export interface UniversalChartRenderer {
   readonly id: string
+  readonly capabilities?: ChartRendererCapabilities
   prerender: <
     TDatum,
     TXValue extends ChartValue = ChartValue,
@@ -191,6 +233,7 @@ export interface ChartTooltipExtensionContext<
   TYValue extends ChartValue = ChartValue,
 > {
   container: HTMLElement
+  motion?: ChartTooltipMotionController
   dismiss: () => void
   bodyChange: () =>
     | ((
