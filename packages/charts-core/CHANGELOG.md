@@ -1,5 +1,15 @@
 # @tanstack/charts
 
+## 0.14.0
+
+### Minor Changes
+
+- [#102](https://github.com/TanStack/charts/pull/102) [`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918) - Improve definition-driven inference for optional motion renderers, raw chart specs with separate behaviors, responsive chart factories, and decorative marks.
+
+### Patch Changes
+
+- [#104](https://github.com/TanStack/charts/pull/104) [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e) - Inject tooltip motion through a structural renderer capability so motion works across separately bundled package entrypoints.
+
 ## 0.13.0
 
 ### Minor Changes
