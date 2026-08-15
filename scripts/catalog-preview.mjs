@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { color as parseD3Color } from 'd3-color'
 import { readCatalogCases } from './catalog-index.mjs'
 
 export const catalogPreviewWidth = 288
@@ -76,6 +77,23 @@ const themePaintAttributes = new Set([
   'stop-color',
   'stroke',
 ])
+const minimumDarkPreviewPaintContrast = 3
+const darkPreviewSurface = parseCssColor(darkTheme.panel)
+const semanticDarkPreviewPaints = new Map(
+  [
+    [lightTheme.foreground, darkTheme.foreground],
+    [lightTheme.panel, darkTheme.panel],
+    [lightTheme.panelMuted, darkTheme.panelMuted],
+    [lightTheme.border, darkTheme.border],
+    [lightTheme.muted, darkTheme.muted],
+    [lightTheme.accent, darkTheme.accent],
+    [lightTheme.accentMuted, darkTheme.accentMuted],
+    ...lightTheme.series.map((paint, index) => [
+      paint,
+      darkTheme.series[index],
+    ]),
+  ].map(([light, dark]) => [cssColorKey(parseCssColor(light)), dark]),
+)
 export const catalogGuidePreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
@@ -654,6 +672,43 @@ function applyThemePaints(lightRoot, darkRoot, caseId) {
   return paints
 }
 
+export function resolveCatalogPreviewDarkPaint(paint) {
+  const color = parseCssColor(paint)
+  if (!color || color.alpha === 0) return undefined
+
+  const semanticPaint = semanticDarkPreviewPaints.get(cssColorKey(color))
+  if (semanticPaint) return semanticPaint
+
+  if (
+    colorContrast(
+      compositeColor(color, darkPreviewSurface),
+      darkPreviewSurface,
+    ) >= minimumDarkPreviewPaintContrast
+  ) {
+    return undefined
+  }
+
+  const white = { red: 255, green: 255, blue: 255, alpha: color.alpha }
+  let lower = 0
+  let upper = 1
+  for (let iteration = 0; iteration < 12; iteration += 1) {
+    const amount = (lower + upper) / 2
+    const candidate = mixColor(color, white, amount)
+    if (
+      colorContrast(
+        compositeColor(candidate, darkPreviewSurface),
+        darkPreviewSurface,
+      ) >= minimumDarkPreviewPaintContrast
+    ) {
+      upper = amount
+    } else {
+      lower = amount
+    }
+  }
+
+  return formatCssColor(mixColor(color, white, upper))
+}
+
 function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
   assert(
     lightNode.nodeType === darkNode.nodeType &&
@@ -681,21 +736,27 @@ function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
     for (const name of attributeNames) {
       const light = lightAttributes.get(name)
       const dark = darkAttributes.get(name)
-      if (light === dark) continue
+      if (light === dark) {
+        if (light === undefined || !themePaintAttributes.has(name)) continue
+        const adaptedDark = resolveCatalogPreviewDarkPaint(light)
+        if (adaptedDark === undefined || adaptedDark === light) continue
+        applyThemePaint(
+          lightNode,
+          name,
+          light,
+          adaptedDark,
+          paints,
+          paintIndexes,
+        )
+        continue
+      }
       assert(
         light !== undefined &&
           dark !== undefined &&
           themePaintAttributes.has(name),
         `catalog preview ${caseId} changed non-paint attribute ${name} between light and dark themes`,
       )
-      const key = `${light}\0${dark}`
-      let index = paintIndexes.get(key)
-      if (index === undefined) {
-        index = paints.length
-        paintIndexes.set(key, index)
-        paints.push({ light, dark })
-      }
-      lightNode.setAttribute(name, `var(--ts-catalog-preview-paint-${index})`)
+      applyThemePaint(lightNode, name, light, dark, paints, paintIndexes)
     }
   } else {
     assert(
@@ -717,6 +778,99 @@ function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
       paintIndexes,
     )
   }
+}
+
+function applyThemePaint(node, name, light, dark, paints, paintIndexes) {
+  const key = `${light}\0${dark}`
+  let index = paintIndexes.get(key)
+  if (index === undefined) {
+    index = paints.length
+    paintIndexes.set(key, index)
+    paints.push({ light, dark })
+  }
+  node.setAttribute(name, `var(--ts-catalog-preview-paint-${index})`)
+}
+
+function parseCssColor(value) {
+  if (typeof value !== 'string') return undefined
+  const parsed = parseD3Color(value)
+  if (!parsed) return undefined
+  const color = parsed.rgb()
+  return {
+    red: color.r,
+    green: color.g,
+    blue: color.b,
+    alpha: color.opacity,
+  }
+}
+
+function mixColor(source, target, amount) {
+  return {
+    red: source.red + (target.red - source.red) * amount,
+    green: source.green + (target.green - source.green) * amount,
+    blue: source.blue + (target.blue - source.blue) * amount,
+    alpha: source.alpha,
+  }
+}
+
+function compositeColor(foreground, background) {
+  return {
+    red:
+      foreground.red * foreground.alpha +
+      background.red * (1 - foreground.alpha),
+    green:
+      foreground.green * foreground.alpha +
+      background.green * (1 - foreground.alpha),
+    blue:
+      foreground.blue * foreground.alpha +
+      background.blue * (1 - foreground.alpha),
+    alpha: 1,
+  }
+}
+
+function colorContrast(left, right) {
+  const leftLuminance = relativeLuminance(left)
+  const rightLuminance = relativeLuminance(right)
+  return (
+    (Math.max(leftLuminance, rightLuminance) + 0.05) /
+    (Math.min(leftLuminance, rightLuminance) + 0.05)
+  )
+}
+
+function relativeLuminance(color) {
+  const channel = (value) => {
+    const normalized = clampColorChannel(value) / 255
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4
+  }
+  return (
+    0.2126 * channel(color.red) +
+    0.7152 * channel(color.green) +
+    0.0722 * channel(color.blue)
+  )
+}
+
+function formatCssColor(color) {
+  const red = Math.round(clampColorChannel(color.red))
+  const green = Math.round(clampColorChannel(color.green))
+  const blue = Math.round(clampColorChannel(color.blue))
+  if (color.alpha < 1) {
+    return `rgba(${red}, ${green}, ${blue}, ${Number(color.alpha.toFixed(3))})`
+  }
+  return `#${[red, green, blue]
+    .map((channel) => channel.toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+function cssColorKey(color) {
+  return color
+    ? `${Math.round(color.red)},${Math.round(color.green)},${Math.round(color.blue)},${Number(color.alpha.toFixed(3))}`
+    : ''
+}
+
+function clampColorChannel(value) {
+  return Math.min(255, Math.max(0, value))
 }
 
 function parseCatalogPreviewXml(svg, caseId, JSDOM) {

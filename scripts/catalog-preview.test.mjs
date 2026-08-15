@@ -12,6 +12,7 @@ import {
   createPortableCatalogPreviewSvg,
   isTransientCatalogPreviewBrowserError,
   retryCatalogPreviewBrowserRender,
+  resolveCatalogPreviewDarkPaint,
   validateCatalogPreviewPresentation,
   validateCatalogPreviewSvg,
   validateCatalogPreviewXml,
@@ -46,11 +47,27 @@ describe('catalog previews', () => {
     expect(preview).toContain('--ts-catalog-preview-paint-1:#edf2fb')
     expect(preview).toContain('fill="var(--ts-catalog-preview-paint-0)"')
     expect(preview).toContain('stroke="var(--ts-catalog-preview-paint-1)"')
-    expect(preview).toContain('fill="#f97316"')
+    expect(preview).toContain('--ts-catalog-preview-paint-2:#f97316')
+    expect(preview).toContain('--ts-catalog-preview-paint-2:#ff9b65')
+    expect(preview).toContain('fill="var(--ts-catalog-preview-paint-2)"')
     expect(preview).toContain(
       "font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
     )
     expect(preview).not.toContain('background:')
+  })
+
+  it('adapts fixed authored paint only when the dark surface needs it', () => {
+    expect(resolveCatalogPreviewDarkPaint('#2563eb')).toBe('#6ea8fe')
+    expect(resolveCatalogPreviewDarkPaint('#0f172a')).toMatch(/^#[\da-f]{6}$/u)
+    expect(resolveCatalogPreviewDarkPaint('#0f172a')).not.toBe('#0f172a')
+    expect(resolveCatalogPreviewDarkPaint('#f59e0b')).toBeUndefined()
+    expect(resolveCatalogPreviewDarkPaint('none')).toBeUndefined()
+    expect(resolveCatalogPreviewDarkPaint('var(--chart-1)')).toBeUndefined()
+
+    const fixed = renderedChart.replace('#2563eb', '#0f172a')
+    const preview = portable(fixed, fixed)
+    expect(preview).toContain('--ts-catalog-preview-paint-0:#0f172a')
+    expect(preview).toContain('fill="var(--ts-catalog-preview-paint-0)"')
   })
 
   it('requires the fixed 3:2 TanStack chart surface', () => {
