@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { selectSunburstData } from './selection'
-import { sunburstDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { SunburstNode } from '@tanstack/charts/hierarchy/sunburst'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type {
   ChartPoint,
   ChartScene,
@@ -197,7 +197,7 @@ describe('native responsive sunburst', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(sunburstDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function sunburstPoints(

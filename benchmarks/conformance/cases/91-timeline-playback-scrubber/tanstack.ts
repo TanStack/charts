@@ -24,7 +24,7 @@ import {
 } from '../../shared/driver-geometry'
 import { playbackDateKey, playbackIndexFromAnchor } from './model'
 import { tanstackCase } from '../../shared/mount'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,

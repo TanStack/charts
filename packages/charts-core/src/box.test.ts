@@ -1,6 +1,6 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { morley } from '@charts-poc/demo-data/morley'
-import type { MorleyRow } from '@charts-poc/demo-data/morley'
+import { morley } from '@tanstack/charts-data/morley'
+import type { MorleyRow } from '@tanstack/charts-data/morley'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { boxRows, boxX, boxY } from './box'
 import type { BoxDatum, BoxSummaryDatum } from './box'

@@ -19,7 +19,7 @@ import {
   calendarMargin,
 } from './layout'
 
-export interface ExampleOptions {
+export interface ChartOptions {
   width: number
   height: number
   revision: number
@@ -46,12 +46,12 @@ export const exampleTooltip = {
   portal,
 }
 
-export function createExampleChart(input: ExampleOptions) {
+export function createExampleChart(input: ChartOptions) {
   const days = tokenUsageCalendar(input.revision)
   const monthTicks = calendarMonthTicks()
 
   return defineChart(
-    defineChart({
+    {
       marks: [
         cell(days, {
           x: 'week',
@@ -103,15 +103,13 @@ export function createExampleChart(input: ExampleOptions) {
             ...calendarMargin,
             bottom: calendarBottomMargin(input.width, input.height),
           },
-    }),
+    },
     {
       keyboard: true,
       tooltip: { use: tooltip, ...exampleTooltip },
     },
   )
 }
-
-export const tokenUsageCalendarDefinition = createExampleChart
 
 export const chart = createExampleChart({
   width: 720,

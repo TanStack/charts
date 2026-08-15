@@ -3,7 +3,7 @@ import {
   detailedWorldLand,
   worldGraticule,
   worldSphere,
-} from '@charts-poc/demo-data/country-atlas'
+} from '@tanstack/charts-data/country-atlas'
 import { beagleRoute } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

@@ -1,4 +1,4 @@
-import { weather } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
 import { createElement } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { rechartsMount } from '../../shared/recharts-mount'

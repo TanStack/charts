@@ -72,6 +72,10 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount.requestRender'],
     [
+      '@tanstack/charts:src/dom-types.ts:UniversalChartRenderer',
+      'mount.requestRender',
+    ],
+    [
       '@tanstack/charts:src/dom-types.ts:ChartSurface',
       'subscribePresentationPoints.listener',
     ],
@@ -368,6 +372,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:ResponsiveChartConfig', 'chart'],
     ['@tanstack/charts:src/types.ts:ResponsiveChartDefinition', 'chart'],
+    ['@tanstack/charts:src/scene.ts:DefinedResponsiveChart', 'chart'],
     ['@tanstack/charts:src/types.ts:InitializedMark', 'render resolveLayout'],
     [
       '@tanstack/charts:src/types.ts:InitializedMarkBase',
@@ -606,6 +611,10 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartHost', 'destroy getScene update'],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount prerender'],
+    [
+      '@tanstack/charts:src/dom-types.ts:UniversalChartRenderer',
+      'mount prerender',
+    ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartRendererHost',
       'destroy getScene update',

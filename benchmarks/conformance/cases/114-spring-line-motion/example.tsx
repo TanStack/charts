@@ -92,10 +92,7 @@ export default function SpringLineMotionExample({
 
   const [announcement, setAnnouncement] = useState('')
 
-  const renderer = useMemo(
-    () => motion<SpringLineRow, string, number>(),
-    [replayCount],
-  )
+  const renderer = useMemo(() => motion(), [replayCount])
 
   const definition = useMemo(
     () =>

@@ -123,10 +123,7 @@ export default function DefinitionMotionExample({
 
   const [announcement, setAnnouncement] = useState('')
 
-  const renderer = useMemo(
-    () => motion<DefinitionMotionRow, string, number>(),
-    [replayCount],
-  )
+  const renderer = useMemo(() => motion(), [replayCount])
 
   const definition = useMemo(
     () =>

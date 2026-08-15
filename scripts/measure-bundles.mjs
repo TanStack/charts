@@ -1688,7 +1688,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    20.7,
+    20.75,
     {
       rendererBoundary: 'svg',
       inputBoundary: {

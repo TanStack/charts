@@ -1,9 +1,9 @@
-import { demoDatasetForSpecifier } from '@charts-poc/demo-data/metadata'
+import { demoDatasetForSpecifier } from '@tanstack/charts-data/metadata'
 import type {
   ConformanceImplementationModule,
   ConformanceRenderer,
 } from './types'
-import type { DemoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import type { DemoDatasetMetadata } from '@tanstack/charts-data/metadata'
 
 export type CatalogModuleLoader = () => Promise<unknown>
 export type CatalogModuleRegistry = Record<string, CatalogModuleLoader>

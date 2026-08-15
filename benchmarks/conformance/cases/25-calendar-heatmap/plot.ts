@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { weather } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
 import { utcSunday } from 'd3-time'
 import { selectCalendarData } from './selection'
 import { mountObservablePlot } from '../../shared/mount'

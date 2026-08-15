@@ -1,10 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-  defineChart,
-  type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
-} from '@tanstack/charts'
+import { defineChart, type ChartPoint } from '@tanstack/charts'
 import {
   focusGroupAngle,
   pie,
@@ -19,7 +14,7 @@ import { scaleLinear } from 'd3-scale'
 import {
   shadcnColors,
   type ShadcnBrowserDatum,
-} from '@charts-poc/demo-data/shadcn'
+} from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const interactivePieRows: readonly ShadcnBrowserDatum[] = [
   { browser: 'january', visitors: 186 },
@@ -28,7 +23,7 @@ const interactivePieRows: readonly ShadcnBrowserDatum[] = [
   { browser: 'april', visitors: 173 },
   { browser: 'may', visitors: 209 },
 ]
-function createDefinition(activeMonth = 'january') {
+export function createExampleChart(activeMonth = 'january') {
   const arcs = pie(interactivePieRows, {
     value: 'visitors',
     startAngle: Math.PI / 2,
@@ -41,79 +36,96 @@ function createDefinition(activeMonth = 'january') {
   const activeRow = interactivePieRows[activeIndex]!
   const active = arcs.filter((row) => row.browser === activeRow.browser)
   const activeColor = shadcnColors[activeIndex]!
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.78,
-        angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-        radius: { scale: scaleLinear().domain([0, 1]) },
-        marks: [
-          radialArc(arcs, {
-            id: 'month-slices',
-            key: 'browser',
-            innerRadius: 60,
-            color: 'browser',
-            stroke: 'var(--background)',
-            strokeWidth: 1,
-          }),
-          radialArc(active, {
-            id: 'active-month',
-            key: 'browser',
-            innerRadius: 60,
-            outerRadius: ({ radius }) => radius + 10,
-            fill: activeColor,
-            stroke: 'var(--background)',
-            strokeWidth: 5,
-          }),
-          radialArc(active, {
-            id: 'active-month-ring',
-            key: 'browser',
-            innerRadius: ({ radius }) => radius + 12,
-            outerRadius: ({ radius }) => radius + 25,
-            fill: activeColor,
-            stroke: 'var(--background)',
-            strokeWidth: 3,
-          }),
-          radialText(
-            [
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.78,
+          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+          radius: { scale: scaleLinear().domain([0, 1]) },
+          marks: [
+            radialArc(arcs, {
+              id: 'month-slices',
+              key: 'browser',
+              innerRadius: 60,
+              color: 'browser',
+              stroke: 'var(--background)',
+              strokeWidth: 1,
+            }),
+            radialArc(active, {
+              id: 'active-month',
+              key: 'browser',
+              innerRadius: 60,
+              outerRadius: ({ radius }) => radius + 10,
+              fill: activeColor,
+              stroke: 'var(--background)',
+              strokeWidth: 5,
+            }),
+            radialArc(active, {
+              id: 'active-month-ring',
+              key: 'browser',
+              innerRadius: ({ radius }) => radius + 12,
+              outerRadius: ({ radius }) => radius + 25,
+              fill: activeColor,
+              stroke: 'var(--background)',
+              strokeWidth: 3,
+            }),
+            radialText(
+              [
+                {
+                  id: 'total',
+                  angle: 0,
+                  radius: 0,
+                  text: String(activeRow.visitors),
+                },
+              ],
               {
-                id: 'total',
-                angle: 0,
-                radius: 0,
-                text: String(activeRow.visitors),
+                id: 'active-total',
+                angle: 'angle',
+                radius: 'radius',
+                key: 'id',
+                text: 'text',
+                dy: -5,
+                fill: 'var(--foreground)',
+                fontSize: 30,
+                fontWeight: 700,
               },
-            ],
-            {
-              id: 'active-total',
-              angle: 'angle',
-              radius: 'radius',
-              key: 'id',
-              text: 'text',
-              dy: -5,
-              fill: 'var(--foreground)',
-              fontSize: 30,
-              fontWeight: 700,
-            },
-          ),
-          radialText([{ id: 'label', angle: 0, radius: 0, text: 'Visitors' }], {
-            id: 'active-label',
-            angle: 'angle',
-            radius: 'radius',
-            key: 'id',
-            text: 'text',
-            dy: 20,
-            fill: 'var(--muted-foreground)',
-            fontSize: 12,
-          }),
-        ],
-      }),
-    ],
-    color: {
-      domain: interactivePieRows.map((row) => row.browser),
-      range: shadcnColors,
+            ),
+            radialText(
+              [{ id: 'label', angle: 0, radius: 0, text: 'Visitors' }],
+              {
+                id: 'active-label',
+                angle: 'angle',
+                radius: 'radius',
+                key: 'id',
+                text: 'text',
+                dy: 20,
+                fill: 'var(--muted-foreground)',
+                fontSize: 12,
+              },
+            ),
+          ],
+        }),
+      ],
+      color: {
+        domain: interactivePieRows.map((row) => row.browser),
+        range: shadcnColors,
+      },
+      margin: 0,
     },
-    margin: 0,
-  })
+    {
+      svgAnimation: false,
+      focus: focusGroupAngle,
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: 'group-center',
+        placement: 'auto',
+        sort: 'color-domain',
+        content: (points) => shadcnTooltipContent(points),
+      },
+    },
+  )
 }
 function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
   const point = points.find((candidate) => browserMetric(candidate.datum))
@@ -144,48 +156,11 @@ function browserMetric(datum: unknown) {
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
-export function createExampleChart(activeMonth: string = 'january') {
-  return defineChart(createDefinition(activeMonth), {
-    svgAnimation: false,
-    focus: focusGroupAngle,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: 'group-center',
-      placement: 'auto',
-      offset: undefined,
-      sort: 'color-domain',
-      content: (points) => shadcnTooltipContent(points),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
@@ -196,30 +171,9 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
     () => createExampleChart(activeMonth),
     [activeMonth],
   )
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = Math.min(300, contentWidth)
   const chartHeight = chartWidth
-  const headerAction = (
-    <SelectControl
-      value={activeMonth}
-      onChange={setActiveMonth}
-      options={interactivePieRows.map((row, index) => ({
-        value: row.browser,
-        label: titleCase(row.browser),
-        swatch: shadcnColors[index],
-      }))}
-    />
-  )
-  const legend = null
-  const footer = null
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-interactive-pie" style={{ width }}>
@@ -228,9 +182,17 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Pie Chart - Interactive</h2>
             <p>January - June 2024</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
+          <div className="sc-card-action">
+            <SelectControl
+              value={activeMonth}
+              onChange={setActiveMonth}
+              options={interactivePieRows.map((row, index) => ({
+                value: row.browser,
+                label: titleCase(row.browser),
+                swatch: shadcnColors[index],
+              }))}
+            />
+          </div>
         </header>
         <div className="sc-card-content sc-centered">
           <div
@@ -245,11 +207,7 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               ariaLabel="Pie Chart - Interactive"
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
         </div>
-        {footer ? (
-          <footer className="sc-card-footer sc-centered">{footer}</footer>
-        ) : null}
       </article>
     </div>
   )

@@ -146,10 +146,7 @@ export default function FocusCursorMotionExample({
     readonly ChartPoint<FocusMotionRow, string, number>[]
   >([])
 
-  const renderer = useMemo(
-    () => motion<FocusMotionRow, string, number>({ initial: false }),
-    [],
-  )
+  const renderer = useMemo(() => motion({ initial: false }), [])
 
   const definition = useMemo(focusCursorMotionDefinition, [])
 

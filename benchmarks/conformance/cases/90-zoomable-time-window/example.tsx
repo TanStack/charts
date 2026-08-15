@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Chart } from '@tanstack/charts/react'
 import { initialZoomWindow } from './model'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ZoomXChange,
   ZoomXWindow,
 } from '@tanstack/charts/interaction/zoom'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { zoomX } from '@tanstack/charts/interaction/zoom'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'

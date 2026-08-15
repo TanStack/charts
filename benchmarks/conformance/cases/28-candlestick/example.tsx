@@ -2,7 +2,7 @@ import { Chart } from '@tanstack/charts/react/tooltip'
 import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { defineChart, link } from '@tanstack/charts'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { selectCandleData } from './selection'
 
@@ -17,67 +17,61 @@ const price = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
-export const definition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const rows = selectCandleData(aapl, input.revision)
   const gains = rows.filter((row) => row.Close >= row.Open)
   const losses = rows.filter((row) => row.Close < row.Open)
-  return defineChart({
-    marks: [
-      link(rows, {
-        x1: 'Date',
-        y1: 'Low',
-        x2: 'Date',
-        y2: 'High',
-        stroke: '#64748b',
-        strokeWidth: 1,
-      }),
-      link(gains, {
-        x1: 'Date',
-        y1: 'Open',
-        x2: 'Date',
-        y2: 'Close',
-        stroke: '#10b981',
-        strokeWidth: 5,
-      }),
-      link(losses, {
-        x1: 'Date',
-        y1: 'Open',
-        x2: 'Date',
-        y2: 'Close',
-        stroke: '#ef4444',
-        strokeWidth: 5,
-      }),
-    ],
-    x: { scale: scaleUtc },
-    y: { scale: scaleLinear, grid: true, axis: { label: 'Price' } },
-  })
+  return defineChart(
+    {
+      marks: [
+        link(rows, {
+          x1: 'Date',
+          y1: 'Low',
+          x2: 'Date',
+          y2: 'High',
+          stroke: '#64748b',
+          strokeWidth: 1,
+        }),
+        link(gains, {
+          x1: 'Date',
+          y1: 'Open',
+          x2: 'Date',
+          y2: 'Close',
+          stroke: '#10b981',
+          strokeWidth: 5,
+        }),
+        link(losses, {
+          x1: 'Date',
+          y1: 'Open',
+          x2: 'Date',
+          y2: 'Close',
+          stroke: '#ef4444',
+          strokeWidth: 5,
+        }),
+      ],
+      x: { scale: scaleUtc },
+      y: { scale: scaleLinear, grid: true, axis: { label: 'Price' } },
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: (point) =>
+            `${candleDate.format(point.datum.Date)} · Open: ${price.format(point.datum.Open)} · High: ${price.format(point.datum.High)} · Low: ${price.format(point.datum.Low)} · Close: ${price.format(point.datum.Close)}`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Apple daily candlestick chart'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: (point) =>
-          `${candleDate.format(point.datum.Date)} · Open: ${price.format(point.datum.Open)} · High: ${price.format(point.datum.High)} · Low: ${price.format(point.datum.Low)} · Close: ${price.format(point.datum.Close)}`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

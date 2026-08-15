@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import { createChartRuntime } from '@tanstack/charts'
 import { arc } from 'd3-shape'
 import { describe, expect, it } from 'vitest'
 import { gaugeBands, gaugeMaximum, gaugeTicks } from './transform'
-import { needleGaugeDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { GaugeBand } from './transform'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
@@ -208,10 +208,7 @@ describe('native needle-gauge composition', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    needleGaugeDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function scaleAngle(value: number) {

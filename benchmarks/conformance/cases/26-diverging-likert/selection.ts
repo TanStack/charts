@@ -1,4 +1,4 @@
-import type { SurveyRow } from '@charts-poc/demo-data/survey'
+import type { SurveyRow } from '@tanstack/charts-data/survey'
 
 export type LikertResponse =
   'Strongly Disagree' | 'Disagree' | 'Neutral' | 'Agree' | 'Strongly Agree'

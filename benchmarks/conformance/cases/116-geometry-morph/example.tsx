@@ -315,10 +315,7 @@ export default function GeometryMorphExample({
 
   const [announcement, setAnnouncement] = useState('')
 
-  const renderer = useMemo(
-    () => motion<MorphDatum, number, number>(),
-    [replayCount],
-  )
+  const renderer = useMemo(() => motion(), [replayCount])
 
   const definition = useMemo(
     () => geometryMorphDefinition(morphData, mode),

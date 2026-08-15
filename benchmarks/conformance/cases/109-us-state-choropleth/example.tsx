@@ -35,51 +35,45 @@ const colorRanges = [
   ],
 ]
 
-export const usStateChoroplethDefinition = (input: ExampleOptions) =>
-  defineChart({
-    marks: [
-      geoShape(projectedUnemploymentCounties, {
-        projection: {
-          type: geoAlbersUsa,
-          fit: unemploymentCountyCollection,
-        },
-        color: (county) => county.properties.rate,
-        stroke: '#f8fafc',
-        strokeWidth: 0.35,
-      }),
-    ],
-    color: {
-      scale: scaleQuantile<number, string>,
-      range: colorRanges[input.revision % 2] ?? colorRanges[0],
+export const createExampleChart = (input: ChartOptions) =>
+  defineChart(
+    {
+      marks: [
+        geoShape(projectedUnemploymentCounties, {
+          projection: {
+            type: geoAlbersUsa,
+            fit: unemploymentCountyCollection,
+          },
+          color: (county) => county.properties.rate,
+          stroke: '#f8fafc',
+          strokeWidth: 0.35,
+        }),
+      ],
+      color: {
+        scale: scaleQuantile<number, string>,
+        range: colorRanges[input.revision % 2] ?? colorRanges[0],
+      },
+      margin: 10,
     },
-    margin: 10,
-  })
-export interface ExampleOptions {
-  width: number
-  height: number
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`,
+        },
+      },
+    },
+  )
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'United States county unemployment choropleth'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(usStateChoroplethDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

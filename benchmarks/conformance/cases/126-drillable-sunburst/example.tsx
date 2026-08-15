@@ -9,7 +9,7 @@ import {
   flarePreviewRootId,
   formatFlareValue,
 } from './model'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { ChartPoint } from '@tanstack/charts'
 import type { SunburstNode } from '@tanstack/charts/hierarchy/sunburst'
 import { defineChart } from '@tanstack/charts'
@@ -95,10 +95,7 @@ export default function Example() {
     () => drillableSunburstDefinition(rootId),
     [rootId],
   )
-  const renderer = useMemo(
-    () => motion<DrillDatum, number, number>({ initial: 'always' }),
-    [],
-  )
+  const renderer = useMemo(() => motion({ initial: 'always' }), [])
   const parentId = flareParentId(rootId)
 
   const drill = (point: ChartPoint<DrillDatum> | null) => {

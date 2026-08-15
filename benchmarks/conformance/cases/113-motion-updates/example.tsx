@@ -177,10 +177,7 @@ export default function MotionUpdatesExample({
 
   const [announcement, setAnnouncement] = useState('')
 
-  const renderer = useMemo(
-    () => motion<UpdateRow, string, number>(),
-    [replayCount],
-  )
+  const renderer = useMemo(() => motion(), [replayCount])
 
   const rows = stages[stage] ?? stages[0]
 

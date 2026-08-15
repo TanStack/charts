@@ -1,1 +1,1 @@
-export * from '@charts-poc/demo-data/learning-poverty-geography'
+export * from '@tanstack/charts-data/learning-poverty-geography'

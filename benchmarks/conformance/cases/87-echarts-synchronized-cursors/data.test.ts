@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { selectSynchronizedCursorData } from './selection'
 
 describe('synchronized traveler cursors', () => {

@@ -1,1 +1,1 @@
-export * from '@charts-poc/demo-data/country-atlas'
+export * from '@tanstack/charts-data/country-atlas'

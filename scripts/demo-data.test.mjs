@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { build } from 'esbuild'
 import { describe, expect, it } from 'vitest'
-import { demoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import { demoDatasetMetadata } from '@tanstack/charts-data/metadata'
 import {
   autoTypeValue,
   parseCsvRows,
@@ -63,7 +63,7 @@ describe('demo data', () => {
       expect(dataset.schema.map(({ name }) => name)).toEqual(dataset.fields)
       expect(dataset.sha256).toMatch(/^[a-f0-9]{64}$/u)
       expect(dataset.observableRevision).toMatch(/^[a-f0-9]{40}$/u)
-      expect(dataset.specifier).toBe(`@charts-poc/demo-data/${dataset.id}`)
+      expect(dataset.specifier).toBe(`@tanstack/charts-data/${dataset.id}`)
     }
   })
 
@@ -72,7 +72,7 @@ describe('demo data', () => {
       absWorkingDir: workspace,
       stdin: {
         contents:
-          "import { alphabet } from '@charts-poc/demo-data/alphabet'; console.log(alphabet.length)",
+          "import { alphabet } from '@tanstack/charts-data/alphabet'; console.log(alphabet.length)",
         resolveDir: workspace,
       },
       bundle: true,
@@ -100,7 +100,7 @@ describe('demo data', () => {
       absWorkingDir: workspace,
       stdin: {
         contents:
-          "import { olympians } from '@charts-poc/demo-data/olympians'; console.log(olympians.length)",
+          "import { olympians } from '@tanstack/charts-data/olympians'; console.log(olympians.length)",
         resolveDir: workspace,
       },
       bundle: true,

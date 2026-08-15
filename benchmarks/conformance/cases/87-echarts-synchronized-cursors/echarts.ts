@@ -15,7 +15,7 @@ import type {
   TooltipComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { echartsMount } from '../../shared/echarts-mount'
 import {
   selectSynchronizedCursorData,

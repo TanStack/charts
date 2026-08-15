@@ -1,14 +1,14 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { filterDashboardData } from './data'
-import { shadcnDashboardChartDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { SceneNode } from '@tanstack/charts'
 
 describe('shadcn dashboard TanStack chart', () => {
   it('renders two natural stacked areas with scoped gradients', () => {
     const runtime = createChartRuntime()
     const scene = runtime.render(
-      shadcnDashboardChartDefinition(filterDashboardData('90d')),
+      createExampleChart(filterDashboardData('90d')),
       { width: 900, height: 250 },
     )
     const areas = flatten(scene.nodes).filter((node) => node.kind === 'area')

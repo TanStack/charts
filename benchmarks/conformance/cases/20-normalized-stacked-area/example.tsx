@@ -4,7 +4,7 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 import { areaY, colorLegend, defineChart, ruleY, stack } from '@tanstack/charts'
 import { format } from 'd3-format'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 
 const percent = format('.0%')
 const colors = [
@@ -20,50 +20,41 @@ const colors = [
   '#bab0ab',
 ]
 
-export const definition = (input: ExampleOptions) =>
-  defineChart({
-    marks: [
-      areaY(industries, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-        fillOpacity: 0.82,
-        layout: stack({ offset: 'normalize' }),
-      }),
-      ruleY([0]),
-    ],
-    x: { scale: scaleUtc, axis: { label: 'Month' } },
-    y: {
-      scale: scaleLinear().domain([0, 1]),
-      grid: true,
-      axis: { ticks: { format: percent }, label: 'Share of unemployment' },
+export const createExampleChart = (input: ChartOptions) =>
+  defineChart(
+    {
+      marks: [
+        areaY(industries, {
+          x: 'date',
+          y: 'unemployed',
+          color: 'industry',
+          fillOpacity: 0.82,
+          layout: stack({ offset: 'normalize' }),
+        }),
+        ruleY([0]),
+      ],
+      x: { scale: scaleUtc, axis: { label: 'Month' } },
+      y: {
+        scale: scaleLinear().domain([0, 1]),
+        grid: true,
+        axis: { ticks: { format: percent }, label: 'Share of unemployment' },
+      },
+      color: {
+        range: colors,
+        ...(input.preview === true
+          ? {}
+          : { legend: colorLegend({ label: 'Industry' }) }),
+      },
     },
-    color: {
-      range: colors,
-      ...(input.preview === true
-        ? {}
-        : { legend: colorLegend({ label: 'Industry' }) }),
-    },
-  })
-export interface ExampleOptions {
-  width: number
-  height: number
-  revision: number
+    { keyboard: true, tooltip: exampleTooltip },
+  )
+export interface ChartOptions {
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'Industry share of unemployment'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
-  revision: 0,
   preview: false,
 })
 

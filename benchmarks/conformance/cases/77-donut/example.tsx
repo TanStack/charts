@@ -3,7 +3,7 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { defineChart } from '@tanstack/charts'
 import { pie, polar, radialArc } from '@tanstack/charts/polar'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { selectDonutData } from './selection'
 
 const colors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
@@ -12,56 +12,50 @@ const percentage = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
-export const donutDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const arcs = pie(selectDonutData(alphabet, input.revision), {
     value: 'frequency',
   })
 
-  return defineChart({
-    marks: [
-      polar({
-        inset: 0,
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(arcs, {
-            id: 'letter-slices',
-            key: 'letter',
-            innerRadius: ({ radius }) => radius * 0.58,
-            color: 'letter',
-          }),
-        ],
-      }),
-    ],
-    color: { range: colors },
-    margin: 0,
-  })
+  return defineChart(
+    {
+      marks: [
+        polar({
+          inset: 0,
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(arcs, {
+              id: 'letter-slices',
+              key: 'letter',
+              innerRadius: ({ radius }) => radius * 0.58,
+              color: 'letter',
+            }),
+          ],
+        }),
+      ],
+      color: { range: colors },
+      margin: 0,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.letter} · ${percentage.format(datum.frequency)}`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'English letter frequency donut'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(donutDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.letter} · ${percentage.format(datum.frequency)}`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

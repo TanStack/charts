@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react'
 import { Chart } from '@tanstack/charts/react'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
@@ -27,7 +27,7 @@ import type {
   BrushRange,
   BrushXChange,
 } from '@tanstack/charts/interaction/brush'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { FocusContextWindow } from './model'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'

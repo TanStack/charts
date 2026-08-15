@@ -9,7 +9,7 @@ import {
   ruleX,
   stack,
 } from '@tanstack/charts'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { likertResponses, selectLikertSurvey } from './selection'
 
@@ -21,49 +21,46 @@ export const likertCounts = groupBy(likertSurvey, {
   outputs: { count: { reduce: 'count' } },
 })
 
-export const likertDefinition = () =>
-  defineChart({
-    marks: [
-      barX(likertCounts, {
-        id: 'likert-responses',
-        x: 'count',
-        y: 'Question',
-        z: 'Response',
-        color: 'Response',
-        layout: stack({
-          order: likertResponses,
-          anchor: { series: 'Neutral', fraction: 0.5 },
+export const createExampleChart = () =>
+  defineChart(
+    {
+      marks: [
+        barX(likertCounts, {
+          id: 'likert-responses',
+          x: 'count',
+          y: 'Question',
+          z: 'Response',
+          color: 'Response',
+          layout: stack({
+            order: likertResponses,
+            anchor: { series: 'Neutral', fraction: 0.5 },
+          }),
+          key: (row) => `${row.Question}:${row.Response}`,
+          inset: 0.75,
         }),
-        key: (row) => `${row.Question}:${row.Response}`,
-        inset: 0.75,
-      }),
-      ruleX([0], { stroke: '#64748b' }),
-    ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      axis: {
-        ticks: { format: (value) => `${Math.abs(value)}` },
-        label: '← more disagree · Number of responses · more agree →',
+        ruleX([0], { stroke: '#64748b' }),
+      ],
+      x: {
+        scale: scaleLinear,
+        grid: true,
+        axis: {
+          ticks: { format: (value) => `${Math.abs(value)}` },
+          label: '← more disagree · Number of responses · more agree →',
+        },
+      },
+      y: {
+        scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.08),
+      },
+      color: {
+        domain: likertResponses,
+        range: colors,
+        legend: colorLegend({ label: 'Response' }),
       },
     },
-    y: {
-      scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.08),
-    },
-    color: {
-      domain: likertResponses,
-      range: colors,
-      legend: colorLegend({ label: 'Response' }),
-    },
-  })
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 
 export const exampleAriaLabel = 'Diverging Likert survey responses'
-
-export const createExampleChart = () =>
-  defineChart(likertDefinition(), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
 
 export const chart = createExampleChart()
 

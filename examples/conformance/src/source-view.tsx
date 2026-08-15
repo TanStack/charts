@@ -4,7 +4,7 @@ import type {
   CatalogSourceFile,
   CatalogSourceKind,
 } from '../../../benchmarks/conformance/catalog-loader'
-import type { DemoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import type { DemoDatasetMetadata } from '@tanstack/charts-data/metadata'
 
 const sourceKindOrder: Record<CatalogSourceKind, number> = {
   entry: 0,

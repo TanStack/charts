@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { selectLabeledPieData } from './selection'
-import { labeledPieDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
@@ -157,7 +157,7 @@ describe('native labeled pie composition', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(labeledPieDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function markPoints(points: readonly ChartPoint<unknown>[], markId: string) {

@@ -1,4 +1,4 @@
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { bandX, defineChart, dot, lineY, whenFocused } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react/tooltip'
@@ -9,7 +9,7 @@ import type { ChartTooltipOptions } from '@tanstack/charts'
 import { industryNames, selectGroupedTooltipData } from './selection'
 import type { GroupedTooltipDatum } from './selection'
 
-export interface ExampleOptions {
+export interface ChartOptions {
   revision?: number
 }
 
@@ -21,7 +21,7 @@ const interactiveTooltip: ChartTooltipOptions<GroupedTooltipDatum> = {
   sort: 'color-domain',
 }
 
-export function createExampleChart({ revision = 0 }: ExampleOptions = {}) {
+export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
   const rows = selectGroupedTooltipData(industries, revision)
   const dates = rows.filter((row) => row.industry === industryNames[0])
   return defineChart(

@@ -9,7 +9,7 @@ import type {
   ContinuousCursorPosition,
 } from '@tanstack/charts/interaction/cursor'
 import type { CompleteCar } from './model'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { continuousCursor } from '@tanstack/charts/interaction/cursor'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'

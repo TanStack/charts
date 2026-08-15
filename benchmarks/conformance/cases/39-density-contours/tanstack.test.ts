@@ -1,18 +1,15 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { densityDefinition, densityThresholds } from './tanstack'
-import type { ConformanceInput } from '../../types'
+import { createExampleChart, densityThresholds } from './tanstack'
 import type { SceneArea, SceneNode } from '@tanstack/charts'
 
 describe('native density contours', () => {
   it('emits six structured contour levels without synthetic focus points', () => {
     const runtime = createChartRuntime()
     const scene = runtime.render(
-      densityDefinition({
-        width: 640,
-        height: 400,
+      createExampleChart({
         revision: 0,
-      } satisfies ConformanceInput),
+      }),
       { width: 640, height: 400 },
     )
     const areas = sceneAreas(scene.nodes)

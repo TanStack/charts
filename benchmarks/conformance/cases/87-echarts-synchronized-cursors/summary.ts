@@ -2,7 +2,7 @@ import {
   synchronizedCursorDateKey,
   synchronizedCursorDatumAtDate,
 } from './model'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { selectSynchronizedCursorData } from './selection'
 import { synchronizedCursorColors } from './colors'
 import type { ConformanceInput } from '../../types'

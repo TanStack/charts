@@ -1,10 +1,4 @@
-import { useMemo } from 'react'
-import {
-  defineChart,
-  type ChartPoint,
-  type ChartValue,
-  type DomChartDefinition,
-} from '@tanstack/charts'
+import { defineChart, type ChartPoint } from '@tanstack/charts'
 import {
   focusGroupAngle,
   polar,
@@ -15,78 +9,95 @@ import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { motion } from '@tanstack/charts/motion'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { shadcnBrowsers, shadcnColors } from '@charts-poc/demo-data/shadcn'
+import { shadcnBrowsers, shadcnColors } from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const browserNames = shadcnBrowsers.map((row) => row.browser)
-function createDefinition() {
+export function createExampleChart() {
   const startAngle = rechartsPolarAngle(-90)
   const endAngle = rechartsPolarAngle(380)
   const backgroundRows = shadcnBrowsers.map((row) => ({
     ...row,
     background: 300,
   }))
-  const chartSpec = (radiusFactor: number) => ({
-    marks: [
-      polar({
-        radiusRatio: 1,
-        startAngle,
-        endAngle,
-        angle: { scale: scaleLinear().domain([0, 300]) },
-        radius: {
-          scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
-          range: [30 * radiusFactor, 110 * radiusFactor],
-        },
-        guides: [],
-        marks: [
-          radialBarAngle(backgroundRows, {
-            id: 'radial-backgrounds',
-            angle: 'background',
-            radius: 'browser',
-            key: 'browser',
-            fill: 'var(--muted)',
-          }),
-          radialBarAngle(shadcnBrowsers, {
-            id: 'radial-values',
-            angle: 'visitors',
-            radius: 'browser',
-            key: 'browser',
-            fill: (row) => shadcnColors[browserNames.indexOf(row.browser)]!,
-          }),
-        ],
-      }),
-      polar({
-        startAngle,
-        endAngle,
-        angle: { scale: scaleLinear().domain([0, 300]) },
-        radius: {
-          scale: scaleLinear().domain([0, 110]),
-          range: [0, 110 * radiusFactor],
-        },
-        marks: [
-          radialText(
-            shadcnBrowsers.map((row, index) => ({
-              ...row,
-              angle: 10,
-              labelRadius: 38 + index * 16,
-            })),
-            {
-              id: 'radial-labels',
-              angle: 'angle',
-              radius: 'labelRadius',
+  return defineChart(
+    ({ height }) => ({
+      marks: [
+        polar({
+          radiusRatio: 1,
+          startAngle,
+          endAngle,
+          angle: { scale: scaleLinear().domain([0, 300]) },
+          radius: {
+            scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
+            range: [
+              30 * (height < 220 ? 0.8 : 1),
+              110 * (height < 220 ? 0.8 : 1),
+            ],
+          },
+          guides: [],
+          marks: [
+            radialBarAngle(backgroundRows, {
+              id: 'radial-backgrounds',
+              angle: 'background',
+              radius: 'browser',
               key: 'browser',
-              text: (row) => titleCase(row.browser),
-              fill: 'white',
-              fontSize: 11,
-              rotate: -25,
-            },
-          ),
-        ],
-      }),
-    ],
-    color: { domain: browserNames, range: shadcnColors },
-    margin: 0,
-  })
-  return defineChart(({ height }) => chartSpec(height < 220 ? 0.8 : 1))
+              fill: 'var(--muted)',
+            }),
+            radialBarAngle(shadcnBrowsers, {
+              id: 'radial-values',
+              angle: 'visitors',
+              radius: 'browser',
+              key: 'browser',
+              fill: (row) => shadcnColors[browserNames.indexOf(row.browser)]!,
+            }),
+          ],
+        }),
+        polar({
+          startAngle,
+          endAngle,
+          angle: { scale: scaleLinear().domain([0, 300]) },
+          radius: {
+            scale: scaleLinear().domain([0, 110]),
+            range: [0, 110 * (height < 220 ? 0.8 : 1)],
+          },
+          marks: [
+            radialText(
+              shadcnBrowsers.map((row, index) => ({
+                ...row,
+                angle: 10,
+                labelRadius: 38 + index * 16,
+              })),
+              {
+                id: 'radial-labels',
+                angle: 'angle',
+                radius: 'labelRadius',
+                key: 'browser',
+                text: (row) => titleCase(row.browser),
+                fill: 'white',
+                fontSize: 11,
+                rotate: -25,
+              },
+            ),
+          ],
+        }),
+      ],
+      color: { domain: browserNames, range: shadcnColors },
+      margin: 0,
+    }),
+    {
+      svgAnimation: false,
+      focus: focusGroupAngle,
+      keyboard: false,
+      tooltip: {
+        use: tooltip,
+        className: 'sc-chart-tooltip',
+        anchor: 'group-center',
+        placement: 'auto',
+        sort: 'color-domain',
+        content: (points) => shadcnTooltipContent(points),
+      },
+    },
+  )
 }
 function rechartsPolarAngle(degrees: number) {
   return ((90 - degrees) * Math.PI) / 180
@@ -120,70 +131,19 @@ function browserMetric(datum: unknown) {
     ? { browser, visitors }
     : undefined
 }
-export function createExampleChart() {
-  return defineChart(createDefinition(), {
-    svgAnimation: false,
-    focus: focusGroupAngle,
-    keyboard: false,
-    tooltip: {
-      use: tooltip,
-      className: 'sc-chart-tooltip',
-      anchor: 'group-center',
-      placement: 'auto',
-      offset: undefined,
-      sort: 'color-domain',
-      content: (points) => shadcnTooltipContent(points),
-    },
-  })
-}
 export const definition = createExampleChart()
-type ExampleDefinition = ReturnType<typeof createExampleChart>
-type ExampleDatum =
-  ExampleDefinition extends DomChartDefinition<
-    infer TDatum,
-    infer _TXValue,
-    infer _TYValue
-  >
-    ? TDatum
-    : never
-type ExampleXValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer TXValue extends ChartValue,
-    infer _TYValue
-  >
-    ? TXValue
-    : never
-type ExampleYValue =
-  ExampleDefinition extends DomChartDefinition<
-    infer _TDatum,
-    infer _TXValue,
-    infer TYValue extends ChartValue
-  >
-    ? TYValue
-    : never
+const renderer = motion({
+  initial: 'always',
+  transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+})
 export interface ExampleProps {
   width?: number
   height?: number
 }
 export default function Example({ width = 640, height = 600 }: ExampleProps) {
-  const chartDefinition = definition
-  const renderer = useMemo(
-    () =>
-      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
-        initial: 'always',
-        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
-      }),
-    [],
-  )
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = Math.min(250, contentWidth)
   const chartHeight = chartWidth
-  const headerAction = null
-  const legend = null
-  const footer = (
-    <TrendFooter note="Showing total visitors for the last 6 months" />
-  )
   return (
     <div className="sc-example" style={{ width, height }}>
       <article className="sc-card sc-default" style={{ width }}>
@@ -192,9 +152,6 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             <h2>Radial Chart - Label</h2>
             <p>January - June 2024</p>
           </div>
-          {headerAction ? (
-            <div className="sc-card-action">{headerAction}</div>
-          ) : null}
         </header>
         <div className="sc-card-content sc-centered">
           <div
@@ -202,18 +159,17 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
             style={{ width: chartWidth, height: chartHeight }}
           >
             <RendererChart
-              definition={chartDefinition}
+              definition={definition}
               renderer={renderer}
               initialWidth={chartWidth}
               height={chartHeight}
               ariaLabel="Radial Chart - Label"
             />
           </div>
-          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
         </div>
-        {footer ? (
-          <footer className="sc-card-footer sc-centered">{footer}</footer>
-        ) : null}
+        <footer className="sc-card-footer sc-centered">
+          <TrendFooter note="Showing total visitors for the last 6 months" />
+        </footer>
       </article>
     </div>
   )

@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
-  facetedDistributionDefinition,
+  createExampleChart,
   species,
   type PenguinMass,
   type PenguinSpecies,
@@ -17,9 +17,7 @@ import type {
 } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
-type DistributionDatum = ChartSpecDatum<
-  ReturnType<typeof facetedDistributionDefinition>
->
+type DistributionDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 type AggregateBin = DistributionDatum['source'][number]
 
 const completeRows = penguins.filter((row): row is PenguinMass => {
@@ -118,7 +116,7 @@ function render(revision: number) {
     revision,
   } satisfies ConformanceInput
   return createChartRuntime<DistributionDatum>().render(
-    facetedDistributionDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

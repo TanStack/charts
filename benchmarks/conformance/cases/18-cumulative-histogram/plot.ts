@@ -1,4 +1,4 @@
-import { olympians } from '@charts-poc/demo-data/olympians'
+import { olympians } from '@tanstack/charts-data/olympians'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

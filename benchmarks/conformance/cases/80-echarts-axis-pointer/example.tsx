@@ -1,5 +1,5 @@
 import { Chart } from '@tanstack/charts/react/tooltip'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { colorLegend, defineChart, dot, lineY } from '@tanstack/charts'
 import { focusGuideX } from '@tanstack/charts/focus/guide'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -9,14 +9,7 @@ import { axisPointerDateKey } from './model'
 import { axisPointerData, axisPointerIndustries } from './selection'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 import type { AxisPointerDatum } from './selection'
-export interface ExampleOptions {
-  width: number
-  height: number
-  revision: number
-  preview?: boolean
-}
 
-export const createExampleChart = axisPointerDefinition
 export const exampleAriaLabel = 'Snapped axis pointer with grouped tooltip'
 
 const month = new Intl.DateTimeFormat('en-US', {
@@ -51,77 +44,83 @@ const axisPointerTooltip: ChartTooltipOptions<AxisPointerDatum> = {
   ],
 }
 
-export function axisPointerDefinition(input: ExampleChartInput) {
+export function createExampleChart(input: ExampleChartInput) {
   const rows = axisPointerData(industries, input.revision)
 
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        id: 'industry-lines',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        color: 'industry',
-        key: axisPointerKey,
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        id: 'industry-points',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        color: 'industry',
-        key: axisPointerKey,
-        r: 3,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-      focusGuideX(rows, {
-        id: 'axis-pointer-guide',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        key: axisPointerKey,
-        xRule: {
-          stroke: '#64748b',
+  return defineChart(
+    {
+      marks: [
+        lineY(rows, {
+          id: 'industry-lines',
+          x: 'date',
+          y: 'unemployed',
+          z: 'industry',
+          color: 'industry',
+          key: axisPointerKey,
+          strokeWidth: 2,
+        }),
+        dot(rows, {
+          id: 'industry-points',
+          x: 'date',
+          y: 'unemployed',
+          z: 'industry',
+          color: 'industry',
+          key: axisPointerKey,
+          r: 3,
+          stroke: '#ffffff',
           strokeWidth: 1,
-          strokeDasharray: '4 4',
+        }),
+        focusGuideX(rows, {
+          id: 'axis-pointer-guide',
+          x: 'date',
+          y: 'unemployed',
+          z: 'industry',
+          key: axisPointerKey,
+          xRule: {
+            stroke: '#64748b',
+            strokeWidth: 1,
+            strokeDasharray: '4 4',
+          },
+        }),
+      ],
+      x: {
+        scale: scaleUtc,
+        axis: { ticks: { format: (value) => month.format(value) } },
+      },
+      y: {
+        scale: scaleLinear,
+        grid: input.preview !== true,
+        axis: {
+          ticks: { count: 5 },
+          ...(input.preview === true
+            ? {}
+            : { label: 'Unemployed (thousands)' }),
         },
-      }),
-    ],
-    x: {
-      scale: scaleUtc,
-      axis: { ticks: { format: (value) => month.format(value) } },
+      },
+      color: {
+        domain: axisPointerIndustries,
+        range: axisPointerIndustries.map(
+          (industry) => axisPointerColors[industry],
+        ),
+        legend: colorLegend({ itemWidth: 100 }),
+      },
+      focus: 'group-x',
+      focusRing: false,
+      maxFocusDistance: Number.POSITIVE_INFINITY,
+      svgAnimation: false,
+      margin:
+        input.preview === true
+          ? { top: 4, right: 4, bottom: 22, left: 38 }
+          : { top: 38, right: 24, bottom: 45, left: 60 },
     },
-    y: {
-      scale: scaleLinear,
-      grid: input.preview !== true,
-      axis: {
-        ticks: { count: 5 },
-        ...(input.preview === true ? {} : { label: 'Unemployed (thousands)' }),
+    {
+      keyboard: true,
+      tooltip: {
+        use: tooltip,
+        ...axisPointerTooltip,
       },
     },
-    color: {
-      domain: axisPointerIndustries,
-      range: axisPointerIndustries.map(
-        (industry) => axisPointerColors[industry],
-      ),
-      legend: colorLegend({ itemWidth: 100 }),
-    },
-    focus: 'group-x',
-    focusRing: false,
-    maxFocusDistance: Number.POSITIVE_INFINITY,
-    svgAnimation: false,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      ...axisPointerTooltip,
-    },
-    margin:
-      input.preview === true
-        ? { top: 4, right: 4, bottom: 22, left: 38 }
-        : { top: 38, right: 24, bottom: 45, left: 60 },
-  })
+  )
 }
 
 function axisPointerKey(row: AxisPointerDatum) {
@@ -140,6 +139,7 @@ export const chart = createExampleChart({
   width: 640,
   height: 480,
   revision: 0,
+  preview: false,
 })
 
 export default function Example() {

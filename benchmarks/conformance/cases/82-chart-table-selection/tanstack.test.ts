@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {

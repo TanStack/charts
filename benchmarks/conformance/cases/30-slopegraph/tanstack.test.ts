@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { citywages } from '@charts-poc/demo-data/citywages'
+import { citywages } from '@tanstack/charts-data/citywages'
 import { describe, expect, it } from 'vitest'
 import { wageFields } from './selection'
-import { slopegraphDefinition } from './tanstack'
-import type { CitywagesRow } from '@charts-poc/demo-data/citywages'
+import { createExampleChart } from './tanstack'
+import type { CitywagesRow } from '@tanstack/charts-data/citywages'
 import type { ChartPoint, ChartScene } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 import type { WageField } from './selection'
@@ -83,7 +83,7 @@ describe('folded slopegraph', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(slopegraphDefinition(nextInput), {
+  return createChartRuntime().render(createExampleChart(nextInput), {
     width: nextInput.width,
     height: nextInput.height,
   })

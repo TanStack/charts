@@ -8,11 +8,13 @@ import {
   delta,
   ruleY,
   rollingWindow,
+  type ChartPoint,
 } from '@tanstack/charts'
 import { waterfall } from '@tanstack/charts/transform/waterfall'
+import { decorative } from '@tanstack/charts/mark/decorative'
 import type { WaterfallKind } from '@tanstack/charts/transform/waterfall'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { driving } from '@charts-poc/demo-data/driving'
+import { driving } from '@tanstack/charts-data/driving'
 
 const kinds = [
   'increase',
@@ -50,48 +52,45 @@ export const waterfallRows = waterfall(yearlyChanges, {
   total: true,
 })
 
-export const waterfallDefinition = () =>
-  defineChart(({ width }) => {
-    return {
-      marks: [
-        barY(waterfallRows, {
-          id: 'waterfall-bars',
-          x: (datum) => (datum.kind === 'total' ? totalLabel : `${datum.year}`),
-          y1: 'start',
-          y2: 'end',
-          color: 'kind',
-          key: (datum) =>
-            datum.kind === 'total' ? 'net-total' : `${datum.year}`,
-          inset: 1,
-        }),
-        ruleY([0], { stroke: '#64748b', strokeOpacity: 0.6 }),
-      ],
-      x: {
-        scale: () => scaleBand<string>().padding(0.14),
-        axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Change in gasoline price (USD per gallon)' },
-      },
-      color: {
-        domain: kinds,
-        range: colors,
-        legend: colorLegend({ label: 'Change' }),
-      },
-    }
-  })
-
-export const exampleAriaLabel = 'Annual changes in U.S. gasoline prices'
-
 export const createExampleChart = () =>
-  defineChart(waterfallDefinition(), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
+  defineChart(
+    ({ width }) => {
+      return {
+        marks: [
+          barY(waterfallRows, {
+            id: 'waterfall-bars',
+            x: (datum) =>
+              datum.kind === 'total' ? totalLabel : `${datum.year}`,
+            y1: 'start',
+            y2: 'end',
+            color: 'kind',
+            key: (datum) =>
+              datum.kind === 'total' ? 'net-total' : `${datum.year}`,
+            inset: 1,
+          }),
+          decorative(ruleY([0], { stroke: '#64748b', strokeOpacity: 0.6 })),
+        ] as const,
+        x: {
+          scale: () => scaleBand<string>().padding(0.14),
+          axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Change in gasoline price (USD per gallon)' },
+        },
+        color: {
+          domain: kinds,
+          range: colors,
+          legend: colorLegend({ label: 'Change' }),
+        },
+      }
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        format: ({ datum }: ChartPoint<(typeof waterfallRows)[number]>) =>
           datum.kind === 'total'
             ? `${totalLabel} · ${signedAmount.format(datum.end)} net change`
             : `${datum.year} · ${signedAmount.format(
@@ -99,7 +98,9 @@ export const createExampleChart = () =>
               )} · ${signedAmount.format(datum.end)} running change`,
       },
     },
-  })
+  )
+
+export const exampleAriaLabel = 'Annual changes in U.S. gasoline prices'
 
 export const chart = createExampleChart()
 

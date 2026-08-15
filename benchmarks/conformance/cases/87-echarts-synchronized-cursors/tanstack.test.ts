@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
 import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
@@ -16,7 +16,7 @@ import type {
   SceneNode,
   SceneRule,
 } from '@tanstack/charts'
-import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { TravelersRow } from '@tanstack/charts-data/travelers'
 import type { ConformanceInput } from '../../types'
 
 const input = {

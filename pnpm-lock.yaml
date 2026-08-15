@@ -13,7 +13,7 @@ importers:
       '@changesets/cli':
         specifier: 2.31.1
         version: 2.31.1(@types/node@25.9.5)
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:packages/charts-demo-data
       '@observablehq/plot':
@@ -284,7 +284,7 @@ importers:
 
   examples/charts-octane:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../../packages/charts-demo-data
       '@tanstack/charts':
@@ -318,7 +318,7 @@ importers:
 
   examples/charts-react:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../../packages/charts-demo-data
       '@tanstack/charts':
@@ -410,7 +410,7 @@ importers:
 
   examples/conformance:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../../packages/charts-demo-data
       '@observablehq/plot':
@@ -506,7 +506,7 @@ importers:
 
   examples/sandbox:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../../packages/charts-demo-data
       '@tanstack/charts':
@@ -741,7 +741,7 @@ importers:
 
   packages/charts-fixtures:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../charts-demo-data
       '@tanstack/charts':
@@ -786,7 +786,7 @@ importers:
 
   packages/fixtures:
     dependencies:
-      '@charts-poc/demo-data':
+      '@tanstack/charts-data':
         specifier: workspace:*
         version: link:../charts-demo-data
       '@observablehq/plot':

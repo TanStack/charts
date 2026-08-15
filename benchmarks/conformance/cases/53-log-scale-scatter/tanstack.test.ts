@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { logScaleScatterDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { ChartPoint } from '@tanstack/charts'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { ConformanceInput } from '../../types'
 
 const input = {
@@ -48,10 +48,7 @@ describe('native log-scale scatter preparation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    logScaleScatterDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function points(source: readonly ChartPoint<unknown>[]) {

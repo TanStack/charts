@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import {
   flipperBoundaries,
   massBoundaries,
-  scatterMarginalDefinition,
+  createExampleChart,
 } from './tanstack'
 import type { CompletePenguin } from './tanstack'
 import type {
@@ -26,9 +26,7 @@ describe('scatterplot with marginal histograms', () => {
           return row.flipper_length_mm !== null && row.body_mass_g !== null
         })
         .slice(revision * 8, revision * 8 + 320)
-      const definition = scatterMarginalDefinition({
-        width: 720,
-        height: 480,
+      const definition = createExampleChart({
         revision,
       })
       type Datum = ChartSpecDatum<typeof definition>
@@ -77,10 +75,10 @@ describe('scatterplot with marginal histograms', () => {
   it.each([320, 640, 960])(
     'keeps marginal plot ranges aligned at %spx',
     (width) => {
-      const scene = createChartScene(
-        scatterMarginalDefinition({ width, height: 480, revision: 0 }),
-        { width, height: 480 },
-      )
+      const scene = createChartScene(createExampleChart({ revision: 0 }), {
+        width,
+        height: 480,
+      })
       const views = directViews(scene.nodes)
       const main = views.get('penguin-marginals:main:view')!
       const top = views.get('penguin-marginals:top:view')!

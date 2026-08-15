@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { selectHierarchyData } from './selection'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

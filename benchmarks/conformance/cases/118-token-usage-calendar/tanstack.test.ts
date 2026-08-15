@@ -14,7 +14,7 @@ import {
   tokenUsageCalendar,
   type TokenUsageDay,
 } from './model'
-import { tokenUsageCalendarDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { ConformanceInput } from '../../types'
 
 type DefinitionDatum<TDefinition> =
@@ -23,7 +23,7 @@ type DefinitionDatum<TDefinition> =
 describe('definition-owned token activity calendar', () => {
   it('keeps the exact day type, source identity, and 364 interactive cells', () => {
     const input = calendarInput(640)
-    const definition = tokenUsageCalendarDefinition(input)
+    const definition = createExampleChart(input)
     const first = render(definition, input)
     const second = render(definition, input)
     type Datum = DefinitionDatum<typeof definition>
@@ -46,7 +46,7 @@ describe('definition-owned token activity calendar', () => {
 
   it('owns month-label typography and leading-edge alignment in the axis definition', () => {
     const input = calendarInput(640)
-    const scene = render(tokenUsageCalendarDefinition(input), input)
+    const scene = render(createExampleChart(input), input)
     const nodes = flatten(scene.nodes)
     const labels = nodes.filter(
       (node): node is SceneLabel =>
@@ -80,7 +80,7 @@ describe('definition-owned token activity calendar', () => {
     'keeps the edge alignment and cells responsive at %ipx',
     (width) => {
       const input = calendarInput(width)
-      const scene = render(tokenUsageCalendarDefinition(input), input)
+      const scene = render(createExampleChart(input), input)
       const nodes = flatten(scene.nodes)
       const firstLabel = nodes.find(
         (node): node is SceneLabel =>
@@ -135,7 +135,7 @@ function calendarInput(width: number): ConformanceInput {
 }
 
 function render(
-  definition: ReturnType<typeof tokenUsageCalendarDefinition>,
+  definition: ReturnType<typeof createExampleChart>,
   input: ConformanceInput,
 ) {
   return createChartRuntime<TokenUsageDay, number, string>().render(

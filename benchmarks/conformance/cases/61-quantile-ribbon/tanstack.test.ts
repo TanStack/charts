@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { createChartRuntime, groupBy, quantile } from '@tanstack/charts'
 import { quantile as d3Quantile } from 'd3-array'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { quantileRibbonDefinition, quantileRows } from './tanstack'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import { createExampleChart, quantileRows } from './tanstack'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import type { ChartSpecDatum } from '@tanstack/charts'
 
-type QuantileDatum = ChartSpecDatum<ReturnType<typeof quantileRibbonDefinition>>
+type QuantileDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('definition-owned quantile ribbon', () => {
   it('groups public quantile reducers with exact source lineage', () => {
@@ -72,7 +72,7 @@ describe('definition-owned quantile ribbon', () => {
 
   it('feeds the same aggregate rows to the ribbon and median line', () => {
     const scene = createChartRuntime<QuantileDatum>().render(
-      quantileRibbonDefinition(),
+      createExampleChart(),
       { width: 640, height: 400 },
     )
     const ribbon = scene.points.filter(
@@ -104,7 +104,8 @@ describe('definition-owned quantile ribbon', () => {
     expect(source).toContain('quantile(0.1)')
     expect(source).toContain('quantile(0.5)')
     expect(source).toContain('quantile(0.9)')
-    expect(source).toContain('quantileRibbonChart(quantileRows, true)')
+    expect(source).toContain('const rows = quantileRows')
+    expect(source).toContain('const showAxisLabels = true')
     expect(source).toContain('areaY(rows')
     expect(source).toContain('lineY(rows')
     expect(source).not.toContain('summarizeQuantiles')

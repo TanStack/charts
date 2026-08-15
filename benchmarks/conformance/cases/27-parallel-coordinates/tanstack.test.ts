@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { describe, expect, it } from 'vitest'
 import { decathlonEvents, timedEvents } from './selection'
 import {
   foldedDecathlon,
   normalizedDecathlon,
-  parallelCoordinatesDefinition,
+  createExampleChart,
   representativeProfiles,
 } from './tanstack'
 
@@ -94,7 +94,7 @@ describe('folded parallel coordinates', () => {
 })
 
 function render() {
-  return createChartRuntime().render(parallelCoordinatesDefinition(), {
+  return createChartRuntime().render(createExampleChart(), {
     width: 640,
     height: 400,
   })

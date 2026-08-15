@@ -1,7 +1,7 @@
 import { Chart } from '@tanstack/charts/react/tooltip'
 import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
-import { simpsons } from '@charts-poc/demo-data/simpsons'
+import { simpsons } from '@tanstack/charts-data/simpsons'
 import {
   binX,
   d3Curve,
@@ -17,7 +17,7 @@ import type { RatedEpisode } from './selection'
 
 const colors = ['#2563eb', '#0d9488', '#d97706']
 
-export const ridgelineDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const seasons = ridgeSeasons(input.revision)
   const episodes = simpsons.filter(
     (row): row is RatedEpisode =>
@@ -38,66 +38,57 @@ export const ridgelineDefinition = (input: ExampleOptions) => {
   const overlap = 0.78
   const curve = d3Curve(curveBasis)
 
-  return defineChart({
-    marks: [
-      ruleY(seasons, {
-        id: 'season-guides',
-        stroke: '#94a3b8',
-        strokeOpacity: 0.5,
-      }),
-      ridgelineY(rows, {
-        id: 'rating-ridges',
-        x: 'x',
-        y: 'season',
-        height: 'height',
-        key: (row) => `${row.season}:${row.x}`,
-        overlap,
-        color: 'season',
-        fillOpacity: 0.52,
-        strokeWidth: 1.5,
-        curve,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([4, 10]),
-      grid: true,
-      axis: { label: 'IMDb rating' },
-    },
-    y: {
-      scale: scalePoint<number>().domain(seasons).padding(overlap),
-      reverse: true,
-      axis: {
-        ticks: {
-          values: seasons,
-          format: (season) => `Season ${season}`,
+  return defineChart(
+    {
+      marks: [
+        ruleY(seasons, {
+          id: 'season-guides',
+          stroke: '#94a3b8',
+          strokeOpacity: 0.5,
+        }),
+        ridgelineY(rows, {
+          id: 'rating-ridges',
+          x: 'x',
+          y: 'season',
+          height: 'height',
+          key: (row) => `${row.season}:${row.x}`,
+          overlap,
+          color: 'season',
+          fillOpacity: 0.52,
+          strokeWidth: 1.5,
+          curve,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([4, 10]),
+        grid: true,
+        axis: { label: 'IMDb rating' },
+      },
+      y: {
+        scale: scalePoint<number>().domain(seasons).padding(overlap),
+        reverse: true,
+        axis: {
+          ticks: {
+            values: seasons,
+            format: (season) => `Season ${season}`,
+          },
         },
       },
+      color: {
+        range: colors,
+      },
     },
-    color: {
-      range: colors,
-    },
-  })
+    { keyboard: true, tooltip: exampleTooltip },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Ridgeline density comparison'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(ridgelineDefinition(options), {
-    keyboard: true,
-    tooltip: exampleTooltip,
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

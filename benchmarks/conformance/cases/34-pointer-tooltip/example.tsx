@@ -1,5 +1,5 @@
-import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react/tooltip'
@@ -8,7 +8,7 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 import { selectPointerTooltipData } from './selection'
 
-export interface ExampleOptions {
+export interface ChartOptions {
   revision?: number
 }
 
@@ -28,7 +28,7 @@ const interactiveTooltip: ChartTooltipOptions<AaplRow> = {
   ],
 }
 
-export function createExampleChart({ revision = 0 }: ExampleOptions = {}) {
+export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
   const rows = selectPointerTooltipData(aapl, revision)
   return defineChart(
     {

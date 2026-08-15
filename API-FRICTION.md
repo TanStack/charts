@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-12
+Last updated: 2026-08-14
 
 ## Triage rule
 
@@ -323,6 +323,10 @@ Each entry records:
 | F-284 | Stagger timing required repeated callback arithmetic           | API                   | resolved   |
 | F-285 | Absolute catalog links lost their docs navigation tab          | Documentation         | resolved   |
 | F-286 | Browser imports treated raw JSON as a source module            | Tooling               | resolved   |
+| F-287 | Motion renderers required definition type extraction           | API                   | resolved   |
+| F-288 | Generated examples exposed shared implementation scaffolding   | Tooling/API           | resolved   |
+| F-289 | Catalog workbenches exposed runtime bootstrap files            | Tooling               | resolved   |
+| F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 
 ## Findings
 
@@ -839,7 +843,7 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
-- Owner: Tooling
+- Owner: Tooling/API
 - Observed in: cross-library bundle and browser comparison matrix; executable
   catalog production loading
 - Friction: re-exporting one benchmark mount from a module containing four
@@ -904,7 +908,7 @@ Each entry records:
 
 - Status: resolved
 - Severity: medium
-- Owner: Tooling
+- Owner: Tooling/API
 - Observed in: tiered cross-library benchmark validation
 - Friction: `benchmark:check` and `benchmark:update-baseline` wrote their
   size-only result to the canonical comparison paths. Running normal
@@ -8281,3 +8285,91 @@ Each entry records:
 - Verification: the catalog contract validates all example imports, and the
   revision-pinned esm.sh URL for the fixture returns a JavaScript module that
   renders the production sandbox.
+
+### F-287 — Motion renderers required definition type extraction
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: making every catalog example show its authored chart before its
+  React shell
+- Friction: `motion()` fixed its datum and axis generics when the renderer was
+  created, before `RendererChart` received the definition that already knew
+  those types. Seventy generated examples therefore extracted three conditional
+  types from the definition only to pass them back to `motion<...>()`.
+- Decision: let the optional motion factory return a definition-agnostic
+  renderer whose generic methods acquire chart types from the host. Preserve
+  the explicit generic overload for low-level callers.
+- Verification: the React type contract passes `motion()` directly beside a
+  typed definition, all 188 catalog entries typecheck, and no public example
+  contains a `motion<...>()` instantiation.
+
+### F-288 — Generated examples exposed shared implementation scaffolding
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: auditing the source shown for every catalog example
+- Friction: generated ShadCN entries copied a complete shared stylesheet,
+  repeated definition type aliases and null component branches, and wrapped
+  the actual definition in another `defineChart()` call. Eighty-five older
+  catalog entries also exposed a generated `definition()` →
+  `createExampleChart()` chain. Seventy-nine public factories retained a
+  generic `ExampleOptions` bag containing dimensions, preview flags, and other
+  fields the authored definition never read. Merging tooltip behavior into the chart object
+  during cleanup made callback datum inference fall back to `unknown`.
+  Decorative guides also polluted the inferred interactive datum union even
+  though they cannot own focus or tooltip points. The newly exercised
+  `defineChart(responsiveFactory, behaviors)` path also exposed a runtime bug:
+  the constructor spread the factory like an object and silently dropped it.
+- Decision: make each case-local `example.tsx` and stylesheet authoritative,
+  delete the 2,152-line shared ShadCN implementation and its source-extraction
+  script, and limit generation to metadata and conformance adapters. Collapse
+  every delegating definition factory into the public example factory, and
+  keep `defineChart(chart, behaviors)` as one call with two inference phases.
+  Raw static and responsive overloads infer the chart before behaviors, while
+  `decorative()` contributes scale types but no interactive datum type.
+  Preserve a responsive factory as the definition's `chart` callback when
+  separate behaviors are supplied.
+  Omit unused component branches, empty spreads, unused option fields, and
+  unused CSS. Name the remaining definition-driving input `ChartOptions`. Keep
+  conformance adapters and Recharts references outside the public import
+  closure; interaction tests import the real examples directly.
+- Verification: generation produces 70 entries whose public factory contains
+  the authored definition, the catalog contract rejects nested or locally
+  delegated definitions and validates 188 self-contained entries with a
+  largest TypeScript closure of four files. The cleanup is idempotent after a
+  fresh 70-case ShadCN metadata generation. A catalog-wide cleanup reduces all
+  79 legacy option bags to the properties their definitions actually read and
+  rejects the old `ExampleOptions` surface. The complete workspace typecheck, 1,877
+  unit tests, packed-package checks, 188 generated preview checks, and 70/70
+  ShadCN visual comparisons pass.
+
+### F-289 — Catalog workbenches exposed runtime bootstrap files
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: opening Charts examples on tanstack.com
+- Friction: `/__catalog.tsx` and `/index.html` are generated execution plumbing,
+  but the workbench displayed both beside authored source. They were also
+  retained as visible files after sharing an example.
+- Decision: mark generated bootstrap paths as hidden example metadata. Keep
+  them in the executable workspace while filtering them from initial-file
+  selection, tabs, the file explorer, and shared-project views.
+- Verification: tanstack.com catalog and shared-project contract tests preserve
+  the hidden paths while confirming both bootstrap files remain runnable.
+
+### F-290 — Public examples imported a private workspace package
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: opening all 188 catalog examples in the public workbench
+- Friction: 163 entries displayed `@charts-poc/demo-data`, exposing an internal
+  package name and requiring the host to understand a private convention.
+- Decision: expose revision-pinned fixture subpaths through the stable
+  `@tanstack/charts-data` catalog alias and reject private package imports from
+  every public source closure.
+- Verification: the catalog contract resolves every fixture subpath as a
+  browser module and reports no `@charts-poc/` import in any public example.

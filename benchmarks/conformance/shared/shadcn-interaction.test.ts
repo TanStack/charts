@@ -1,13 +1,10 @@
-import { act } from 'react'
+import { act, createElement, type ComponentType } from 'react'
+import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createShadcnTanStackExample } from './shadcn-catalog-tanstack'
-
-const input = {
-  width: 600,
-  height: 500,
-  revision: 0,
-  interactive: true,
-} as const
+import AreaInteractive from '../cases/137-shadcn-area-interactive/example'
+import BarInteractive from '../cases/146-shadcn-bar-interactive/example'
+import LineInteractive from '../cases/156-shadcn-line-interactive/example'
+import PieInteractive from '../cases/164-shadcn-pie-interactive/example'
 
 let matchMediaDescriptor: PropertyDescriptor | undefined
 
@@ -30,10 +27,7 @@ afterEach(() => {
 describe('shadcn interactive chart shells', () => {
   it('filters the interactive area chart from its range control', () => {
     const container = document.createElement('div')
-    const handle = createShadcnTanStackExample('chart-area-interactive').mount(
-      container,
-      input,
-    )
+    const handle = mountExample(container, AreaInteractive)
     const select = container.querySelector<HTMLSelectElement>('select')
     const path = () =>
       container
@@ -63,9 +57,10 @@ describe('shadcn interactive chart shells', () => {
     'switches the interactive %s chart between desktop and mobile',
     (family) => {
       const container = document.createElement('div')
-      const handle = createShadcnTanStackExample(
-        `chart-${family}-interactive`,
-      ).mount(container, input)
+      const handle = mountExample(
+        container,
+        family === 'bar' ? BarInteractive : LineInteractive,
+      )
       const mobile = [...container.querySelectorAll('button')].find((button) =>
         button.textContent?.includes('Mobile'),
       )
@@ -98,10 +93,7 @@ describe('shadcn interactive chart shells', () => {
 
   it('changes the active pie slice, swatch, and center value', () => {
     const container = document.createElement('div')
-    const handle = createShadcnTanStackExample('chart-pie-interactive').mount(
-      container,
-      input,
-    )
+    const handle = mountExample(container, PieInteractive)
     const select = container.querySelector<HTMLSelectElement>('select')
 
     expect(select?.options).toHaveLength(5)
@@ -130,3 +122,16 @@ describe('shadcn interactive chart shells', () => {
     handle.destroy()
   })
 })
+
+function mountExample(
+  container: HTMLElement,
+  Example: ComponentType<{ width?: number; height?: number }>,
+) {
+  const root = createRoot(container)
+  act(() => root.render(createElement(Example, { width: 600, height: 500 })))
+  return {
+    destroy() {
+      act(() => root.unmount())
+    },
+  }
+}

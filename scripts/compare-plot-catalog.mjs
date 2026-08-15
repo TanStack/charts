@@ -1189,7 +1189,7 @@ async function buildImplementations(cases, typeAudit) {
         legalComments: 'none',
         logLevel: 'silent',
         write: false,
-        external: ['@charts-poc/demo-data/*'],
+        external: ['@tanstack/charts-data/*'],
       })
       const contents = measurementResult.outputFiles[0]?.contents
       if (!contents) {

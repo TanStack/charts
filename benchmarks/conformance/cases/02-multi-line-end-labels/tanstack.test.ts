@@ -1,18 +1,18 @@
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
 import { industryNames, selectMultiLineData } from './selection'
-import { multiLineEndLabelsDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { MultiLineDatum } from './selection'
 
 describe('multi-line end labels', () => {
   it('selects each newest dated observation when source order changes', () => {
     const rows = selectMultiLineData(industries, 0)
-    const reordered = [...rows].reverse()
+    const input = { width: 720, height: 480, revision: 0 }
     const scene = createChartRuntime<MultiLineDatum, Date, number>().render(
-      multiLineEndLabelsDefinition(reordered),
-      { width: 720, height: 480 },
+      createExampleChart(input),
+      input,
     )
     const linePoints = scene.points.filter(
       ({ markId }) => markId === 'industry-lines',

@@ -1,19 +1,17 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { driving } from '@charts-poc/demo-data/driving'
+import { driving } from '@tanstack/charts-data/driving'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
-  connectedScatterDefinition,
+  createExampleChart,
   directionPairs,
   directionTargetIndexes,
 } from './tanstack'
-import type { DrivingRow } from '@charts-poc/demo-data/driving'
+import type { DrivingRow } from '@tanstack/charts-data/driving'
 import type { ChartSpecDatum } from '@tanstack/charts'
 
-type ConnectedDatum = ChartSpecDatum<
-  ReturnType<typeof connectedScatterDefinition>
->
+type ConnectedDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 type DirectionDatum = (typeof directionPairs)[number]
 
 describe('definition-owned connected-scatter direction', () => {
@@ -40,7 +38,7 @@ describe('definition-owned connected-scatter direction', () => {
 
   it('feeds the window rows directly to native arrows', () => {
     const scene = createChartRuntime<ConnectedDatum>().render(
-      connectedScatterDefinition(),
+      createExampleChart(),
       { width: 640, height: 400 },
     )
     const arrows = scene.points.filter(

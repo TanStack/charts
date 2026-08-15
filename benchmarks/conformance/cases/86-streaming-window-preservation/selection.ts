@@ -1,4 +1,4 @@
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 
 const streamingStart = Date.parse('2018-10-01T00:00:00.000Z')
 const streamingEnd = Date.parse('2018-10-31T00:00:00.000Z')

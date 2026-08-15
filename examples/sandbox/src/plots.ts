@@ -21,8 +21,8 @@ import {
   scaleUtc,
 } from 'd3-scale'
 import { curveCatmullRom, curveMonotoneX } from 'd3-shape'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
-import type { SimpsonsRow } from '@charts-poc/demo-data/simpsons'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
+import type { SimpsonsRow } from '@tanstack/charts-data/simpsons'
 import type {
   CarEconomyRow,
   IndustryStackPoint,

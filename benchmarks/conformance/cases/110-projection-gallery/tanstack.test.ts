@@ -3,10 +3,10 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { geoPath } from 'd3-geo'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { worldLand, worldSphere } from '@charts-poc/demo-data/country-atlas'
+import { worldLand, worldSphere } from '@tanstack/charts-data/country-atlas'
 import { projectionGalleryData } from './projection'
-import { projectionGalleryDefinition } from './tanstack'
-import type { LandFeature } from '@charts-poc/demo-data/country-atlas'
+import { createExampleChart } from './tanstack'
+import type { LandFeature } from '@tanstack/charts-data/country-atlas'
 import type {
   ChartScene,
   ChartSpecDatum,
@@ -94,7 +94,7 @@ describe('declarative projection gallery', () => {
 
   it('preserves child geo datum types and identity through the facet', () => {
     const scene = render(640, 400, 0)
-    type Datum = ChartSpecDatum<ReturnType<typeof projectionGalleryDefinition>>
+    type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
     expectTypeOf<Datum>().toEqualTypeOf<GeoSphere | LandFeature>()
     expect(
@@ -136,7 +136,7 @@ describe('declarative projection gallery', () => {
 
 function render(width: number, height: number, revision: number) {
   const input = { width, height, revision } satisfies ConformanceInput
-  return createChartRuntime().render(projectionGalleryDefinition(input), input)
+  return createChartRuntime().render(createExampleChart(input), input)
 }
 
 function facetCells(scene: ChartScene): SceneGroup[] {

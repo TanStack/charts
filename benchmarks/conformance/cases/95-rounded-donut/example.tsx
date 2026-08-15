@@ -3,7 +3,7 @@ import { tooltip as exampleTooltip } from '@tanstack/charts/tooltip'
 
 import { defineChart } from '@tanstack/charts'
 import { pie, polar, radialArc } from '@tanstack/charts/polar'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { selectRoundedDonutData } from './selection'
 
 const gapAngle = (Math.PI / 180) * 3
@@ -13,57 +13,51 @@ const percentage = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
-export const roundedDonutDefinition = (input: ExampleOptions) => {
+export const createExampleChart = (input: ChartOptions) => {
   const arcs = pie(selectRoundedDonutData(alphabet, input.revision), {
     value: 'frequency',
     gapAngle,
   })
 
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(arcs, {
-            id: 'letter-slices',
-            key: 'letter',
-            innerRadius: ({ radius }) => radius * 0.58,
-            cornerRadius: 8,
-            color: 'letter',
-          }),
-        ],
-      }),
-    ],
-    color: { range: colors },
-    margin: 0,
-  })
+  return defineChart(
+    {
+      marks: [
+        polar({
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(arcs, {
+              id: 'letter-slices',
+              key: 'letter',
+              innerRadius: ({ radius }) => radius * 0.58,
+              cornerRadius: 8,
+              color: 'letter',
+            }),
+          ],
+        }),
+      ],
+      color: { range: colors },
+      margin: 0,
+    },
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            `${datum.letter} · ${percentage.format(datum.frequency)}`,
+        },
+      },
+    },
+  )
 }
-export interface ExampleOptions {
-  width: number
-  height: number
+export interface ChartOptions {
   revision: number
-  preview?: boolean
 }
 
 export const exampleAriaLabel = 'Rounded letter frequency donut'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(roundedDonutDefinition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          `${datum.letter} · ${percentage.format(datum.frequency)}`,
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
-  preview: false,
 })
 
 export default function Example() {

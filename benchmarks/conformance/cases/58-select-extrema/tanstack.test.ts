@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { maximumAapl, minimumAapl, selectExtremaDefinition } from './tanstack'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import { maximumAapl, minimumAapl, createExampleChart } from './tanstack'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartSpecDatum, SceneLabel, SceneNode } from '@tanstack/charts'
 
-type ExtremaDatum = ChartSpecDatum<ReturnType<typeof selectExtremaDefinition>>
+type ExtremaDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('definition-owned extrema annotations', () => {
   it('selects the original minimum and maximum rows', () => {
@@ -26,10 +26,10 @@ describe('definition-owned extrema annotations', () => {
   })
 
   it('keeps dots as the sole interaction owners for decorative labels', () => {
-    const scene = createChartRuntime<AaplRow>().render(
-      selectExtremaDefinition(),
-      { width: 640, height: 400 },
-    )
+    const scene = createChartRuntime<AaplRow>().render(createExampleChart(), {
+      width: 640,
+      height: 400,
+    })
     const minimumPoint = point(scene, 'minimum-point')
     const maximumPoint = point(scene, 'maximum-point')
     const labels = flatten(scene.nodes).filter(

@@ -4,7 +4,7 @@ import type {
   CatalogSourceClosure,
   CatalogSourceFile,
 } from '../../../benchmarks/conformance/catalog-loader'
-import type { DemoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import type { DemoDatasetMetadata } from '@tanstack/charts-data/metadata'
 
 describe('renderCatalogSourceView', () => {
   it('orders and opens authored source while keeping fixtures collapsed', () => {
@@ -80,7 +80,7 @@ describe('renderCatalogSourceView', () => {
         {
           path: 'tanstack.ts',
           source:
-            "import { aapl } from '@charts-poc/demo-data/aapl'\nvoid aapl\n",
+            "import { aapl } from '@tanstack/charts-data/aapl'\nvoid aapl\n",
           kind: 'entry',
           lines: 2,
           bytes: 66,
@@ -163,7 +163,7 @@ function sourceClosure(
 const aaplDataset: DemoDatasetMetadata = {
   id: 'aapl',
   title: 'Apple daily stock prices',
-  specifier: '@charts-poc/demo-data/aapl',
+  specifier: '@tanstack/charts-data/aapl',
   format: 'CSV',
   records: 1_260,
   fields: ['Date', 'Close'],

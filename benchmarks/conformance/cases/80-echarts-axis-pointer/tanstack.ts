@@ -1,6 +1,6 @@
-import { axisPointerDefinition } from './example'
-export { axisPointerDefinition } from './example'
-import { industries } from '@charts-poc/demo-data/industries'
+import { createExampleChart } from './example'
+export { createExampleChart } from './example'
+import { industries } from '@tanstack/charts-data/industries'
 import { mountChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import {
@@ -67,7 +67,7 @@ const axisPointerTooltip: ChartTooltipOptions<AxisPointerDatum> = {
 }
 
 export const catalogCase = tanstackCase(
-  axisPointerDefinition,
+  createExampleChart,
   'Snapped axis pointer with grouped tooltip',
   axisPointerTooltip,
   {
@@ -90,7 +90,7 @@ export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
   let focusedPoints: readonly ChartPoint<AxisPointerDatum, Date, number>[] = []
   const options = (): ChartHostOptions<AxisPointerDatum, Date, number> => ({
-    definition: axisPointerDefinition(currentInput),
+    definition: createExampleChart(currentInput),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: 'Snapped axis pointer with grouped tooltip',

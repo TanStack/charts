@@ -1,7 +1,7 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
-import { composedChartDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { SceneNode } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -58,10 +58,7 @@ describe('native composed-chart bar sizing', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    composedChartDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function flatten(nodes: readonly SceneNode[]): SceneNode[] {

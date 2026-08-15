@@ -1,5 +1,5 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
+import type { CarsRow } from '@tanstack/charts-data/cars'
 import { defineChart, dot } from '@tanstack/charts'
 import { Chart } from '@tanstack/charts/react/tooltip'
 import { voronoi } from '@tanstack/charts/spatial/voronoi'
@@ -8,7 +8,7 @@ import { scaleLinear } from 'd3-scale'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 
 export type CompleteCar = CarsRow & { readonly 'economy (mpg)': number }
-export interface ExampleOptions {
+export interface ChartOptions {
   revision?: number
 }
 
@@ -24,7 +24,7 @@ const interactiveTooltip: ChartTooltipOptions<CompleteCar> = {
   ],
 }
 
-export function createExampleChart({ revision = 0 }: ExampleOptions = {}) {
+export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
   const rows = selectedCars(revision)
   return defineChart(
     {

@@ -4,7 +4,7 @@ export {
   synchronizedCursorDefinition,
   chartHeight,
 } from './example'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -24,7 +24,7 @@ import type {
   SceneGroup,
   SceneNode,
 } from '@tanstack/charts'
-import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { TravelersRow } from '@tanstack/charts-data/travelers'
 import type { SynchronizedCursorView } from './model'
 import type {
   ConformanceGeometryQuery,

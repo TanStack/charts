@@ -1,5 +1,5 @@
 import { stratify } from 'd3-hierarchy'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { HierarchyNode } from 'd3-hierarchy'
 
 export interface FlareTreeNode {

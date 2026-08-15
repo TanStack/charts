@@ -29,23 +29,7 @@ const responsiveDefinitions = [
   'bar-vertical-sorted/example.tsx',
 ]
 
-const indirectDefinitions = [
-  '130-shadcn-radar-multiple/example.tsx',
-  '172-shadcn-radar-default/example.tsx',
-  '173-shadcn-radar-dots/example.tsx',
-  '174-shadcn-radar-grid-circle-fill/example.tsx',
-  '175-shadcn-radar-grid-circle-no-lines/example.tsx',
-  '176-shadcn-radar-grid-circle/example.tsx',
-  '177-shadcn-radar-grid-custom/example.tsx',
-  '178-shadcn-radar-grid-fill/example.tsx',
-  '179-shadcn-radar-grid-none/example.tsx',
-  '180-shadcn-radar-icons/example.tsx',
-  '182-shadcn-radar-legend/example.tsx',
-  '183-shadcn-radar-lines-only/example.tsx',
-  '184-shadcn-radar-radius/example.tsx',
-  '185-shadcn-radial-grid/example.tsx',
-  '188-shadcn-radial-simple/example.tsx',
-]
+const indirectDefinitions = []
 
 describe('catalog definition shapes', () => {
   it('uses static definitions unless the chart reads build context', async () => {
@@ -84,10 +68,10 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(160)
+    expect(classification.static).toBe(175)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
     expect(classification.indirect.sort()).toEqual(indirectDefinitions)
-    expect(classification.staticFiles).toHaveLength(155)
+    expect(classification.staticFiles).toHaveLength(170)
     expect(
       new Set([
         ...classification.staticFiles,
@@ -159,8 +143,29 @@ function classifyDefinitions(relativePath, source, classification) {
       const definition = unwrapParentheses(node.arguments[0])
 
       if (ts.isObjectLiteralExpression(definition)) {
-        classification.static += 1
-        hasStaticDefinition = true
+        const chartProperty = definition.properties.find(
+          (property) =>
+            ts.isPropertyAssignment(property) &&
+            property.name.getText(sourceFile) === 'chart',
+        )
+        const chart =
+          chartProperty && ts.isPropertyAssignment(chartProperty)
+            ? unwrapParentheses(chartProperty.initializer)
+            : undefined
+        if (chart && ts.isArrowFunction(chart)) {
+          if (chart.parameters.length === 0) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(
+              chart.getStart(sourceFile),
+            )
+            classification.parameterless.push(`${relativePath}:${line + 1}`)
+          } else {
+            classification.responsive.push(relativePath)
+            hasResponsiveDefinition = true
+          }
+        } else {
+          classification.static += 1
+          hasStaticDefinition = true
+        }
       } else if (ts.isArrowFunction(definition)) {
         if (definition.parameters.length === 0) {
           const { line } = sourceFile.getLineAndCharacterOfPosition(

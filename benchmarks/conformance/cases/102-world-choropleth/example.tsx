@@ -9,11 +9,11 @@ import {
   previewWorldLand,
   worldLand,
   worldSphere,
-} from '@charts-poc/demo-data/country-atlas'
+} from '@tanstack/charts-data/country-atlas'
 import {
   learningPovertyCountries,
   previewLearningPovertyCountries,
-} from '@charts-poc/demo-data/learning-poverty-geography'
+} from '@tanstack/charts-data/learning-poverty-geography'
 
 const colorRanges = [
   ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'],
@@ -29,67 +29,63 @@ const previewProjection = {
   fit: 'sphere' as const,
 }
 
-export const definition = (input: ExampleOptions) =>
-  defineChart({
-    marks: [
-      geoShape([input.preview ? previewWorldLand : worldLand], {
-        projection: input.preview ? previewProjection : projection,
-        fill: '#e2e8f0',
-        stroke: '#ffffff',
-        strokeWidth: 0.5,
-      }),
-      geoShape(
-        input.preview
-          ? previewLearningPovertyCountries
-          : learningPovertyCountries,
-        {
+export const createExampleChart = (input: ChartOptions) =>
+  defineChart(
+    {
+      marks: [
+        geoShape([input.preview ? previewWorldLand : worldLand], {
           projection: input.preview ? previewProjection : projection,
-          color: (country) => country.properties['Learning Poverty'],
+          fill: '#e2e8f0',
           stroke: '#ffffff',
           strokeWidth: 0.5,
-        },
-      ),
-      geoShape([worldSphere], {
-        projection: input.preview ? previewProjection : projection,
-        fill: 'none',
-        stroke: 'currentColor',
-        strokeOpacity: 0.35,
-        strokeWidth: 0.75,
-      }),
-    ],
-    color: {
-      scale: scaleThreshold<number, string>,
-      domain: thresholds,
-      range: colorRanges[input.revision % 2] ?? colorRanges[0],
+        }),
+        geoShape(
+          input.preview
+            ? previewLearningPovertyCountries
+            : learningPovertyCountries,
+          {
+            projection: input.preview ? previewProjection : projection,
+            color: (country) => country.properties['Learning Poverty'],
+            stroke: '#ffffff',
+            strokeWidth: 0.5,
+          },
+        ),
+        geoShape([worldSphere], {
+          projection: input.preview ? previewProjection : projection,
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeOpacity: 0.35,
+          strokeWidth: 0.75,
+        }),
+      ],
+      color: {
+        scale: scaleThreshold<number, string>,
+        domain: thresholds,
+        range: colorRanges[input.revision % 2] ?? colorRanges[0],
+      },
+      margin: 10,
     },
-    margin: 10,
-  })
-export interface ExampleOptions {
-  width: number
-  height: number
+    {
+      keyboard: true,
+      tooltip: {
+        use: exampleTooltip,
+        ...{
+          format: ({ datum }) =>
+            'properties' in datum && 'Learning Poverty' in datum.properties
+              ? `${datum.properties['Country Name']} · ${datum.properties['Learning Poverty']}% learning poverty`
+              : 'World land',
+        },
+      },
+    },
+  )
+export interface ChartOptions {
   revision: number
   preview?: boolean
 }
 
 export const exampleAriaLabel = 'World learning-poverty choropleth'
 
-export const createExampleChart = (options: ExampleOptions) =>
-  defineChart(definition(options), {
-    keyboard: true,
-    tooltip: {
-      use: exampleTooltip,
-      ...{
-        format: ({ datum }) =>
-          'properties' in datum && 'Learning Poverty' in datum.properties
-            ? `${datum.properties['Country Name']} · ${datum.properties['Learning Poverty']}% learning poverty`
-            : 'World land',
-      },
-    },
-  })
-
 export const chart = createExampleChart({
-  width: 640,
-  height: 480,
   revision: 0,
   preview: false,
 })

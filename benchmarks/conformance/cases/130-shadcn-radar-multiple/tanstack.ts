@@ -9,7 +9,6 @@ const ConformanceExample = ({ input }: { input: ConformanceInput }) =>
 
 export * from './example'
 export const shadcnDefinition = definition
-export const radarMultipleDefinition = definition
 export const mount = shadcnChartMount(ConformanceExample)
 export const catalogCase = tanstackExampleMount(
   () => definition,

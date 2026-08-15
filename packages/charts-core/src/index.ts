@@ -249,6 +249,7 @@ export type {
   ChartRendererHostCommonOptions,
   ChartRendererHostOptions,
   ChartRendererRenderContext,
+  UniversalChartRenderer,
   ChartSurface,
   ChartSurfaceRenderOptions,
   ChartTooltipBodyTarget,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Chart } from '@tanstack/charts/react'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 
@@ -11,7 +11,7 @@ export interface PlaybackState {
   playing: boolean
 }
 import { defineChart, dot, lineY } from '@tanstack/charts'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { handleX } from '@tanstack/charts/interaction/handle'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { decorative } from '@tanstack/charts/mark/decorative'

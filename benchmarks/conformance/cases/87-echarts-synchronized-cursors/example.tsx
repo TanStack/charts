@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { Chart } from '@tanstack/charts/react'
 import { synchronizedCursorColors } from './colors'
 import {
@@ -9,7 +9,7 @@ import {
 import { selectSynchronizedCursorData } from './selection'
 import type { ChartScene } from '@tanstack/charts'
 import type { ChartInteractionController } from '@tanstack/charts'
-import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { TravelersRow } from '@tanstack/charts-data/travelers'
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { focusGuideX } from '@tanstack/charts/focus/guide'
 import { decorative } from '@tanstack/charts/mark/decorative'

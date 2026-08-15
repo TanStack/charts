@@ -1,4 +1,4 @@
-import { weather } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
 import { createElement } from 'react'
 import {
   Area,

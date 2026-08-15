@@ -1,7 +1,7 @@
 import * as Plot from '@observablehq/plot'
 import { group, rank } from 'd3-array'
-import { industries } from '@charts-poc/demo-data/industries'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
