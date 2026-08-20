@@ -199,7 +199,7 @@ registry or side-effectful feature installation.
 | [Chart.js](https://www.chartjs.org/) and [Apache ECharts](https://echarts.apache.org/en/index.html)                                                                                                           | Broad catalogs and Canvas-oriented rendering                              | Smaller in the current like-for-like consumer benchmark, SVG by default with opt-in Canvas, composable, and designed for product-specific charts             |
 | [uPlot](https://github.com/leeoniya/uPlot), [Chartist](https://chartist.dev/), [Frappe Charts](https://github.com/frappe/charts), and [Lightweight Charts](https://github.com/tradingview/lightweight-charts) | Deliberately small or specialized charting surfaces                       | Competitive in the small-bundle class with a broader grammar; TanStack should claim capability-scaled size, not absolute size leadership                     |
 | [AG Charts](https://www.ag-grid.com/charts/)                                                                                                                                                                  | Enterprise breadth, specialized charts, dense data, controls, and support | Open grammar, D3 interoperability, actual SVG SSR, heterogeneous layers, and no global registry                                                              |
-| [Vega and Vega-Lite](https://vega.github.io/)                                                                                                                                                                 | Portable declarative specifications and analysis tooling                  | Ordinary TypeScript and application integration instead of a JSON visualization runtime                                                                      |
+| [Vega and Vega-Lite](https://vega.github.io/)                                                                                                                                                                 | Portable declarative specifications and analysis tooling                  | Typed application authoring plus a small opt-in JSON dialect for common Cartesian and circular charts that translates into an ordinary definition            |
 
 ### Primary comparisons
 
@@ -450,8 +450,8 @@ describe the library as designed by AI or autonomously built.
 This is a transparent account of how the implementation was produced, not the
 main marketing wedge. Agent-ready, task-oriented documentation remains
 supporting proof. The useful product claim is that agents generate and maintain
-ordinary TypeScript through the same public API as humans. Avoid generic claims
-about being "AI-native."
+ordinary TypeScript or first-party Chart JSON through the same public contracts
+as humans. Avoid generic claims about being "AI-native."
 
 ## Objections
 
@@ -472,8 +472,8 @@ TanStack Charts is not currently the best choice for teams that:
   chart types immediately.
 - Need proven million-point streaming throughput, built-in downsampling, or a
   GPU rendering pipeline.
-- Want a no-code dashboard builder.
-- Need a portable JSON visualization specification.
+- Need a no-code dashboard, query, or refresh runtime beyond interpreting a
+  portable chart definition in a JavaScript host.
 - Want a library to choose every scale and chart decision.
 - Need commercial support, LTS, or contractual response times.
 - Have three permanently standard React charts and value the shortest possible

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/@tanstack/charts@0.14.0/schemas/chart.json",
+  "chartsVersion": "0.14.0",
+  "spec": {
+    "marks": [
+      {
+        "$call": "tanstack.mark.bar-y",
+        "data": { "$data": "rows" },
+        "x": "category",
+        "y": "value"
+      }
+    ],
+    "x": { "scale": { "$call": "tanstack.scale.band" } },
+    "y": {
+      "scale": { "$call": "tanstack.scale.linear" },
+      "nice": true,
+      "grid": true
+    }
+  },
+  "data": {
+    "rows": [
+      { "category": "Alpha", "value": 8 },
+      { "category": "Beta", "value": 13 },
+      { "category": "Gamma", "value": 5 }
+    ]
+  },
+  "metadata": {
+    "title": "Category totals",
+    "description": "Values for Alpha, Beta, and Gamma."
+  }
+}

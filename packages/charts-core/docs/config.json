@@ -1070,6 +1070,10 @@
           "to": "reference/chart-definitions"
         },
         {
+          "label": "Chart JSON",
+          "to": "reference/json-interchange"
+        },
+        {
           "label": "Chart Spec",
           "to": "reference/chart-spec"
         },

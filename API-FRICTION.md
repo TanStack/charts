@@ -329,6 +329,7 @@ Each entry records:
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 | F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
+| F-293 | Portable calls did not match live constructor semantics        | API/Docs/Tooling      | resolved   |
 
 ## Findings
 
@@ -3557,8 +3558,10 @@ Each entry records:
   deterministic SHA-256 allowlist, safe repository source paths, recursive
   imports, debug-only comparison roots, and role-aware authored-source
   closures. Focused tests reject unsafe paths, unreferenced assets, public
-  comparison modules, and inconsistent source totals, roles, or paths. The
-  loading gate checks every TanStack root's static closure for reference cases
+  comparison modules, and inconsistent source totals, roles, or paths.
+  Imported authored JSON participates in the same closure while `case.json`
+  metadata stays excluded. The loading gate checks every TanStack root's
+  static closure for reference cases
   or competitor packages and proves raw source remains lazy and unpublished.
   Main-branch CI uploads the validated artifact and publishes only
   `catalog.json` and `assets/*.js` to `catalog-dist`. The publication workflow
@@ -8429,3 +8432,75 @@ Each entry records:
 - Follow-up verification: the generator contract covers all four tokens in both
   palettes, and regenerated ShadCN donut, radial, radar, and authored-label
   previews render readable dark text and theme-matched separators.
+
+### F-293 — Portable calls did not match live constructor semantics
+
+- Status: resolved
+- Severity: high
+- Owner: API/Documentation/Tooling
+- Observed in: implementing the first-party JSON interchange format
+- Friction: the design note serialized public JavaScript calls directly. Its
+  scale examples invoked factories with unsupported option objects, turned an
+  inferable scale factory into a configured empty instance, placed tick
+  formatting on a removed property, and proposed a separate adapter `data`
+  prop after definition identity had become the application update boundary.
+  Callback-bearing marks, transforms, and host extensions also had no stable
+  language-neutral meaning.
+- Breadth friction: implementing every callback-free Charts operation produced
+  292 built-in capabilities, 18 JSON subpaths, 8,041 lines of production JSON
+  source, 2,715 test lines, and 1,106 lines of canonical documentation. The
+  result was a second complete Charts API rather than a bounded interchange
+  profile. Runtime JSON Schema interpretation, separate inspection,
+  validation, and compilation traversals, two demo systems, and overlapping
+  manuals amplified that breadth.
+- Intermediate friction: reducing the catalog to 42 standard operations and
+  two DOM operations still left 4,863 production lines, 1,348 test lines,
+  three entrypoints, two envelopes, four expression forms, a capability author
+  API, a contract algebra, policy and inspection surfaces, and 473 lines of
+  canonical documentation. The platform remained much larger than the common
+  charts it needed to transport.
+- Final decision: ship one fixed first-party dialect rather than an extension
+  platform. Its 16 operations cover eight Cartesian marks, including
+  full-plot rules and positioned text annotations, one compound pie/donut
+  mark, four inferable scales, ISO-date access, grouped intervals, and a
+  categorical color legend. Publish only `@tanstack/charts/json`.
+  Specialized transforms, callbacks, tooltips, interactions, configured
+  scales, and other chart families remain host code until a demonstrated
+  interchange requirement justifies extending the dialect.
+- Wire decision: use one closed envelope with `chartsVersion`, `spec`, optional
+  `data`, optional accessible `metadata`, and optional `$schema`. `$data`
+  references a named dataset only in a mark's `data` field. `$call` invokes one
+  fixed operation with named arguments as sibling properties. Remove `kind`,
+  `inputs`, `options`, `$ref`, `$context`, and the nested `args` object. Host
+  datasets replace bundled defaults by name.
+- Runtime decision: `chartFromJson(jsonText, { data, exactVersion })` parses,
+  validates, translates, and returns an ordinary static definition in one
+  call. It throws `ChartJsonError` with stable issues. Remove registries,
+  capability constructors, policies, inspection, catalogs, executable schema
+  contracts, compile/bind programs, host generics, and custom compatibility
+  callbacks. The runtime and published schema share the same internal fixed
+  operation descriptors; the schema itself is the complete model contract.
+- Version decision: release synchronization keeps the dialect in lockstep with
+  `@tanstack/charts`; `0.15.0` is the immutable first published dialect.
+- Schema verification deep-compares the runtime `chartJsonSchema` with the sole
+  published `schemas/chart.json`, locks all 16 operation branches,
+  keeps the chart spec closed, and executes the sole bundled example through
+  scene creation. Release and packed-package gates require both assets.
+- Runtime verification covers direct-scene parity, bundled arrays, host
+  iterable overrides, metadata, exact and backward SemVer behavior, every
+  retained operation, role placement, unknown calls and arguments, obsolete
+  grammar, missing data, hostile result shapes, and direct DOM/native-compatible
+  static typing. Root TypeScript and the focused JSON suite pass.
+- Demo verification uses one editable React workbench with bar, donut, and
+  annotation sources. Apply and Reset preserve the last valid preview after
+  structured errors; Replace data reruns the same source with a host override.
+  Component tests, the production build, and desktop and 390-pixel browser
+  checks cover exact bar, arc, vertical-rule, horizontal-rule, and text-label
+  geometry, accessible naming, live status, invalid edits, overflow, and
+  console errors.
+- Reduction verification: production JSON source is 1,612 lines across eight
+  files, down 67% from the pared platform and 80% from the 8,041-line breadth
+  spike. Tests are 1,029 lines across two files, down 24% from the pared
+  platform and 62% from the breadth spike.
+  The public surface is four runtime values, six types, one entrypoint, one
+  schema, one fixture, one 233-line canonical page, and one demo.

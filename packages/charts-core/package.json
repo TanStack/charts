@@ -19,7 +19,8 @@
     "skills",
     "LICENSE",
     "README.md",
-    "llms.txt"
+    "llms.txt",
+    "schemas"
   ],
   "dependencies": {
     "@types/d3-force": "^3.0.10",
@@ -149,6 +150,7 @@
     "./interaction/cursor": "./src/interaction-cursor.ts",
     "./interaction/handle": "./src/interaction-handle.ts",
     "./interaction/zoom": "./src/interaction-zoom.ts",
+    "./json": "./src/json/index.ts",
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
@@ -384,6 +386,10 @@
       "./interaction/zoom": {
         "types": "./dist/interaction-zoom.d.ts",
         "import": "./dist/interaction-zoom.js"
+      },
+      "./json": {
+        "types": "./dist/json/index.d.ts",
+        "import": "./dist/json/index.js"
       },
       "./legend": {
         "types": "./dist/legend.d.ts",

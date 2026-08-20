@@ -6,6 +6,7 @@ describe('catalog routes', () => {
     ['/', { view: 'index' }],
     ['/all/', { view: 'all' }],
     ['/collections/shadcn/', { view: 'collection', collectionId: 'shadcn' }],
+    ['/json/', { view: 'json' }],
     ['/charts/01-line/', { view: 'case', caseId: '01-line' }],
     ['/embed/01-line/', { view: 'embed', caseId: '01-line' }],
     ['/unknown/', { view: 'not-found' }],
@@ -35,6 +36,14 @@ describe('catalog routes', () => {
         '/catalog',
       ),
     ).toBe('/catalog/collections/shadcn%20charts/')
+  })
+
+  it('creates the Chart JSON workbench link below a deployment base', () => {
+    const basePath = '/charts/catalog/'
+    const href = catalogRouteHref({ view: 'json' }, basePath)
+
+    expect(href).toBe('/charts/catalog/json/')
+    expect(parseCatalogRoute(href, basePath)).toEqual({ view: 'json' })
   })
 
   it('preserves the production catalog base for direct embed routes', () => {

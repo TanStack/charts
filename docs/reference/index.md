@@ -14,6 +14,7 @@ and application-owned interaction.
 | Area                                                        | Reference                                                 |
 | ----------------------------------------------------------- | --------------------------------------------------------- |
 | Object and responsive definitions                           | [Chart Definition API](./chart-definitions.md)            |
+| Public JSON format, interpreter, operations, and versions   | [Chart JSON](./json-interchange.md)                       |
 | The `ChartSpec` object                                      | [Chart spec](./chart-spec.md)                             |
 | Positional scales, axes, color, legends, and gradients      | [Scales, guides, and color](./scales-guides-and-color.md) |
 | Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
@@ -94,6 +95,7 @@ aggregate `/scales` export.
 | Import                                  | Public values                                                                                                                                                                                                                   |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@tanstack/charts`                      | Common marks including `crosshair`, legends, D3 curve bridges, definitions, runtime, scene, DOM host, static SVG, and focus-presentation helpers                                                                                |
+| `@tanstack/charts/json`                 | `chartFromJson`, the fixed schema, version, structured error, and public types                                                                                                                                                  |
 | `@tanstack/charts/scales/band`          | `scaleBand`, `BandScale`                                                                                                                                                                                                        |
 | `@tanstack/charts/scales/linear`        | `scaleLinear`, `LinearScale`                                                                                                                                                                                                    |
 | `@tanstack/charts/scales/ordinal`       | `scaleOrdinal`, `OrdinalScale`                                                                                                                                                                                                  |

@@ -2,6 +2,7 @@ export type CatalogRoute =
   | { view: 'index' }
   | { view: 'all' }
   | { view: 'collection'; collectionId: string }
+  | { view: 'json' }
   | { view: 'case'; caseId: string }
   | { view: 'embed'; caseId: string }
   | { view: 'not-found' }
@@ -24,6 +25,7 @@ export function parseCatalogRoute(
 
   if (segments.length === 0) return { view: 'index' }
   if (segments.length === 1 && segments[0] === 'all') return { view: 'all' }
+  if (segments.length === 1 && segments[0] === 'json') return { view: 'json' }
 
   if (segments.length === 2 && segments[0] === 'collections' && segments[1]) {
     return { view: 'collection', collectionId: segments[1] }
@@ -51,6 +53,7 @@ export function catalogRouteHref(
   if (route.view === 'collection') {
     return `${base}collections/${encodeURIComponent(route.collectionId)}/`
   }
+  if (route.view === 'json') return `${base}json/`
   if (route.view === 'case') {
     return `${base}charts/${encodeURIComponent(route.caseId)}/`
   }

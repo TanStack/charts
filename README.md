@@ -202,6 +202,7 @@ pattern.
 | [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | Compact scale path and D3 upgrade boundary               |
 | [`docs/examples/index.md`](./docs/examples/index.md)                             | Curated chart-family and interaction examples            |
 | [`docs/guides/ai-authoring.md`](./docs/guides/ai-authoring.md)                   | Deterministic authoring and validation for coding agents |
+| [`docs/reference/json-interchange.md`](./docs/reference/json-interchange.md)     | Fixed Chart JSON schema, interpreter, and AI recipe      |
 | [`docs/reference/index.md`](./docs/reference/index.md)                           | Complete public API map                                  |
 | [`llms.txt`](./llms.txt)                                                         | Generated documentation routing index                    |
 
