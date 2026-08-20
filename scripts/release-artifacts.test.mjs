@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   normalizeRegistryPackageMetadata,
+  validatePackedChartJsonAssets,
   validatePackedEntryFiles,
 } from './release-artifacts.mjs'
 
@@ -75,6 +76,27 @@ describe('packed package entry fields', () => {
         },
         new Set(['package.json', 'dist/index.js', 'dist/index.d.ts']),
       ),
+    ).not.toThrow()
+  })
+})
+
+describe('packed Chart JSON assets', () => {
+  const assets = new Set(['schemas/chart.json', 'schemas/example.json'])
+
+  it('requires every official schema and fixture in @tanstack/charts', () => {
+    const incomplete = new Set(assets)
+    incomplete.delete('schemas/chart.json')
+    expect(() =>
+      validatePackedChartJsonAssets('@tanstack/charts', incomplete),
+    ).toThrow('@tanstack/charts omitted Chart JSON asset schemas/chart.json')
+  })
+
+  it('accepts the complete core asset set and ignores other packages', () => {
+    expect(() =>
+      validatePackedChartJsonAssets('@tanstack/charts', assets),
+    ).not.toThrow()
+    expect(() =>
+      validatePackedChartJsonAssets('@tanstack/react-charts', new Set()),
     ).not.toThrow()
   })
 })

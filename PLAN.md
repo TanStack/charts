@@ -36,7 +36,11 @@ concerns that Plot intentionally leaves to its host:
 - Optional export and motion
 - Predictable, task-oriented documentation for humans and AI
 
-The code is the protocol. AI should generate and maintain ordinary TypeScript and JSX or TSRX rather than a JSON chart language, a proprietary DSL, or an agent-specific runtime.
+Typed code remains the primary authoring protocol. The first-party Chart JSON
+interchange format transports a fixed common-chart subset for AI and system
+boundaries; it must translate to an ordinary definition and must not become an
+extension platform, second renderer, data-reactivity model, global registry,
+or agent runtime.
 
 ## Product charter
 
@@ -1477,8 +1481,8 @@ These must live behind explicit entry points or dynamic imports.
 
 ### Explicit non-goals
 
-- A proprietary chart specification language
-- A JSON visualization DSL
+- A second normalized chart-type grammar that diverges from chart definitions
+- Dashboard sources, queries, refresh policy, or layout inside Chart JSON
 - A casually divergent clone that inherits Plot’s API surface without its
   behavior or tests
 - Runtime data profiling or cleaning

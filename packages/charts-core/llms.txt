@@ -61,6 +61,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/examples/themes-and-motion.md — Themes and Motion: Apply inherited palettes and optional motion while keeping chart definitions separate from card layout and controls.
 - docs/reference/index.md — API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
 - docs/reference/chart-definitions.md — Chart Definition API: Reference static and responsive chart definitions, build context, and identity-based updates.
+- docs/reference/json-interchange.md — Chart JSON: Author, validate, and render the fixed TanStack Charts JSON interchange format.
 - docs/reference/chart-spec.md — Chart Spec: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
 - docs/reference/view-composition.md — View Composition: Compose complete chart definitions with deterministic grid, layer, fill, and inset layouts.
 - docs/reference/transforms.md — Data Transforms: Typed, eager transforms for reusable application data.

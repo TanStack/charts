@@ -158,3 +158,10 @@ host.update({
 
 Charts owns surface measurement, scene construction, and keyed reconciliation.
 It does not own application equality or data reactivity.
+
+## Definitions from Chart JSON
+
+`chartFromJson()` interprets callback-free JSON as the same `ChartDefinition`
+used everywhere else. Host data may replace bundled data while callbacks and
+interaction remain application code. See
+[Chart JSON](../reference/json-interchange.md).

@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -54,6 +56,11 @@ const families = [
 let comparisonCatalogPromise:
   | Promise<typeof import('../../../benchmarks/conformance/comparison-catalog')>
   | undefined
+const LazyChartJsonDemo = lazy(() =>
+  import('./json-demo').then(({ ChartJsonDemo }) => ({
+    default: ChartJsonDemo,
+  })),
+)
 
 function CatalogApp() {
   const [location, setLocation] = useState(readCatalogLocation)
@@ -96,7 +103,7 @@ function CatalogApp() {
   const routeHref = (nextRoute: Exclude<CatalogRoute, { view: 'not-found' }>) =>
     withCatalogComparisonMode(
       catalogRouteHref(nextRoute, basePath),
-      comparisonMode && nextRoute.view !== 'embed',
+      comparisonMode && nextRoute.view !== 'embed' && nextRoute.view !== 'json',
     )
   const link = (nextRoute: Exclude<CatalogRoute, { view: 'not-found' }>) => ({
     href: routeHref(nextRoute),
@@ -136,6 +143,10 @@ function CatalogApp() {
     )
   }
 
+  if (route.view === 'json') {
+    return <JsonWorkbenchPage dark={dark} link={link} setDark={setDark} />
+  }
+
   if (route.view === 'collection') {
     return route.collectionId === 'shadcn' ? (
       <ShadcnCollectionPage dark={dark} link={link} setDark={setDark} />
@@ -168,6 +179,38 @@ function CatalogApp() {
   }
 
   return <NotFound link={link} />
+}
+
+function JsonWorkbenchPage({
+  dark,
+  link,
+  setDark,
+}: {
+  dark: boolean
+  link: RouteLinkFactory
+  setDark: (value: boolean) => void
+}) {
+  useDocumentMeta(
+    'Chart JSON workbench · TanStack Charts',
+    'Edit, validate, and render the official TanStack Charts JSON interchange format.',
+  )
+
+  return (
+    <>
+      <SiteHeader active="json" link={link} />
+      <main className="json-demo-page">
+        <header className="json-demo-heading">
+          <h1>Chart JSON workbench</h1>
+          <button type="button" onClick={() => setDark(!dark)}>
+            {dark ? 'Light mode' : 'Dark mode'}
+          </button>
+        </header>
+        <Suspense fallback={<p>Loading workbench…</p>}>
+          <LazyChartJsonDemo />
+        </Suspense>
+      </main>
+    </>
+  )
 }
 
 function ShadcnCollectionPage({
@@ -1074,7 +1117,7 @@ function SiteHeader({
   active,
   link,
 }: {
-  active?: 'catalog' | 'all' | 'shadcn'
+  active?: 'catalog' | 'all' | 'json' | 'shadcn'
   link: RouteLinkFactory
 }) {
   return (
@@ -1113,6 +1156,12 @@ function SiteHeader({
           {...link({ view: 'collection', collectionId: 'shadcn' })}
         >
           shadcn
+        </CatalogLink>
+        <CatalogLink
+          aria-current={active === 'json' ? 'page' : undefined}
+          {...link({ view: 'json' })}
+        >
+          Chart JSON
         </CatalogLink>
       </nav>
     </header>

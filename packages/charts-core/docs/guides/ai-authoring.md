@@ -7,6 +7,13 @@ TanStack Charts uses a small grammar so an agent can reason from data and
 intent instead of selecting a monolithic chart component. The safest authoring
 path is explicit and repeatable.
 
+## Choose code or Chart JSON
+
+Ask for TypeScript when the result must include application callbacks,
+framework composition, or custom renderer code. Ask for Chart JSON when the
+application should validate and interpret a model's output. Give the model the
+fixed schema; see [Chart JSON](../reference/json-interchange.md).
+
 ## The authoring sequence
 
 1. State the analytical question in one sentence.
@@ -37,7 +44,9 @@ Use one documentation owner for each decision:
 - large-data representation:
   [Large Data](./large-data.md);
 - exact signatures and options:
-  [API Reference](../reference/index.md).
+  [API Reference](../reference/index.md);
+- fixed Chart JSON schema and interpreter:
+  [Chart JSON](../reference/json-interchange.md).
 
 Do not reconstruct an API from an example when the reference owns the
 signature. Do not restate D3 behavior when the D3 bridge links to its

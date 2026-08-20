@@ -10,6 +10,10 @@ export const releaseVersionSources = [
   { path: 'docs/overview.md', references: 1 },
   { path: 'docs/installation.md', references: 2, tagReferences: 1 },
   { path: 'docs/comparison.md', references: 5, tagReferences: 4 },
+  { path: 'docs/reference/json-interchange.md', references: 2 },
+  { path: 'packages/charts-core/src/json/version.ts', references: 1 },
+  { path: 'packages/charts-core/schemas/chart.json', references: 3 },
+  { path: 'packages/charts-core/schemas/example.json', references: 2 },
 ]
 
 export function changelogVersions(source) {

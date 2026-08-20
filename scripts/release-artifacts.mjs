@@ -20,6 +20,7 @@ const packedEntryFields = [
   'svelte',
   'style',
 ]
+const chartJsonPackageAssets = ['schemas/chart.json', 'schemas/example.json']
 
 export async function createReleaseArtifactManifest(repositoryRoot) {
   const packages = await readReleasePackages(repositoryRoot)
@@ -204,6 +205,7 @@ function validatePackedManifest(packageInfo, packedManifest, packedFiles) {
     `${manifest.name} packed without provenance`,
   )
   validatePackedEntryFiles(manifest.name, packedManifest, packedFiles)
+  validatePackedChartJsonAssets(manifest.name, packedFiles)
 
   for (const range of Object.values(packedManifest.dependencies ?? {})) {
     assert.equal(
@@ -221,6 +223,16 @@ function validatePackedManifest(packageInfo, packedManifest, packedFiles) {
       packedManifest.dependencies?.['@tanstack/charts'],
       manifest.version,
       `${manifest.name} must pin @tanstack/charts@${manifest.version}`,
+    )
+  }
+}
+
+export function validatePackedChartJsonAssets(packageName, packedFiles) {
+  if (packageName !== '@tanstack/charts') return
+  for (const path of chartJsonPackageAssets) {
+    assert.ok(
+      packedFiles.has(path),
+      `${packageName} omitted Chart JSON asset ${path}`,
     )
   }
 }

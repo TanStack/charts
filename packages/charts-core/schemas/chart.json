@@ -1,0 +1,984 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unpkg.com/@tanstack/charts@0.14.0/schemas/chart.json",
+  "title": "TanStack Charts JSON",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "const": "https://unpkg.com/@tanstack/charts@0.14.0/schemas/chart.json"
+    },
+    "chartsVersion": {
+      "const": "0.14.0"
+    },
+    "spec": {
+      "oneOf": [
+        {
+          "title": "Cartesian chart",
+          "type": "object",
+          "properties": {
+            "marks": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/result:mark:cartesian"
+              }
+            },
+            "x": {
+              "type": "object",
+              "properties": {
+                "scale": {
+                  "$ref": "#/$defs/result:scale"
+                },
+                "nice": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "reverse": {
+                  "type": "boolean"
+                },
+                "grid": {
+                  "type": "boolean"
+                },
+                "axis": {
+                  "const": false
+                }
+              },
+              "required": ["scale"],
+              "additionalProperties": false
+            },
+            "y": {
+              "type": "object",
+              "properties": {
+                "scale": {
+                  "$ref": "#/$defs/result:scale"
+                },
+                "nice": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "reverse": {
+                  "type": "boolean"
+                },
+                "grid": {
+                  "type": "boolean"
+                },
+                "axis": {
+                  "const": false
+                }
+              },
+              "required": ["scale"],
+              "additionalProperties": false
+            },
+            "guides": {
+              "type": "boolean"
+            },
+            "color": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "range": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "legend": {
+                  "$ref": "#/$defs/result:legend"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "clip": {
+              "type": "boolean"
+            },
+            "margin": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "top": {
+                      "type": "number"
+                    },
+                    "right": {
+                      "type": "number"
+                    },
+                    "bottom": {
+                      "type": "number"
+                    },
+                    "left": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": ["marks", "x", "y"],
+          "additionalProperties": false
+        },
+        {
+          "title": "Circular chart",
+          "type": "object",
+          "properties": {
+            "marks": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "$ref": "#/$defs/result:mark:circular"
+              }
+            },
+            "color": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "range": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "legend": {
+                  "$ref": "#/$defs/result:legend"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "clip": {
+              "type": "boolean"
+            },
+            "margin": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "top": {
+                      "type": "number"
+                    },
+                    "right": {
+                      "type": "number"
+                    },
+                    "bottom": {
+                      "type": "number"
+                    },
+                    "left": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": ["marks"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "data": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "not": {
+          "pattern": "^\\$"
+        }
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/json"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": ["chartsVersion", "spec"],
+  "additionalProperties": false,
+  "$defs": {
+    "json": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/json"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/json"
+          }
+        }
+      ]
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "$data": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["$data"],
+      "additionalProperties": false
+    },
+    "argument:nonempty-string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "argument:path": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^.]+(?:\\.[^.]+)*$"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "argument:string": {
+      "type": "string"
+    },
+    "argument:nonnegative-number": {
+      "type": "number",
+      "minimum": 0
+    },
+    "argument:placement": {
+      "enum": ["top", "bottom"]
+    },
+    "argument:scale-band": {
+      "$ref": "#/$defs/operation:tanstack.scale.band"
+    },
+    "argument:data": {
+      "$ref": "#/$defs/data"
+    },
+    "argument:channel": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/result:accessor"
+        }
+      ]
+    },
+    "argument:numeric-channel": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/result:accessor"
+        }
+      ]
+    },
+    "argument:opacity": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "argument:layout": {
+      "$ref": "#/$defs/result:layout"
+    },
+    "argument:finite-number": {
+      "type": "number"
+    },
+    "argument:boolean": {
+      "type": "boolean"
+    },
+    "argument:text-anchor": {
+      "enum": ["start", "middle", "end"]
+    },
+    "argument:ratio": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "operation:tanstack.accessor.iso-date": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.accessor.iso-date"
+        },
+        "field": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "path": {
+          "$ref": "#/$defs/argument:path"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Parses an ISO date from a field, path, or value.",
+      "allOf": [
+        {
+          "not": {
+            "required": ["field", "path"]
+          }
+        }
+      ]
+    },
+    "operation:tanstack.legend.color": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.legend.color"
+        },
+        "label": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "itemWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "width": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "placement": {
+          "$ref": "#/$defs/argument:placement"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates a categorical color legend."
+    },
+    "operation:tanstack.layout.group": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.layout.group"
+        },
+        "scale": {
+          "$ref": "#/$defs/argument:scale-band"
+        },
+        "padding": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates a grouped interval layout."
+    },
+    "operation:tanstack.mark.area-y": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.area-y"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y1": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "y2": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "fill": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "fillOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates an area-y mark."
+    },
+    "operation:tanstack.mark.bar-x": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.bar-x"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "x1": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "x2": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "fill": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "fillOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "layout": {
+          "$ref": "#/$defs/argument:layout"
+        },
+        "inset": {
+          "$ref": "#/$defs/argument:finite-number"
+        },
+        "maxThickness": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "radius": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a bar-x mark."
+    },
+    "operation:tanstack.mark.bar-y": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.bar-y"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y1": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "y2": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "fill": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "fillOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "layout": {
+          "$ref": "#/$defs/argument:layout"
+        },
+        "inset": {
+          "$ref": "#/$defs/argument:finite-number"
+        },
+        "maxThickness": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "radius": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a bar-y mark."
+    },
+    "operation:tanstack.mark.dot": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.dot"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "r": {
+          "$ref": "#/$defs/argument:numeric-channel"
+        },
+        "fill": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "fillOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "strokeOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a dot mark."
+    },
+    "operation:tanstack.mark.line-y": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.line-y"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "strokeDasharray": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "points": {
+          "$ref": "#/$defs/argument:boolean"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a line-y mark."
+    },
+    "operation:tanstack.mark.rule-x": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.rule-x"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "strokeDasharray": {
+          "$ref": "#/$defs/argument:string"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a vertical reference rule spanning the plot."
+    },
+    "operation:tanstack.mark.rule-y": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.rule-y"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "stroke": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "strokeOpacity": {
+          "$ref": "#/$defs/argument:opacity"
+        },
+        "strokeWidth": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "strokeDasharray": {
+          "$ref": "#/$defs/argument:string"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates a horizontal reference rule spanning the plot."
+    },
+    "operation:tanstack.mark.text": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.text"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "x": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "y": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "z": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "color": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "key": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "text": {
+          "$ref": "#/$defs/argument:channel"
+        },
+        "fill": {
+          "$ref": "#/$defs/argument:string"
+        },
+        "fontSize": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "fontWeight": {
+          "$ref": "#/$defs/argument:nonnegative-number"
+        },
+        "anchor": {
+          "$ref": "#/$defs/argument:text-anchor"
+        },
+        "rotate": {
+          "$ref": "#/$defs/argument:finite-number"
+        },
+        "dx": {
+          "$ref": "#/$defs/argument:finite-number"
+        },
+        "dy": {
+          "$ref": "#/$defs/argument:finite-number"
+        }
+      },
+      "required": ["$call", "data"],
+      "additionalProperties": false,
+      "description": "Creates positioned text labels; x, y, and text name row fields, while presentation arguments are fixed values."
+    },
+    "operation:tanstack.mark.pie": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.mark.pie"
+        },
+        "data": {
+          "$ref": "#/$defs/argument:data"
+        },
+        "value": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "category": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "id": {
+          "$ref": "#/$defs/argument:nonempty-string"
+        },
+        "innerRadiusRatio": {
+          "$ref": "#/$defs/argument:ratio"
+        }
+      },
+      "required": ["$call", "data", "value", "category"],
+      "additionalProperties": false,
+      "description": "Creates one pie or donut from pre-aggregated rows; value names a nonnegative numeric field, category names a string or finite-number color field, and innerRadiusRatio defaults to 0 and must be in [0, 1)."
+    },
+    "operation:tanstack.scale.band": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.scale.band"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates an inferable band scale."
+    },
+    "operation:tanstack.scale.linear": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.scale.linear"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates an inferable linear scale."
+    },
+    "operation:tanstack.scale.point": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.scale.point"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates an inferable point scale."
+    },
+    "operation:tanstack.scale.utc": {
+      "type": "object",
+      "properties": {
+        "$call": {
+          "const": "tanstack.scale.utc"
+        }
+      },
+      "required": ["$call"],
+      "additionalProperties": false,
+      "description": "Creates an inferable UTC scale."
+    },
+    "result:accessor": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.accessor.iso-date"
+        }
+      ]
+    },
+    "result:layout": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.layout.group"
+        }
+      ]
+    },
+    "result:legend": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.legend.color"
+        }
+      ]
+    },
+    "result:scale": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.scale.band"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.scale.linear"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.scale.point"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.scale.utc"
+        }
+      ]
+    },
+    "result:mark:cartesian": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.area-y"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.bar-x"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.bar-y"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.dot"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.line-y"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.rule-x"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.rule-y"
+        },
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.text"
+        }
+      ]
+    },
+    "result:mark:circular": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/operation:tanstack.mark.pie"
+        }
+      ]
+    }
+  }
+}

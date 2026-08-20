@@ -108,6 +108,37 @@ describe('public package exports', () => {
     expect(Object.keys(definitionModule)).toEqual(['stagger'])
   })
 
+  it('keeps Chart JSON on one opt-in subpath', async () => {
+    const jsonSubpaths = ['./json']
+    expect(
+      Object.keys(packageJson.exports).filter((subpath) =>
+        subpath.startsWith('./json'),
+      ),
+    ).toEqual(jsonSubpaths)
+    expect(
+      Object.keys(packageJson.publishConfig.exports).filter((subpath) =>
+        subpath.startsWith('./json'),
+      ),
+    ).toEqual(jsonSubpaths)
+
+    const [root, universal, json] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/json'),
+    ])
+
+    for (const name of ['chartFromJson', 'chartJsonSchema']) {
+      expect(root).not.toHaveProperty(name)
+      expect(universal).not.toHaveProperty(name)
+    }
+    expect(Object.keys(json).sort()).toEqual([
+      'ChartJsonError',
+      'chartFromJson',
+      'chartJsonSchema',
+      'chartJsonVersion',
+    ])
+  })
+
   it('keeps focus guide marks on their exact subpath', async () => {
     const [root, universal, guide] = await Promise.all([
       import('@tanstack/charts'),

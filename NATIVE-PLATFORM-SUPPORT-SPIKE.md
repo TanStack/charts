@@ -157,9 +157,9 @@ Do not freeze the current `ChartScene` as a cross-language wire format.
    Compose, SwiftUI, and Flutter can consume this, but live callbacks stay in
    their host language.
 
-The proposed [`PORTABLE-CHART-SPEC.md`](./PORTABLE-CHART-SPEC.md) registry
-model is the right definition-level companion. `$call` and `$data` can describe
-a supported portable subset. It should never claim to serialize arbitrary
+The first-party [Chart JSON interchange](./docs/reference/json-interchange.md)
+is the definition-level companion. Its fixed operations cover a small portable
+subset of Cartesian and circular charts. It does not serialize arbitrary
 JavaScript accessors, custom tooltip components, or renderer plugins.
 
 ### Core refactor

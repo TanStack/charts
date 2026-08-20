@@ -20,6 +20,7 @@ import { build, transform } from 'esbuild'
 import ts from 'typescript'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 import { verifyPackedReactNativeConsumers } from './packed-react-native-consumers.mjs'
+import { validatePackedChartJsonAssets } from './release-artifacts.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
 import {
   isUnifiedCoreExport,
@@ -94,7 +95,14 @@ try {
   )
 
   await Promise.all(packages.map(loadPackageManifest))
-  await runWithConcurrency(packages, packageBuildConcurrency, buildPackage)
+  const scalePackage = packages.find(({ kind }) => kind === 'scale')
+  assert.ok(scalePackage)
+  await buildPackage(scalePackage)
+  await runWithConcurrency(
+    packages.filter((packageInfo) => packageInfo !== scalePackage),
+    packageBuildConcurrency,
+    buildPackage,
+  )
   await overlayBuiltUnifiedCoreTrees()
 
   const tarballs = new Map()
@@ -167,7 +175,10 @@ async function buildPackage(packageInfo) {
   await copyPackageFiles(packageInfo)
   await buildRuntime(packageInfo)
   await buildDeclarations(packageInfo)
-  await rewriteGeneratedSpecifiers(resolve(packageInfo.stageDirectory, 'dist'))
+  await rewriteGeneratedSpecifiers(
+    resolve(packageInfo.stageDirectory, 'dist'),
+    packageInfo,
+  )
   await materializeUnifiedCoreWrapperTargets(packageInfo)
   await validatePublishedTargets(packageInfo)
 }
@@ -394,7 +405,8 @@ async function buildDeclarations(packageInfo) {
     target: ts.ScriptTarget.ES2022,
     verbatimModuleSyntax: true,
   }
-  const program = ts.createProgram(rootNames, options)
+  const host = declarationCompilerHost(packageInfo, options)
+  const program = ts.createProgram(rootNames, options, host)
   const diagnostics = ts.getPreEmitDiagnostics(program)
   if (diagnostics.length) {
     throw new Error(
@@ -416,6 +428,75 @@ async function buildDeclarations(packageInfo) {
       )
     }
   }
+}
+
+function declarationCompilerHost(packageInfo, options) {
+  const host = ts.createCompilerHost(options)
+  if (packageInfo.kind !== 'core') return host
+
+  const redirects = unifiedCoreDeclarationRedirects(packageInfo)
+  const resolveModule = (moduleName, containingFile, redirectedReference) => {
+    const resolution = ts.resolveModuleName(
+      moduleName,
+      containingFile,
+      options,
+      host,
+      undefined,
+      redirectedReference,
+    ).resolvedModule
+    if (!resolution) return undefined
+    const replacement = redirects.get(resolve(resolution.resolvedFileName))
+    if (!replacement) return resolution
+    return {
+      ...resolution,
+      resolvedFileName: replacement,
+      extension: ts.Extension.Dts,
+      isExternalLibraryImport: true,
+    }
+  }
+
+  host.resolveModuleNameLiterals = (
+    moduleLiterals,
+    containingFile,
+    redirectedReference,
+  ) =>
+    moduleLiterals.map((moduleLiteral) => ({
+      resolvedModule: resolveModule(
+        moduleLiteral.text,
+        containingFile,
+        redirectedReference,
+      ),
+    }))
+  return host
+}
+
+function unifiedCoreDeclarationRedirects(packageInfo) {
+  const redirects = new Map()
+  for (const source of unifiedPackageSources) {
+    const sourcePackage = packages.find(
+      ({ name }) => name === source.packageName,
+    )
+    if (!sourcePackage || sourcePackage.kind !== 'scale') continue
+    for (const [key, sourceTarget] of Object.entries(
+      sourcePackage.manifest.exports,
+    )) {
+      const coreKey =
+        key === '.'
+          ? `./${source.namespace}`
+          : `./${source.namespace}${key.slice(1)}`
+      assert.ok(
+        packageInfo.manifest.exports[coreKey],
+        `Missing unified core source export ${coreKey}`,
+      )
+      const declarationTarget =
+        sourcePackage.manifest.publishConfig.exports[key].types
+      redirects.set(
+        resolve(sourcePackage.sourceDirectory, sourceTarget),
+        resolve(sourcePackage.stageDirectory, declarationTarget),
+      )
+    }
+  }
+  return redirects
 }
 
 function unifiedCoreSourceEntries(packageInfo) {
@@ -441,17 +522,58 @@ async function materializeUnifiedCoreWrapperTargets(packageInfo) {
   }
 }
 
-async function rewriteGeneratedSpecifiers(directory) {
+async function rewriteGeneratedSpecifiers(directory, packageInfo) {
+  const aliases = unifiedCoreGeneratedAliases(packageInfo)
   for (const file of await walk(directory)) {
     if (!file.endsWith('.js') && !file.endsWith('.d.ts')) continue
     const source = await readFile(file, 'utf8')
     const rewritten = source.replace(
       /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(['"])(\.\.?\/[^'"]+)\2/g,
       (match, prefix, quote, specifier) =>
-        `${prefix}${quote}${toJavaScriptSpecifier(specifier)}${quote}`,
+        `${prefix}${quote}${toJavaScriptSpecifier(
+          generatedSpecifierTarget(file, specifier, aliases),
+        )}${quote}`,
     )
     if (rewritten !== source) await writeFile(file, rewritten)
   }
+}
+
+function unifiedCoreGeneratedAliases(packageInfo) {
+  const aliases = new Map()
+  if (packageInfo.kind !== 'core') return aliases
+  const outputRoot = resolve(packageInfo.stageDirectory, 'dist')
+  for (const [key, sourceTarget] of Object.entries(
+    packageInfo.manifest.exports,
+  )) {
+    if (!isUnifiedCoreExport(key)) continue
+    const conditions = packageInfo.manifest.publishConfig.exports[key]
+    const runtimeTarget = conditions.import ?? conditions.default
+    assert.equal(typeof runtimeTarget, 'string')
+    aliases.set(
+      resolve(
+        outputRoot,
+        sourceTarget
+          .replace(/^\.\/src\//, '')
+          .replace(/\.(?:ts|tsx|tsrx)$/, ''),
+      ),
+      resolve(
+        packageInfo.stageDirectory,
+        runtimeTarget.replace(/\.(?:[cm]?js)$/, ''),
+      ),
+    )
+  }
+  return aliases
+}
+
+function generatedSpecifierTarget(file, specifier, aliases) {
+  const sourceTarget = resolve(
+    dirname(file),
+    specifier.replace(/\.(?:ts|tsx|tsrx|[cm]?js)$/, ''),
+  )
+  const alias = aliases.get(sourceTarget)
+  if (!alias) return specifier
+  const target = relative(dirname(file), alias).split(sep).join('/')
+  return target.startsWith('.') ? target : `./${target}`
 }
 
 function toJavaScriptSpecifier(specifier) {
@@ -505,6 +627,7 @@ async function packPackage(packageInfo) {
       )
     }
   }
+  validatePackedChartJsonAssets(packageInfo.name, files)
   await verifyPackedMarkdownLinks(packageInfo, files)
   return tarball
 }
@@ -716,6 +839,11 @@ async function verifyEsmRuntime() {
     import { scaleOrdinal as compactScaleOrdinal } from '@tanstack/charts-scales/ordinal'
     import { scalePoint as compactScalePoint } from '@tanstack/charts-scales/point'
     import {
+      chartFromJson,
+      chartJsonSchema,
+      chartJsonVersion,
+    } from '@tanstack/charts/json'
+    import {
       areaY,
       barX,
       barY,
@@ -783,6 +911,56 @@ async function verifyEsmRuntime() {
     assert.equal(compactScaleBand(['a', 'b'], [0, 10]).domain().length, 2)
     assert.equal(compactScalePoint(['a', 'b'], [0, 10]).bandwidth(), 0)
     assert.equal(compactScaleOrdinal(['a'], ['red'])('a'), 'red')
+    const packedJsonDefinition = chartFromJson(JSON.stringify({
+      chartsVersion: chartJsonVersion,
+      spec: {
+        marks: [{
+          $call: 'tanstack.mark.bar-y',
+          data: { $data: 'rows' },
+          x: 'category',
+          y: 'value',
+        }],
+        x: { scale: { $call: 'tanstack.scale.band' } },
+        y: { scale: { $call: 'tanstack.scale.linear' } },
+      },
+      data: { rows: [{ category: 'A', value: 1 }] },
+    }))
+    assert.equal(packedJsonDefinition.marks.length, 1)
+    const packedPieDefinition = chartFromJson(JSON.stringify({
+      chartsVersion: chartJsonVersion,
+      spec: {
+        marks: [{
+          $call: 'tanstack.mark.pie',
+          data: { $data: 'rows' },
+          value: 'value',
+          category: 'category',
+          innerRadiusRatio: 0.5,
+        }],
+      },
+      data: {
+        rows: [
+          { category: 'A', value: 2 },
+          { category: 'B', value: 1 },
+        ],
+      },
+    }))
+    const packedPieNodes = [...createChartScene(packedPieDefinition, {
+      width: 200,
+      height: 200,
+    }).nodes]
+    let packedPieAreaCount = 0
+    while (packedPieNodes.length) {
+      const node = packedPieNodes.pop()
+      if (node.kind === 'area') packedPieAreaCount += 1
+      if (node.kind === 'group') packedPieNodes.push(...node.children)
+    }
+    assert.equal(packedPieAreaCount, 2)
+    assert.equal(
+      chartJsonSchema.$id,
+      'https://unpkg.com/@tanstack/charts@' +
+        chartJsonVersion +
+        '/schemas/chart.json',
+    )
     assert.equal(tooltip.id, 'tooltip')
     assert.equal(portal.id, 'portal')
     assert.equal(motion().id, 'svg:svg-motion')
@@ -1553,6 +1731,12 @@ async function verifyDeclarations() {
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
     import {
+      chartFromJson,
+      chartJsonVersion,
+      type ChartJson,
+      type ChartJsonDefinition,
+    } from '@tanstack/charts/json'
+    import {
       focusGuideX,
       focusGuideY,
       type FocusGuideLabelFormatContext,
@@ -1815,6 +1999,24 @@ async function verifyDeclarations() {
       category: string
       value: number
     }
+    const packedJson: ChartJson = {
+      chartsVersion: chartJsonVersion,
+      spec: {
+        marks: [{
+          $call: 'tanstack.mark.bar-y',
+          data: { $data: 'rows' },
+          x: 'category',
+          y: 'value',
+        }],
+        x: { scale: { $call: 'tanstack.scale.band' } },
+        y: { scale: { $call: 'tanstack.scale.linear' } },
+      },
+      data: { rows: [{ category: 'A', value: 1 }] },
+    }
+    const packedJsonDefinition: ChartJsonDefinition = chartFromJson(
+      JSON.stringify(packedJson),
+    )
+    void packedJsonDefinition
     const motionOptions: ChartMotionOptions = {
       transition: {
         type: 'spring',
