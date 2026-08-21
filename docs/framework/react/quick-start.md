@@ -153,8 +153,8 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
 }
 ```
 
-The dependency list owns application invalidation. The definition identity
-tells the chart host when captured values changed. See
+TanStack Charts owns rebuilding the chart when its definition changes. The
+application owns when that definition changes through the dependency list. See
 [Chart Definition API](../../reference/chart-definitions.md).
 
 ## Interaction callbacks
