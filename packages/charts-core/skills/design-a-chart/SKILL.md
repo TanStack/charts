@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.15.0'
+  library_version: '0.16.0'
 sources:
   - 'TanStack/charts:docs/guides/choosing-a-chart.md'
   - 'TanStack/charts:docs/examples/*.md'
