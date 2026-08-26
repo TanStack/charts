@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.15.0'
+  library_version: '0.16.0'
 sources:
   - 'TanStack/charts:docs/guides/dynamic-data-and-animation.md'
   - 'TanStack/charts:docs/reference/motion.md'

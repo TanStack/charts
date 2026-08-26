@@ -5,7 +5,7 @@ Last updated: 2026-08-26
 ## Status
 
 TanStack Charts is in official Alpha on `main`. The latest public release is
-`0.15.0`. Repository docs, examples, and the catalog may include contracts not
+`0.16.0`. Repository docs, examples, and the catalog may include contracts not
 available in that release, so documentation at the verified release source
 revision remains the release record. Alpha is not a production-readiness claim,
 and marketing must keep the compatibility limits in
@@ -590,7 +590,7 @@ production case study.
 
 ### Official Alpha
 
-- Conversion: Install `0.15.0`, read its release-source docs, explore the
+- Conversion: Install `0.16.0`, read its release-source docs, explore the
   catalog, and report friction.
 - Publish architecture, benchmarks, and working examples with limitations.
 - Recruit a small number of chart-heavy TanStack users.
@@ -628,7 +628,7 @@ tracked in [`PLAN.md`](./PLAN.md):
 foundation for data-rich TanStack applications and a credible choice for
 frontend teams whose visualizations need to grow beyond standard chart types.
 
-**Primary conversion today:** Install `0.15.0` and complete the first chart.
+**Primary conversion today:** Install `0.16.0` and complete the first chart.
 
 **Primary conversion after stable release:** Install the package and complete
 the first chart.

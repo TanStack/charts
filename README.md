@@ -40,8 +40,8 @@ server-rendered application charts.
 
 > [!IMPORTANT]
 > This README follows unreleased `main`, the official Alpha line. The latest
-> published release is TanStack Charts `0.15.0`; use its
-> [release-source documentation](https://github.com/TanStack/charts/tree/v0.15.0/docs).
+> published release is TanStack Charts `0.16.0`; use its
+> [release-source documentation](https://github.com/TanStack/charts/tree/v0.16.0/docs).
 > Alpha releases use regular `0.x` versions and may contain breaking changes
 > between minor releases. Pin an exact version for production use and read the
 > [Alpha stability policy](./docs/stability.md) before upgrading.

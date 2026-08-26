@@ -4,7 +4,7 @@ description: Learn what TanStack Charts provides, how its grammar works, and whe
 ---
 
 These docs follow unreleased `main`, the official Alpha line. The latest
-published TanStack Charts release is `0.15.0`. Alpha uses regular `0.x`
+published TanStack Charts release is `0.16.0`. Alpha uses regular `0.x`
 versions, and APIs may change between minor releases. See
 [Alpha stability](./stability.md) for the release contract.
 
