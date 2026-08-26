@@ -16,6 +16,7 @@ import {
 import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import {
   createAgreementChart,
+  createAaplPriceVolumeChart,
   createCarEconomyChart,
   createIndustryChart,
   createPenguinChart,
@@ -44,6 +45,13 @@ export function App() {
         {
           keyboard: false,
           svgAnimation: { duration: 800, easing: 'ease-out' },
+        },
+      ),
+      aaplPriceVolume: defineChart(
+        createAaplPriceVolumeChart({ rows: data.aapl }),
+        {
+          keyboard: false,
+          svgAnimation: { duration: 720, easing: 'ease-out' },
         },
       ),
       industries: defineChart(
@@ -467,6 +475,33 @@ export function App() {
                     <strong>{row.count}</strong>
                   </div>
                 ))}
+              </div>
+            </article>
+
+            <article className="card multi-axis-card">
+              <CardHeader
+                eyebrow="AAPL price and volume"
+                value="Independent axes"
+              >
+                <div className="legend">
+                  <span>
+                    <i style={{ background: '#ff625a' }} />
+                    Close
+                  </span>
+                  <span>
+                    <i style={{ background: '#8579ff' }} />
+                    Volume
+                  </span>
+                </div>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={definitions.aaplPriceVolume}
+                  height={280}
+                  initialWidth={1120}
+                  ariaLabel="Apple closing price and trading volume"
+                  ariaDescription="Closing price uses the left dollar axis. Trading volume uses the independent right axis."
+                />
               </div>
             </article>
           </section>

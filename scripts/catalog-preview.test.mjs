@@ -175,6 +175,7 @@ describe('catalog previews', () => {
       '120-themed-interactive-area',
       '121-active-bar-dashboard',
       '130-shadcn-radar-multiple',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       'bar-horizontal-ranking',
     ])
@@ -186,6 +187,7 @@ describe('catalog previews', () => {
       '118-token-usage-calendar',
       '128-shadcn-bar-multiple',
       '132-shadcn-tooltip-advanced',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',
@@ -201,6 +203,7 @@ describe('catalog previews', () => {
       '36-hierarchy-tree',
       '58-select-extrema',
       '59-grouped-reducer-bars',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',

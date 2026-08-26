@@ -545,7 +545,7 @@
           "to": "/charts/catalog/charts/65-voronoi-nearest-tooltip/"
         },
         {
-          "label": "Layered Seattle weather chart",
+          "label": "Seattle weather with three y axes",
           "to": "/charts/catalog/charts/70-composed-chart/"
         },
         {
