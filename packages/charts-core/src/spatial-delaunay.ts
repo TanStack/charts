@@ -27,6 +27,8 @@ import type {
   ChartKey,
   ChartMark,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
 } from './types'
 
 export interface DelaunayLinkDatum<
@@ -60,16 +62,20 @@ export type DelaunayLinkOptions<TDatum> = {
   'x1' | 'y1' | 'x2' | 'y2' | 'z' | 'key'
 >
 
-type DelaunayXOutput<TDatum, TOptions> = ChannelOutput<
+type DelaunayLinkCallOptions<
   TDatum,
-  TOptions extends { x: infer TChannel } ? TChannel : never,
-  number
->
-
-type DelaunayYOutput<TDatum, TOptions> = ChannelOutput<
-  TDatum,
-  TOptions extends { y: infer TChannel } ? TChannel : never,
-  number
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DelaunayLinkOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
 >
 
 type PreparedDelaunayRow<TDatum> = LayoutXYSourceRow<
@@ -88,21 +94,36 @@ type ProjectedDelaunayRow<TDatum> = PreparedDelaunayRow<TDatum> &
 /** Connects final-screen Delaunay neighbors while retaining semantic endpoints. */
 export function delaunayLink<
   TDatum,
-  const TOptions extends DelaunayLinkOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: DelaunayLinkCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   DelaunayLinkDatum<
     TDatum,
-    DelaunayXOutput<TDatum, TOptions>,
-    DelaunayYOutput<TDatum, TOptions>
+    ChannelOutput<TDatum, TXChannel, number>,
+    ChannelOutput<TDatum, TYChannel, number>
   >,
-  DelaunayXOutput<TDatum, TOptions>,
-  DelaunayYOutput<TDatum, TOptions>,
-  DelaunayXOutput<TDatum, TOptions>,
-  DelaunayYOutput<TDatum, TOptions>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function delaunayLink<TDatum>(
   source: Iterable<TDatum>,

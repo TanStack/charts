@@ -7,7 +7,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/guides/accessibility.md'
   - 'TanStack/charts:docs/guides/ssr-and-hydration.md'
@@ -84,8 +84,10 @@ const rows: readonly TrafficRow[] = [
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'visits' })],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
 })
 
 const runtime = createChartRuntime<TrafficRow, Date, number>()

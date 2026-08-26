@@ -14,7 +14,9 @@ import type {
   ChartMarkMotionOptions,
   ChartFocusAnchor,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
   WidenChartValue,
@@ -42,6 +44,24 @@ export interface RuleXOptions<TDatum> extends ChartMarkMotionOptions<never> {
   xScale?: string
 }
 
+type RuleYCallOptions<
+  TDatum,
+  TYChannel,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  RuleYOptions<NoInfer<TDatum>>,
+  { y?: TYChannel; yScale?: TYScaleId }
+>
+
+type RuleXCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+> = MarkCallOptions<
+  RuleXOptions<NoInfer<TDatum>>,
+  { x?: TXChannel; xScale?: TXScaleId }
+>
+
 type RuleFallback<TDatum> = [
   WidenChartValue<Extract<TDatum, ChartValue>>,
 ] extends [never]
@@ -53,17 +73,19 @@ export function ruleY<TDatum>(
 ): ChartMark<never, never, RuleFallback<TDatum>>
 export function ruleY<
   TDatum,
-  const TOptions extends RuleYOptions<NoInfer<TDatum>> | undefined,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: RuleYCallOptions<TDatum, TYChannel, TYScaleId> | undefined,
 ): CartesianChartMark<
   never,
   never,
-  OptionChannelOutput<TDatum, TOptions, 'y', RuleFallback<TDatum>>,
+  MarkChannelOutput<TDatum, TYChannel, RuleFallback<TDatum>>,
   never,
-  OptionChannelOutput<TDatum, TOptions, 'y', RuleFallback<TDatum>>,
-  TOptions
+  MarkChannelOutput<TDatum, TYChannel, RuleFallback<TDatum>>,
+  MarkScaleBindings<'x', TYScaleId>
 >
 export function ruleY<TDatum>(
   source: Iterable<TDatum>,
@@ -151,17 +173,19 @@ export function ruleX<TDatum>(
 ): ChartMark<never, RuleFallback<TDatum>, never>
 export function ruleX<
   TDatum,
-  const TOptions extends RuleXOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: RuleXCallOptions<TDatum, TXChannel, TXScaleId> | undefined,
 ): CartesianChartMark<
   never,
-  OptionChannelOutput<TDatum, TOptions, 'x', RuleFallback<TDatum>>,
+  MarkChannelOutput<TDatum, TXChannel, RuleFallback<TDatum>>,
   never,
-  OptionChannelOutput<TDatum, TOptions, 'x', RuleFallback<TDatum>>,
+  MarkChannelOutput<TDatum, TXChannel, RuleFallback<TDatum>>,
   never,
-  TOptions
+  MarkScaleBindings<TXScaleId, 'y'>
 >
 export function ruleX<TDatum>(
   source: Iterable<TDatum>,

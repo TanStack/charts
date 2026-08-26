@@ -6,10 +6,58 @@ import { readReleasePackages } from './release-package-config.mjs'
 
 export const releaseVersionSources = [
   { path: 'README.md', references: 2, tagReferences: 1 },
-  { path: 'MARKETING.md', references: 5 },
+  { path: 'MARKETING.md', references: 3 },
   { path: 'docs/overview.md', references: 1 },
   { path: 'docs/installation.md', references: 2, tagReferences: 1 },
   { path: 'docs/comparison.md', references: 5, tagReferences: 4 },
+  {
+    path: 'packages/charts-core/skills/build-chart-interactions/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/compose-marks-and-views/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/configure-scales-guides-color/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/coordinate-charts-with-tanstack/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/debug-and-verify-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/design-a-chart/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/design-responsive-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/extend-tanstack-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/migrate-to-tanstack-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/prepare-chart-data/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/ship-accessible-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/update-and-animate-charts/SKILL.md',
+    references: 1,
+  },
 ]
 
 export function changelogVersions(source) {

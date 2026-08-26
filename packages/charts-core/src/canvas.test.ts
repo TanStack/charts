@@ -318,7 +318,7 @@ describe('Canvas renderer', () => {
     })
     const adapter = createChartRendererAdapter({
       definition,
-      renderer: createSvgChartRenderer(),
+      renderer: createSvgChartRenderer<number, number, number>(),
       initialWidth: 320,
       height: 180,
       ariaLabel: 'Mixed server chart',
@@ -621,8 +621,10 @@ describe('Canvas renderer', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleLinear().domain([1, 2]) },
-          y: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([1, 2]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -636,10 +638,13 @@ describe('Canvas renderer', () => {
                   innerRadius: ({ radius }) => radius * 0.55,
                 }),
               ],
+              scales: { angle: null, radius: null },
             }),
           ],
-          x: null,
-          y: null,
+          scales: {
+            x: null,
+            y: null,
+          },
           guides: false,
           margin: 0,
         }),
@@ -1830,8 +1835,10 @@ describe('Canvas renderer', () => {
     ]
     const definition = defineChart({
       marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 8]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 8]) },
+      },
     })
     const container = document.createElement('div')
     const onFocusChange = vi.fn()
@@ -1907,8 +1914,10 @@ describe('Canvas renderer', () => {
     const options = () => ({
       definition: defineChart({
         marks: [lineY(data, { x: 'x', y: 'y', color: 'series' })],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 8]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 8]) },
+        },
         color: {
           domain: ['a', 'b'] as const,
           range: ['#2563eb', '#f97316'],
@@ -1955,8 +1964,10 @@ describe('Canvas renderer', () => {
     const onChange = vi.fn()
     const definition = defineChart({
       marks: [lineY(data, { x: 'x', y: 'y' })],
-      x: { scale: scaleLinear().domain([0, 10]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
       controls: [
         continuousCursor({
           id: 'canvas-cursor',
@@ -2024,8 +2035,10 @@ describe('Canvas renderer', () => {
     const chart = (withHandle: boolean) =>
       defineChart({
         marks: [lineY(data, { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear().domain([0, 10]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         controls: withHandle
           ? [
               handleX({
@@ -2101,10 +2114,15 @@ describe('Canvas renderer', () => {
     ]
     const definition = defineChart({
       marks: [lineY(data, { x: 'x', y: 'y' })],
-      x: {
-        scale: scaleLinear().domain([acceptedWindow.start, acceptedWindow.end]),
+      scales: {
+        x: {
+          scale: scaleLinear().domain([
+            acceptedWindow.start,
+            acceptedWindow.end,
+          ]),
+        },
+        y: { scale: scaleLinear().domain([0, 10]) },
       },
-      y: { scale: scaleLinear().domain([0, 10]) },
       controls: [
         zoomX({
           id: 'canvas-zoom',
@@ -2120,8 +2138,10 @@ describe('Canvas renderer', () => {
     })
     const withoutZoom = defineChart({
       marks: [lineY(data, { x: 'x', y: 'y' })],
-      x: { scale: scaleLinear().domain([0, 10]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
       keyboard: false,
     })
     const container = document.createElement('div')
@@ -2236,8 +2256,10 @@ describe('Canvas renderer', () => {
     const host = mountCanvasChart(container, {
       definition: defineChart({
         marks: [lineX([2, 6, 4])],
-        x: { scale: scaleLinear().domain([0, 6]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 6]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
         guides: false,
       }),
       width: 300,

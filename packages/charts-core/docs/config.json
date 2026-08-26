@@ -22,6 +22,10 @@
           "to": "installation"
         },
         {
+          "label": "Alpha Stability",
+          "to": "stability"
+        },
+        {
           "label": "Quick Start",
           "to": "quick-start"
         }

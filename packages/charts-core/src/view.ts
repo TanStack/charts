@@ -513,8 +513,10 @@ function createViewComposition<
     marks: [mark],
     guides: false,
     margin: 0,
-    x: null,
-    y: null,
+    scales: {
+      x: null,
+      y: null,
+    },
   }
 }
 
@@ -757,7 +759,7 @@ function assertChildDefinition(
     )
   }
   for (const axis of ['x', 'y'] as const) {
-    const configured = definition[axis]
+    const configured = definition.scales[axis]
     const presentation =
       !configured || configured.axis === false
         ? undefined

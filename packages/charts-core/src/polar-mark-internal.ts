@@ -26,8 +26,6 @@ export interface PolarLayoutContext {
   startAngle: number
   endAngle: number
   scales: Readonly<Record<string, PolarResolvedScale>>
-  angle?: PolarResolvedScale
-  radiusScale?: PolarResolvedScale
 }
 
 export interface InitializedPolarMark<

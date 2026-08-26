@@ -359,6 +359,106 @@ describe('anchored stacks', () => {
   })
 })
 
+describe('diverging offset zero handling', () => {
+  it('keeps a zero-valued cell on the running top of a positive stack', () => {
+    const positiveRows = [
+      { position: 0, series: 'A', value: 10 },
+      { position: 0, series: 'B', value: 5 },
+      { position: 1, series: 'A', value: 10 },
+      { position: 1, series: 'B', value: 0 },
+    ] as const
+    const extents = stackExtents(
+      positiveRows.map((row, index) => ({ index, ...row })),
+      { order: ['A', 'B'] },
+    )
+
+    expectExtent(extents, 0, 0, 10)
+    expectExtent(extents, 1, 10, 15)
+    expectExtent(extents, 2, 0, 10)
+    expectExtent(extents, 3, 10, 10)
+  })
+
+  it('keeps a zero-valued cell on the running bottom of an exclusively negative stack', () => {
+    const negativeRows = [
+      { position: 0, series: 'A', value: -10 },
+      { position: 0, series: 'B', value: -5 },
+      { position: 1, series: 'A', value: -10 },
+      { position: 1, series: 'B', value: 0 },
+    ] as const
+    const extents = stackExtents(
+      negativeRows.map((row, index) => ({ index, ...row })),
+      { order: ['A', 'B'] },
+    )
+
+    expectExtent(extents, 0, -10, 0)
+    expectExtent(extents, 1, -15, -10)
+    expectExtent(extents, 2, -10, 0)
+    expectExtent(extents, 3, -10, -10)
+  })
+
+  it('keeps an exclusively negative series on the axis when its negative baseline is zero', () => {
+    const mixedRows = [
+      { position: 0, series: 'A', value: 10 },
+      { position: 0, series: 'B', value: -3 },
+      { position: 1, series: 'A', value: 10 },
+      { position: 1, series: 'B', value: 0 },
+    ] as const
+    const extents = stackExtents(
+      mixedRows.map((row, index) => ({ index, ...row })),
+      { order: ['A', 'B'] },
+    )
+
+    expectExtent(extents, 3, 0, 0)
+  })
+
+  it('leaves an all-zero position on the axis', () => {
+    const allZeroRows = [
+      { position: 0, series: 'A', value: 10 },
+      { position: 0, series: 'B', value: 5 },
+      { position: 1, series: 'A', value: 0 },
+      { position: 1, series: 'B', value: 0 },
+    ] as const
+    const extents = stackExtents(
+      allZeroRows.map((row, index) => ({ index, ...row })),
+      { order: ['A', 'B'] },
+    )
+
+    expectExtent(extents, 2, 0, 0)
+    expectExtent(extents, 3, 0, 0)
+  })
+
+  it('shares the zero-aware policy with vertical and horizontal row transforms', () => {
+    const positiveRows = [
+      { position: 0, series: 'A', value: 10 },
+      { position: 0, series: 'B', value: 5 },
+      { position: 1, series: 'A', value: 10 },
+      { position: 1, series: 'B', value: 0 },
+    ] as const
+    const options = { order: ['A', 'B'] as const }
+    const vertical = stackRowsY(positiveRows, {
+      x: 'position',
+      y: 'value',
+      z: 'series',
+      ...options,
+    })
+    const horizontal = stackRowsX(positiveRows, {
+      x: 'value',
+      y: 'position',
+      z: 'series',
+      ...options,
+    })
+
+    expect(horizontal).toHaveLength(vertical.length)
+    vertical.forEach((datum, index) => {
+      const transposed = horizontal[index]!
+      expect(transposed.x1).toBeCloseTo(datum.y1)
+      expect(transposed.x2).toBeCloseTo(datum.y2)
+    })
+    expect(vertical[3]!.y1).toBeCloseTo(10)
+    expect(vertical[3]!.y2).toBeCloseTo(10)
+  })
+})
+
 function expectExtent(
   extents: ReturnType<typeof stackExtents>,
   index: number,

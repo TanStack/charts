@@ -8,7 +8,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/guides/testing-and-debugging.md'
   - 'TanStack/charts:docs/guides/typescript.md'
@@ -44,8 +44,10 @@ const rows = [
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'month', y: 'value', points: true })],
-  x: { scale: scalePoint },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scalePoint },
+    y: { scale: scaleLinear },
+  },
 })
 
 export const scene = createChartScene(definition, { width: 640, height: 360 })

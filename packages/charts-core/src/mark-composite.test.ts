@@ -45,8 +45,10 @@ describe('compositeMark', () => {
     )
     const definition = defineChart({
       marks: [mark],
-      x: { scale: scaleBand<string> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
 
@@ -108,8 +110,10 @@ describe('compositeMark', () => {
     const scene = createChartScene(
       defineChart({
         marks: [mark],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )

@@ -96,8 +96,10 @@ describe('optional export', () => {
           dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' }),
           crosshair({ marker: true }),
         ],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 4]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
         guides: false,
       }),
       { width: 300, height: 180 },

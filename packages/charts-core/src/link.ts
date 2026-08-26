@@ -18,6 +18,8 @@ import type {
   ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -40,13 +42,25 @@ export interface LinkOptions<TDatum>
   curve?: ChartCurve
 }
 
-type LinkXOutput<TDatum, TOptions> =
-  | ChannelOutput<TDatum, TOptions extends { x1: infer T } ? T : never, number>
-  | ChannelOutput<TDatum, TOptions extends { x2: infer T } ? T : never, number>
-
-type LinkYOutput<TDatum, TOptions> =
-  | ChannelOutput<TDatum, TOptions extends { y1: infer T } ? T : never, number>
-  | ChannelOutput<TDatum, TOptions extends { y2: infer T } ? T : never, number>
+type LinkCallOptions<
+  TDatum,
+  TX1Channel,
+  TY1Channel,
+  TX2Channel,
+  TY2Channel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  LinkOptions<NoInfer<TDatum>>,
+  {
+    x1: TX1Channel
+    y1: TY1Channel
+    x2: TX2Channel
+    y2: TY2Channel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
 
 /**
  * Draws one independent segment per datum between two scaled positions.
@@ -56,17 +70,46 @@ type LinkYOutput<TDatum, TOptions> =
  */
 export function link<
   TDatum,
-  const TOptions extends LinkOptions<NoInfer<TDatum>>,
+  const TX1Channel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TY1Channel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TX2Channel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TY2Channel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: LinkCallOptions<
+    TDatum,
+    TX1Channel,
+    TY1Channel,
+    TX2Channel,
+    TY2Channel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   TDatum,
-  LinkXOutput<TDatum, TOptions>,
-  LinkYOutput<TDatum, TOptions>,
-  LinkXOutput<TDatum, TOptions>,
-  LinkYOutput<TDatum, TOptions>,
-  TOptions
+  | ChannelOutput<TDatum, TX1Channel, number>
+  | ChannelOutput<TDatum, TX2Channel, number>,
+  | ChannelOutput<TDatum, TY1Channel, number>
+  | ChannelOutput<TDatum, TY2Channel, number>,
+  | ChannelOutput<TDatum, TX1Channel, number>
+  | ChannelOutput<TDatum, TX2Channel, number>,
+  | ChannelOutput<TDatum, TY1Channel, number>
+  | ChannelOutput<TDatum, TY2Channel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function link<TDatum>(
   source: Iterable<TDatum>,

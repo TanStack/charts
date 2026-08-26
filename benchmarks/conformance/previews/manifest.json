@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "77c9a85664a8a74ac8d3d00ebbdc9ff1be08ecd5859b962d16077cef8d996da0",
+  "sourceHash": "d3177faf65fca2414b431c195a003cf9afdceb8ae2f1b37e4f8cb81578dc8293",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -41,8 +41,8 @@
     },
     {
       "id": "bar-stacked",
-      "sha256": "a63c40af079eebd20474ae240798dc3da1bca1bee3fe48f753ebacedfa45e4ed",
-      "bytes": 16447
+      "sha256": "10107c15a3cfccc8f4c3a45941737769dd6e9bec3b21bb7d0c31ea10240831ea",
+      "bytes": 16464
     },
     {
       "id": "scatter-bubble",
@@ -551,8 +551,8 @@
     },
     {
       "id": "119-stacked-bar-band-cursor",
-      "sha256": "28f6ebbfb34bd586336035fac604e7bc04f04685d6599cb6c90e049731cae2ee",
-      "bytes": 9706
+      "sha256": "0257543342681ad1161ff6011ebee48abd3dd6b4d2f3ee46b751a4f54fe95407",
+      "bytes": 9709
     },
     {
       "id": "120-themed-interactive-area",

@@ -10,7 +10,6 @@ import {
 import { valueKey } from './scales'
 import type {
   Channel,
-  ChannelOutput,
   CartesianChartMark,
   CartesianScaleBindings,
   ChartKey,
@@ -20,6 +19,9 @@ import type {
   ChartRectStateStyle,
   ChartPoint,
   ChartValue,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
 } from './types'
 
@@ -49,54 +51,96 @@ export type CellOptions<TDatum> = Omit<
   'x1' | 'x2' | 'y1' | 'y2'
 >
 
-type RectSideOutput<
+type RectCallOptions<
   TDatum,
-  TOptions,
-  TEndpoint extends PropertyKey,
-  TCenter extends PropertyKey,
-> = TOptions extends unknown
-  ? TEndpoint extends keyof TOptions
-    ? ChannelOutput<TDatum, TOptions[TEndpoint], number>
-    : TCenter extends keyof TOptions
-      ? ChannelOutput<TDatum, TOptions[TCenter], number>
-      : number
-  : never
+  TXChannel,
+  TX1Channel,
+  TX2Channel,
+  TYChannel,
+  TY1Channel,
+  TY2Channel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  RectOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    x1?: TX1Channel
+    x2?: TX2Channel
+    y?: TYChannel
+    y1?: TY1Channel
+    y2?: TY2Channel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
 
-type RectXOutput<TDatum, TOptions> =
-  | RectSideOutput<TDatum, TOptions, 'x1', 'x'>
-  | RectSideOutput<TDatum, TOptions, 'x2', 'x'>
+type CellCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  CellOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    y?: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
 
-type RectYOutput<TDatum, TOptions> =
-  | RectSideOutput<TDatum, TOptions, 'y1', 'y'>
-  | RectSideOutput<TDatum, TOptions, 'y2', 'y'>
+type RectEndpointOutput<TDatum, TEndpointChannel, TCenterChannel> = [
+  NonNullable<TEndpointChannel>,
+] extends [never]
+  ? MarkChannelOutput<TDatum, TCenterChannel, number>
+  : MarkChannelOutput<TDatum, TEndpointChannel, number>
 
-type RectPointXOutput<TDatum, TOptions> = TOptions extends unknown
-  ? 'x' extends keyof TOptions
-    ? ChannelOutput<TDatum, TOptions['x'], number>
-    : number
-  : never
-
-type RectPointYOutput<TDatum, TOptions> = TOptions extends unknown
-  ? 'y' extends keyof TOptions
-    ? ChannelOutput<TDatum, TOptions['y'], number>
-    : 'y2' extends keyof TOptions
-      ? ChannelOutput<TDatum, TOptions['y2'], number>
-      : number
-  : never
+type RectPointYChannelOutput<TDatum, TYChannel, TY2Channel> = [
+  NonNullable<TYChannel>,
+] extends [never]
+  ? MarkChannelOutput<TDatum, TY2Channel, number>
+  : MarkChannelOutput<TDatum, TYChannel, number>
 
 export function rect<
   TDatum,
-  const TOptions extends RectOptions<NoInfer<TDatum>>,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TX1Channel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TX2Channel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TY1Channel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TY2Channel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: RectCallOptions<
+    TDatum,
+    TXChannel,
+    TX1Channel,
+    TX2Channel,
+    TYChannel,
+    TY1Channel,
+    TY2Channel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   TDatum,
-  RectPointXOutput<TDatum, TOptions>,
-  RectPointYOutput<TDatum, TOptions>,
-  RectXOutput<TDatum, TOptions>,
-  RectYOutput<TDatum, TOptions>,
-  TOptions
+  MarkChannelOutput<TDatum, TXChannel, number>,
+  RectPointYChannelOutput<TDatum, TYChannel, TY2Channel>,
+  | RectEndpointOutput<TDatum, TX1Channel, TXChannel>
+  | RectEndpointOutput<TDatum, TX2Channel, TXChannel>,
+  | RectEndpointOutput<TDatum, TY1Channel, TYChannel>
+  | RectEndpointOutput<TDatum, TY2Channel, TYChannel>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function rect<TDatum>(
   source: Iterable<TDatum>,
@@ -276,17 +320,22 @@ export function rect<TDatum>(
 
 export function cell<
   TDatum,
-  const TOptions extends CellOptions<NoInfer<TDatum>>,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: CellCallOptions<TDatum, TXChannel, TYChannel, TXScaleId, TYScaleId>,
 ): CartesianChartMark<
   TDatum,
-  RectPointXOutput<TDatum, TOptions>,
-  RectPointYOutput<TDatum, TOptions>,
-  RectXOutput<TDatum, TOptions>,
-  RectYOutput<TDatum, TOptions>,
-  TOptions
+  MarkChannelOutput<TDatum, TXChannel, number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function cell<TDatum>(
   source: Iterable<TDatum>,

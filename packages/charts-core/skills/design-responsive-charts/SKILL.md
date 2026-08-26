@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/guides/responsive-charts.md'
   - 'TanStack/charts:docs/reference/chart-definitions.md'
@@ -37,12 +37,14 @@ const rows = [
 
 const definition = defineChart(({ width }) => ({
   marks: [barX(rows, { x: 'requests', y: 'feature' })],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    axis: { ticks: { count: width < 420 ? 3 : 6 } },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      axis: { ticks: { count: width < 420 ? 3 : 6 } },
+    },
+    y: { scale: () => scaleBand<string>().padding(0.1) },
   },
-  y: { scale: () => scaleBand<string>().padding(0.1) },
 }))
 
 const element = document.querySelector<HTMLElement>('#feature-chart')
@@ -105,9 +107,12 @@ Correct:
 ```ts
 defineChart(({ width }) => ({
   marks,
-  x: {
-    scale: scaleLinear,
-    axis: { ticks: { count: width < 420 ? 4 : 8 } },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      axis: { ticks: { count: width < 420 ? 4 : 8 } },
+    },
+    y: { scale: scaleLinear },
   },
 }))
 ```

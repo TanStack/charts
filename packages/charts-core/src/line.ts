@@ -20,10 +20,12 @@ import type {
   ChartLineStateStyle,
   ChartPoint,
   ChartValue,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
   ChartCurve,
   VisualChannel,
-  OptionChannelOutput,
 } from './types'
 
 interface LineOptions<TDatum>
@@ -51,6 +53,34 @@ export interface LineXOptions<TDatum> extends LineOptions<TDatum> {
   y?: Channel<TDatum, ChartValue | null | undefined>
 }
 
+type LineYCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  LineYOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
+type LineXCallOptions<
+  TDatum,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  LineXOptions<NoInfer<TDatum>>,
+  {
+    y?: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 interface LineRow<TDatum> {
   datum: TDatum
   datumIndex: number
@@ -74,17 +104,21 @@ export function lineY<TDatum>(
 ): ChartMark<TDatum, number, number>
 export function lineY<
   TDatum,
-  const TOptions extends LineYOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options:
+    LineYCallOptions<TDatum, TXChannel, TXScaleId, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  TOptions
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function lineY<TDatum>(
   source: Iterable<TDatum>,
@@ -121,17 +155,21 @@ export function lineX<TDatum>(
 ): ChartMark<TDatum, number, number>
 export function lineX<
   TDatum,
-  const TOptions extends LineXOptions<NoInfer<TDatum>> | undefined,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options:
+    LineXCallOptions<TDatum, TYChannel, TXScaleId, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function lineX<TDatum>(
   source: Iterable<TDatum>,

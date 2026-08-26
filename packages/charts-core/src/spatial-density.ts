@@ -38,6 +38,8 @@ import type {
   ChartMark,
   ChartMarkMotionOptions,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   ScenePolygon,
   VisualChannel,
@@ -74,16 +76,20 @@ export interface DensityContourOptions<TDatum>
   opacity?: number
 }
 
-type DensityXOutput<TDatum, TOptions> = ChannelOutput<
+type DensityContourCallOptions<
   TDatum,
-  TOptions extends { x: infer TChannel } ? TChannel : never,
-  number
->
-
-type DensityYOutput<TDatum, TOptions> = ChannelOutput<
-  TDatum,
-  TOptions extends { y: infer TChannel } ? TChannel : never,
-  number
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DensityContourOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
 >
 
 interface DensitySourceRow<TDatum> extends LayoutXYSourceRow<
@@ -116,17 +122,32 @@ type DensityWithContourAt<TDatum> = ContourDensity<TDatum> & {
 /** Estimates filled density contours after x/y scales reach final screen space. */
 export function densityContour<
   TDatum,
-  const TOptions extends DensityContourOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: DensityContourCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   never,
   never,
   never,
-  DensityXOutput<TDatum, TOptions>,
-  DensityYOutput<TDatum, TOptions>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function densityContour<TDatum>(
   source: Iterable<TDatum>,

@@ -263,8 +263,6 @@ export type {
   ChartLineStateStyle,
   ChartRectStateStyle,
   ChartTextStateStyle,
-  ChartMarkX,
-  ChartMarkY,
   ChartMotionContext,
   ChartMotionDefinition,
   ChartMotionPhase,

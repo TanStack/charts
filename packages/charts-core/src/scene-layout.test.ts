@@ -40,15 +40,17 @@ describe('automatic scene guide layout', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([1, 2, 3])],
-        x: {
-          scale: scaleLinear().domain([0, 2]),
-          grid: true,
-          axis: { ticks: { count: 3, size: 0 } },
-        },
-        y: {
-          scale: scaleLinear().domain([0, 3]),
-          grid: true,
-          axis: { ticks: { count: 4, size: 0 } },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 2]),
+            grid: true,
+            axis: { ticks: { count: 3, size: 0 } },
+          },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            grid: true,
+            axis: { ticks: { count: 4, size: 0 } },
+          },
         },
       }),
       { width: 480, height: 260 },
@@ -76,11 +78,13 @@ describe('automatic scene guide layout', () => {
           { x: 'category', y: 'value' },
         ),
       ],
-      x: {
-        scale: scaleBand<string>().domain(categories),
-        axis: { tickLabels: { rotate: -30 } },
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(categories),
+          axis: { tickLabels: { rotate: -30 } },
+        },
+        y: { scale: scaleLinear().domain([0, categories.length]) },
       },
-      y: { scale: scaleLinear().domain([0, categories.length]) },
     })
     const narrow = createChartScene(
       definition,
@@ -95,9 +99,12 @@ describe('automatic scene guide layout', () => {
     const all = createChartScene(
       {
         ...definition,
-        x: {
-          ...definition.x,
-          axis: { tickLabels: { rotate: -30, thin: false } },
+        scales: {
+          ...definition.scales,
+          x: {
+            ...definition.scales.x,
+            axis: { tickLabels: { rotate: -30, thin: false } },
+          },
         },
       },
       { width: 320, height: 260 },
@@ -138,11 +145,16 @@ describe('automatic scene guide layout', () => {
           ),
         ],
         margin: 0,
-        x: {
-          scale: scaleBand<string>().domain(categories),
-          axis: { tickLabels },
+        scales: {
+          x: {
+            scale: scaleBand<string>().domain(categories),
+            axis: { tickLabels },
+          },
+          y: {
+            scale: scaleLinear().domain([0, categories.length]),
+            axis: false,
+          },
         },
-        y: { scale: scaleLinear().domain([0, categories.length]), axis: false },
       }),
       { width: 260, height: 180 },
       { measureText },
@@ -172,24 +184,26 @@ describe('automatic scene guide layout', () => {
       defineChart({
         marks: [lineY([0, 1])],
         margin: 0,
-        x: {
-          scale: scaleLinear().domain([0, 1]),
-          axis: {
-            ticks: { values: [0, 1] },
-            tickLabels: {
-              rotate: -30,
-              fontSize: ({ index }) => (index === 0 ? 18 : undefined),
-              fontWeight: ({ index }) => (index === 0 ? 700 : undefined),
-              opacity: ({ index }) => (index === 0 ? 0.4 : undefined),
-              anchor: ({ index }) => (index === 0 ? 'start' : undefined),
-              dx: ({ index }) => (index === 0 ? 3 : undefined),
-              dy: ({ index }) => (index === 0 ? 5 : undefined),
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: { values: [0, 1] },
+              tickLabels: {
+                rotate: -30,
+                fontSize: ({ index }) => (index === 0 ? 18 : undefined),
+                fontWeight: ({ index }) => (index === 0 ? 700 : undefined),
+                opacity: ({ index }) => (index === 0 ? 0.4 : undefined),
+                anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+                dx: ({ index }) => (index === 0 ? 3 : undefined),
+                dy: ({ index }) => (index === 0 ? 5 : undefined),
+              },
             },
           },
-        },
-        y: {
-          scale: scaleLinear().domain([0, 1]),
-          axis: { ticks: { values: [0, 1] } },
+          y: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: { ticks: { values: [0, 1] } },
+          },
         },
       }),
       { width: 480, height: 240 },
@@ -230,18 +244,20 @@ describe('automatic scene guide layout', () => {
     const definition = (fontSize: number, dx: number) =>
       defineChart({
         marks: [lineY([0, 1])],
-        x: {
-          scale: scaleLinear().domain([0, 1]),
-          axis: {
-            ticks: { values: [0, 1] },
-            tickLabels: {
-              fontSize: () => fontSize,
-              anchor: () => 'start' as const,
-              dx: () => dx,
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: { values: [0, 1] },
+              tickLabels: {
+                fontSize: () => fontSize,
+                anchor: () => 'start' as const,
+                dx: () => dx,
+              },
             },
           },
+          y: { scale: scaleLinear().domain([0, 1]), axis: false },
         },
-        y: { scale: scaleLinear().domain([0, 1]), axis: false },
       })
     const regular = createChartScene(
       definition(11, 0),
@@ -274,15 +290,17 @@ describe('automatic scene guide layout', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([0, 10])],
-        x: {
-          scale: scaleLinear().domain([0, 10]),
-          grid: true,
-          axis: {
-            ticks: { values: [0, 10], size: 0 },
-            tickLabels: { thin: { keep: [5] } },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 10]),
+            grid: true,
+            axis: {
+              ticks: { values: [0, 10], size: 0 },
+              tickLabels: { thin: { keep: [5] } },
+            },
           },
+          y: { scale: scaleLinear().domain([0, 10]), axis: false },
         },
-        y: { scale: scaleLinear().domain([0, 10]), axis: false },
       }),
       { width: 320, height: 180 },
       { measureText },
@@ -298,11 +316,13 @@ describe('automatic scene guide layout', () => {
   it('uses axis length for spacing-based semantic candidates', () => {
     const definition = defineChart({
       marks: [lineY([0, 100])],
-      x: {
-        scale: scaleLinear().domain([0, 100]),
-        axis: { ticks: { spacing: 80 } },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 100]),
+          axis: { ticks: { spacing: 80 } },
+        },
+        y: { scale: scaleLinear().domain([0, 100]) },
       },
-      y: { scale: scaleLinear().domain([0, 100]) },
     })
     const narrow = createChartScene(definition, { width: 240, height: 180 })
     const wide = createChartScene(definition, { width: 960, height: 180 })
@@ -317,11 +337,13 @@ describe('automatic scene guide layout', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 10])],
-          x: {
-            scale: scaleLinear().domain([0, 10]),
-            axis: { ticks: { count: 3, spacing: 80 } },
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 10]),
+              axis: { ticks: { count: 3, spacing: 80 } },
+            },
+            y: { scale: scaleLinear().domain([0, 10]) },
           },
-          y: { scale: scaleLinear().domain([0, 10]) },
         }),
         { width: 320, height: 180 },
       ),
@@ -374,11 +396,16 @@ describe('automatic scene guide layout', () => {
           { x: 'category', y: 'value' },
         ),
       ],
-      x: {
-        scale: scaleBand().domain(domain).padding(0.1),
-        axis: { tickLabels: { rotate: -35 }, label: 'Package' },
+      scales: {
+        x: {
+          scale: scaleBand().domain(domain).padding(0.1),
+          axis: { tickLabels: { rotate: -35 }, label: 'Package' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          axis: { label: 'Downloads' },
+        },
       },
-      y: { scale: scaleLinear().domain([0, 3]), axis: { label: 'Downloads' } },
     })
     const narrow = createChartScene(
       definition,
@@ -419,13 +446,15 @@ describe('automatic scene guide layout', () => {
   it('keeps long axis titles inside narrow surfaces', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: {
-        scale: scaleLinear().domain([0, 2]),
-        axis: {
-          label: '← more disagree · Number of responses · more agree →',
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 2]),
+          axis: {
+            label: '← more disagree · Number of responses · more agree →',
+          },
         },
+        y: { scale: scaleLinear().domain([0, 3]) },
       },
-      y: { scale: scaleLinear().domain([0, 3]) },
     })
     const scene = createChartScene(
       definition,
@@ -470,8 +499,10 @@ describe('automatic scene guide layout', () => {
           dy: (row) => (row.y === 0 ? 13 : -13),
         }),
       ],
-      x: { scale: scaleLinear().domain([0, 10]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
     })
     const automatic = createChartScene(
       definition,
@@ -518,12 +549,14 @@ describe('automatic scene guide layout', () => {
   it('treats numeric margin sides as locks', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Index' } },
-      y: {
-        scale: scaleLinear().domain([0, 3]),
-        axis: {
-          ticks: { format: () => 'A deliberately long tick label' },
-          label: 'Value',
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Index' } },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          axis: {
+            ticks: { format: () => 'A deliberately long tick label' },
+            label: 'Value',
+          },
         },
       },
       margin: { left: 7 },
@@ -557,8 +590,10 @@ describe('automatic scene guide layout', () => {
             dy: -8,
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
         margin: { right: 7 },
       }),
       { width: 480, height: 260 },
@@ -579,8 +614,10 @@ describe('automatic scene guide layout', () => {
       }),
     ]
     const axes = {
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      },
     }
     const locked = createChartScene(
       defineChart({
@@ -619,8 +656,10 @@ describe('automatic scene guide layout', () => {
           }),
         ],
         guides: false,
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
       }),
       { width: 480, height: 260 },
       { measureText },
@@ -641,13 +680,15 @@ describe('automatic scene guide layout', () => {
     }))
     const definition = defineChart({
       marks: [createMark(initialize)],
-      x: {
-        scale: scaleLinear().domain([0, 1]),
-        axis: { label: 'Horizontal axis' },
-      },
-      y: {
-        scale: scaleLinear().domain([0, 1]),
-        axis: { label: 'Vertical axis' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: { label: 'Horizontal axis' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: { label: 'Vertical axis' },
+        },
       },
     })
 
@@ -694,8 +735,10 @@ describe('automatic scene guide layout', () => {
       defineChart({
         marks: [mark],
         guides: false,
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
       }),
       { width: 480, height: 260 },
       { measureText },
@@ -719,8 +762,10 @@ describe('automatic scene guide layout', () => {
         }),
       ],
       guides: false,
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      },
     })
     const measuredScene = (height: number) =>
       createChartScene(
@@ -746,8 +791,10 @@ describe('automatic scene guide layout', () => {
       defineChart({
         marks: [],
         guides: false,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 480, height: 260 },
       { measureText },
@@ -760,19 +807,33 @@ describe('automatic scene guide layout', () => {
   it('controls x and y guide visibility independently', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Horizontal' } },
-      y: {
-        scale: scaleLinear().domain([0, 3]),
-        grid: true,
-        axis: { label: 'Vertical' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 2]),
+          axis: { label: 'Horizontal' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          grid: true,
+          axis: { label: 'Vertical' },
+        },
       },
     })
     const sceneFor = (x: boolean, y: boolean) =>
       createChartScene(
         {
           ...definition,
-          x: { ...definition.x, axis: x ? definition.x.axis : false },
-          y: { ...definition.y, axis: y ? definition.y.axis : false },
+          scales: {
+            ...definition.scales,
+            x: {
+              ...definition.scales.x,
+              axis: x ? definition.scales.x.axis : false,
+            },
+            y: {
+              ...definition.scales.y,
+              axis: y ? definition.scales.y.axis : false,
+            },
+          },
         },
         { width: 480, height: 260 },
         { measureText },
@@ -809,10 +870,12 @@ function sceneWithYFormat(format: (value: unknown) => string) {
   return createChartScene(
     defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Release' } },
-      y: {
-        scale: scaleLinear().domain([0, 3]),
-        axis: { ticks: { format }, label: 'Downloads' },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Release' } },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          axis: { ticks: { format }, label: 'Downloads' },
+        },
       },
     }),
     { width: 640, height: 320 },

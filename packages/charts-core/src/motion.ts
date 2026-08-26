@@ -3476,10 +3476,7 @@ function motionDefinitions(
   const guides: Record<string, ChartMotionDefinition<any>> = {}
   if (source) {
     const [definition] = source
-    const configuredScales = definition.scales ?? {
-      x: definition.x,
-      y: definition.y,
-    }
+    const configuredScales = definition.scales
     for (const [scaleId, configured] of Object.entries(configuredScales)) {
       const presentation =
         !configured || configured.axis === false

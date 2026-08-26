@@ -23,8 +23,10 @@ describe('tick marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['A', 'B', 'C']) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['A', 'B', 'C']) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -60,8 +62,10 @@ describe('tick marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([0, 5]) },
-        y: { scale: scalePoint<string>().domain(['A', 'B']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 5]) },
+          y: { scale: scalePoint<string>().domain(['A', 'B']) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -91,8 +95,10 @@ describe('tick marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -127,8 +133,10 @@ describe('tick marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         }),
         { width: 400, height: 240 },
       ),

@@ -31,7 +31,9 @@ import type {
   ChartNumericScale,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   ResolvedScale,
   SceneNode,
 } from './types'
@@ -55,52 +57,87 @@ export interface DotOptions<TDatum>
   states?: readonly ChartMarkState<TDatum, ChartDotStateStyle<TDatum>>[]
 }
 
-type DotOptionLayout<TOptions> = TOptions extends {
-  readonly layout?: infer TLayout
-}
-  ? NonNullable<TLayout>
-  : never
+type DotCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TLayout,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DotOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    y?: TYChannel
+    layout?: TLayout
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
 
-type DotPointX<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'x', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'x', infer TAnchor>
+type DotPointX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x', infer TAnchor>
     ? TAnchor
-    : OptionChannelOutput<TDatum, TOptions, 'x', number>
+    : MarkChannelOutput<TDatum, TXChannel, number>
 
-type DotPointY<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'y', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'y', infer TAnchor>
+type DotPointY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y', infer TAnchor>
     ? TAnchor
-    : OptionChannelOutput<TDatum, TOptions, 'y', number>
+    : MarkChannelOutput<TDatum, TYChannel, number>
 
-type DotScaleX<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'x', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'x'>
+type DotScaleX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x'>
     ? never
-    : OptionChannelOutput<TDatum, TOptions, 'x', number>
+    : MarkChannelOutput<TDatum, TXChannel, number>
 
-type DotScaleY<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'y', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'y'>
+type DotScaleY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y'>
     ? never
-    : OptionChannelOutput<TDatum, TOptions, 'y', number>
+    : MarkChannelOutput<TDatum, TYChannel, number>
 
 export function dot<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function dot<
   TDatum,
-  const TOptions extends DotOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TLayout extends DotLayout | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options:
+    | DotCallOptions<
+        TDatum,
+        TXChannel,
+        TYChannel,
+        TLayout,
+        TXScaleId,
+        TYScaleId
+      >
+    | undefined,
 ): CartesianChartMark<
   TDatum,
-  DotPointX<TDatum, TOptions>,
-  DotPointY<TDatum, TOptions>,
-  DotScaleX<TDatum, TOptions>,
-  DotScaleY<TDatum, TOptions>,
-  TOptions
+  DotPointX<TDatum, TXChannel, TLayout>,
+  DotPointY<TDatum, TYChannel, TLayout>,
+  DotScaleX<TDatum, TXChannel, TLayout>,
+  DotScaleY<TDatum, TYChannel, TLayout>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function dot<TDatum>(
   source: Iterable<TDatum>,

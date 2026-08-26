@@ -70,12 +70,14 @@ const downloads = defineChart({
       z: 'package',
     }),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.4) },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Monthly downloads' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.4) },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Monthly downloads' },
+    },
   },
   color: {
     scale: () =>
@@ -113,8 +115,10 @@ const history = [
 
 const historicalDownloads = defineChart({
   marks: [lineY(history, { x: 'date', y: 'downloads' })],
-  x: { scale: scaleUtc, nice: true },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleUtc, nice: true },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -243,13 +247,15 @@ const rankingRows = [
 
 const chart = defineChart({
   marks: [barX(rankingRows, { x: 'downloads', y: 'package' })],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    axis: { label: 'Weekly downloads' },
-  },
-  y: {
-    scale: () => scaleBand<string>().padding(0.1),
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      axis: { label: 'Weekly downloads' },
+    },
+    y: {
+      scale: () => scaleBand<string>().padding(0.1),
+    },
   },
 })
 ```
@@ -284,8 +290,10 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 const values = [32, 48, 41, 57]
 const definition = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear().domain([0, values.length - 1]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, values.length - 1]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
 })
 
 const scene = createChartScene(definition, { width: 640, height: 320 })

@@ -734,7 +734,7 @@ function sameAxis(
 function positionScaleOptions(
   definition: StaticChartDefinition,
 ): Readonly<Record<string, ChartPositionScaleOptions | null | undefined>> {
-  return definition.scales ?? { x: definition.x, y: definition.y }
+  return definition.scales
 }
 
 function hasUnsupportedOuterAxis(definition: StaticChartDefinition): boolean {
@@ -749,12 +749,9 @@ function hasUnsupportedOuterAxis(definition: StaticChartDefinition): boolean {
 }
 
 function sameAxisTicks(
-  left: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
-    false
-  >['ticks'],
+  left: Exclude<NonNullable<ChartPositionScaleOptions['axis']>, false>['ticks'],
   right: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['ticks'],
 ): boolean {
@@ -770,11 +767,11 @@ function sameAxisTicks(
 
 function sameAxisTickLabels(
   left: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['tickLabels'],
   right: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['tickLabels'],
 ): boolean {

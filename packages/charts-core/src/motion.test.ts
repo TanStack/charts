@@ -32,8 +32,10 @@ describe('SVG motion', () => {
     const scene = createChartScene(
       defineChart({
         marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -72,11 +74,13 @@ describe('SVG motion', () => {
           transition: { type: 'tween', duration: 100, easing: 'linear' },
         },
         marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         clip: true,
       })
@@ -110,8 +114,10 @@ describe('SVG motion', () => {
   it('keeps definition metadata out of the public scene shape', () => {
     const definition = defineChart({
       marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-      x: { scale: scaleBand().domain(['A', 'B']) },
-      y: { scale: scaleLinear().domain([0, 100]) },
+      scales: {
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+      },
       guides: false,
     })
     const staticScene = createChartScene(definition, {
@@ -130,8 +136,10 @@ describe('SVG motion', () => {
     const scene = createChartScene(
       defineChart({
         marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -168,8 +176,10 @@ describe('SVG motion', () => {
     const scene = createChartScene(
       defineChart({
         marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -216,8 +226,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleBand().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       })
     const firstDefinition = makeDefinition(20)
@@ -304,8 +316,10 @@ describe('SVG motion', () => {
             points: true,
           }),
         ],
-        x: { scale: scaleLinear().domain(domain) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain(domain) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         clip: true,
       })
@@ -462,8 +476,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain(domain) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain(domain) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         clip: true,
       })
@@ -546,8 +562,10 @@ describe('SVG motion', () => {
             points: true,
           }),
         ],
-        x: { scale: scaleLinear().domain(xDomain) },
-        y: { scale: scaleLinear().domain(yDomain) },
+        scales: {
+          x: { scale: scaleLinear().domain(xDomain) },
+          y: { scale: scaleLinear().domain(yDomain) },
+        },
         guides: false,
         clip: true,
       })
@@ -627,8 +645,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain(domain) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain(domain) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         clip: true,
       })
@@ -708,8 +728,10 @@ describe('SVG motion', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain(domain) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain(domain) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         clip: true,
       })
@@ -798,8 +820,10 @@ describe('SVG motion', () => {
             points: true,
           }),
         ],
-        x: { scale: scaleLinear().domain(xDomain) },
-        y: { scale: scaleLinear().domain(yDomain) },
+        scales: {
+          x: { scale: scaleLinear().domain(xDomain) },
+          y: { scale: scaleLinear().domain(yDomain) },
+        },
         guides: false,
         clip: true,
       })
@@ -890,8 +914,10 @@ describe('SVG motion', () => {
           transition: { type: 'tween', duration: 100, easing: 'linear' },
         },
         marks: [customLine(middle)],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
         guides: false,
         clip: true,
       })
@@ -960,8 +986,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain(domain) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain(domain) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         clip: true,
       })
@@ -1060,8 +1088,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -1123,8 +1153,10 @@ describe('SVG motion', () => {
             motion: false,
           }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -1167,22 +1199,24 @@ describe('SVG motion', () => {
       },
       marks: [lineY([0, 1])],
       margin: 0,
-      x: {
-        scale: scaleLinear().domain([0, 1]),
-        grid: true,
-        axis: {
-          motion: false,
-          ticks: {
-            values: [0, 1],
-            motion: {
-              transition: { type: 'tween', duration: 100, easing: 'linear' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          grid: true,
+          axis: {
+            motion: false,
+            ticks: {
+              values: [0, 1],
+              motion: {
+                transition: { type: 'tween', duration: 100, easing: 'linear' },
+              },
             },
+            tickLabels: { motion: false },
+            label: { text: 'Period' },
           },
-          tickLabels: { motion: false },
-          label: { text: 'Period' },
         },
+        y: { scale: scaleLinear().domain([0, 1]), axis: false },
       },
-      y: { scale: scaleLinear().domain([0, 1]), axis: false },
     })
     const first = createChartScene(definition, { width: 300, height: 200 })
     const next = createChartScene(definition, { width: 400, height: 200 })
@@ -1300,35 +1334,37 @@ describe('SVG motion', () => {
             },
           }),
         ],
-        x: {
-          scale: scaleBand().domain(['A']),
-          axis: {
-            motion(context) {
-              guideRoles.push(context.role)
-              return { transition: { type: 'tween', duration: 120 } }
-            },
-            ticks: {
+        scales: {
+          x: {
+            scale: scaleBand().domain(['A']),
+            axis: {
               motion(context) {
                 guideRoles.push(context.role)
-                return { delay: 5 }
+                return { transition: { type: 'tween', duration: 120 } }
               },
-            },
-            tickLabels: {
-              motion(context) {
-                guideRoles.push(context.role)
-                return { delay: 10 }
+              ticks: {
+                motion(context) {
+                  guideRoles.push(context.role)
+                  return { delay: 5 }
+                },
               },
-            },
-            label: {
-              text: 'Period',
-              motion(context) {
-                guideRoles.push(context.role)
-                return { transition: { type: 'tween', duration: 80 } }
+              tickLabels: {
+                motion(context) {
+                  guideRoles.push(context.role)
+                  return { delay: 10 }
+                },
+              },
+              label: {
+                text: 'Period',
+                motion(context) {
+                  guideRoles.push(context.role)
+                  return { transition: { type: 'tween', duration: 80 } }
+                },
               },
             },
           },
+          y: { scale: scaleLinear().domain([0, 100]) },
         },
-        y: { scale: scaleLinear().domain([0, 100]) },
       })
     const first = createChartScene(definition(20), {
       width: 300,
@@ -1399,8 +1435,10 @@ describe('SVG motion', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
       }),
       { width: 320, height: 200 },
@@ -1490,8 +1528,10 @@ describe('SVG motion', () => {
           ],
         }),
       ],
-      x: { scale: scaleLinear().domain([0, 3]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
       guides: false,
       maxFocusDistance: 1_000,
     })
@@ -1557,8 +1597,10 @@ describe('SVG motion', () => {
             },
           ),
         ],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
         maxFocusDistance: 0,
       })
@@ -1651,8 +1693,10 @@ describe('SVG motion', () => {
             motion: { transition },
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
       }),
       { width: 320, height: 200 },
@@ -1767,8 +1811,10 @@ describe('SVG motion', () => {
             motion: { transition },
           }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']).padding(0.18) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']).padding(0.18) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -1883,8 +1929,10 @@ describe('SVG motion', () => {
               motion: { transition },
             }),
           ],
-          x: { scale: scaleBand().domain(['A']) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
           focusRing: false,
         }),
@@ -1956,8 +2004,10 @@ describe('SVG motion', () => {
         marks: includeCrosshair
           ? [dot(data, { x: 'x', y: 'y', key: 'id' }), crosshair()]
           : [dot(data, { x: 'x', y: 'y', key: 'id' })],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
       })
     const firstScene = createChartScene(definition(true), {
@@ -2013,14 +2063,16 @@ describe('SVG motion', () => {
         },
         marks: [lineY([0, 1])],
         margin: 0,
-        x: {
-          scale: scaleLinear().domain([0, 1]),
-          axis: {
-            ticks: { values: [0, 1] },
-            tickLabels: { fontSize, fontWeight, anchor },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: { values: [0, 1] },
+              tickLabels: { fontSize, fontWeight, anchor },
+            },
           },
+          y: { scale: scaleLinear().domain([0, 1]), axis: false },
         },
-        y: { scale: scaleLinear().domain([0, 1]), axis: false },
       })
     const first = createChartScene(definition(10, 400, 'middle'), {
       width: 300,
@@ -2064,8 +2116,10 @@ describe('SVG motion', () => {
         },
         marks: [
           polar({
-            angle: { scale: scaleBand<string>().domain(['A']) },
-            radius: { scale: scaleLinear().domain([0, 10]) },
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A']) },
+              radius: { scale: scaleLinear().domain([0, 10]) },
+            },
             marks: [
               radialBarRadius([{ id: 'a', category: 'A', value }], {
                 id: 'radial-revenue',
@@ -2076,6 +2130,7 @@ describe('SVG motion', () => {
             ],
           }),
         ],
+        scales: { x: null, y: null },
         margin: 0,
       })
     const first = createChartScene(definition(4), {
@@ -2138,8 +2193,10 @@ describe('SVG motion', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 100]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 100]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -2295,8 +2352,10 @@ describe('SVG motion', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 100]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 100]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -2384,8 +2443,10 @@ describe('SVG motion', () => {
           barY(rows, { x: 'category', y: 'value', key: 'id' }),
           crosshair({ y: false }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -2430,8 +2491,10 @@ describe('SVG motion', () => {
           barY(rows, { x: 'category', y: 'value', key: 'id' }),
           lineY(rows, { x: 'category', y: 'value', key: 'id' }),
           polar({
-            angle: { scale: scaleBand<string>().domain(['A']) },
-            radius: { scale: scaleLinear().domain([0, 100]) },
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A']) },
+              radius: { scale: scaleLinear().domain([0, 100]) },
+            },
             marks: [
               radialBarRadius(rows, {
                 angle: 'category',
@@ -2441,8 +2504,10 @@ describe('SVG motion', () => {
             ],
           }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -2483,8 +2548,10 @@ describe('SVG motion', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([0, 20]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([0, 20]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2561,8 +2628,10 @@ describe('SVG motion', () => {
             }
           },
           marks: [barY(data, { x: 'category', y: 'value', key: 'id' })],
-          x: { scale: scaleBand().domain(data.map((row) => row.category)) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(data.map((row) => row.category)) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2635,8 +2704,10 @@ describe('SVG motion', () => {
               },
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2675,8 +2746,10 @@ describe('SVG motion', () => {
       createChartScene(
         defineChart({
           marks: [barY([datum], { x: 'category', y: 'value', key: 'id' })],
-          x: { scale: scaleBand().domain(['A']) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2727,8 +2800,10 @@ describe('SVG motion', () => {
     const scene = createChartScene(
       defineChart({
         marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -2765,8 +2840,10 @@ describe('SVG motion', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleBand().domain(['A']) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2830,8 +2907,10 @@ describe('SVG motion', () => {
       createChartScene(
         defineChart({
           marks: [lineY(data, { x: 'category', y: 'value', key: 'id' })],
-          x: { scale: scaleBand().domain(['A', 'B']) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(['A', 'B']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2903,8 +2982,10 @@ describe('SVG motion', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleBand().domain(['A', 'B']) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand().domain(['A', 'B']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
         }),
         { width: 300, height: 200 },
@@ -2948,8 +3029,10 @@ describe('SVG motion', () => {
             points: true,
           }),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
       }),
       { width: 300, height: 200 },
@@ -2984,8 +3067,10 @@ describe('SVG motion', () => {
       defineChart({
         marks: [
           polar({
-            angle: { scale: scaleBand<string>().domain(['A']) },
-            radius: { scale: scaleLinear().domain([0, 100]) },
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A']) },
+              radius: { scale: scaleLinear().domain([0, 100]) },
+            },
             marks: [
               radialBarRadius(rows, {
                 angle: 'category',
@@ -2995,6 +3080,7 @@ describe('SVG motion', () => {
             ],
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         margin: 0,
       }),
@@ -3039,8 +3125,10 @@ describe('SVG motion', () => {
         defineChart({
           marks: [
             polar({
-              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
-              radius: { scale: scaleLinear().domain([0, 100]) },
+              scales: {
+                angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+                radius: { scale: scaleLinear().domain([0, 100]) },
+              },
               marks: [
                 radialBarRadius(data, {
                   angle: 'category',
@@ -3050,6 +3138,7 @@ describe('SVG motion', () => {
               ],
             }),
           ],
+          scales: { x: null, y: null },
           guides: false,
           margin: 0,
         }),
@@ -3095,8 +3184,10 @@ describe('SVG motion', () => {
       defineChart({
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 3]) },
-            radius: { scale: scaleLinear().domain([0, 100]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 3]) },
+              radius: { scale: scaleLinear().domain([0, 100]) },
+            },
             marks: [
               radialArea(radialRows, {
                 angle: 'angle',
@@ -3105,6 +3196,7 @@ describe('SVG motion', () => {
             ],
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         margin: 0,
       }),

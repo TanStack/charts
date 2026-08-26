@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -9,6 +9,45 @@ import {
 } from './sync-release-version.mjs'
 
 describe('release version synchronization', () => {
+  it('tracks every shipped skill version', async () => {
+    const repositoryRoot = resolve(import.meta.dirname, '..')
+    const skillsRoot = resolve(repositoryRoot, 'packages/charts-core/skills')
+    const releaseManifest = JSON.parse(
+      await readFile(
+        resolve(repositoryRoot, 'packages/charts-core/package.json'),
+        'utf8',
+      ),
+    )
+    const shippedSkillPaths = (
+      await readdir(skillsRoot, { withFileTypes: true })
+    )
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `packages/charts-core/skills/${entry.name}/SKILL.md`)
+      .sort()
+    const trackedSkillSources = releaseVersionSources.filter(({ path }) =>
+      path.startsWith('packages/charts-core/skills/'),
+    )
+    const trackedSkillPaths = trackedSkillSources.map(({ path }) => path).sort()
+
+    expect(trackedSkillPaths).toEqual(shippedSkillPaths)
+    for (const { path, references } of trackedSkillSources) {
+      const source = await readFile(resolve(repositoryRoot, path), 'utf8')
+      const nextVersion = '999.999.999'
+
+      expect(references).toBe(1)
+      expect(source).toContain(`library_version: '${releaseManifest.version}'`)
+      expect(
+        syncReleaseVersionReference(
+          source,
+          releaseManifest.version,
+          nextVersion,
+          path,
+          references,
+        ),
+      ).toContain(`library_version: '${nextVersion}'`)
+    }
+  })
+
   it('tracks every current release-facing reference', async () => {
     const repositoryRoot = resolve(import.meta.dirname, '..')
     const releaseManifest = JSON.parse(

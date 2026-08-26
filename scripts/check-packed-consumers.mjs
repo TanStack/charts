@@ -5471,11 +5471,6 @@ async function verifyProductionBundles() {
         contents.byteLength > (entry.minimumBytes ?? 100),
         `${entry.label} bundle is empty`,
       )
-      assert.equal(
-        contents.includes('enters Alpha'),
-        false,
-        `${entry.label} retained a development-only migration warning`,
-      )
       assert.ok(
         contents.byteLength < 500_000,
         `${entry.label} bundle unexpectedly exceeds 500 kB`,

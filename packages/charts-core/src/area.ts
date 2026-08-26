@@ -22,7 +22,9 @@ import type {
   ChartPoint,
   ChartValue,
   ChartCurve,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -47,22 +49,40 @@ export interface AreaYOptions<TDatum>
   states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
 }
 
+type AreaYCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  AreaYOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 export function areaY<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function areaY<
   TDatum,
-  const TOptions extends AreaYOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options:
+    AreaYCallOptions<TDatum, TXChannel, TXScaleId, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  TOptions
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function areaY<TDatum>(
   source: Iterable<TDatum>,

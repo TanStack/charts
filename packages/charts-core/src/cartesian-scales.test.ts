@@ -1,93 +1,12 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { execFileSync } from 'node:child_process'
-import { resolve } from 'node:path'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { crosshair } from './crosshair'
 import { lineY } from './line'
+import { ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
 import type { SceneNode, SceneRule } from './types'
 
-const legacyScaleWarning =
-  '[TanStack Charts] Root `x` and `y` options are deprecated. Move them to `scales.x` and `scales.y`. When neither Cartesian scale is used, set `scales` to `{ x: null, y: null }`. This compatibility will be removed when TanStack Charts enters Alpha.'
-
 describe('Cartesian scale registry', () => {
-  it('renders legacy root scales and warns once with migration guidance', async () => {
-    vi.resetModules()
-    const freshScene = await import('./scene')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const definition = freshScene.defineChart({
-      marks: [lineY([2, 4, 6])],
-      x: { scale: scaleLinear().domain([0, 2]) },
-      y: { scale: scaleLinear().domain([0, 6]) },
-    })
-
-    const first = freshScene.createChartScene(definition, {
-      width: 480,
-      height: 260,
-    })
-    freshScene.createChartScene(definition, { width: 640, height: 320 })
-
-    expect(first.points).toHaveLength(3)
-    expect(first.scales.x?.domain).toEqual([0, 2])
-    expect(first.scales.y?.domain).toEqual([0, 6])
-    expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(legacyScaleWarning)
-  })
-
-  it('warns when a scale-free legacy definition omits the registry', async () => {
-    vi.resetModules()
-    const freshScene = await import('./scene')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-    freshScene.createChartScene(freshScene.defineChart({ marks: [] }), {
-      width: 320,
-      height: 180,
-    })
-
-    expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(legacyScaleWarning)
-  })
-
-  it('warns in browsers without a process global', async () => {
-    vi.resetModules()
-    const freshScene = await import('./scene')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const nodeProcess = globalThis.process
-    vi.stubGlobal('process', undefined)
-
-    try {
-      freshScene.createChartScene(
-        freshScene.defineChart({
-          marks: [lineY([1, 2, 3])],
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([0, 3]) },
-        }),
-        { width: 480, height: 260 },
-      )
-    } finally {
-      vi.stubGlobal('process', nodeProcess)
-    }
-
-    expect(warn).toHaveBeenCalledWith(legacyScaleWarning)
-  })
-
-  it('removes the full legacy warning from production bundles', async () => {
-    const output = execFileSync(
-      resolve('node_modules/.bin/esbuild'),
-      [
-        resolve('packages/charts-core/src/scene.ts'),
-        '--bundle',
-        '--platform=browser',
-        '--format=esm',
-        '--minify',
-        '--define:process.env.NODE_ENV="production"',
-      ],
-      { encoding: 'utf8' },
-    )
-
-    expect(output).not.toContain(legacyScaleWarning)
-  })
-
   it('binds marks to named y scales and stacks axes sharing the right side', () => {
     const scene = createNamedScaleScene()
     const percentPoint = scene.points.find(
@@ -184,7 +103,7 @@ describe('Cartesian scale registry', () => {
           marks: [lineY([1, 2, 3], { yScale: 'missing' })],
           scales: {
             x: { scale: scaleLinear().domain([0, 2]) },
-            y: { scale: scaleLinear().domain([0, 3]) },
+            y: null,
           },
         }),
         { width: 480, height: 260 },
@@ -199,7 +118,7 @@ describe('Cartesian scale registry', () => {
           marks: [lineY([1, 2, 3], { yScale: 'color' })],
           scales: {
             x: { scale: scaleLinear().domain([0, 2]) },
-            y: { scale: scaleLinear().domain([0, 3]) },
+            y: null,
           },
         }),
         { width: 480, height: 260 },
@@ -212,7 +131,7 @@ describe('Cartesian scale registry', () => {
           marks: [lineY([1, 2, 3], { yScale: 'alternate' })],
           scales: {
             x: { scale: scaleLinear().domain([0, 2]) },
-            y: { scale: scaleLinear().domain([0, 3]) },
+            y: null,
             alternate: {
               channel: 'x',
               scale: scaleLinear().domain([0, 3]),
@@ -250,7 +169,7 @@ describe('Cartesian scale registry', () => {
           scales: {
             x: { channel: 'y', scale: scaleLinear() },
             y: null,
-          },
+          } as any,
         }),
         { width: 200, height: 120 },
       ),
@@ -277,22 +196,6 @@ describe('Cartesian scale registry', () => {
     )
   })
 
-  it('does not replace canonical null scales with legacy root values', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const scene = createChartScene(
-      defineChart({
-        marks: [],
-        guides: false,
-        scales: { x: null, y: null },
-        x: { scale: scaleLinear().domain([0, 10]) },
-      }),
-      { width: 480, height: 260 },
-    )
-
-    expect(scene.scales.x?.type).toBe('none')
-    expect(scene.scales.y?.type).toBe('none')
-  })
-
   it('allows focus-guide-only marks to bind null scales', () => {
     const scene = createChartScene(
       defineChart({
@@ -311,7 +214,7 @@ describe('Cartesian scale registry', () => {
   it('keeps stacked empty-domain axes inside the scene', () => {
     const scene = createChartScene(
       defineChart({
-        marks: [],
+        marks: [ruleY([] as string[])],
         scales: {
           x: null,
           y: { scale: scaleBand<string>().domain([]) },

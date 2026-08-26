@@ -78,8 +78,10 @@ describe('handleX', () => {
           { x: 'date', y: 'team' },
         ),
       ],
-      x: { scale: scaleUtc().domain(dates) },
-      y: { scale: scaleBand().domain(teams) },
+      scales: {
+        x: { scale: scaleUtc().domain(dates) },
+        y: { scale: scaleBand().domain(teams) },
+      },
       controls: [
         handleX({
           value: controlledSignal<Date, HandleXChange<Date>>(
@@ -433,8 +435,10 @@ function edgeDefinition(
 ) {
   return defineChart({
     marks: [dot(rows, { x: 'date', y: 'value' })],
-    x: { scale: scaleUtc().domain(dates) },
-    y: { scale: scaleLinear().domain([0, dates.length - 1]) },
+    scales: {
+      x: { scale: scaleUtc().domain(dates) },
+      y: { scale: scaleLinear().domain([0, dates.length - 1]) },
+    },
     controls: [
       handleX({
         id: options.id ?? 'date',
