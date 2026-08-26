@@ -14,6 +14,7 @@ import {
 import { valueKey } from './scales'
 import type {
   Channel,
+  ChannelOutput,
   CartesianChartMark,
   CartesianScaleBindings,
   ChartKey,
@@ -21,7 +22,8 @@ import type {
   ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -60,19 +62,50 @@ export interface TickYOptions<TDatum>
   inset?: number
 }
 
+type TickCallOptions<
+  TOptions,
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  TOptions,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 export function tickX<
   TDatum,
-  const TOptions extends TickXOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: TickCallOptions<
+    TickXOptions<NoInfer<TDatum>>,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function tickX<TDatum>(
   source: Iterable<TDatum>,
@@ -83,17 +116,32 @@ export function tickX<TDatum>(
 
 export function tickY<
   TDatum,
-  const TOptions extends TickYOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: TickCallOptions<
+    TickYOptions<NoInfer<TDatum>>,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function tickY<TDatum>(
   source: Iterable<TDatum>,

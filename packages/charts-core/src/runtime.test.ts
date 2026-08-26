@@ -64,13 +64,16 @@ describe('dynamic chart runtime', () => {
     const definition = {
       chart: () => ({
         marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        scales: { x: null, y: null },
       }),
     } as unknown as ChartDefinition<Datum>
     const runtime = createChartRuntime<Datum>()
 
     expect(() =>
       runtime.render(definition, { width: 480, height: 260 }),
-    ).toThrow(/requires a configured scale/)
+    ).toThrow(
+      'Chart scale "x" cannot be null when a mark materializes its channel',
+    )
     runtime.destroy()
   })
 
@@ -696,12 +699,17 @@ describe('dynamic chart runtime', () => {
             key: 'id',
           }),
         ],
-        x: { ...bandXAxes(['A'], [0, 12]).x, axis: { label: 'Period' } },
-        y: {
-          ...linearAxes([0, 1], [0, 12]).y,
-          axis: {
-            ticks: { format: (value) => `${value}k` },
-            label: 'Downloads',
+        scales: {
+          x: {
+            ...bandXAxes(['A'], [0, 12]).scales.x,
+            axis: { label: 'Period' },
+          },
+          y: {
+            ...linearAxes([0, 1], [0, 12]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value}k` },
+              label: 'Downloads',
+            },
           },
         },
         focus: 'group-x',
@@ -824,12 +832,14 @@ describe('dynamic chart runtime', () => {
             y: 'end',
           }),
         ],
-        x: bandXAxes(['A'], [0, 20]).x,
-        y: {
-          ...linearAxes([0, 1], [0, 20]).y,
-          axis: {
-            ticks: { format: (value) => `${value} units` },
-            label: 'Change',
+        scales: {
+          x: bandXAxes(['A'], [0, 20]).scales.x,
+          y: {
+            ...linearAxes([0, 1], [0, 20]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value} units` },
+              label: 'Change',
+            },
           },
         },
         tooltip: tooltipExtension,
@@ -854,10 +864,15 @@ describe('dynamic chart runtime', () => {
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
-      x: { ...linearAxes([0, 1], [0, 4]).x, axis: { label: 'Week' } },
-      y: {
-        ...linearAxes([0, 1], [0, 4]).y,
-        axis: { ticks: { format: (value) => `${value}k` } },
+      scales: {
+        x: {
+          ...linearAxes([0, 1], [0, 4]).scales.x,
+          axis: { label: 'Week' },
+        },
+        y: {
+          ...linearAxes([0, 1], [0, 4]).scales.y,
+          axis: { ticks: { format: (value) => `${value}k` } },
+        },
       },
     })
     const host = mountChart(container, {
@@ -919,8 +934,16 @@ describe('dynamic chart runtime', () => {
       const data = [{ id: 'released', x: 1, y: 4 }]
       const definition = defineChart({
         marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
-        x: { ...linearAxes([0, 2], [0, 4]).x, axis: { label: 'Week' } },
-        y: { ...linearAxes([0, 2], [0, 4]).y, axis: { label: 'Downloads' } },
+        scales: {
+          x: {
+            ...linearAxes([0, 2], [0, 4]).scales.x,
+            axis: { label: 'Week' },
+          },
+          y: {
+            ...linearAxes([0, 2], [0, 4]).scales.y,
+            axis: { label: 'Downloads' },
+          },
+        },
       })
       const resolveText = (context: ChartTooltipContentContext) => {
         contexts.push(context)
@@ -1726,12 +1749,17 @@ describe('dynamic chart runtime', () => {
     const spacious = textMeasurer(1.2)
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { ...linearAxes([0, 2], [0, 3]).x, axis: { label: 'Release' } },
-      y: {
-        ...linearAxes([0, 2], [0, 3]).y,
-        axis: {
-          ticks: { format: () => 'Long formatted tick' },
-          label: 'Downloads',
+      scales: {
+        x: {
+          ...linearAxes([0, 2], [0, 3]).scales.x,
+          axis: { label: 'Release' },
+        },
+        y: {
+          ...linearAxes([0, 2], [0, 3]).scales.y,
+          axis: {
+            ticks: { format: () => 'Long formatted tick' },
+            label: 'Downloads',
+          },
         },
       },
     })

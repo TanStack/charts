@@ -8,6 +8,7 @@ import { boxX, boxY } from './box'
 import { crosshair } from './crosshair'
 import { differenceX, differenceY } from './difference'
 import { dot } from './dot'
+import type { DotOptions } from './dot'
 import { focusGuideX } from './focus-guide'
 import { whenFocused } from './focus-mark'
 import { hexagon } from './hexagon'
@@ -17,6 +18,8 @@ import { compositeMark } from './mark-composite'
 import { decorative } from './mark-decorative'
 import { createMark } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { radialDot } from './polar'
+import type { PolarMark, RadialDotOptions } from './polar'
 import { rect } from './rect'
 import { linearRegressionX, linearRegressionY } from './regression'
 import { ridgelineX, ridgelineY } from './ridgeline'
@@ -46,6 +49,11 @@ type ScaleIds<TMark> =
     ? readonly [TXScaleId, TYScaleId]
     : never
 
+type PointValues<TMark> =
+  TMark extends ChartMark<any, infer TXValue, infer TYValue>
+    ? readonly [TXValue, TYValue]
+    : never
+
 interface Row {
   id: string
   category: string
@@ -58,6 +66,28 @@ interface Row {
 }
 
 const rows: readonly Row[] = []
+
+function forwardDot<const TOptions extends DotOptions<Row>>(options: TOptions) {
+  return dot(rows, options)
+}
+
+function forwardOptionalDot<const TOptions extends DotOptions<Row>>(
+  options: TOptions | undefined,
+) {
+  return dot(rows, options)
+}
+
+function forwardRadialDot<const TOptions extends RadialDotOptions<Row>>(
+  options: TOptions,
+) {
+  return radialDot(rows, options)
+}
+
+function forwardOptionalRadialDot<const TOptions extends RadialDotOptions<Row>>(
+  options: TOptions | undefined,
+) {
+  return radialDot(rows, options)
+}
 
 if (false) {
   const twoAxisMarks = [
@@ -291,6 +321,55 @@ if (false) {
   expectTypeOf<ScaleIds<typeof explicitUndefined>>().toEqualTypeOf<
     readonly ['x', 'y']
   >()
+
+  const inferredDot = dot(rows, { x: 'category', y: 'y' })
+  expectTypeOf<PointValues<typeof inferredDot>>().toEqualTypeOf<
+    readonly [string, number]
+  >()
+  expectTypeOf<ScaleIds<typeof inferredDot>>().toEqualTypeOf<
+    readonly ['x', 'y']
+  >()
+  const inferredLine = lineY(rows, { x: 'x', y: 'y' })
+  expectTypeOf<ScaleIds<typeof inferredLine>>().toEqualTypeOf<
+    readonly ['x', 'y']
+  >()
+
+  // @ts-expect-error Dot marks reject unsupported fresh options.
+  dot(rows, { x: 'x', y: 'y', opacity: 0 })
+  // @ts-expect-error Composite factories reject unsupported fresh options.
+  boxY(rows, { x: 'category', y: 'y', unknownOption: true })
+
+  const structuralDotOptions = {
+    x: 'x',
+    y: 'y',
+    opacity: 0,
+  } as const
+  dot(rows, structuralDotOptions)
+  forwardOptionalDot(rows.length > 0 ? structuralDotOptions : undefined)
+  // @ts-expect-error Other literal-preserving mark factories reject unknown keys.
+  vector(rows, { x: 'x', y: 'y', unknownOption: true })
+
+  const namedRadialDot = radialDot(rows, {
+    angle: 'x',
+    radius: 'y',
+    angleScale: 'namedAngle',
+    radiusScale: 'namedRadius',
+  })
+  expectTypeOf(namedRadialDot).toMatchTypeOf<
+    PolarMark<unknown, number, number, 'namedAngle', 'namedRadius'>
+  >()
+  // @ts-expect-error Polar mark factories reject unknown keys too.
+  radialDot(rows, { angle: 'x', radius: 'y', unknownOption: true })
+
+  forwardDot({
+    x: 'x',
+    y: 'y',
+    xScale: 'namedX',
+    yScale: 'namedY',
+  })
+  forwardOptionalDot({ x: 'x', y: 'y' })
+  forwardRadialDot({ angle: 'x', radius: 'y' })
+  forwardOptionalRadialDot({ angle: 'x', radius: 'y' })
 }
 
 describe('Cartesian scale ID types', () => {

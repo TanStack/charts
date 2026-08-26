@@ -79,8 +79,10 @@ describe('composed views', () => {
       })
       return {
         marks: [dot([{ x: width, y: height }], { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear().domain([0, width]) },
-        y: { scale: scaleLinear().domain([0, height]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, width]) },
+          y: { scale: scaleLinear().domain([0, height]) },
+        },
         guides: false,
         margin: 0,
       }
@@ -262,8 +264,10 @@ describe('composed views', () => {
       views: {
         main: defineChart({
           marks: [dot([centerRow], { id: 'center-dot', x: 'x', y: 'y' })],
-          x: { scale: scaleLinear().domain([0, 10]) },
-          y: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -277,10 +281,13 @@ describe('composed views', () => {
                   innerRadius: ({ radius }) => radius * 0.55,
                 }),
               ],
+              scales: { angle: null, radius: null },
             }),
           ],
-          x: null,
-          y: null,
+          scales: {
+            x: null,
+            y: null,
+          },
           guides: false,
           margin: 0,
         }),
@@ -646,10 +653,12 @@ function mixedDefinition(rows: readonly MainRow[] = mainRows) {
         key: 'id',
       }),
     ],
-    x: {
-      scale: scaleUtc().domain(rows.map((row) => row.at)),
+    scales: {
+      x: {
+        scale: scaleUtc().domain(rows.map((row) => row.at)),
+      },
+      y: { scale: scaleLinear().domain([0, 10]) },
     },
-    y: { scale: scaleLinear().domain([0, 10]) },
     guides: false,
     margin: 0,
   })
@@ -666,10 +675,13 @@ function mixedDefinition(rows: readonly MainRow[] = mainRows) {
             innerRadius: ({ radius }) => radius * 0.55,
           }),
         ],
+        scales: { angle: null, radius: null },
       }),
     ],
-    x: null,
-    y: null,
+    scales: {
+      x: null,
+      y: null,
+    },
     guides: false,
     margin: 0,
   })
@@ -752,8 +764,10 @@ function linearChild(domain: readonly [number, number]) {
         key: 'id',
       }),
     ],
-    x: { scale: scaleLinear().domain(domain) },
-    y: { scale: scaleLinear().domain([0, 2]) },
+    scales: {
+      x: { scale: scaleLinear().domain(domain) },
+      y: { scale: scaleLinear().domain([0, 2]) },
+    },
     guides: false,
     margin: 0,
   })
@@ -781,8 +795,10 @@ function controlledLegendChild() {
         color: 'series',
       }),
     ],
-    x: { scale: scaleLinear().domain([0, 2]) },
-    y: { scale: scaleLinear().domain([0, 2]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 2]) },
+      y: { scale: scaleLinear().domain([0, 2]) },
+    },
     color: { legend },
   })
 }

@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/guides/choosing-a-chart.md'
   - 'TanStack/charts:docs/examples/*.md'
@@ -81,8 +81,10 @@ export const chart = defineChart({
     lineY(rows, { x: 'month', y: 'forecast', strokeDasharray: '5 4' }),
     ruleY([100], { strokeDasharray: '2 3' }),
   ],
-  x: { scale: scalePoint },
-  y: { scale: scaleLinear, axis: { label: 'Indexed revenue' } },
+  scales: {
+    x: { scale: scalePoint },
+    y: { scale: scaleLinear, axis: { label: 'Indexed revenue' } },
+  },
 })
 ```
 

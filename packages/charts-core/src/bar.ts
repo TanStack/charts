@@ -24,7 +24,9 @@ import type {
   ChartBarStateStyle,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   ResolvedScale,
   SceneNode,
   VisualChannel,
@@ -84,22 +86,53 @@ export interface BarXOptions<TDatum>
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
+type BarYCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  BarYOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
+type BarXCallOptions<
+  TDatum,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  BarXOptions<NoInfer<TDatum>>,
+  {
+    y?: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 export function barY<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function barY<
   TDatum,
-  const TOptions extends BarYOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: BarYCallOptions<TDatum, TXChannel, TXScaleId, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  TOptions
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function barY<TDatum>(
   source: Iterable<TDatum>,
@@ -313,17 +346,20 @@ export function barX<TDatum>(
 ): ChartMark<TDatum, number, number>
 export function barX<
   TDatum,
-  const TOptions extends BarXOptions<NoInfer<TDatum>> | undefined,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: BarXCallOptions<TDatum, TYChannel, TXScaleId, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function barX<TDatum>(
   source: Iterable<TDatum>,

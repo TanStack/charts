@@ -455,7 +455,7 @@ const entries = [
   budgeted(
     'Transform: stack',
     'benchmarks/entries/charts-transform-stack.ts',
-    2.65,
+    2.68,
     {
       inputBoundary: granularTransformBoundary('transformStack', {
         allowD3Shape: true,
@@ -696,7 +696,7 @@ const entries = [
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    24.23,
+    24.25,
   ),
   budgeted(
     'D3-scale dots + static SVG',
@@ -903,7 +903,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    27.71,
+    27.75,
     {
       inputBoundary: {
         require: [
@@ -943,7 +943,7 @@ const entries = [
     'Linear regression + static SVG',
     'benchmarks/entries/charts-regression-svg.ts',
     'D3-scale line + static SVG',
-    6.54,
+    6.59,
     {
       inputBoundary: {
         require: [
@@ -977,7 +977,7 @@ const entries = [
     'Difference mark + static SVG',
     'benchmarks/entries/charts-difference-svg.ts',
     'D3-scale line + static SVG',
-    6.98,
+    7.03,
     {
       inputBoundary: {
         require: [
@@ -1072,7 +1072,7 @@ const entries = [
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    20.12,
+    20.11,
     { inputBoundary: { forbid: ['d3Hexbin'] } },
   ),
   incrementalBudgeted(
@@ -1661,7 +1661,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    28.41,
+    28.47,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1829,7 +1829,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    52.72,
+    52.82,
   ),
   locked(
     'Custom-scale line scene',
@@ -1880,12 +1880,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    36.79,
+    36.84,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    42.01,
+    42.07,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -2089,7 +2089,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    53.61,
+    53.72,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

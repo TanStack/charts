@@ -679,6 +679,29 @@ export function mountChartRenderer<
     }
   }
 
+  const dismissPinnedInteractionOutside = (event: PointerEvent) => {
+    if (
+      options.definition.pointer === false ||
+      pinnedKey === null ||
+      cursorIsPinned()
+    ) {
+      return
+    }
+    const path = event.composedPath()
+    if (
+      path.includes(container) ||
+      path.some(
+        (target) =>
+          view &&
+          target instanceof view.Node &&
+          tooltipInstance?.contains(target),
+      )
+    ) {
+      return
+    }
+    dismissTooltip()
+  }
+
   const handleClick = (event: MouseEvent) => {
     if (controlContains(event.target)) return
     if (options.definition.pointer === false) return
@@ -830,6 +853,11 @@ export function mountChartRenderer<
   configureCursorController()
   render()
   configureObserver()
+  container.ownerDocument.addEventListener(
+    'pointerdown',
+    dismissPinnedInteractionOutside,
+    true,
+  )
 
   return {
     interaction,
@@ -919,6 +947,11 @@ export function mountChartRenderer<
       container.removeEventListener('keydown', handleKeyDown)
       container.removeEventListener('focusin', handleFocus)
       container.removeEventListener('focusout', clearKeyboardFocus)
+      container.ownerDocument.removeEventListener(
+        'pointerdown',
+        dismissPinnedInteractionOutside,
+        true,
+      )
       container.replaceChildren()
       if (ownsPosition && container.style.position === 'relative') {
         container.style.position = previousPosition

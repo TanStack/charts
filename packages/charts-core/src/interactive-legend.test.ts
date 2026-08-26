@@ -53,8 +53,10 @@ describe('interactiveColorLegend', () => {
     const withoutLegend = createChartScene(
       defineChart({
         marks: [lineY(rows, { x: 'x', y: 'y', color: 'series' })],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear().domain([0, 900]) },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear().domain([0, 900]) },
+        },
         color: {
           domain: ['Manufacturing', 'Construction'],
           range: ['#2563eb', '#f97316'],
@@ -152,8 +154,10 @@ describe('interactiveColorLegend', () => {
       createChartScene(
         defineChart({
           marks: [lineY(rows, { x: 'x', y: 'y', z: 'series', color: 'y' })],
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
           color: {
             scale: scaleLinear<string>().range(['#eff6ff', '#1d4ed8']),
             legend: interactiveColorLegend({
@@ -247,8 +251,10 @@ function createDefinition(
           color: 'series',
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear().domain([0, 900]) },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear().domain([0, 900]) },
+      },
       color: {
         domain: ['Manufacturing', 'Construction'],
         range: ['#2563eb', '#f97316'],

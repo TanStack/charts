@@ -23,11 +23,13 @@ describe('SVG surface coordinates', () => {
             { x: 'x', y: 'y' },
           ),
         ],
-        x: {
-          scale: scaleLinear().domain([0, 30]),
-          viewport: { domain: [10, 20], translate: 32 },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 30]),
+            viewport: { domain: [10, 20], translate: 32 },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
       }),
       { width: 640, height: 320 },
     )
@@ -70,11 +72,13 @@ describe('SVG surface coordinates', () => {
             { x: 'x', y: 'y' },
           ),
         ],
-        x: {
-          scale: scaleLinear().domain([0, 2]),
-          viewport: { domain: [0.5, 1.5], translate },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 2]),
+            viewport: { domain: [0.5, 1.5], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 2]) },
         },
-        y: { scale: scaleLinear().domain([0, 2]) },
         guides: false,
       })
     const scene = (translate: number) =>
@@ -103,8 +107,10 @@ describe('SVG surface coordinates', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
         margin: 0,
       }),
       { width: 640, height: 480 },
@@ -162,8 +168,10 @@ describe('SVG surface coordinates', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
         margin: 0,
       }),
       { width: 640, height: 480 },
@@ -209,8 +217,10 @@ describe('SVG surface coordinates', () => {
             strokeDasharray: '3 2',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
         guides: false,
         margin: 20,
       }),
@@ -279,8 +289,10 @@ describe('SVG surface coordinates', () => {
           crosshair({ marker: true }),
           dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' }),
         ],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]), grid: true },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 2]), grid: true },
+        },
         margin: 0,
       }),
       { width: 200, height: 100 },
@@ -339,8 +351,10 @@ describe('SVG surface coordinates', () => {
             ],
           },
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
         guides: false,
         margin: 20,
       }),
@@ -419,8 +433,10 @@ describe('SVG surface coordinates', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' }), crosshair()],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
         guides: false,
       }),
       { width: 200, height: 120 },
@@ -470,8 +486,10 @@ describe('SVG surface coordinates', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
         guides: false,
       }),
       { width: 320, height: 200 },

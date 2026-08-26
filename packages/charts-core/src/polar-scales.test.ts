@@ -1,5 +1,5 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   angleGrid,
   polar,
@@ -260,7 +260,6 @@ describe('polar scale registry', () => {
   })
 
   it('keeps raw arcs scale-free with explicit reserved nulls', () => {
-    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const mark = radialArc([{ startAngle: 0, endAngle: Math.PI }])
     const scene = createChartScene(
       defineChart({
@@ -277,87 +276,9 @@ describe('polar scale registry', () => {
     )
 
     expect(scene.points).toHaveLength(1)
-    expect(warning).not.toHaveBeenCalled()
     expectTypeOf(mark).toMatchTypeOf<
       PolarMark<unknown, number, number, never, never>
     >()
-    warning.mockRestore()
-  })
-
-  it('adapts legacy root scales with one actionable warning', async () => {
-    vi.resetModules()
-    const freshPolar = await import('./polar')
-    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const angle = scaleLinear().domain([0, 1])
-    const radius = scaleLinear().domain([0, 1])
-    const mark = freshPolar.radialDot([{ angle: 0.5, radius: 0.5 }], {
-      angle: 'angle',
-      radius: 'radius',
-    })
-    const legacy = defineChart({
-      marks: [
-        freshPolar.polar({
-          angle: { scale: angle },
-          radius: { scale: radius },
-          marks: [mark],
-        }),
-      ],
-      scales: { x: null, y: null },
-      guides: false,
-    })
-
-    createChartScene(legacy, { width: 200, height: 200 })
-    createChartScene(legacy, { width: 220, height: 220 })
-
-    const messages = warning.mock.calls
-      .map(([message]) => String(message))
-      .filter((message) =>
-        message.includes('`polar()` scale options have moved'),
-      )
-    expect(messages).toHaveLength(1)
-    expect(messages[0]).toContain(
-      'Move `angle` and `radius` to `scales.angle` and `scales.radius`',
-    )
-    expect(messages[0]).toContain('set both entries to `null`')
-    expect(messages[0]).toContain('enters Alpha')
-    warning.mockRestore()
-  })
-
-  it('warns for legacy polar scales without a process global', async () => {
-    vi.resetModules()
-    const freshPolar = await import('./polar')
-    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const nodeProcess = globalThis.process
-    vi.stubGlobal('process', undefined)
-
-    try {
-      createChartScene(
-        defineChart({
-          marks: [
-            freshPolar.polar({
-              angle: { scale: scaleLinear().domain([0, 1]) },
-              radius: { scale: scaleLinear().domain([0, 1]) },
-              marks: [
-                freshPolar.radialDot([{ angle: 0.5, radius: 0.5 }], {
-                  angle: 'angle',
-                  radius: 'radius',
-                }),
-              ],
-            }),
-          ],
-          scales: { x: null, y: null },
-          guides: false,
-        }),
-        { width: 200, height: 200 },
-      )
-    } finally {
-      vi.stubGlobal('process', nodeProcess)
-    }
-
-    expect(warning).toHaveBeenCalledWith(
-      expect.stringContaining('`polar()` scale options have moved'),
-    )
-    warning.mockRestore()
   })
 })
 
@@ -382,9 +303,31 @@ if (false) {
   expectTypeOf(namedDot).toMatchTypeOf<
     PolarMark<unknown, number, number, 'quadrant', 'percent'>
   >()
+  expectTypeOf(defaultDot).toMatchTypeOf<
+    PolarMark<unknown, string, number, 'angle', 'radius'>
+  >()
   expectTypeOf(explicitUndefined).toMatchTypeOf<
     PolarMark<unknown, number, number, 'angle', 'radius'>
   >()
+
+  polar({
+    scales: {
+      // @ts-expect-error Scale-free marks require a null reserved angle entry.
+      angle: { scale: scaleLinear() },
+      radius: null,
+    },
+    marks: [radialArc([{ startAngle: 0, endAngle: Math.PI }])],
+  })
+
+  polar({
+    scales: {
+      // @ts-expect-error Scale-backed marks require a configured angle entry.
+      angle: null,
+      // @ts-expect-error Scale-backed marks require a configured radius entry.
+      radius: null,
+    },
+    marks: [defaultDot],
+  })
 
   const extended: ExtendedPolarOptions = {
     applicationTag: 'extended',

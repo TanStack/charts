@@ -28,6 +28,8 @@ import type {
   ChartMark,
   ChartMarkMotionOptions,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -50,16 +52,20 @@ export interface VoronoiOptions<TDatum>
   opacity?: number
 }
 
-type VoronoiXOutput<TDatum, TOptions> = ChannelOutput<
+type VoronoiCallOptions<
   TDatum,
-  TOptions extends { x: infer TChannel } ? TChannel : never,
-  number
->
-
-type VoronoiYOutput<TDatum, TOptions> = ChannelOutput<
-  TDatum,
-  TOptions extends { y: infer TChannel } ? TChannel : never,
-  number
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  VoronoiOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
 >
 
 type PreparedVoronoiRow<TDatum> = LayoutXYSourceRow<
@@ -78,17 +84,32 @@ type ProjectedVoronoiRow<TDatum> = PreparedVoronoiRow<TDatum> &
 /** Draws final-screen Voronoi cells without adding focus candidates. */
 export function voronoi<
   TDatum,
-  const TOptions extends VoronoiOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: VoronoiCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   never,
   never,
   never,
-  VoronoiXOutput<TDatum, TOptions>,
-  VoronoiYOutput<TDatum, TOptions>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function voronoi<TDatum>(
   source: Iterable<TDatum>,

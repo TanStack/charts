@@ -11,6 +11,7 @@ import {
 import { valueKey } from './scales'
 import type {
   Channel,
+  ChannelOutput,
   CartesianChartMark,
   CartesianScaleBindings,
   ChartKey,
@@ -18,7 +19,8 @@ import type {
   ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -43,23 +45,54 @@ export interface VectorOptions<TDatum>
   headAngle?: number
 }
 
+type VectorCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  VectorOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 /**
  * Draws fixed-pixel vectors at scaled anchors. Rotation is clockwise in
  * degrees, with zero pointing up.
  */
 export function vector<
   TDatum,
-  const TOptions extends VectorOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options: VectorCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function vector<TDatum>(
   source: Iterable<TDatum>,

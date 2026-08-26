@@ -17,7 +17,9 @@ import type {
   ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   ResolvedScale,
   SceneNode,
   VisualChannel,
@@ -51,42 +53,74 @@ export interface BandYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   yScale?: string
 }
 
+type BandXCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+> = MarkCallOptions<
+  BandXOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    xScale?: TXScaleId
+  }
+>
+
+type BandYCallOptions<
+  TDatum,
+  TYChannel,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  BandYOptions<NoInfer<TDatum>>,
+  {
+    y?: TYChannel
+    yScale?: TYScaleId
+  }
+>
+
+export function bandX<TDatum>(
+  source: Iterable<TDatum>,
+): ChartMark<TDatum, number, number>
 export function bandX<
   TDatum,
-  const TOptions extends BandXOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options?: TOptions,
+  options: BandXCallOptions<TDatum, TXChannel, TXScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
   never,
-  TOptions
-> {
+  MarkScaleBindings<TXScaleId, 'y'>
+>
+export function bandX<TDatum>(
+  source: Iterable<TDatum>,
+  options: BandXOptions<NoInfer<TDatum>> = {},
+): CartesianChartMark<TDatum, any, any, any, any, BandXOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
-  const resolved = options ?? ({} as BandXOptions<NoInfer<TDatum>>)
-  const xScale = resolved.xScale ?? 'x'
+  const xScale = options.xScale ?? 'x'
 
   return createMarkWithScaleValues(
     ({ markIndex }) => {
-      const id = resolved.id ?? `band-x-${markIndex}`
+      const id = options.id ?? `band-x-${markIndex}`
       const values = channelValues(
         data,
-        resolved.x,
+        options.x,
         (_datum, { index }) => index,
       )
-      const zValues = channelValues(data, resolved.z, () => null)
+      const zValues = channelValues(data, options.z, () => null)
       const colorValues =
-        resolved.color === undefined
+        options.color === undefined
           ? zValues
-          : channelValues(data, resolved.color, () => null)
-      const keys = inferredKeyValues(data, resolved.key, {
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
         groups: zValues,
         candidates: [values],
         markId: id,
-        warningIdentity: resolved,
+        warningIdentity: options,
       })
 
       return {
@@ -96,18 +130,18 @@ export function bandX<
           color: { scale: 'color', values: colorValues.filter(isChartKey) },
         },
         render: ({ chart, scales, color }) => {
-          const width = Number.isFinite(resolved.width)
-            ? Math.max(0, resolved.width!)
+          const width = Number.isFinite(options.width)
+            ? Math.max(0, options.width!)
             : scales[xScale]!.bandwidth ||
               inferBandwidth(scales[xScale]!, values, chart.width, data.length)
-          const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
+          const inset = Number.isFinite(options.inset) ? options.inset! : 0
           const nodes: SceneNode[] = []
           data.forEach((datum, index) => {
             const xValue = values[index]
             if (!isChartValue(xValue)) return
             const x = scales[xScale]!.map(xValue)
             const fill = visualValue(
-              resolved.fill,
+              options.fill,
               datum,
               index,
               data,
@@ -137,9 +171,9 @@ export function bandX<
               y: chart.y,
               width: paintedWidth,
               height: chart.height,
-              radius: resolved.radius,
+              radius: options.radius,
               interaction: { point, affinity: 'x' },
-              style: { fill, fillOpacity: resolved.fillOpacity },
+              style: { fill, fillOpacity: options.fillOpacity },
             })
           })
           return {
@@ -156,54 +190,55 @@ export function bandX<
         },
       }
     },
-    resolved.motion,
-    resolved.renderer,
-  ) as CartesianChartMark<
-    TDatum,
-    OptionChannelOutput<TDatum, TOptions, 'x', number>,
-    number,
-    OptionChannelOutput<TDatum, TOptions, 'x', number>,
-    never,
-    TOptions
-  >
+    options.motion,
+    options.renderer,
+  )
 }
 
+export function bandY<TDatum>(
+  source: Iterable<TDatum>,
+): ChartMark<TDatum, number, number>
 export function bandY<
   TDatum,
-  const TOptions extends BandYOptions<NoInfer<TDatum>> | undefined,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options?: TOptions,
+  options: BandYCallOptions<TDatum, TYChannel, TYScaleId> | undefined,
 ): CartesianChartMark<
   TDatum,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
   never,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
-> {
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<'x', TYScaleId>
+>
+export function bandY<TDatum>(
+  source: Iterable<TDatum>,
+  options: BandYOptions<NoInfer<TDatum>> = {},
+): CartesianChartMark<TDatum, any, any, any, any, BandYOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
-  const resolved = options ?? ({} as BandYOptions<NoInfer<TDatum>>)
-  const yScale = resolved.yScale ?? 'y'
+  const yScale = options.yScale ?? 'y'
 
   return createMark(
     ({ markIndex }) => {
-      const id = resolved.id ?? `band-y-${markIndex}`
+      const id = options.id ?? `band-y-${markIndex}`
       const values = channelValues(
         data,
-        resolved.y,
+        options.y,
         (_datum, { index }) => index,
       )
-      const zValues = channelValues(data, resolved.z, () => null)
+      const zValues = channelValues(data, options.z, () => null)
       const colorValues =
-        resolved.color === undefined
+        options.color === undefined
           ? zValues
-          : channelValues(data, resolved.color, () => null)
-      const keys = inferredKeyValues(data, resolved.key, {
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
         groups: zValues,
         candidates: [values],
         markId: id,
-        warningIdentity: resolved,
+        warningIdentity: options,
       })
 
       return {
@@ -213,18 +248,18 @@ export function bandY<
           color: { scale: 'color', values: colorValues.filter(isChartKey) },
         },
         render: ({ chart, scales, color }) => {
-          const height = Number.isFinite(resolved.height)
-            ? Math.max(0, resolved.height!)
+          const height = Number.isFinite(options.height)
+            ? Math.max(0, options.height!)
             : scales[yScale]!.bandwidth ||
               inferBandwidth(scales[yScale]!, values, chart.height, data.length)
-          const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
+          const inset = Number.isFinite(options.inset) ? options.inset! : 0
           const nodes: SceneNode[] = []
           data.forEach((datum, index) => {
             const yValue = values[index]
             if (!isChartValue(yValue)) return
             const y = scales[yScale]!.map(yValue)
             const fill = visualValue(
-              resolved.fill,
+              options.fill,
               datum,
               index,
               data,
@@ -254,9 +289,9 @@ export function bandY<
               y: top,
               width: chart.width,
               height: paintedHeight,
-              radius: resolved.radius,
+              radius: options.radius,
               interaction: { point, affinity: 'y' },
-              style: { fill, fillOpacity: resolved.fillOpacity },
+              style: { fill, fillOpacity: options.fillOpacity },
             })
           })
           return {
@@ -273,16 +308,9 @@ export function bandY<
         },
       }
     },
-    resolved.motion,
-    resolved.renderer,
-  ) as CartesianChartMark<
-    TDatum,
-    number,
-    OptionChannelOutput<TDatum, TOptions, 'y', number>,
-    never,
-    OptionChannelOutput<TDatum, TOptions, 'y', number>,
-    TOptions
-  >
+    options.motion,
+    options.renderer,
+  )
 }
 
 function inferBandwidth(

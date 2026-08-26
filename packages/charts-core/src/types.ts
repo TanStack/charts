@@ -108,6 +108,14 @@ export type ChannelOutput<TDatum, TChannel, TFallback extends ChartValue> =
       ? WidenChartValue<NonNullable<TDatum[TChannel]>>
       : WidenChartValue<TFallback>
 
+export type MarkChannelOutput<
+  TDatum,
+  TChannel,
+  TFallback extends ChartValue,
+> = [TChannel] extends [never]
+  ? WidenChartValue<TFallback>
+  : ChannelOutput<TDatum, TChannel, TFallback>
+
 export type OptionChannelOutput<
   TDatum,
   TOptions,
@@ -118,6 +126,23 @@ export type OptionChannelOutput<
     ? ChannelOutput<TDatum, TOptions[TKey], TFallback>
     : WidenChartValue<TFallback>
   : never
+
+export type MarkCallOptions<TOptions, TInferred> = Omit<
+  TOptions,
+  keyof TInferred
+> & {
+  [TKey in keyof TInferred]:
+    | TInferred[TKey]
+    | NoInfer<TKey extends keyof TOptions ? TOptions[TKey] : never>
+}
+
+export type MarkScaleBindings<
+  TXScaleId extends string | undefined = 'x',
+  TYScaleId extends string | undefined = 'y',
+> = {
+  xScale?: TXScaleId
+  yScale?: TYScaleId
+}
 
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
@@ -650,12 +675,6 @@ export type ChartMarkPointY<TMark> = TMark extends DecorativeChartMarkBrand
       : TYValue
     : never
 
-/** @deprecated Prefer ChartMarkPointX when distinguishing point and scale values. */
-export type ChartMarkX<TMark> = ChartMarkPointX<TMark>
-
-/** @deprecated Prefer ChartMarkPointY when distinguishing point and scale values. */
-export type ChartMarkY<TMark> = ChartMarkPointY<TMark>
-
 type IsAny<TValue> = 0 extends 1 & TValue ? true : false
 
 export type ChartAxisValue<TValue> =
@@ -803,51 +822,33 @@ export interface ChartMarkMotionOptions<
   motion?: ChartMotionDefinition<TDatum>
 }
 
-type ChartXSpec<TMarks extends AnyChartMarks> =
+type ChartXScaleSpec<TMarks extends AnyChartMarks> =
   IsAny<ChartMarkScaleX<TMarks[number]>> extends true
     ? { x: ChartXOptionsForMarks<TMarks> | null }
     : [ChartMarkScaleX<TMarks[number]>] extends [never]
-      ? { x?: null }
+      ? { x: null }
       : { x: ChartXOptionsForMarks<TMarks> }
 
-type ChartYSpec<TMarks extends AnyChartMarks> =
+type ChartYScaleSpec<TMarks extends AnyChartMarks> =
   IsAny<ChartMarkScaleY<TMarks[number]>> extends true
     ? { y: ChartYOptionsForMarks<TMarks> | null }
     : [ChartMarkScaleY<TMarks[number]>] extends [never]
-      ? { y?: null }
+      ? { y: null }
       : { y: ChartYOptionsForMarks<TMarks> }
 
 export type ChartScales<TMarks extends AnyChartMarks = AnyChartMarks> =
-  Readonly<Record<string, ChartPositionScaleOptions | null>> & {
-    x: ChartXOptionsForMarks<TMarks> | null
-    y: ChartYOptionsForMarks<TMarks> | null
-  }
-
-interface CanonicalChartScaleSpec<TMarks extends AnyChartMarks> {
-  scales: ChartScales<TMarks>
-  /** @deprecated Move this value to `scales.x`. */
-  x?: ChartXOptionsForMarks<TMarks> | null
-  /** @deprecated Move this value to `scales.y`. */
-  y?: ChartYOptionsForMarks<TMarks> | null
-}
-
-type LegacyChartScaleSpec<TMarks extends AnyChartMarks> = {
-  scales?: undefined
-} & ChartXSpec<TMarks> &
-  ChartYSpec<TMarks>
+  Readonly<Record<string, ChartPositionScaleOptions | null>> &
+    ChartXScaleSpec<TMarks> &
+    ChartYScaleSpec<TMarks>
 
 type ChartSpecForMarks<TMarks extends AnyChartMarks> = {
   marks: TMarks
-} & ChartSpecBase &
-  (CanonicalChartScaleSpec<TMarks> | LegacyChartScaleSpec<TMarks>)
+  scales: ChartScales<TMarks>
+} & ChartSpecBase
 
 interface StoredChartSpec extends ChartSpecBase {
   marks: AnyChartMarks
-  scales?: Readonly<Record<string, ChartPositionScaleOptions | null>>
-  /** @deprecated Move this value to `scales.x`. */
-  x?: ChartXOptionsForMarks<AnyChartMarks> | null
-  /** @deprecated Move this value to `scales.y`. */
-  y?: ChartYOptionsForMarks<AnyChartMarks> | null
+  scales: Readonly<Record<string, ChartPositionScaleOptions | null>>
 }
 
 export type ChartSpec<TMarks extends AnyChartMarks | undefined = undefined> = [

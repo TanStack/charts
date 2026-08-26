@@ -25,8 +25,10 @@ describe('box marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [boxY(rows, { x: 'group', y: 'value', key: 'id' })],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -85,8 +87,10 @@ describe('box marks', () => {
           stroke: '#2563eb',
         }),
       ],
-      x: { scale: scaleBand<number> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<number> },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 640, height: 400 })
     type Datum = ChartSpecDatum<typeof definition>
@@ -214,8 +218,10 @@ describe('box marks', () => {
     const original = [...rows]
     const definition = defineChart({
       marks: [boxY(rows, { x: 'group', y: 'value', key: 'id' })],
-      x: { scale: scaleBand<string> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 600, height: 360 })
     const summaries = scene.points.flatMap(({ datum }) =>
@@ -246,8 +252,10 @@ describe('box marks', () => {
     ]
     const definition = defineChart({
       marks: [boxX(rows, { id: 'horizontal', x: 'value', y: 'group' })],
-      x: { scale: scaleLinear },
-      y: { scale: scaleBand<string> },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleBand<string> },
+      },
     })
     const scene = createChartScene(definition, { width: 600, height: 360 })
     type Datum = ChartSpecDatum<typeof definition>
@@ -287,8 +295,10 @@ describe('box marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [boxY(rows, { x: 'group', y: 'value', key: 'id' })],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 600, height: 360 },
     )
@@ -310,8 +320,10 @@ describe('box marks', () => {
     const mark = boxY(rows, { x: 'group', y: 'value', key: 'id' })
     const definition = defineChart({
       marks: [mark],
-      x: { scale: scaleBand<string> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      },
     })
     const median = () =>
       createChartScene(definition, { width: 480, height: 280 }).points.find(
@@ -347,8 +359,10 @@ describe('box marks', () => {
     })
     const definition = defineChart({
       marks: [mark],
-      x: { scale: scaleBand<string> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
     const motion = mark.initialize({ markIndex: 0 }).motion
@@ -386,8 +400,10 @@ function renderMorley() {
         stroke: '#2563eb',
       }),
     ],
-    x: { scale: scaleBand<number> },
-    y: { scale: scaleLinear },
+    scales: {
+      x: { scale: scaleBand<number> },
+      y: { scale: scaleLinear },
+    },
   })
   return createChartScene(definition, { width: 640, height: 400 })
 }

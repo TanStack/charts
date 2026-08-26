@@ -114,9 +114,6 @@ are available from the root entry point. The four `ChartMarkPoint*` and
 | `ChartSpecXValue<TSpec>` | Interaction x union across marks                                                               |
 | `ChartSpecYValue<TSpec>` | Interaction y union across marks                                                               |
 
-`ChartMarkX` and `ChartMarkY` remain exported as deprecated aliases of the
-point extractors. New code should use the explicit names.
-
 Stateful mark presentation uses `ChartMarkStateContext` as one object bag for
 the datum, index, data, point, focus, pointer, and matching helper. A
 `ChartMarkStateSelector` handles the common declarative cases, while callbacks

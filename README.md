@@ -18,7 +18,7 @@
 
 <div align="center">
   <a href="#status">
-    <img alt="Status - PRE-ALPHA" src="https://img.shields.io/badge/status-pre--alpha-orange" />
+    <img alt="Status - ALPHA" src="https://img.shields.io/badge/status-alpha-yellow" />
   </a>
   <a href="https://twitter.com/tan_stack">
     <img alt="Follow @TanStack" src="https://img.shields.io/twitter/follow/tan_stack.svg?style=social" />
@@ -39,10 +39,12 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> This README follows unreleased `main`. The latest published release is
-> TanStack Charts `0.15.0`; use its
+> This README follows unreleased `main`, the official Alpha line. The latest
+> published release is TanStack Charts `0.15.0`; use its
 > [release-source documentation](https://github.com/TanStack/charts/tree/v0.15.0/docs).
-> It is pre-alpha and not ready for production use.
+> Alpha releases use regular `0.x` versions and may contain breaking changes
+> between minor releases. Pin an exact version for production use and read the
+> [Alpha stability policy](./docs/stability.md) before upgrading.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar

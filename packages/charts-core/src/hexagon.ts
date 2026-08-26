@@ -19,7 +19,9 @@ import type {
   ChartNumericScale,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -41,23 +43,46 @@ export interface HexagonOptions<TDatum>
   strokeWidth?: number
 }
 
+type HexagonCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  HexagonOptions<TDatum>,
+  {
+    x?: TXChannel
+    y?: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
 /** Draws pointy-topped, fixed-pixel hexagons at scaled x/y positions. */
 export function hexagon<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function hexagon<
   TDatum,
-  const TOptions extends HexagonOptions<TDatum> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
+  options:
+    | HexagonCallOptions<TDatum, TXChannel, TYChannel, TXScaleId, TYScaleId>
+    | undefined,
 ): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>,
-  TOptions
+  MarkChannelOutput<TDatum, TXChannel, number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkChannelOutput<TDatum, TXChannel, number>,
+  MarkChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function hexagon<TDatum>(
   source: Iterable<TDatum>,

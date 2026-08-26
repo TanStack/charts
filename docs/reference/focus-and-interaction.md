@@ -22,6 +22,7 @@ With no custom focus strategy:
 - `Home` and `End` move to the first and last point
 - `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
   the focused point
+- pressing the pointer outside both the chart and the tooltip dismisses a pinned tooltip
 - a configured selection controller receives the same focused point before
   `onSelect`
 - a click focuses and selects the nearest point, or selects `null` on the
@@ -898,8 +899,9 @@ resize, and content resize, and collide against the viewport instead of the
 chart box.
 
 Clicking, Enter, or Space pins the tooltip. The next activation unpins it.
-`Escape` unpins and clears focus. Set `sticky: false` to disable pinning. A
-display-only tooltip has `role="status"` and `aria-live="polite"`.
+Pressing the pointer outside the chart and tooltip, or pressing `Escape`,
+unpins and clears focus. Set `sticky: false` to disable pinning. A display-only
+tooltip has `role="status"` and `aria-live="polite"`.
 
 Set `visibility: 'pinned'` for click-or-keyboard detail that should not paint a
 transient shell. Focus and inline mark states still update before activation;

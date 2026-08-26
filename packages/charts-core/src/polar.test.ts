@@ -916,7 +916,7 @@ describe('polar marks', () => {
     const missingScale = defineChart({
       marks: [
         polar({
-          scales: { angle: null, radius: null },
+          scales: { angle: null, radius: null } as any,
           marks: [radialLine([1, 2, 3])],
         }),
       ],
@@ -932,9 +932,19 @@ describe('polar marks', () => {
         polar({
           scales: {
             angle: null,
-            radius: { scale: scaleLinear().domain([0, 1]) },
+            radius: null,
+            guideRadius: {
+              channel: 'radius',
+              scale: scaleLinear().domain([0, 1]),
+            },
           },
-          guides: [radialGrid({ values: [1], shape: 'polygon' })],
+          guides: [
+            radialGrid({
+              scale: 'guideRadius',
+              values: [1],
+              shape: 'polygon',
+            }),
+          ],
           marks: [],
         }),
       ],
@@ -947,6 +957,23 @@ describe('polar marks', () => {
         height: 200,
       }),
     ).toThrow(/requires a configured angle scale/)
+
+    const configuredPhantom = defineChart({
+      marks: [
+        polar({
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: null,
+          } as any,
+          marks: [radialArc([{ startAngle: 0, endAngle: Math.PI }])],
+        }),
+      ],
+      scales: { x: null, y: null },
+      guides: false,
+    })
+    expect(() =>
+      createChartScene(configuredPhantom, { width: 200, height: 200 }),
+    ).toThrow(/cannot be configured when no mark materializes its channel/)
   })
 
   it('supports authored D3 arc generators with per-datum radii', () => {

@@ -42,10 +42,12 @@ describe('violin marks', () => {
       marks: [mark],
       guides: false,
       focusRing: false,
-      x: {
-        scale: scalePoint<string>().domain(['Adelie', 'Chinstrap', 'Gentoo']),
+      scales: {
+        x: {
+          scale: scalePoint<string>().domain(['Adelie', 'Chinstrap', 'Gentoo']),
+        },
+        y: { scale: scaleLinear().domain([3000, 5000]) },
       },
-      y: { scale: scaleLinear().domain([3000, 5000]) },
     })
     const scene = createChartScene(definition, { width: 480, height: 300 })
     const resized = createChartScene(definition, { width: 720, height: 480 })
@@ -119,8 +121,10 @@ describe('violin marks', () => {
         marks: [mark],
         guides: false,
         focusRing: false,
-        x: { scale: scaleUtc().domain(at) },
-        y: { scale: scalePoint<string>().domain(['A', 'B']) },
+        scales: {
+          x: { scale: scaleUtc().domain(at) },
+          y: { scale: scalePoint<string>().domain(['A', 'B']) },
+        },
       }),
       { width: 480, height: 300 },
     )
@@ -165,10 +169,14 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: {
-          scale: scaleBand<string>().domain(['Adelie', 'Gentoo']).padding(0.2),
+        scales: {
+          x: {
+            scale: scaleBand<string>()
+              .domain(['Adelie', 'Gentoo'])
+              .padding(0.2),
+          },
+          y: { scale: scaleLinear().domain([3000, 5000]) },
         },
-        y: { scale: scaleLinear().domain([3000, 5000]) },
       }),
       { width: 400, height: 240 },
     )
@@ -184,8 +192,10 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['Adelie']) },
-        y: { scale: scaleLinear().domain([3000, 5000]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['Adelie']) },
+          y: { scale: scaleLinear().domain([3000, 5000]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -214,8 +224,10 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(domain) },
-        y: { scale: scaleLinear().domain([3000, 5000]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(domain) },
+          y: { scale: scaleLinear().domain([3000, 5000]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -248,8 +260,10 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 4]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -279,8 +293,10 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['Adelie']) },
-        y: { scale: scaleLinear().domain([3000, 5000]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['Adelie']) },
+          y: { scale: scaleLinear().domain([3000, 5000]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -318,8 +334,10 @@ describe('violin marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['Adelie']) },
-        y: { scale: scaleLinear().domain([3000, 5000]) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['Adelie']) },
+          y: { scale: scaleLinear().domain([3000, 5000]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -367,8 +385,10 @@ describe('violin marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scalePoint<string>().domain(['Adelie']) },
-          y: { scale: scaleLinear().domain([3000, 5000]) },
+          scales: {
+            x: { scale: scalePoint<string>().domain(['Adelie']) },
+            y: { scale: scaleLinear().domain([3000, 5000]) },
+          },
         }),
         { width: 400, height: 240 },
       )
@@ -428,8 +448,10 @@ describe('violin marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scalePoint<string>().domain(['A']) },
-          y: { scale: scaleLinear().domain([0, 2]) },
+          scales: {
+            x: { scale: scalePoint<string>().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 2]) },
+          },
         }),
         { width: 240, height: 160 },
       )
@@ -448,8 +470,10 @@ describe('violin marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([3000, 5000]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([3000, 5000]) },
+          },
         }),
         { width: 240, height: 160 },
       ),

@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/concepts/grammar-of-graphics.md'
   - 'TanStack/charts:docs/concepts/marks-and-layering.md'
@@ -55,8 +55,10 @@ export const chart = defineChart({
       },
     ),
   ],
-  x: { scale: scalePoint },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scalePoint },
+    y: { scale: scaleLinear },
+  },
 })
 ```
 

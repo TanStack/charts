@@ -22,11 +22,11 @@ path is explicit and repeatable.
 Start at [Choosing a Chart](./choosing-a-chart.md), then use the relevant
 [example family](../examples/index.md).
 
-Put Cartesian scale and axis options under `scales.x` and `scales.y`. Never
-generate the deprecated root `x` or `y` form. Inside `polar()`, put position
-scales under `scales.angle` and `scales.radius`. Use named registry entries and
-mark-level `xScale`, `yScale`, `angleScale`, or `radiusScale` selectors when a
-chart needs more than one mapping on the same channel.
+Put Cartesian scale and axis options under `scales.x` and `scales.y`. The
+pre-Alpha root `x` and `y` form is not part of the Alpha API. Inside `polar()`,
+put position scales under `scales.angle` and `scales.radius`. Use named registry
+entries and mark-level `xScale`, `yScale`, `angleScale`, or `radiusScale`
+selectors when a chart needs more than one mapping on the same channel.
 
 Keep the default SVG renderer unless a measured paint-heavy mark benefits from
 Canvas. To mix surfaces, import `canvasChartRenderer` from the exact

@@ -3,11 +3,12 @@ title: Installation
 description: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
 ---
 
-These docs follow unreleased `main`. The latest published pre-alpha is TanStack
-Charts `0.15.0`; use its
+These docs follow unreleased `main`, the official Alpha line. The latest
+published release is TanStack Charts `0.15.0`; use its
 [release-source docs](https://github.com/TanStack/charts/tree/v0.15.0/docs)
-for the exact surface. Install TanStack Charts in each application that authors
-chart definitions:
+for the exact surface. Alpha releases use regular `0.x` versions and may break
+APIs between minor releases. Install TanStack Charts in each application that
+authors chart definitions:
 
 ```sh
 pnpm add @tanstack/charts

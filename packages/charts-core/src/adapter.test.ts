@@ -15,8 +15,10 @@ const rows = [
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-  x: { scale: scaleLinear().domain([0, 1]) },
-  y: { scale: scaleLinear().domain([0, 4]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  },
 })
 const focusDisabledDefinition = defineChart(definition, { focus: false })
 const freeCursorDefinition = defineChart(definition, {
@@ -31,8 +33,10 @@ describe('chart adapter controller', () => {
   it('mounts a prerendered dynamic definition', () => {
     const dynamic = defineChart(() => ({
       marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 4]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 4]) },
+      },
     }))
     const adapter = createChartAdapter({
       definition: dynamic,

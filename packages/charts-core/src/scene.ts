@@ -59,8 +59,6 @@ import type {
   SceneNode,
 } from './types'
 
-declare const process: { readonly env: { readonly NODE_ENV?: string } }
-
 export const defaultChartTheme: ChartTheme = {
   foreground: 'currentColor',
   muted: 'currentColor',
@@ -98,6 +96,13 @@ type DefinedStaticChart<
   > &
   Pick<TSpec, Extract<keyof TSpec, 'tooltip'>>
 
+type ErasedChartMarks = readonly ChartMark<any, any, any, any, any, any, any>[]
+
+type ErasedChartSpec = {
+  marks: ErasedChartMarks
+  scales: Readonly<Record<string, ChartPositionScaleOptions | null>>
+}
+
 type ChartDefinitionDatum<TDefinition> =
   TDefinition extends ChartDefinition<infer TDatum, any, any> ? TDatum : never
 
@@ -113,14 +118,7 @@ type ChartDefinitionWithOptions<TDefinition, TOptions> = Omit<
 > &
   TOptions
 
-type DefinedResponsiveChart<
-  TSpec extends {
-    marks: readonly ChartMark<any, any, any, any, any, any, any>[]
-    scales?: Readonly<Record<string, ChartPositionScaleOptions | null>>
-    x?: ChartPositionScaleOptions<any> | null
-    y?: ChartPositionScaleOptions<any> | null
-  },
-> = Omit<
+type DefinedResponsiveChart<TSpec extends ErasedChartSpec> = Omit<
   ResponsiveChartDefinition<
     ChartSpecDatum<TSpec>,
     ChartSpecXValue<TSpec>,
@@ -142,12 +140,7 @@ export function defineChart<
     >,
 ): DefinedStaticChart<TMarks, TSpec>
 export function defineChart<
-  const TSpec extends {
-    marks: readonly ChartMark<any, any, any, any, any, any, any>[]
-    scales?: Readonly<Record<string, ChartPositionScaleOptions | null>>
-    x?: ChartPositionScaleOptions<any> | null
-    y?: ChartPositionScaleOptions<any> | null
-  },
+  const TSpec extends ErasedChartSpec,
   TTooltipHost extends string = never,
 >(
   config: ResponsiveChartConfig<TSpec, TTooltipHost>,
@@ -160,14 +153,7 @@ export function defineChart<
   keyof ChartDefinitionOptions
 > &
   ResponsiveChartConfig<TSpec, TTooltipHost>
-export function defineChart<
-  const TSpec extends {
-    marks: readonly ChartMark<any, any, any, any, any, any, any>[]
-    scales?: Readonly<Record<string, ChartPositionScaleOptions | null>>
-    x?: ChartPositionScaleOptions<any> | null
-    y?: ChartPositionScaleOptions<any> | null
-  },
->(
+export function defineChart<const TSpec extends ErasedChartSpec>(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DefinedResponsiveChart<TSpec>
 export function defineChart<
@@ -187,19 +173,14 @@ export function defineChart<
   options: TOptions,
 ): ChartDefinitionWithOptions<DefinedStaticChart<TMarks, TSpec>, TOptions>
 export function defineChart<
-  const TSpec extends {
-    marks: readonly ChartMark<any, any, any, any, any, any, any>[]
-    scales?: Readonly<Record<string, ChartPositionScaleOptions | null>>
-    x?: ChartPositionScaleOptions<any> | null
-    y?: ChartPositionScaleOptions<any> | null
-  },
+  const TSpec extends ErasedChartSpec,
   const TOptions extends ChartDefinitionOptions<
     ChartSpecDatum<TSpec>,
     ChartSpecXValue<TSpec>,
     ChartSpecYValue<TSpec>
   >,
 >(
-  chart: (context: ChartBuildContext) => TSpec,
+  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
   options: TOptions,
 ): ChartDefinitionWithOptions<DefinedResponsiveChart<TSpec>, TOptions>
 export function defineChart<
@@ -220,6 +201,17 @@ export function defineChart<
   TOptions
 >
 export function defineChart<
+  const TSpec extends ErasedChartSpec,
+  const TOptions extends ChartDefinitionOptions<
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >,
+>(
+  definition: DefinedResponsiveChart<TSpec>,
+  options: TOptions,
+): ChartDefinitionWithOptions<DefinedResponsiveChart<TSpec>, TOptions>
+export function defineChart<
   const TDefinition extends StaticChartDefinition<any, any, any>,
   const TOptions extends ChartDefinitionOptions<
     ChartDefinitionDatum<TDefinition>,
@@ -238,7 +230,10 @@ export function defineChart<
     ChartDefinitionYValue<TDefinition>
   >,
 >(
-  definition: TDefinition,
+  definition: TDefinition &
+    (ErasedChartSpec extends ReturnType<TDefinition['chart']>
+      ? unknown
+      : never),
   options: TOptions,
 ): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart(definition?: any, options?: any): any {
@@ -857,40 +852,13 @@ function collectPositionScaleChannels(
   return collected
 }
 
-let warnedLegacyScaleOptions = false
-
 function resolveScaleDefinitions(
   definition: StaticChartDefinition,
   collected: ReadonlyMap<string, CollectedPositionScaleChannels>,
 ): readonly PositionScaleDefinition[] {
-  if (
-    (definition.scales === undefined ||
-      definition.x !== undefined ||
-      definition.y !== undefined) &&
-    !warnedLegacyScaleOptions
-  ) {
-    try {
-      if (process.env.NODE_ENV !== 'production') {
-        warnedLegacyScaleOptions = true
-        console.warn(
-          '[TanStack Charts] Root `x` and `y` options are deprecated. Move them to `scales.x` and `scales.y`. When neither Cartesian scale is used, set `scales` to `{ x: null, y: null }`. This compatibility will be removed when TanStack Charts enters Alpha.',
-        )
-      }
-    } catch {
-      warnedLegacyScaleOptions = true
-      // Keep raw-browser migration help removable by production minifiers.
-      /* @__PURE__ */ console.warn(
-        '[TanStack Charts] Root `x` and `y` options are deprecated. Move them to `scales.x` and `scales.y`. When neither Cartesian scale is used, set `scales` to `{ x: null, y: null }`. This compatibility will be removed when TanStack Charts enters Alpha.',
-      )
-    }
-  }
+  const scales = definition.scales
 
-  const scales = definition.scales ?? {
-    x: definition.x,
-    y: definition.y,
-  }
-
-  if (!Object.hasOwn(scales, 'x') || !Object.hasOwn(scales, 'y')) {
+  if (!scales || !Object.hasOwn(scales, 'x') || !Object.hasOwn(scales, 'y')) {
     throw new TypeError('Chart scales must define reserved `x` and `y` entries')
   }
 

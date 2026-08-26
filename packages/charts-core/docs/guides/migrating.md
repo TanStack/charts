@@ -7,9 +7,9 @@ Migration is a semantic exercise, not a component-name translation. First
 describe what the existing chart means and how users operate it. Then express
 that behavior with data preparation, scales, marks, and host options.
 
-## Move root scales into the registry
+## Move pre-Alpha root scales into the registry
 
-Current definitions put Cartesian scale and axis options under `scales`:
+Alpha definitions require Cartesian scale and axis options under `scales`:
 
 ```ts
 const definition = defineChart({
@@ -21,37 +21,20 @@ const definition = defineChart({
 })
 ```
 
-The earlier root properties still work temporarily:
+When updating from a pre-Alpha release, move root `x` to `scales.x` and root
+`y` to `scales.y`. Every definition must provide both reserved entries. Use
+`null` when the chart does not use one of the Cartesian dimensions.
 
-```ts
-const legacyDefinition = defineChart({
-  marks,
-  x: { scale: xScale },
-  y: { scale: yScale, grid: true },
-})
-```
+Polar definitions follow the same migration. Move pre-Alpha root `angle` and
+`radius` options into `polar({ scales: { angle, radius } })`. Every polar
+definition must provide both reserved entries. If neither positional scale is
+used, write `scales: { angle: null, radius: null }`.
 
-Development builds warn with the exact replacement. Move `x` to `scales.x`
-and `y` to `scales.y`. Root `x` and `y` will be removed when TanStack Charts
-enters Alpha. New code and generated code should only use the `scales` form.
-
-Polar definitions follow the same migration. Move `polar({ angle, radius })`
-to `polar({ scales: { angle, radius } })`. If neither positional scale is
-used, write `scales: { angle: null, radius: null }`. The old polar properties
-also work temporarily, warn in development, and will be removed when TanStack
-Charts enters Alpha.
-
-During this compatibility window, `ChartSpec` is a union of the canonical and
-legacy shapes. If application code extended the old interface, replace that
-extension with an intersection:
-
-```ts
-import type { ChartSpec } from '@tanstack/charts'
-
-type ApplicationChartSpec = ChartSpec & {
-  applicationTag: string
-}
-```
+Custom mark type code should replace `ChartMarkX` and `ChartMarkY` with
+`ChartMarkPointX` and `ChartMarkPointY` from
+`@tanstack/charts/mark/scale-values`. A polar length callback should replace
+`layout.angle` with `layout.scales.angle` and `layout.radiusScale` with
+`layout.scales.radius`.
 
 ## Inventory the current contract
 

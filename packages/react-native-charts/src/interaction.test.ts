@@ -161,7 +161,7 @@ describe('native focus model', () => {
 function definition(
   options: Partial<ChartDefinition<Datum, number, number>>,
 ): ChartDefinition<Datum, number, number> {
-  return { marks: [], ...options }
+  return { marks: [], scales: { x: null, y: null }, ...options }
 }
 
 function point(

@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.15.0'
 sources:
   - 'TanStack/charts:docs/concepts/scales-and-d3.md'
   - 'TanStack/charts:docs/reference/scales-guides-and-color.md'
@@ -43,12 +43,14 @@ const color = scaleOrdinal<string, string>()
 
 export const chart = defineChart({
   marks: [lineY(rows, { x: 'week', y: 'downloads', z: 'package' })],
-  x: { scale: () => scalePoint<string>().padding(0.2) },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Downloads' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Downloads' },
+    },
   },
   color: { scale: color, legend: colorLegend({ label: 'Package' }) },
 })
