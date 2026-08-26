@@ -21,6 +21,7 @@ import {
   scaleUtc,
 } from 'd3-scale'
 import { curveCatmullRom, curveMonotoneX } from 'd3-shape'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import type { SimpsonsRow } from '@tanstack/charts-data/simpsons'
 import type {
@@ -121,6 +122,65 @@ export interface SparkInput<TDatum> {
   value: (row: TDatum) => number | null
   color: string
 }
+
+export const createAaplPriceVolumeChart = (input: {
+  rows: readonly AaplRow[]
+}) =>
+  defineChart(({ width }) => ({
+    marks: [
+      areaY(input.rows, {
+        id: 'aapl-volume',
+        x: 'Date',
+        y1: 0,
+        y2: 'Volume',
+        yScale: 'volume',
+        fill: '#8579ff',
+        fillOpacity: 0.18,
+        curve: smooth,
+      }),
+      lineY(input.rows, {
+        id: 'aapl-close',
+        x: 'Date',
+        y: 'Close',
+        stroke: '#ff625a',
+        strokeWidth: 2,
+        curve: smooth,
+      }),
+    ],
+    scales: {
+      x: {
+        scale: scaleUtc,
+        axis: {
+          ticks: {
+            count: width < 680 ? 4 : 7,
+            format: formatYear,
+          },
+        },
+      },
+      y: {
+        scale: scaleLinear,
+        nice: true,
+        grid: true,
+        axis: {
+          label: 'Close ($)',
+          ticks: { count: 4, format: formatDollars },
+        },
+      },
+      volume: {
+        channel: 'y',
+        side: 'right',
+        scale: scaleLinear,
+        nice: true,
+        axis: {
+          label: 'Volume',
+          ticks: { count: 4, format: formatVolume },
+        },
+      },
+    },
+    clip: true,
+    margin: { top: 8, bottom: 30 },
+    theme: chartTheme,
+  }))
 
 export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
   const [minimum, maximum] = extent(input.rows, input.value)
@@ -600,6 +660,15 @@ function polar(
 function compactNumber(value: number): string {
   if (value >= 1_000) return `${Math.round(value / 1_000)}k`
   return `${Math.round(value)}`
+}
+
+function formatDollars(value: number): string {
+  return `$${Math.round(value)}`
+}
+
+function formatVolume(value: number): string {
+  if (value >= 1_000_000) return `${Math.round(value / 1_000_000)}M`
+  return compactNumber(value)
 }
 
 function formatMonth(value: Date): string {

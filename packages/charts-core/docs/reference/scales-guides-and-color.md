@@ -385,6 +385,8 @@ const chart = defineChart({
 })
 ```
 
+<!-- ::chart-example id=70-composed-chart height=480 -->
+
 A named scale must declare `channel: 'x'` or `channel: 'y'`. Its mark binding
 must use the same channel. The ID `color` is reserved for the shared visual
 color scale and cannot name a Cartesian position scale.

@@ -2,7 +2,7 @@ import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
 import { createExampleChart } from './tanstack'
-import type { SceneNode } from '@tanstack/charts'
+import type { SceneNode, SceneRule } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
 const input = {
@@ -42,6 +42,31 @@ describe('native composed-chart bar sizing', () => {
     })
   })
 
+  it('binds named scales and stacks both independent right-side axes', () => {
+    const scene = render(input)
+    const precipitationPoint = scene.points.find(
+      ({ markId }) => markId === 'precipitation-bars',
+    )
+    const precipitationAxis = flatten(scene.nodes).find(
+      (node): node is SceneRule =>
+        node.kind === 'rule' && node.key === 'precipitation-axis',
+    )
+    const windAxis = flatten(scene.nodes).find(
+      (node): node is SceneRule =>
+        node.kind === 'rule' && node.key === 'wind-axis',
+    )
+    if (!precipitationPoint) {
+      throw new Error('Expected a precipitation point')
+    }
+
+    expect(scene.scales.precipitation).toBeDefined()
+    expect(precipitationPoint.y).toBe(
+      scene.scales.precipitation?.map(precipitationPoint.yValue),
+    )
+    expect(precipitationAxis?.x1).toBe(scene.chart.x + scene.chart.width)
+    expect(windAxis?.x1).toBeGreaterThan(precipitationAxis?.x1 ?? Infinity)
+  })
+
   it('does not hide responsive bar geometry outside the definition', async () => {
     const closure = await loadTanStackSources('70-composed-chart')
     const source = closure.files.map((file) => file.source).join('\n')
@@ -49,6 +74,8 @@ describe('native composed-chart bar sizing', () => {
     expect(closure.files.map((file) => file.path)).toEqual(['example.tsx'])
     expect(closure.roles.support.files).toBe(0)
     expect(source).toContain('maxThickness: 20')
+    expect(source).toContain("yScale: 'precipitation'")
+    expect(source).toContain("yScale: 'wind'")
     expect(source).not.toContain('defineChart(({')
     expect(source).not.toContain('innerWidth')
     expect(source).not.toContain('categoryBandwidth')
