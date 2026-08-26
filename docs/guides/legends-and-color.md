@@ -34,8 +34,11 @@ const definition = defineChart({
       z: 'series',
     }),
   ],
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   color: {
     scale: color,
     legend: colorLegend({ label: 'Package' }),
@@ -125,15 +128,18 @@ export default defineChart({
       strokeWidth: 2.5,
     }),
   ],
-  x: {
-    scale: () => scalePoint<string>().padding(0.2),
-    axis: { label: 'Week' },
+  scales: {
+    x: {
+      scale: () => scalePoint<string>().padding(0.2),
+      axis: { label: 'Week' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Downloads' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { ticks: { count: 5 }, label: 'Downloads' },
-  },
+
   color: { legend: colorLegend({ label: 'Package' }) },
 })
 ```

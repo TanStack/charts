@@ -36,8 +36,16 @@ export const createExampleChart = (input: ChartOptions) => {
               color: 'id',
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: ids, range: colors },
       margin: 0,
     },

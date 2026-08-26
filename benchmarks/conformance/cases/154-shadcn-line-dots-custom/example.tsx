@@ -53,19 +53,22 @@ export function createExampleChart() {
         }),
         ...dotMarks,
       ],
-      x: shadcnPointXAxis(),
-      y: {
-        scale: scaleLinear().domain([0, 320]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: {
-            values: [0, 80, 160, 240, 320],
-            size: 0,
+      scales: {
+        x: shadcnPointXAxis(),
+        y: {
+          scale: scaleLinear().domain([0, 320]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: {
+              values: [0, 80, 160, 240, 320],
+              size: 0,
+            },
+            tickLabels: false,
           },
-          tickLabels: false,
         },
       },
+
       color: {
         domain: twoSeries,
         range: shadcnColors.slice(0, 2),

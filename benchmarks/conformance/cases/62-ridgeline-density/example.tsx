@@ -59,21 +59,24 @@ export const createExampleChart = (input: ChartOptions) => {
           curve,
         }),
       ],
-      x: {
-        scale: scaleLinear().domain([4, 10]),
-        grid: true,
-        axis: { label: 'IMDb rating' },
-      },
-      y: {
-        scale: scalePoint<number>().domain(seasons).padding(overlap),
-        reverse: true,
-        axis: {
-          ticks: {
-            values: seasons,
-            format: (season) => `Season ${season}`,
+      scales: {
+        x: {
+          scale: scaleLinear().domain([4, 10]),
+          grid: true,
+          axis: { label: 'IMDb rating' },
+        },
+        y: {
+          scale: scalePoint<number>().domain(seasons).padding(overlap),
+          reverse: true,
+          axis: {
+            ticks: {
+              values: seasons,
+              format: (season) => `Season ${season}`,
+            },
           },
         },
       },
+
       color: {
         range: colors,
       },

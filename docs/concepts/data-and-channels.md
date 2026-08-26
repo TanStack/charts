@@ -51,7 +51,7 @@ initializes; keep expensive cross-row transforms in application code.
 
 ## Positional channels
 
-The x and y channels feed the chart’s positional scale factories or instances:
+The x and y channels feed the reserved scales with the same names:
 
 ```ts
 barX(rows, {
@@ -59,6 +59,10 @@ barX(rows, {
   y: 'region',
 })
 ```
+
+Use `xScale` or `yScale` when a mark should feed another named entry in the
+chart's `scales` registry. Channel names continue to describe geometry; scale
+IDs select the mapping.
 
 Positional values are also retained in each interaction `ChartPoint`:
 
@@ -125,8 +129,11 @@ const chart = defineChart({
       z: 'segment',
     }),
   ],
-  x: { scale: revenueScale },
-  y: { scale: retentionScale },
+  scales: {
+    x: { scale: revenueScale },
+    y: { scale: retentionScale },
+  },
+
   color: {
     scale: segmentColor,
     legend: colorLegend({ label: 'Segment' }),
@@ -317,16 +324,19 @@ export default defineChart({
       strokeWidth: 0.75,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill length (mm)' },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Bill length (mm)' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Bill depth (mm)' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill depth (mm)' },
-  },
+
   color: {
     scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
     legend: colorLegend({ label: 'Species' }),

@@ -50,12 +50,14 @@ const chart = defineChart({
       stroke: '#2563eb',
     }),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.2) },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Downloads (thousands)' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Downloads (thousands)' },
+    },
   },
 })
 

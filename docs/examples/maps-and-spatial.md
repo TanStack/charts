@@ -106,6 +106,10 @@ export default defineChart({
       strokeWidth: 1.5,
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   margin: 12,
 })
 ```

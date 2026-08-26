@@ -50,9 +50,10 @@ the adapter's tested public contract. Call `defineChartElement` only where
 ## Presentation and rendering
 
 `options.class` and the string `options.style` apply to the inner
-`.ts-chart-host`; `options.className` applies to the rendered SVG surface. The
-package exposes the SVG custom element only. Use `renderSvg` to replace SVG
-serialization without replacing the shared host.
+`.ts-chart-host`; `options.className` applies to the rendered chart surface.
+The custom element starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `defineChartElement`, `ChartCommonProps`,
 `ChartPresentationProps`, `ChartProps`, `ChartTooltipBodyRenderContext`,

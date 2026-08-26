@@ -71,15 +71,17 @@ export const createExampleChart = (input?: ChartOptions) =>
               }),
             ]),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Miles driven per person' },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Cost of gasoline ($ per gallon)' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Miles driven per person' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Cost of gasoline ($ per gallon)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

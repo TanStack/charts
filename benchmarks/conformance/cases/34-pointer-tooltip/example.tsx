@@ -59,11 +59,13 @@ export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
           ],
         }),
       ],
-      x: { scale: scaleUtc },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Apple close (USD)' },
+      scales: {
+        x: { scale: scaleUtc },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Apple close (USD)' },
+        },
       },
     },
     {

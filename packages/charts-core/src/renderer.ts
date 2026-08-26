@@ -18,7 +18,9 @@ import {
 } from './cursor-host-contract'
 import type {
   ChartInteractionController,
+  ChartLayerRenderer,
   ChartPointerResolution,
+  ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
   ChartHostControlExtension,
@@ -44,7 +46,65 @@ import type {
   ChartTooltipPosition,
   ChartMotionTransition,
   ChartValue,
+  SceneNode,
+  ChartMarkRenderer,
 } from './types'
+
+export function resolveChartRenderer(
+  scene: ChartScene<any, any, any>,
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartRenderer<any, any, any> {
+  const renderer =
+    findLayerRenderer(scene.nodes, defaultRenderer) ??
+    findGuideLayerRenderer(scene.focusGuides, defaultRenderer)
+  return renderer?.compose(defaultRenderer) ?? defaultRenderer
+}
+
+function findGuideLayerRenderer(
+  guides: ChartScene['focusGuides'],
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartLayerRenderer<any, any, any> | undefined {
+  for (const guide of guides ?? []) {
+    if (
+      guide.renderer !== undefined &&
+      guide.renderer !== (defaultRenderer as unknown)
+    ) {
+      return requiredCompositor(guide.renderer)
+    }
+  }
+  return undefined
+}
+
+function findLayerRenderer(
+  nodes: readonly SceneNode[],
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartLayerRenderer<any, any, any> | undefined {
+  for (const node of nodes) {
+    if (
+      node.renderer !== undefined &&
+      node.renderer !== (defaultRenderer as unknown)
+    ) {
+      return requiredCompositor(node.renderer)
+    }
+    if (node.kind === 'group') {
+      const renderer = findLayerRenderer(node.children, defaultRenderer)
+      if (renderer) return renderer
+    }
+  }
+  return undefined
+}
+
+function requiredCompositor(
+  renderer: ChartMarkRenderer,
+): ChartLayerRenderer<any, any, any> {
+  const candidate = renderer as unknown as Partial<ChartLayerRenderer>
+  if (typeof candidate.compose !== 'function') {
+    throw new TypeError(
+      `Mark renderer "${renderer.id}" cannot compose chart layers`,
+    )
+  }
+  return renderer as unknown as ChartLayerRenderer<any, any, any>
+}
 
 type HostRenderReason = 'update' | 'resize' | 'layout'
 type FocusOwner = 'pointer' | 'keyboard' | 'controlled'
@@ -125,17 +185,18 @@ export function mountChartRenderer<
     const previousCursorBinding = renderedCursorBinding
     scene = createHostedScene(createScene())
     interactionScene = scene
+    const renderer = resolveChartRenderer(scene, options.renderer)
     if (!surface) {
-      surface = options.renderer.mount(container, scheduleRender)
+      surface = renderer.mount(container, scheduleRender)
       subscribeToPresentation()
-    } else if (surface.renderer !== options.renderer) {
+    } else if (surface.renderer !== renderer) {
       unsubscribePresentation?.()
       unsubscribePresentation = undefined
       destroyTooltip()
       destroyHostControls()
       surface.destroy()
       container.replaceChildren()
-      surface = options.renderer.mount(container, scheduleRender)
+      surface = renderer.mount(container, scheduleRender)
       subscribeToPresentation()
       hasRendered = false
     }

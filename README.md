@@ -90,15 +90,18 @@ const revenueChart = defineChart({
       y: 'value',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.2),
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.2),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Revenue' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Revenue' },
-  },
+
   tooltip,
 })
 

@@ -206,6 +206,10 @@ export const createExampleChart = (input: ChartOptions) => {
           },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         domain: toneDomain,
         range: toneDomain.map((tone) => toneColors[tone]),

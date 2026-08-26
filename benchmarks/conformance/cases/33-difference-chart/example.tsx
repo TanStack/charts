@@ -37,11 +37,14 @@ export const createExampleChart = (input: ChartOptions) => {
           comparisonStrokeWidth: 2,
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: { ticks: { count: 9, format: formatDifferenceMonth } },
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: { ticks: { count: 9, format: formatDifferenceMonth } },
+        },
+        y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
       },
-      y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
+
       margin: { top: 20, right: 20, bottom: 30, left: 80 },
     },
     { keyboard: true, tooltip: exampleTooltip },

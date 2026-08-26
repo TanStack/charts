@@ -26,14 +26,17 @@ export function createExampleChart() {
           radius: 4,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
-        axis: {
-          line: false,
-          ticks: { size: 0, padding: 10, format: formatWeekday },
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+          axis: {
+            line: false,
+            ticks: { size: 0, padding: 10, format: formatWeekday },
+          },
         },
+        y: { scale: scaleLinear().domain([0, 1000]), axis: false },
       },
-      y: { scale: scaleLinear().domain([0, 1000]), axis: false },
+
       color: { domain: activityNames, range: shadcnColors.slice(0, 2) },
       margin: { top: 0, right: 7, bottom: 32, left: 7 },
       theme: shadcnTheme(),

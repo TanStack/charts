@@ -75,21 +75,24 @@ export const createExampleChart = (input?: ChartOptions) => {
               }),
             ]),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: {
-          ticks: { count: 7, format: (date) => `${date.getUTCFullYear()}` },
-          label: 'Year',
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: {
+            ticks: { count: 7, format: (date) => `${date.getUTCFullYear()}` },
+            label: 'Year',
+          },
+        },
+        y: {
+          scale: scaleLinear().domain([5.2, 0.8]),
+          grid: true,
+          axis: {
+            ticks: { count: 5, format: (value) => `#${value}` },
+            label: 'Rank',
+          },
         },
       },
-      y: {
-        scale: scaleLinear().domain([5.2, 0.8]),
-        grid: true,
-        axis: {
-          ticks: { count: 5, format: (value) => `#${value}` },
-          label: 'Rank',
-        },
-      },
+
       color: {
         domain: includedIndustries,
         range: colors,

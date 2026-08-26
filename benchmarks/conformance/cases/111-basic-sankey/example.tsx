@@ -103,6 +103,10 @@ export const createExampleChart = (input: ChartOptions) => {
           },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       margin: 0,
     },

@@ -104,8 +104,8 @@ describe('declarative definition-owned motion', () => {
       },
     })
 
-    const xAxis = requiredAxis(definition.x)
-    const yAxis = requiredAxis(definition.y)
+    const xAxis = requiredAxis(definition.scales.x)
+    const yAxis = requiredAxis(definition.scales.y)
     const xTicks = requiredTicks(xAxis.ticks)
     const xTickLabels = requiredTickLabels(xAxis.tickLabels)
     const xLabel = requiredLabel(xAxis.label)

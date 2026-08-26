@@ -2,6 +2,7 @@ import { resolveCrosshairGuide } from './crosshair-resolver'
 import { createMark } from './mark'
 import { valueKey } from './scales'
 import type {
+  CartesianScaleBindings,
   ChartMark,
   ChartMarkMotionOptions,
   ChartValue,
@@ -70,7 +71,10 @@ export interface CrosshairOptions<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >
-  extends ChartMarkMotionOptions<never>, CrosshairRuleOptions {
+  extends
+    ChartMarkMotionOptions<never>,
+    CrosshairRuleOptions,
+    CartesianScaleBindings {
   id?: string
   /** Draws the vertical guide at the focused x position. Defaults to true. */
   x?: boolean | CrosshairAxisOptions<TXValue>
@@ -84,37 +88,62 @@ export interface CrosshairOptions<
 export function crosshair<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
-  options: CrosshairOptions<TXValue, TYValue> = {},
-): ChartMark<never, never, never, never, never> {
-  return createMark<never, never, never>(({ markIndex }) => {
-    const id = options.id ?? `crosshair-${markIndex}`
+  options: CrosshairOptions<TXValue, TYValue> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  } = {},
+): ChartMark<never, never, never, never, never, TXScaleId, TYScaleId> {
+  const xScale = (options.xScale ?? 'x') as TXScaleId
+  const yScale = (options.yScale ?? 'y') as TYScaleId
 
-    return {
-      id,
-      focusGuideOnly: true,
-      channels: {},
-      render: ({ chart, surface, scales, theme, layout }) => ({
-        nodes: [],
-        focusGuides: [
-          {
-            key: id,
-            markId: id,
-            chart,
-            surface,
-            x: resolveAxis(options.x, options, theme.foreground, scales.x),
-            y: resolveAxis(options.y, options, theme.foreground, scales.y),
-            marker: resolveMarker(options.marker),
-            projectX: projector(scales.x),
-            projectY: projector(scales.y),
-            motion: options.motion,
-            measureText: layout.measureText,
-            resolve: resolveCrosshairGuide,
-          },
-        ],
-      }),
-    }
-  }, options.motion)
+  return createMark<never, never, never, TXScaleId, TYScaleId>(
+    ({ markIndex }) => {
+      const id = options.id ?? `crosshair-${markIndex}`
+
+      return {
+        id,
+        focusGuideOnly: true,
+        channels: {
+          x: { scale: xScale, values: [] },
+          y: { scale: yScale, values: [] },
+        },
+        render: ({ chart, surface, scales, theme, layout }) => ({
+          nodes: [],
+          focusGuides: [
+            {
+              key: id,
+              markId: id,
+              chart,
+              surface,
+              x: resolveAxis(
+                options.x,
+                options,
+                theme.foreground,
+                scales[xScale],
+              ),
+              y: resolveAxis(
+                options.y,
+                options,
+                theme.foreground,
+                scales[yScale],
+              ),
+              marker: resolveMarker(options.marker),
+              projectX: projector(scales[xScale]),
+              projectY: projector(scales[yScale]),
+              motion: options.motion,
+              measureText: layout.measureText,
+              resolve: resolveCrosshairGuide,
+            },
+          ],
+        }),
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function resolveAxis<TValue extends ChartValue>(

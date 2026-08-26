@@ -20,14 +20,16 @@ export const createExampleChart = () =>
           r: 2.5,
         }),
       ],
-      x: {
-        scale: () => scaleBand<number>().padding(0.22),
-        axis: { label: 'Experiment' },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Speed of light (km/s minus 299,000)' },
+      scales: {
+        x: {
+          scale: () => scaleBand<number>().padding(0.22),
+          axis: { label: 'Experiment' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Speed of light (km/s minus 299,000)' },
+        },
       },
     },
     {

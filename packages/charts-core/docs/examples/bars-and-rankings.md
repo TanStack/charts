@@ -44,17 +44,19 @@ const ranked = [...rows].sort((a, b) => b.value - a.value)
 
 const chart = defineChart({
   marks: [barY(ranked, { x: 'category', y: 'value', inset: 2 })],
-  x: {
-    scale: () =>
-      scaleBand<string>()
-        .domain(ranked.map((row) => row.category))
-        .padding(0.16),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Weekly signups' },
+  scales: {
+    x: {
+      scale: () =>
+        scaleBand<string>()
+          .domain(ranked.map((row) => row.category))
+          .padding(0.16),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Weekly signups' },
+    },
   },
 })
 

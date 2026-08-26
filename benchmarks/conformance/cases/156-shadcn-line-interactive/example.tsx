@@ -44,36 +44,39 @@ export function createExampleChart(
           strokeWidth: 2,
         }),
       ],
-      x: {
-        scale: scalePoint,
-        axis: {
-          line: false,
-          ticks: {
-            values: [
-              '2024-04-10',
-              '2024-04-21',
-              '2024-05-02',
-              '2024-05-13',
-              '2024-05-25',
-              '2024-06-05',
-              '2024-06-16',
-              '2024-06-29',
-            ],
-            size: 0,
-            padding: 10,
-            format: formatMonthDay,
+      scales: {
+        x: {
+          scale: scalePoint,
+          axis: {
+            line: false,
+            ticks: {
+              values: [
+                '2024-04-10',
+                '2024-04-21',
+                '2024-05-02',
+                '2024-05-13',
+                '2024-05-25',
+                '2024-06-05',
+                '2024-06-16',
+                '2024-06-29',
+              ],
+              size: 0,
+              padding: 10,
+              format: formatMonthDay,
+            },
+          },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 600]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: { values: [0, 150, 300, 450, 600], size: 0 },
+            tickLabels: false,
           },
         },
       },
-      y: {
-        scale: scaleLinear().domain([0, 600]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: { values: [0, 150, 300, 450, 600], size: 0 },
-          tickLabels: false,
-        },
-      },
+
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       margin: {
         top: 5,

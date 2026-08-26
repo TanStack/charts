@@ -56,10 +56,23 @@ interface HexbinSourceRow<TDatum> extends LayoutSourceRow<TDatum> {
 export function hexbin<
   TDatum,
   const TOutputs extends TransformOutputs<TDatum> = DefaultHexbinOutputs,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: HexbinOptions<TDatum, TOutputs>,
-): ChartMark<HexbinDatum<TDatum, TOutputs>, number, number> {
+  options: HexbinOptions<TDatum, TOutputs> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
+): ChartMark<
+  HexbinDatum<TDatum, TOutputs>,
+  number,
+  number,
+  number,
+  number,
+  TXScaleId,
+  TYScaleId
+> {
   const data = toArray(source)
   const binWidth = options.binWidth ?? 20
   if (!Number.isFinite(binWidth) || binWidth <= 0) {
@@ -93,32 +106,40 @@ export function hexbin<
     ...presentation
   } = options
   const layoutRadius = binWidth / Math.sqrt(3)
+  const xScale = (options.xScale ?? 'x') as TXScaleId
+  const yScale = (options.yScale ?? 'y') as TYScaleId
 
-  return createMark<HexbinDatum<TDatum, TOutputs>, number, number>(
+  return createMark<
+    HexbinDatum<TDatum, TOutputs>,
+    number,
+    number,
+    TXScaleId,
+    TYScaleId
+  >(
     ({ markIndex }) => {
       const id = options.id ?? `hexbin-${markIndex}`
       return {
         id,
         channels: {
           x: {
-            scale: 'x',
+            scale: xScale,
             values: sourceRows.map((row) => row.xValue),
           },
           y: {
-            scale: 'y',
+            scale: yScale,
             values: sourceRows.map((row) => row.yValue),
           },
         },
         resolveLayout: ({ chart, scales }) => {
-          const xScale = scales.x
-          const yScale = scales.y
-          if (!xScale?.invert || !yScale?.invert) {
+          const resolvedXScale = scales[xScale]
+          const resolvedYScale = scales[yScale]
+          if (!resolvedXScale?.invert || !resolvedYScale?.invert) {
             throw new TypeError('hexbin: x and y scales must support inversion')
           }
           const rows = projectLayoutY(
-            projectLayoutX(sourceRows, xValues, xScale),
+            projectLayoutX(sourceRows, xValues, resolvedXScale),
             yValues,
-            yScale,
+            resolvedYScale,
           )
           const layout = createHexbinLayout<HexbinInput<TDatum>>()
             .x((row) => row.x)
@@ -129,8 +150,8 @@ export function hexbin<
               [chart.x + chart.width, chart.y + chart.height],
             ])
           const bins = layout([...rows]).map((bin) => {
-            const x = xScale.invert!(bin.x)
-            const y = yScale.invert!(bin.y)
+            const x = resolvedXScale.invert!(bin.x)
+            const y = resolvedYScale.invert!(bin.y)
             if (!isFiniteNumber(x) || !isFiniteNumber(y)) {
               throw new TypeError(
                 'hexbin: x and y scales must invert to finite numbers',
@@ -164,6 +185,7 @@ export function hexbin<
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 

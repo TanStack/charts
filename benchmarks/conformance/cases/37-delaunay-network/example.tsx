@@ -36,11 +36,13 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 4,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

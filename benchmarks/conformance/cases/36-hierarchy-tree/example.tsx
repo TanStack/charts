@@ -63,8 +63,11 @@ export const createExampleChart = (input: ChartOptions) => {
             input.preview !== true ? 0 : node.y >= 1 ? 5 : node.y <= 0 ? -5 : 0,
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
+
       guides: false,
       margin: { top: 22, right: 140, bottom: 22, left: 50 },
     },

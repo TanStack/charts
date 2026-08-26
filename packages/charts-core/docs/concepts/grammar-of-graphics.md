@@ -45,8 +45,10 @@ const alphabet: readonly LetterFrequency[] = [
 
 const chart = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
-  x: { scale: scaleBand },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleBand },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -170,7 +172,7 @@ const y = {
     label: 'Monthly revenue',
     ticks: {
       count: 5,
-      format: (value: number) => `$${Math.round(value / 1_000)}k`,
+      format: (value: number) => `${Math.round(value / 1_000)}k`,
     },
   },
 }
@@ -219,14 +221,16 @@ export default defineChart({
       fill: '#2563eb',
     }),
   ],
-  x: {
-    scale: () => scaleBand<string>().padding(0.12),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Value' },
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().padding(0.12),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Value' },
+    },
   },
 })
 ```

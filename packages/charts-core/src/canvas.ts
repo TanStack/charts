@@ -6,11 +6,13 @@ import { resolveMarkStateScene } from './mark-state'
 import { resolveMarkStateTransition } from './mark-state-transition'
 import type {
   ChartInteractionController,
+  ChartLayerRenderer,
   ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
   ChartSurface,
   ChartSurfaceRenderOptions,
+  UniversalChartLayerRenderer,
 } from './dom-types'
 import type {
   ChartAnimationOptions,
@@ -22,6 +24,7 @@ import type {
   ChartValue,
   RenderChartOptions,
   SceneNode,
+  SceneFocusGuide,
   ScenePolygon,
   SceneStyle,
 } from './types'
@@ -50,15 +53,14 @@ export interface CanvasChartRenderer<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> extends ChartRenderer<TDatum, TXValue, TYValue> {
+> extends ChartLayerRenderer<TDatum, TXValue, TYValue> {
   mount: (
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
   ) => CanvasChartSurface<TDatum, TXValue, TYValue>
 }
 
-interface UniversalCanvasChartRenderer {
-  readonly id: string
+interface UniversalCanvasChartRenderer extends UniversalChartLayerRenderer {
   prerender: <
     TDatum = unknown,
     TXValue extends ChartValue = ChartValue,
@@ -156,8 +158,21 @@ export function createCanvasChartRenderer<
 function createUniversalCanvasChartRenderer(
   rendererOptions: CanvasChartRendererOptions = {},
 ): UniversalCanvasChartRenderer {
+  const compositions = new WeakMap<
+    ChartRenderer<any, any, any>,
+    ChartRenderer<any, any, any>
+  >()
   const renderer: UniversalCanvasChartRenderer = {
+    kind: 'chart-layer-renderer',
     id: 'canvas',
+    compose(defaultRenderer) {
+      let composition = compositions.get(defaultRenderer)
+      if (!composition) {
+        composition = createLayeredChartRenderer(defaultRenderer)
+        compositions.set(defaultRenderer, composition)
+      }
+      return composition
+    },
     prerender(scene, options) {
       return renderCanvasShell(scene, options)
     },
@@ -381,6 +396,388 @@ function createUniversalCanvasChartRenderer(
   }
 
   return renderer
+}
+
+interface ChartRenderLayer {
+  renderer: ChartRenderer<any, any, any>
+  nodes: readonly SceneNode[]
+  focusGuides?: readonly SceneFocusGuide[]
+}
+
+interface MountedLayer {
+  renderer: ChartRenderer<any, any, any>
+  container: HTMLDivElement
+  surface: ChartSurface<any, any, any>
+}
+
+function createLayeredChartRenderer(
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartRenderer<any, any, any> {
+  const renderer: ChartRenderer<any, any, any> = {
+    id: `layers:${defaultRenderer.id}`,
+    capabilities: defaultRenderer.capabilities,
+    prerender(scene, options) {
+      const layers = chartRenderLayers(scene, defaultRenderer)
+      const className = options.className
+        ? `ts-chart ts-chart-layers ${options.className}`
+        : 'ts-chart ts-chart-layers'
+      const description = options.ariaDescription
+        ? ` aria-description="${escapeAttribute(options.ariaDescription)}"`
+        : ''
+      return `<div class="${escapeAttribute(className)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}"${description} tabindex="${integer(options.tabIndex ?? 0)}" data-ts-chart-width="${integer(scene.width)}" data-ts-chart-height="${integer(scene.height)}" style="display:block;position:relative;width:100%;height:100%;overflow:visible">${layers
+        .map(
+          (layer, index) =>
+            `<div class="ts-chart-layer" data-ts-chart-layer="${index}" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${layer.renderer.prerender(layerScene(scene, layer, index), layerOptions(options, index))}</div>`,
+        )
+        .join('')}</div>`
+    },
+    mount(container, requestRender) {
+      const root = findOrCreateLayerRoot(container)
+      const presentationListeners = new Set<
+        (points: readonly ChartPoint<any, any, any>[]) => void
+      >()
+      let mounted: MountedLayer[] = []
+      let renderedLayers: ChartRenderLayer[] = []
+      let unsubscribePresentation: (() => void) | undefined
+      let scene: ChartScene | undefined
+      let destroyed = false
+
+      const defaultSurface = () => {
+        for (let index = mounted.length - 1; index >= 0; index -= 1) {
+          const layer = mounted[index]
+          if (layer?.renderer === defaultRenderer) return layer.surface
+        }
+        return undefined
+      }
+
+      const subscribeToPresentation = () => {
+        unsubscribePresentation?.()
+        unsubscribePresentation =
+          defaultSurface()?.subscribePresentationPoints?.((points) => {
+            for (const listener of presentationListeners) listener(points)
+          })
+      }
+
+      const surface: ChartSurface<any, any, any> = {
+        renderer,
+        element: root,
+        get layers() {
+          return mounted.map((layer) => layer.surface)
+        },
+        get defaultElement() {
+          return defaultSurface()?.defaultElement ?? defaultSurface()?.element
+        },
+        render(nextScene, options) {
+          if (destroyed) return
+          configureLayerRoot(root, nextScene, options)
+          const nextLayers = chartRenderLayers(nextScene, defaultRenderer)
+          const reusedLayers = sameLayerRenderers(mounted, nextLayers)
+          if (!reusedLayers) {
+            const adoptPrerenderedLayers = mounted.length === 0
+            unsubscribePresentation?.()
+            unsubscribePresentation = undefined
+            for (const layer of mounted) layer.surface.destroy()
+            mounted = mountLayers(
+              root,
+              nextLayers,
+              requestRender,
+              adoptPrerenderedLayers,
+            )
+            subscribeToPresentation()
+          }
+          for (let index = 0; index < mounted.length; index += 1) {
+            const layer = nextLayers[index]!
+            mounted[index]!.surface.render(
+              layerScene(nextScene, layer, index),
+              layerOptions(options, index, reusedLayers),
+            )
+          }
+          renderedLayers = nextLayers
+          scene = nextScene
+        },
+        clientToScene(currentScene, clientX, clientY) {
+          const bounds = root.getBoundingClientRect()
+          if (!bounds.width || !bounds.height) return null
+          return {
+            x: ((clientX - bounds.left) / bounds.width) * currentScene.width,
+            y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
+          }
+        },
+        getPresentationPoints() {
+          return defaultSurface()?.getPresentationPoints?.()
+        },
+        subscribePresentationPoints(listener) {
+          presentationListeners.add(listener)
+          return () => presentationListeners.delete(listener)
+        },
+        paintFocus(focus, pointer, cursor) {
+          if (!scene || destroyed) return
+          const presentedNodes: SceneNode[] = []
+          let hasPresentedScene = false
+          for (let index = 0; index < mounted.length; index += 1) {
+            const result = mounted[index]!.surface.paintFocus(
+              focus,
+              pointer,
+              cursor,
+            )
+            hasPresentedScene ||= result !== undefined
+            presentedNodes.push(
+              ...(result?.nodes ?? renderedLayers[index]?.nodes ?? []),
+            )
+          }
+          return hasPresentedScene
+            ? { ...scene, nodes: presentedNodes }
+            : undefined
+        },
+        destroy() {
+          if (destroyed) return
+          destroyed = true
+          unsubscribePresentation?.()
+          unsubscribePresentation = undefined
+          presentationListeners.clear()
+          for (const layer of mounted) layer.surface.destroy()
+          mounted = []
+        },
+      }
+
+      return surface
+    },
+  }
+  return renderer
+}
+
+function chartRenderLayers(
+  scene: ChartScene,
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartRenderLayer[] {
+  const layers = [...splitRenderLayers(scene.nodes, defaultRenderer).layers]
+  const defaultGuides: SceneFocusGuide[] = []
+  const customUnder: SceneFocusGuide[] = []
+  const customOver: SceneFocusGuide[] = []
+  for (const guide of scene.focusGuides ?? []) {
+    if (
+      guide.renderer === undefined ||
+      guide.renderer === (defaultRenderer as unknown)
+    ) {
+      defaultGuides.push(guide)
+    } else {
+      ;(guide.placement === 'under' ? customUnder : customOver).push(guide)
+    }
+  }
+
+  if (customUnder.length > 0 || layers[0]?.renderer !== defaultRenderer) {
+    layers.unshift({ renderer: defaultRenderer, nodes: [] })
+  }
+  if (customUnder.length > 0) {
+    layers.splice(1, 0, ...focusGuideLayers(customUnder))
+  }
+  if (customOver.length > 0) {
+    layers.push(...focusGuideLayers(customOver))
+  }
+  if (layers.at(-1)?.renderer !== defaultRenderer) {
+    layers.push({ renderer: defaultRenderer, nodes: [] })
+  }
+  const top = layers.at(-1)!
+  if (defaultGuides.length > 0) top.focusGuides = defaultGuides
+  return layers
+}
+
+function focusGuideLayers(
+  guides: readonly SceneFocusGuide[],
+): ChartRenderLayer[] {
+  const layers: ChartRenderLayer[] = []
+  for (const guide of guides) {
+    const renderer = requiredLayerRenderer(guide.renderer!)
+    const previous = layers.at(-1)
+    if (previous?.renderer === renderer) {
+      previous.focusGuides = [...(previous.focusGuides ?? []), guide]
+    } else {
+      layers.push({ renderer, nodes: [], focusGuides: [guide] })
+    }
+  }
+  return layers
+}
+
+function splitRenderLayers(
+  nodes: readonly SceneNode[],
+  defaultRenderer: ChartRenderer<any, any, any>,
+): { layers: ChartRenderLayer[]; hasCustomRenderer: boolean } {
+  const layers: ChartRenderLayer[] = []
+  let hasCustomRenderer = false
+  const append = (layer: ChartRenderLayer) => {
+    const previous = layers.at(-1)
+    if (previous?.renderer === layer.renderer) {
+      previous.nodes = [...previous.nodes, ...layer.nodes]
+    } else {
+      layers.push(layer)
+    }
+  }
+  for (const node of nodes) {
+    if (node.renderer) {
+      const renderer = requiredLayerRenderer(node.renderer)
+      hasCustomRenderer ||= renderer !== defaultRenderer
+      append({
+        renderer,
+        nodes: [{ ...node, renderer: undefined }],
+      })
+      continue
+    }
+    if (node.kind !== 'group') {
+      append({ renderer: defaultRenderer, nodes: [node] })
+      continue
+    }
+    const children = splitRenderLayers(node.children, defaultRenderer)
+    if (!children.hasCustomRenderer) {
+      append({ renderer: defaultRenderer, nodes: [node] })
+      continue
+    }
+    hasCustomRenderer = true
+    for (const layer of children.layers) {
+      append({
+        renderer: layer.renderer,
+        nodes: [{ ...node, children: layer.nodes }],
+      })
+    }
+  }
+  return { layers, hasCustomRenderer }
+}
+
+function requiredLayerRenderer(
+  renderer: NonNullable<SceneNode['renderer']>,
+): ChartRenderer<any, any, any> {
+  const candidate = renderer as unknown as Partial<ChartRenderer>
+  if (
+    typeof candidate.prerender !== 'function' ||
+    typeof candidate.mount !== 'function'
+  ) {
+    throw new TypeError(
+      `Mark renderer "${renderer.id}" does not implement the DOM chart renderer contract`,
+    )
+  }
+  return renderer as unknown as ChartRenderer<any, any, any>
+}
+
+function layerScene(
+  scene: ChartScene,
+  layer: ChartRenderLayer,
+  index: number,
+): ChartScene {
+  return {
+    ...scene,
+    nodes: layer.nodes,
+    focusGuides: layer.focusGuides,
+    theme:
+      index === 0
+        ? scene.theme
+        : { ...scene.theme, background: 'transparent' as const },
+  }
+}
+
+function layerOptions(
+  options: ChartSurfaceRenderOptions,
+  index: number,
+  animate = true,
+): ChartSurfaceRenderOptions {
+  return {
+    ...options,
+    className: undefined,
+    tabIndex: -1,
+    idPrefix: `${options.idPrefix ?? 'ts-chart'}-layer-${index}`,
+    animation: animate ? options.animation : undefined,
+  }
+}
+
+function findOrCreateLayerRoot(container: HTMLElement): HTMLDivElement {
+  const existing = container.querySelector<HTMLDivElement>(
+    ':scope > .ts-chart-layers',
+  )
+  if (existing) return existing
+  const root = container.ownerDocument.createElement('div')
+  container.replaceChildren(root)
+  return root
+}
+
+function configureLayerRoot(
+  root: HTMLDivElement,
+  scene: ChartScene,
+  options: ChartSurfaceRenderOptions,
+) {
+  const className = options.className
+    ? `ts-chart ts-chart-layers ${options.className}`
+    : 'ts-chart ts-chart-layers'
+  if (root.className !== className) root.className = className
+  setAttributeIfChanged(root, 'role', 'img')
+  setAttributeIfChanged(root, 'aria-roledescription', 'chart')
+  setAttributeIfChanged(root, 'aria-label', options.ariaLabel)
+  if (options.ariaDescription) {
+    setAttributeIfChanged(root, 'aria-description', options.ariaDescription)
+  } else if (root.hasAttribute('aria-description')) {
+    root.removeAttribute('aria-description')
+  }
+  const tabIndex = options.tabIndex ?? 0
+  if (root.tabIndex !== tabIndex) root.tabIndex = tabIndex
+  const width = String(scene.width)
+  const height = String(scene.height)
+  if (root.dataset.tsChartWidth !== width) root.dataset.tsChartWidth = width
+  if (root.dataset.tsChartHeight !== height) root.dataset.tsChartHeight = height
+  if (root.style.display !== 'block') root.style.display = 'block'
+  if (root.style.position !== 'relative') root.style.position = 'relative'
+  if (root.style.width !== '100%') root.style.width = '100%'
+  if (root.style.height !== '100%') root.style.height = '100%'
+  if (root.style.overflow !== 'visible') root.style.overflow = 'visible'
+}
+
+function setAttributeIfChanged(element: Element, name: string, value: string) {
+  if (element.getAttribute(name) !== value) element.setAttribute(name, value)
+}
+
+function sameLayerRenderers(
+  mounted: readonly MountedLayer[],
+  layers: readonly ChartRenderLayer[],
+) {
+  return (
+    mounted.length === layers.length &&
+    mounted.every((layer, index) => layer.renderer === layers[index]?.renderer)
+  )
+}
+
+function mountLayers(
+  root: HTMLDivElement,
+  layers: readonly ChartRenderLayer[],
+  requestRender: (force?: boolean) => void,
+  adoptExisting: boolean,
+): MountedLayer[] {
+  const existing = [
+    ...root.querySelectorAll<HTMLDivElement>(':scope > .ts-chart-layer'),
+  ]
+  const canAdopt = adoptExisting && existing.length === layers.length
+  if (!canAdopt) root.replaceChildren()
+  return layers.map((layer, index) => {
+    const container = canAdopt
+      ? existing[index]!
+      : createLayerContainer(root, index)
+    return {
+      renderer: layer.renderer,
+      container,
+      surface: layer.renderer.mount(container, requestRender),
+    }
+  })
+}
+
+function createLayerContainer(root: HTMLDivElement, index: number) {
+  const container = root.ownerDocument.createElement('div')
+  container.className = 'ts-chart-layer'
+  container.dataset.tsChartLayer = String(index)
+  container.setAttribute('aria-hidden', 'true')
+  Object.assign(container.style, {
+    position: 'absolute',
+    inset: '0',
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+  })
+  root.append(container)
+  return container
 }
 
 export const canvasChartRenderer = createUniversalCanvasChartRenderer()

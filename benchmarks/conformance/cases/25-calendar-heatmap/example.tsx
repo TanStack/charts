@@ -27,16 +27,23 @@ export const createExampleChart = (input: ChartOptions) => {
           radius: 2,
         }),
       ],
-      x: {
-        scale: () => scaleBand<number>().paddingInner(0.06).paddingOuter(0.03),
-        axis: { ticks: { format: (value) => `W${value + 1}` }, label: 'Week' },
+      scales: {
+        x: {
+          scale: () =>
+            scaleBand<number>().paddingInner(0.06).paddingOuter(0.03),
+          axis: {
+            ticks: { format: (value) => `W${value + 1}` },
+            label: 'Week',
+          },
+        },
+        y: {
+          scale: scaleBand<string>()
+            .domain(weekdays)
+            .paddingInner(0.06)
+            .paddingOuter(0.03),
+        },
       },
-      y: {
-        scale: scaleBand<string>()
-          .domain(weekdays)
-          .paddingInner(0.06)
-          .paddingOuter(0.03),
-      },
+
       color: {
         scale: scaleSequential<string>,
         range: ['#ecfdf5', '#047857'],

@@ -296,8 +296,10 @@ const values = [4, 9, 7]
 
 const chart = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
 })
 ```
 
@@ -326,8 +328,10 @@ import { createChartScene, defineChart, lineY } from '@tanstack/charts'
 
 const chart = defineChart({
   marks: [lineY([2, 5, 3])],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
 })
 
 const scene = createChartScene(chart, { width: 640, height: 320 })

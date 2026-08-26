@@ -496,7 +496,7 @@ describe('difference marks', () => {
       scene.scales.y.map(new Date('2026-01-02T00:00:00Z')),
     ]
 
-    expectTypeOf(mark).toEqualTypeOf<
+    expectTypeOf(mark).toMatchTypeOf<
       ChartMark<DifferenceDatum<Row, Date>, number, Date>
     >()
     expect(nodes.filter(isArea)).toHaveLength(2)

@@ -18,8 +18,10 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 2.25,
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Week' } },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Close (USD)' } },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Week' } },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Close (USD)' } },
+      },
     },
     { keyboard: true, tooltip: exampleTooltip },
   )

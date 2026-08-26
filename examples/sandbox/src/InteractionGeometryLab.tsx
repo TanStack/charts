@@ -200,8 +200,11 @@ function facetedBarsDefinition(syncAxis?: FacetSyncAxis) {
                       inset: 5,
                     }),
                   ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2, 3, 4, 5]) },
-          y: { scale: scaleLinear().domain([0, 260]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2, 3, 4, 5]) },
+            y: { scale: scaleLinear().domain([0, 260]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -1713,8 +1716,11 @@ function createProofCases(): ProofCase[] {
               inset: 2,
             }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
-          y: { scale: scaleLinear().domain([0, 250]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
+            y: { scale: scaleLinear().domain([0, 250]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -1773,8 +1779,11 @@ function createProofCases(): ProofCase[] {
               inset: 6,
             }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
-          y: { scale: scaleLinear().domain([0, 250]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
+            y: { scale: scaleLinear().domain([0, 250]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -1858,8 +1867,11 @@ function createProofCases(): ProofCase[] {
               strokeWidth: 1.5,
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 100]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 100]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -2562,8 +2574,11 @@ function baseDefinition(
 ): StaticChartDefinition<ProofDatum, number, number, 'dom'> {
   return {
     marks,
-    x: { scale: xScale, grid: true },
-    y: { scale: yScale, grid: true },
+    scales: {
+      x: { scale: xScale, grid: true },
+      y: { scale: yScale, grid: true },
+    },
+
     guides: false,
     margin: { top: 18, right: 20, bottom: 18, left: 20 },
     theme: {

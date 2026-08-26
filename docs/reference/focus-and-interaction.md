@@ -162,8 +162,11 @@ const definition = defineChart({
       strokeDasharray: '4 4',
     }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
 })
@@ -322,8 +325,11 @@ const definition = defineChart({
     lineY(rows, { x: 'date', y: 'value' }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   cursor: {
     use: cursorHost,
@@ -959,10 +965,10 @@ resolution.
 
 Dragging, scrolling, custom crosshair overlays, and freeform range or lasso
 selections can listen on a wrapper or use `onRender` to attach application
-behavior to the live SVG. Use `handleX` for one ordered scale value, `brushX`
-for a normal horizontal semantic range, and `zoomX` for a normal controlled x
-window. For custom gestures, keep semantic state outside the scene and update a
-responsive definition by replacing its identity.
+behavior to the default SVG or complete surface. Use `handleX` for one ordered
+scale value, `brushX` for a normal horizontal semantic range, and `zoomX` for a
+normal controlled x window. For custom gestures, keep semantic state outside
+the scene and update a responsive definition by replacing its identity.
 
 Use a definition cursor binding for snapped or free crosshairs. Keep other
 semantic state outside the scene.

@@ -16,7 +16,7 @@ import {
 } from './mark'
 import { resolveCompositeChildMotion } from './composite-motion-internal'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
-import { createPolarMark } from './polar-mark-internal'
+import { createPolarMark as createInternalPolarMark } from './polar-mark-internal'
 import { focusGroupAngle, withPolarFocusGeometry } from './polar-focus-internal'
 import {
   resolvePolarSector,
@@ -32,40 +32,95 @@ import type {
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartMarkRenderer,
   ChartMarkMotionOptions,
   ChartMotionContext,
   ChartMotionDefinition,
   ChartNumericScale,
   ChartPoint,
+  MarkScene,
   ChartTheme,
   ChartValue,
   ChartScaleInput,
   OptionChannelOutput,
+  OptionScaleId,
   SceneNode,
   VisualChannel,
 } from './types'
 import type {
-  InitializedPolarMark,
-  PolarLayoutContext,
-  PolarMark,
-  PolarResolvedScale,
+  InitializedPolarMark as InternalInitializedPolarMark,
+  PolarLayoutContext as InternalPolarLayoutContext,
+  PolarMarkInitializeContext,
+  PolarMarkRenderContext,
+  PolarResolvedScale as InternalPolarResolvedScale,
 } from './polar-mark-internal'
 
 export { pie } from './polar-pie'
 export { focusGroupAngle }
 export type { PieDatum, PieOptions } from './polar-pie'
-export type {
-  PolarLayoutContext,
-  PolarMark,
-  PolarResolvedScale,
-} from './polar-mark-internal'
 
 const tau = Math.PI * 2
+
+declare const process: { readonly env: { readonly NODE_ENV?: string } }
+
+export type PolarPositionChannel = 'angle' | 'radius'
+
+export interface PolarResolvedScale<
+  TValue extends ChartValue = ChartValue,
+> extends InternalPolarResolvedScale<TValue> {
+  id: string
+  channel: PolarPositionChannel
+}
+
+export interface PolarLayoutContext extends InternalPolarLayoutContext {
+  scales: Readonly<Record<string, PolarResolvedScale>>
+  /** @deprecated Read the reserved `angle` entry from `scales` instead. */
+  angle?: PolarResolvedScale
+  /** @deprecated Read the reserved `radius` entry from `scales` instead. */
+  radiusScale?: PolarResolvedScale
+}
+
+interface InitializedPolarMark<
+  TDatum = unknown,
+  TAngle extends ChartValue = ChartValue,
+  TRadius extends ChartValue = ChartValue,
+> extends Omit<
+  InternalInitializedPolarMark<TDatum, TAngle, TRadius>,
+  'render'
+> {
+  angleScale?: string
+  radiusScale?: string
+  render: (
+    context: Omit<PolarMarkRenderContext, 'layout'> & {
+      layout: PolarLayoutContext
+    },
+  ) => MarkScene<TDatum, TAngle, TRadius>
+}
+
+export interface PolarMark<
+  TDatum = unknown,
+  TAngle extends ChartValue = ChartValue,
+  TRadius extends ChartValue = ChartValue,
+  TAngleScaleId extends string = 'angle',
+  TRadiusScaleId extends string = 'radius',
+> {
+  initialize: (
+    context: PolarMarkInitializeContext,
+  ) => InitializedPolarMark<TDatum, TAngle, TRadius>
+  motion?: ChartMotionDefinition<any>
+  renderer?: ChartMarkRenderer
+  readonly __datum?: TDatum
+  readonly __angle?: TAngle
+  readonly __radius?: TRadius
+  readonly __angleScaleId?: TAngleScaleId
+  readonly __radiusScaleId?: TRadiusScaleId
+}
 
 export type PolarLength = number | ((context: PolarLayoutContext) => number)
 
 export interface PolarAngleOptions<TValue extends ChartValue = any> {
   scale: ChartScaleInput<TValue>
+  channel?: 'angle'
   nice?: boolean | number
   /**
    * Avoids placing the first and last points at the same angle for point
@@ -77,10 +132,14 @@ export interface PolarAngleOptions<TValue extends ChartValue = any> {
 
 export interface PolarRadiusOptions<TValue extends ChartValue = any> {
   scale: ChartScaleInput<TValue>
+  channel?: 'radius'
   nice?: boolean | number
   /** Responsive pixel range for the copied radius scale. Defaults to [0, radius]. */
   range?: readonly [PolarLength, PolarLength]
 }
+
+export type PolarPositionScaleOptions<TValue extends ChartValue = any> =
+  PolarAngleOptions<TValue> | PolarRadiusOptions<TValue>
 
 interface PolarGuideRenderContext {
   layout: PolarLayoutContext
@@ -98,16 +157,41 @@ export interface PolarGuideScene {
   foreground?: readonly SceneNode[]
 }
 
-type AnyPolarMark = PolarMark<any, any, any>
+type AnyPolarMark = PolarMark<unknown, any, any, any, any>
 
 type PolarMarkDatum<TMark> =
-  TMark extends PolarMark<infer TDatum, any, any> ? TDatum : never
+  TMark extends PolarMark<infer TDatum, any, any, any, any> ? TDatum : never
 
 type PolarMarkAngle<TMark> =
-  TMark extends PolarMark<any, infer TAngle, any> ? TAngle : never
+  TMark extends PolarMark<any, infer TAngle, any, any, any> ? TAngle : never
 
 type PolarMarkRadius<TMark> =
-  TMark extends PolarMark<any, any, infer TRadius> ? TRadius : never
+  TMark extends PolarMark<any, any, infer TRadius, any, any> ? TRadius : never
+
+type PolarMarkScaleAngle<TMark> =
+  TMark extends PolarMark<any, infer TAngle, any, infer TScaleId, any>
+    ? 'angle' extends TScaleId
+      ? TAngle
+      : never
+    : never
+
+type PolarMarkScaleRadius<TMark> =
+  TMark extends PolarMark<any, any, infer TRadius, any, infer TScaleId>
+    ? 'radius' extends TScaleId
+      ? TRadius
+      : never
+    : never
+
+export type PolarScales<
+  TMarks extends readonly AnyPolarMark[] = readonly AnyPolarMark[],
+> = Readonly<Record<string, PolarPositionScaleOptions | null>> & {
+  angle: PolarAngleOptions<
+    ChartAxisValue<PolarMarkScaleAngle<TMarks[number]>>
+  > | null
+  radius: PolarRadiusOptions<
+    ChartAxisValue<PolarMarkScaleRadius<TMarks[number]>>
+  > | null
+}
 
 export interface PolarOptions<
   TMarks extends readonly AnyPolarMark[] = readonly AnyPolarMark[],
@@ -116,8 +200,13 @@ export interface PolarOptions<
   className?: string
   marks: TMarks
   guides?: readonly PolarGuide[]
-  angle?: PolarAngleOptions<ChartAxisValue<PolarMarkAngle<TMarks[number]>>>
-  radius?: PolarRadiusOptions<ChartAxisValue<PolarMarkRadius<TMarks[number]>>>
+  scales?: PolarScales<TMarks>
+  /** @deprecated Move this value to `scales.angle`. */
+  angle?: PolarAngleOptions<ChartAxisValue<PolarMarkScaleAngle<TMarks[number]>>>
+  /** @deprecated Move this value to `scales.radius`. */
+  radius?: PolarRadiusOptions<
+    ChartAxisValue<PolarMarkScaleRadius<TMarks[number]>>
+  >
   startAngle?: number
   endAngle?: number
   /** Pixel inset applied before radiusRatio. */
@@ -141,9 +230,21 @@ export function polar(
   return createMarkWithScaleValues<any, any, any, never, never>(
     ({ markIndex }) => {
       const id = options.id ?? `polar-${markIndex}`
-      const marks = options.marks.map((mark, polarMarkIndex) =>
-        mark.initialize({ markIndex: polarMarkIndex, parentId: id }),
-      )
+      const marks = options.marks.map((mark, polarMarkIndex) => {
+        const initialized = mark.initialize({
+          markIndex: polarMarkIndex,
+          parentId: id,
+        })
+        return {
+          ...initialized,
+          angleScale:
+            initialized.angleScale ??
+            (initialized.requiresAngleScale ? 'angle' : undefined),
+          radiusScale:
+            initialized.radiusScale ??
+            (initialized.requiresRadiusScale ? 'radius' : undefined),
+        }
+      })
       const childMotions = new Map(
         marks.flatMap((mark, markIndex) => {
           const childMotion = mark.motion ?? options.marks[markIndex]?.motion
@@ -167,18 +268,23 @@ export function polar(
         },
         render: ({ chart, color, theme }) => {
           const layout = resolvePolarLayout(options, chart, marks)
-          if (marks.some((mark) => mark.requiresAngleScale) && !layout.angle) {
-            throw new TypeError(
-              `Polar mark in "${id}" requires a configured angle scale`,
-            )
-          }
-          if (
-            marks.some((mark) => mark.requiresRadiusScale) &&
-            !layout.radiusScale
-          ) {
-            throw new TypeError(
-              `Polar mark in "${id}" requires a configured radius scale`,
-            )
+          for (const mark of marks) {
+            if (mark.angleScale) {
+              requiredPolarScale(
+                layout,
+                mark.angleScale,
+                'angle',
+                `Polar mark "${mark.id}"`,
+              )
+            }
+            if (mark.radiusScale) {
+              requiredPolarScale(
+                layout,
+                mark.radiusScale,
+                'radius',
+                `Polar mark "${mark.id}"`,
+              )
+            }
           }
 
           const nodes: SceneNode[] = []
@@ -221,6 +327,7 @@ export function polar(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 
@@ -257,161 +364,173 @@ export interface RadialArcOptions<
 export function radialArc<TDatum>(
   source: Iterable<TDatum>,
   options: RadialArcOptions<NoInfer<TDatum>> = {},
-): PolarMark<TDatum, number, number> {
+): PolarMark<TDatum, number, number, never, never> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:arc-${markIndex}`
-    const startAngles = channelValues(data, options.startAngle, (datum) =>
-      numberProperty(datum, 'startAngle'),
-    )
-    const endAngles = channelValues(data, options.endAngle, (datum) =>
-      numberProperty(datum, 'endAngle'),
-    )
-    const padAngles = channelValues(
-      data,
-      options.padAngle,
-      (datum) => numberProperty(datum, 'padAngle') ?? 0,
-    )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, { groups })
+  return createPolarMark<TDatum, number, number, never, never>(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:arc-${markIndex}`
+      const startAngles = channelValues(data, options.startAngle, (datum) =>
+        numberProperty(datum, 'startAngle'),
+      )
+      const endAngles = channelValues(data, options.endAngle, (datum) =>
+        numberProperty(datum, 'endAngle'),
+      )
+      const padAngles = channelValues(
+        data,
+        options.padAngle,
+        (datum) => numberProperty(datum, 'padAngle') ?? 0,
+      )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, { groups })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: [],
-      radiusValues: [],
-      includeZeroRadius: false,
-      requiresAngleScale: false,
-      requiresRadiusScale: false,
-      render: ({ layout, color: resolveColor }) => {
-        const innerRadius = resolveLength(options.innerRadius, layout, 0)
-        const outerRadius = resolveLength(
-          options.outerRadius,
-          layout,
-          layout.radius,
-        )
-        const generator =
-          options.generator?.(layout) ??
-          createArc<any, TDatum>()
-            .startAngle((_datum, index: number) => startAngles[index] ?? 0)
-            .endAngle((_datum, index: number) => endAngles[index] ?? 0)
-            .padAngle((_datum, index: number) => padAngles[index] ?? 0)
-            .innerRadius(innerRadius)
-            .outerRadius(outerRadius)
-            .cornerRadius(resolveLength(options.cornerRadius, layout, 0))
-        if (options.padRadius !== undefined && !options.generator) {
-          generator.padRadius(resolveLength(options.padRadius, layout, 0))
-        }
-
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum, number, number>[] = []
-        data.forEach((datum, datumIndex) => {
-          const startAngle = startAngles[datumIndex]
-          const endAngle = endAngles[datumIndex]
-          const padAngle = padAngles[datumIndex]
-          if (
-            !options.generator &&
-            (!isFiniteNumber(startAngle) ||
-              !isFiniteNumber(endAngle) ||
-              !isFiniteNumber(padAngle))
-          ) {
-            return
+      return {
+        id,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: [],
+        radiusValues: [],
+        includeZeroRadius: false,
+        requiresAngleScale: false,
+        requiresRadiusScale: false,
+        render: ({ layout, color: resolveColor }) => {
+          const innerRadius = resolveLength(options.innerRadius, layout, 0)
+          const outerRadius = resolveLength(
+            options.outerRadius,
+            layout,
+            layout.radius,
+          )
+          const generator =
+            options.generator?.(layout) ??
+            createArc<any, TDatum>()
+              .startAngle((_datum, index: number) => startAngles[index] ?? 0)
+              .endAngle((_datum, index: number) => endAngles[index] ?? 0)
+              .padAngle((_datum, index: number) => padAngles[index] ?? 0)
+              .innerRadius(innerRadius)
+              .outerRadius(outerRadius)
+              .cornerRadius(resolveLength(options.cornerRadius, layout, 0))
+          if (options.padRadius !== undefined && !options.generator) {
+            generator.padRadius(resolveLength(options.padRadius, layout, 0))
           }
-          const path = generator(datum, datumIndex, data)
-          if (typeof path !== 'string' || !path) return
-          const group = groups[datumIndex] ?? null
-          const fallback = resolveColor(colorValues[datumIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            fallback,
-          )
-          const stroke =
-            options.stroke === undefined
-              ? undefined
-              : visualValue(options.stroke, datum, datumIndex, data, fallback)
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const generatedStart = generator.startAngle()(datum, datumIndex, data)
-          const generatedEnd = generator.endAngle()(datum, datumIndex, data)
-          const generatedInner = generator.innerRadius()(
-            datum,
-            datumIndex,
-            data,
-          )
-          const generatedOuter = generator.outerRadius()(
-            datum,
-            datumIndex,
-            data,
-          )
-          const centroid = generator.centroid(datum, datumIndex, data)
-          const angleValue = (generatedStart + generatedEnd) / 2
-          const radiusValue = (generatedInner + generatedOuter) / 2
-          const point = withPolarFocusGeometry(
-            {
-              key,
-              markId: id,
-              group,
-              groupLabel: group == null ? id : String(group),
+
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum, number, number>[] = []
+          data.forEach((datum, datumIndex) => {
+            const startAngle = startAngles[datumIndex]
+            const endAngle = endAngles[datumIndex]
+            const padAngle = padAngles[datumIndex]
+            if (
+              !options.generator &&
+              (!isFiniteNumber(startAngle) ||
+                !isFiniteNumber(endAngle) ||
+                !isFiniteNumber(padAngle))
+            ) {
+              return
+            }
+            const path = generator(datum, datumIndex, data)
+            if (typeof path !== 'string' || !path) return
+            const group = groups[datumIndex] ?? null
+            const fallback = resolveColor(colorValues[datumIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
               datum,
               datumIndex,
-              xValue: angleValue,
-              yValue: radiusValue,
-              x: layout.centerX + centroid[0],
-              y: layout.centerY + centroid[1],
-              color: fill,
-            },
-            layout,
-            angleValue,
-            radiusValue,
-            centroid[0],
-            centroid[1],
-          )
-          nodes.push({
-            kind: 'area',
-            key,
-            points: tracePolarArcBoundary(generator, datum, datumIndex, data),
-            path,
-            interaction: { point, affinity: 'geometry' },
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              strokeDasharray: options.strokeDasharray,
-              opacity: options.opacity,
-              lineJoin: 'round',
-            },
+              data,
+              fallback,
+            )
+            const stroke =
+              options.stroke === undefined
+                ? undefined
+                : visualValue(options.stroke, datum, datumIndex, data, fallback)
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const generatedStart = generator.startAngle()(
+              datum,
+              datumIndex,
+              data,
+            )
+            const generatedEnd = generator.endAngle()(datum, datumIndex, data)
+            const generatedInner = generator.innerRadius()(
+              datum,
+              datumIndex,
+              data,
+            )
+            const generatedOuter = generator.outerRadius()(
+              datum,
+              datumIndex,
+              data,
+            )
+            const centroid = generator.centroid(datum, datumIndex, data)
+            const angleValue = (generatedStart + generatedEnd) / 2
+            const radiusValue = (generatedInner + generatedOuter) / 2
+            const point = withPolarFocusGeometry(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum,
+                datumIndex,
+                xValue: angleValue,
+                yValue: radiusValue,
+                x: layout.centerX + centroid[0],
+                y: layout.centerY + centroid[1],
+                color: fill,
+              },
+              layout,
+              angleValue,
+              radiusValue,
+              centroid[0],
+              centroid[1],
+            )
+            nodes.push({
+              kind: 'area',
+              key,
+              points: tracePolarArcBoundary(generator, datum, datumIndex, data),
+              path,
+              interaction: { point, affinity: 'geometry' },
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray: options.strokeDasharray,
+                opacity: options.opacity,
+                lineJoin: 'round',
+              },
+            })
+            points.push(point)
           })
-          points.push(point)
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes('ts-chart__arc', options.className),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes('ts-chart__arc', options.className),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 interface RadialBarBaseOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
+  /** Named angle scale. Omit to use the reserved `angle` scale. */
+  angleScale?: string
+  /** Named radius scale. Omit to use the reserved `radius` scale. */
+  radiusScale?: string
   key?: Channel<TDatum, ChartKey>
   z?: Channel<TDatum, ChartKey | null | undefined>
   color?: Channel<TDatum, ChartKey | null | undefined>
@@ -446,180 +565,209 @@ export function radialBarRadius<
 ): PolarMark<
   TDatum,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  number
+  number,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialBarRadius<TDatum>(
   source: Iterable<TDatum>,
   options: RadialBarRadiusOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, number> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-bar-radius-${markIndex}`
-    const angleValues = channelValues(
-      data,
-      options.angle,
-      (_datum, { index }) => index,
-    )
-    const rawRadiusValues = numericPolarChannelValues(
-      data,
-      options.radius ?? options.radius2,
-      (datum) => (typeof datum === 'number' ? datum : undefined),
-    )
-    const radius1Values = numericPolarChannelValues(
-      data,
-      options.radius1,
-      () => 0,
-    )
-    const radius2Values = numericPolarChannelValues(
-      data,
-      options.radius2 ?? options.radius,
-      (_datum, { index }) => rawRadiusValues[index],
-    )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      candidates: [angleValues],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-bar-radius-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues = channelValues(
+        data,
+        options.angle,
+        (_datum, { index }) => index,
+      )
+      const rawRadiusValues = numericPolarChannelValues(
+        data,
+        options.radius ?? options.radius2,
+        (datum) => (typeof datum === 'number' ? datum : undefined),
+      )
+      const radius1Values = numericPolarChannelValues(
+        data,
+        options.radius1,
+        () => 0,
+      )
+      const radius2Values = numericPolarChannelValues(
+        data,
+        options.radius2 ?? options.radius,
+        (_datum, { index }) => rawRadiusValues[index],
+      )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        candidates: [angleValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: [
-        ...radius1Values.filter(isFiniteNumber),
-        ...radius2Values.filter(isFiniteNumber),
-      ],
-      includeZeroRadius: options.radius1 === undefined,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor }) => {
-        const angle = requiredBandScale(layout.angle, 'angle', id)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum, any, number>[] = []
-        data.forEach((datum, datumIndex) => {
-          const angleValue = angleValues[datumIndex]
-          const radiusValue = rawRadiusValues[datumIndex]
-          const radius1Value = radius1Values[datumIndex]
-          const radius2Value = radius2Values[datumIndex]
-          if (
-            !isChartValue(angleValue) ||
-            !isFiniteNumber(radiusValue) ||
-            !isFiniteNumber(radius1Value) ||
-            !isFiniteNumber(radius2Value)
-          ) {
-            return
-          }
-          const angleBand = resolvePolarBand(angle, angleValue)
-          const mappedRadius1 =
-            options.radius1 === undefined
-              ? 0
-              : mapPolarScale(radius, radius1Value)
-          const mappedRadius2 = mapPolarScale(radius, radius2Value)
-          if (
-            !angleBand ||
-            !isNonnegativeFiniteNumber(mappedRadius1) ||
-            !isNonnegativeFiniteNumber(mappedRadius2)
-          ) {
-            return
-          }
-          const cornerRadius = resolveBarCornerRadius(
-            options.cornerRadius,
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: [
+          ...radius1Values.filter(isFiniteNumber),
+          ...radius2Values.filter(isFiniteNumber),
+        ],
+        includeZeroRadius: options.radius1 === undefined,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor }) => {
+          const angle = requiredBandScale(
+            requiredPolarScale(
+              layout,
+              angleScale,
+              'angle',
+              `Polar mark "${id}"`,
+            ),
+            'angle',
+            id,
+          )
+          const radius = requiredPolarScale(
             layout,
-            mappedRadius1,
-            mappedRadius2,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
           )
-          const sector = resolvePolarSector({
-            startAngle: angleBand.start,
-            endAngle: angleBand.end,
-            innerRadius: mappedRadius1,
-            outerRadius: mappedRadius2,
-            cornerRadius,
-          })
-          if (!sector) return
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum, any, number>[] = []
+          data.forEach((datum, datumIndex) => {
+            const angleValue = angleValues[datumIndex]
+            const radiusValue = rawRadiusValues[datumIndex]
+            const radius1Value = radius1Values[datumIndex]
+            const radius2Value = radius2Values[datumIndex]
+            if (
+              !isChartValue(angleValue) ||
+              !isFiniteNumber(radiusValue) ||
+              !isFiniteNumber(radius1Value) ||
+              !isFiniteNumber(radius2Value)
+            ) {
+              return
+            }
+            const angleBand = resolvePolarBand(angle, angleValue)
+            const mappedRadius1 =
+              options.radius1 === undefined
+                ? 0
+                : mapPolarScale(radius, radius1Value)
+            const mappedRadius2 = mapPolarScale(radius, radius2Value)
+            if (
+              !angleBand ||
+              !isNonnegativeFiniteNumber(mappedRadius1) ||
+              !isNonnegativeFiniteNumber(mappedRadius2)
+            ) {
+              return
+            }
+            const cornerRadius = resolveBarCornerRadius(
+              options.cornerRadius,
+              layout,
+              mappedRadius1,
+              mappedRadius2,
+            )
+            const sector = resolvePolarSector({
+              startAngle: angleBand.start,
+              endAngle: angleBand.end,
+              innerRadius: mappedRadius1,
+              outerRadius: mappedRadius2,
+              cornerRadius,
+            })
+            if (!sector) return
 
-          const group = groups[datumIndex] ?? null
-          const fallback = resolveColor(colorValues[datumIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            fallback,
-          )
-          const stroke =
-            options.stroke === undefined
-              ? undefined
-              : visualValue(options.stroke, datum, datumIndex, data, fallback)
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const [pointX, pointY] = pointRadial(angleBand.center, mappedRadius2)
-          const point = withPolarFocusGeometry<ChartPoint<TDatum, any, number>>(
-            {
-              key,
-              markId: id,
-              group,
-              groupLabel: group == null ? id : String(group),
+            const group = groups[datumIndex] ?? null
+            const fallback = resolveColor(colorValues[datumIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
               datum,
               datumIndex,
-              xValue: angleValue,
-              yValue: radiusValue,
-              y1Value: radius1Value,
-              y2Value: radius2Value,
-              yInterval: 'difference',
-              x: layout.centerX + pointX,
-              y: layout.centerY + pointY,
-              color: fill,
-            },
-            layout,
-            angleBand.center,
-            mappedRadius2,
-            pointX,
-            pointY,
-          )
-          nodes.push({
-            kind: 'area',
-            key,
-            points: sector.points,
-            path: sector.path,
-            interaction: { point, affinity: 'geometry' },
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              strokeDasharray: options.strokeDasharray,
-              opacity: options.opacity,
-              lineJoin: 'round',
-            },
+              data,
+              fallback,
+            )
+            const stroke =
+              options.stroke === undefined
+                ? undefined
+                : visualValue(options.stroke, datum, datumIndex, data, fallback)
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const [pointX, pointY] = pointRadial(
+              angleBand.center,
+              mappedRadius2,
+            )
+            const point = withPolarFocusGeometry<
+              ChartPoint<TDatum, any, number>
+            >(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum,
+                datumIndex,
+                xValue: angleValue,
+                yValue: radiusValue,
+                y1Value: radius1Value,
+                y2Value: radius2Value,
+                yInterval: 'difference',
+                x: layout.centerX + pointX,
+                y: layout.centerY + pointY,
+                color: fill,
+              },
+              layout,
+              angleBand.center,
+              mappedRadius2,
+              pointX,
+              pointY,
+            )
+            nodes.push({
+              kind: 'area',
+              key,
+              points: sector.points,
+              path: sector.path,
+              interaction: { point, affinity: 'geometry' },
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray: options.strokeDasharray,
+                opacity: options.opacity,
+                lineJoin: 'round',
+              },
+            })
+            points.push(point)
           })
-          points.push(point)
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__arc ts-chart__bar ts-chart__radial-bar ts-chart__radial-bar-radius',
-                options.className,
-              ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__arc ts-chart__bar ts-chart__radial-bar ts-chart__radial-bar-radius',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export interface RadialBarAngleOptions<
@@ -643,182 +791,215 @@ export function radialBarAngle<
 ): PolarMark<
   TDatum,
   number,
-  OptionChannelOutput<TDatum, TOptions, 'radius', number>
+  OptionChannelOutput<TDatum, TOptions, 'radius', number>,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialBarAngle<TDatum>(
   source: Iterable<TDatum>,
   options: RadialBarAngleOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, number, any> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-bar-angle-${markIndex}`
-    const rawAngleValues = numericPolarChannelValues(
-      data,
-      options.angle ?? options.angle2,
-      (datum) => (typeof datum === 'number' ? datum : undefined),
-    )
-    const angle1Values = numericPolarChannelValues(
-      data,
-      options.angle1,
-      () => 0,
-    )
-    const angle2Values = numericPolarChannelValues(
-      data,
-      options.angle2 ?? options.angle,
-      (_datum, { index }) => rawAngleValues[index],
-    )
-    const radiusValues = channelValues(
-      data,
-      options.radius,
-      (_datum, { index }) => index,
-    )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      candidates: [radiusValues],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-bar-angle-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const rawAngleValues = numericPolarChannelValues(
+        data,
+        options.angle ?? options.angle2,
+        (datum) => (typeof datum === 'number' ? datum : undefined),
+      )
+      const angle1Values = numericPolarChannelValues(
+        data,
+        options.angle1,
+        () => 0,
+      )
+      const angle2Values = numericPolarChannelValues(
+        data,
+        options.angle2 ?? options.angle,
+        (_datum, { index }) => rawAngleValues[index],
+      )
+      const radiusValues = channelValues(
+        data,
+        options.radius,
+        (_datum, { index }) => index,
+      )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        candidates: [radiusValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: [
-        ...angle1Values.filter(isFiniteNumber),
-        ...angle2Values.filter(isFiniteNumber),
-      ],
-      radiusValues: radiusValues.filter(isChartValue),
-      includeZeroRadius: false,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredBandScale(layout.radiusScale, 'radius', id)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum, number, any>[] = []
-        data.forEach((datum, datumIndex) => {
-          const angleValue = rawAngleValues[datumIndex]
-          const angle1Value = angle1Values[datumIndex]
-          const angle2Value = angle2Values[datumIndex]
-          const radiusValue = radiusValues[datumIndex]
-          if (
-            !isFiniteNumber(angleValue) ||
-            !isFiniteNumber(angle1Value) ||
-            !isFiniteNumber(angle2Value) ||
-            !isChartValue(radiusValue)
-          ) {
-            return
-          }
-          const mappedAngle1 = mapPolarScale(angle, angle1Value)
-          const mappedAngle2 = mapPolarScale(angle, angle2Value)
-          const radiusBand = resolvePolarBand(radius, radiusValue)
-          if (
-            !isFiniteNumber(mappedAngle1) ||
-            !isFiniteNumber(mappedAngle2) ||
-            !radiusBand
-          ) {
-            return
-          }
-          const cornerRadius = resolveBarCornerRadius(
-            options.cornerRadius,
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: [
+          ...angle1Values.filter(isFiniteNumber),
+          ...angle2Values.filter(isFiniteNumber),
+        ],
+        radiusValues: radiusValues.filter(isChartValue),
+        includeZeroRadius: false,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor }) => {
+          const angle = requiredPolarScale(
             layout,
-            radiusBand.start,
-            radiusBand.end,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const sector = resolvePolarSector({
-            startAngle: mappedAngle1,
-            endAngle: mappedAngle2,
-            innerRadius: radiusBand.start,
-            outerRadius: radiusBand.end,
-            cornerRadius,
-          })
-          if (!sector) return
+          const radius = requiredBandScale(
+            requiredPolarScale(
+              layout,
+              radiusScale,
+              'radius',
+              `Polar mark "${id}"`,
+            ),
+            'radius',
+            id,
+          )
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum, number, any>[] = []
+          data.forEach((datum, datumIndex) => {
+            const angleValue = rawAngleValues[datumIndex]
+            const angle1Value = angle1Values[datumIndex]
+            const angle2Value = angle2Values[datumIndex]
+            const radiusValue = radiusValues[datumIndex]
+            if (
+              !isFiniteNumber(angleValue) ||
+              !isFiniteNumber(angle1Value) ||
+              !isFiniteNumber(angle2Value) ||
+              !isChartValue(radiusValue)
+            ) {
+              return
+            }
+            const mappedAngle1 = mapPolarScale(angle, angle1Value)
+            const mappedAngle2 = mapPolarScale(angle, angle2Value)
+            const radiusBand = resolvePolarBand(radius, radiusValue)
+            if (
+              !isFiniteNumber(mappedAngle1) ||
+              !isFiniteNumber(mappedAngle2) ||
+              !radiusBand
+            ) {
+              return
+            }
+            const cornerRadius = resolveBarCornerRadius(
+              options.cornerRadius,
+              layout,
+              radiusBand.start,
+              radiusBand.end,
+            )
+            const sector = resolvePolarSector({
+              startAngle: mappedAngle1,
+              endAngle: mappedAngle2,
+              innerRadius: radiusBand.start,
+              outerRadius: radiusBand.end,
+              cornerRadius,
+            })
+            if (!sector) return
 
-          const group = groups[datumIndex] ?? null
-          const fallback = resolveColor(colorValues[datumIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            fallback,
-          )
-          const stroke =
-            options.stroke === undefined
-              ? undefined
-              : visualValue(options.stroke, datum, datumIndex, data, fallback)
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const [pointX, pointY] = pointRadial(mappedAngle2, radiusBand.center)
-          const point = withPolarFocusGeometry<ChartPoint<TDatum, number, any>>(
-            {
-              key,
-              markId: id,
-              group,
-              groupLabel: group == null ? id : String(group),
+            const group = groups[datumIndex] ?? null
+            const fallback = resolveColor(colorValues[datumIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
               datum,
               datumIndex,
-              xValue: angleValue,
-              yValue: radiusValue,
-              x1Value: angle1Value,
-              x2Value: angle2Value,
-              xInterval: 'difference',
-              x: layout.centerX + pointX,
-              y: layout.centerY + pointY,
-              color: fill,
-            },
-            layout,
-            mappedAngle2,
-            radiusBand.center,
-            pointX,
-            pointY,
-          )
-          nodes.push({
-            kind: 'area',
-            key,
-            points: sector.points,
-            path: sector.path,
-            interaction: { point, affinity: 'geometry' },
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              strokeDasharray: options.strokeDasharray,
-              opacity: options.opacity,
-              lineJoin: 'round',
-            },
+              data,
+              fallback,
+            )
+            const stroke =
+              options.stroke === undefined
+                ? undefined
+                : visualValue(options.stroke, datum, datumIndex, data, fallback)
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const [pointX, pointY] = pointRadial(
+              mappedAngle2,
+              radiusBand.center,
+            )
+            const point = withPolarFocusGeometry<
+              ChartPoint<TDatum, number, any>
+            >(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum,
+                datumIndex,
+                xValue: angleValue,
+                yValue: radiusValue,
+                x1Value: angle1Value,
+                x2Value: angle2Value,
+                xInterval: 'difference',
+                x: layout.centerX + pointX,
+                y: layout.centerY + pointY,
+                color: fill,
+              },
+              layout,
+              mappedAngle2,
+              radiusBand.center,
+              pointX,
+              pointY,
+            )
+            nodes.push({
+              kind: 'area',
+              key,
+              points: sector.points,
+              path: sector.path,
+              interaction: { point, affinity: 'geometry' },
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray: options.strokeDasharray,
+                opacity: options.opacity,
+                lineJoin: 'round',
+              },
+            })
+            points.push(point)
           })
-          points.push(point)
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__arc ts-chart__bar ts-chart__radial-bar ts-chart__radial-bar-angle',
-                options.className,
-              ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__arc ts-chart__bar ts-chart__radial-bar ts-chart__radial-bar-angle',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 interface RadialPathOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
+  /** Named angle scale. Omit to use the reserved `angle` scale. */
+  angleScale?: string
+  /** Named radius scale. Omit to use the reserved `radius` scale. */
+  radiusScale?: string
   angle?: number | Channel<TDatum, ChartValue | null | undefined>
   radius?: number | Channel<TDatum, number | null | undefined>
   key?: Channel<TDatum, ChartKey>
@@ -848,161 +1029,182 @@ export function radialLine<
 ): PolarMark<
   TDatum,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  OptionChannelOutput<TDatum, TOptions, 'radius', number>
+  OptionChannelOutput<TDatum, TOptions, 'radius', number>,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialLine<TDatum>(
   source: Iterable<TDatum>,
   options: RadialLineOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-line-${markIndex}`
-    const angleValues =
-      typeof options.angle === 'number'
-        ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, { index }) => index)
-    const radiusValues =
-      typeof options.radius === 'number'
-        ? data.map(() => options.radius as number)
-        : channelValues(data, options.radius, (datum) =>
-            typeof datum === 'number' ? datum : undefined,
-          )
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const groups =
-      options.z === undefined && options.color !== undefined
-        ? colorValues
-        : zValues
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      candidates: [angleValues],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-line-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (_datum, { index }) => index)
+      const radiusValues =
+        typeof options.radius === 'number'
+          ? data.map(() => options.radius as number)
+          : channelValues(data, options.radius, (datum) =>
+              typeof datum === 'number' ? datum : undefined,
+            )
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const groups =
+        options.z === undefined && options.color !== undefined
+          ? colorValues
+          : zValues
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        candidates: [angleValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: radiusValues.filter(isChartValue),
-      includeZeroRadius: false,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
-        for (const [groupKey, indices] of groupIndices(groups)) {
-          const firstIndex = indices[0]
-          if (firstIndex === undefined) continue
-          const group = groups[firstIndex] ?? null
-          const stroke = visualValue(
-            options.stroke,
-            data[firstIndex],
-            firstIndex,
-            data,
-            resolveColor(colorValues[firstIndex] ?? null),
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: radiusValues.filter(isChartValue),
+        includeZeroRadius: false,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const rows = indices.map((datumIndex) => ({
-            datumIndex,
-            angleValue: angleValues[datumIndex],
-            radiusValue: radiusValues[datumIndex],
-            angle: mapPolarScale(angle, angleValues[datumIndex]),
-            radius: mapPolarScale(radius, radiusValues[datumIndex]),
-          }))
-          const generator = createLineRadial<(typeof rows)[number]>()
-            .defined(
-              (row) => isFiniteNumber(row.angle) && isFiniteNumber(row.radius),
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
+          )
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum>[] = []
+          for (const [groupKey, indices] of groupIndices(groups)) {
+            const firstIndex = indices[0]
+            if (firstIndex === undefined) continue
+            const group = groups[firstIndex] ?? null
+            const stroke = visualValue(
+              options.stroke,
+              data[firstIndex],
+              firstIndex,
+              data,
+              resolveColor(colorValues[firstIndex] ?? null),
             )
-            .angle((row) => row.angle)
-            .radius((row) => row.radius)
-          if (options.curve) generator.curve(options.curve)
-          const path = generator(rows)
-          if (typeof path === 'string' && path) {
-            nodes.push({
-              kind: 'polyline',
-              key: `${id}:${groupKey}`,
-              points: [],
-              path,
-              style: {
-                fill: 'none',
-                stroke,
-                strokeOpacity: options.strokeOpacity,
-                strokeWidth: options.strokeWidth ?? 2.25,
-                strokeDasharray: options.strokeDasharray,
-                opacity: options.opacity,
-                lineCap: 'round',
-                lineJoin: 'round',
-              },
-            })
-          }
-          for (const row of rows) {
-            if (
-              !isChartValue(row.angleValue) ||
-              !isChartValue(row.radiusValue) ||
-              !isFiniteNumber(row.angle) ||
-              !isFiniteNumber(row.radius)
-            ) {
-              continue
-            }
-            const [x, y] = pointRadial(row.angle, row.radius)
-            const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
-            const point = withPolarFocusGeometry<ChartPoint<TDatum>>(
-              {
-                key,
-                markId: id,
-                group,
-                groupLabel: group == null ? id : String(group),
-                datum: data[row.datumIndex],
-                datumIndex: row.datumIndex,
-                xValue: row.angleValue,
-                yValue: row.radiusValue,
-                x: layout.centerX + x,
-                y: layout.centerY + y,
-                color: stroke,
-              },
-              layout,
-              row.angle,
-              row.radius,
-              x,
-              y,
-            )
-            points.push(point)
-            if (options.points) {
+            const rows = indices.map((datumIndex) => ({
+              datumIndex,
+              angleValue: angleValues[datumIndex],
+              radiusValue: radiusValues[datumIndex],
+              angle: mapPolarScale(angle, angleValues[datumIndex]),
+              radius: mapPolarScale(radius, radiusValues[datumIndex]),
+            }))
+            const generator = createLineRadial<(typeof rows)[number]>()
+              .defined(
+                (row) =>
+                  isFiniteNumber(row.angle) && isFiniteNumber(row.radius),
+              )
+              .angle((row) => row.angle)
+              .radius((row) => row.radius)
+            if (options.curve) generator.curve(options.curve)
+            const path = generator(rows)
+            if (typeof path === 'string' && path) {
               nodes.push({
-                kind: 'dot',
-                key: `${key}:dot`,
-                x,
-                y,
-                radius: 2.5,
-                pointOwner: point,
-                style: { fill: stroke },
+                kind: 'polyline',
+                key: `${id}:${groupKey}`,
+                points: [],
+                path,
+                style: {
+                  fill: 'none',
+                  stroke,
+                  strokeOpacity: options.strokeOpacity,
+                  strokeWidth: options.strokeWidth ?? 2.25,
+                  strokeDasharray: options.strokeDasharray,
+                  opacity: options.opacity,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                },
               })
             }
+            for (const row of rows) {
+              if (
+                !isChartValue(row.angleValue) ||
+                !isChartValue(row.radiusValue) ||
+                !isFiniteNumber(row.angle) ||
+                !isFiniteNumber(row.radius)
+              ) {
+                continue
+              }
+              const [x, y] = pointRadial(row.angle, row.radius)
+              const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
+              const point = withPolarFocusGeometry<ChartPoint<TDatum>>(
+                {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group == null ? id : String(group),
+                  datum: data[row.datumIndex],
+                  datumIndex: row.datumIndex,
+                  xValue: row.angleValue,
+                  yValue: row.radiusValue,
+                  x: layout.centerX + x,
+                  y: layout.centerY + y,
+                  color: stroke,
+                },
+                layout,
+                row.angle,
+                row.radius,
+                x,
+                y,
+              )
+              points.push(point)
+              if (options.points) {
+                nodes.push({
+                  kind: 'dot',
+                  key: `${key}:dot`,
+                  x,
+                  y,
+                  radius: 2.5,
+                  pointOwner: point,
+                  style: { fill: stroke },
+                })
+              }
+            }
           }
-        }
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__radial-line ts-chart__line',
-                options.className,
-              ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__radial-line ts-chart__line',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export interface RadialAreaOptions<TDatum> extends RadialPathOptions<TDatum> {
@@ -1029,166 +1231,186 @@ export function radialArea<
 ): PolarMark<
   TDatum,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  OptionChannelOutput<TDatum, TOptions, 'radius', number>
+  OptionChannelOutput<TDatum, TOptions, 'radius', number>,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialArea<TDatum>(
   source: Iterable<TDatum>,
   options: RadialAreaOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-area-${markIndex}`
-    const angleValues =
-      typeof options.angle === 'number'
-        ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, { index }) => index)
-    const radiusValues =
-      typeof options.radius === 'number'
-        ? data.map(() => options.radius as number)
-        : channelValues(data, options.radius, (datum) =>
-            typeof datum === 'number' ? datum : undefined,
-          )
-    const radius1Values =
-      typeof options.radius1 === 'number'
-        ? data.map(() => options.radius1 as number)
-        : channelValues(data, options.radius1, () => 0)
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const groups =
-      options.z === undefined && options.color !== undefined
-        ? colorValues
-        : zValues
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      candidates: [angleValues],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-area-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (_datum, { index }) => index)
+      const radiusValues =
+        typeof options.radius === 'number'
+          ? data.map(() => options.radius as number)
+          : channelValues(data, options.radius, (datum) =>
+              typeof datum === 'number' ? datum : undefined,
+            )
+      const radius1Values =
+        typeof options.radius1 === 'number'
+          ? data.map(() => options.radius1 as number)
+          : channelValues(data, options.radius1, () => 0)
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const groups =
+        options.z === undefined && options.color !== undefined
+          ? colorValues
+          : zValues
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        candidates: [angleValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: [
-        ...radiusValues.filter(isChartValue),
-        ...radius1Values.filter(isChartValue),
-      ],
-      includeZeroRadius: options.radius1 === undefined,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
-        for (const [groupKey, indices] of groupIndices(groups)) {
-          const firstIndex = indices[0]
-          if (firstIndex === undefined) continue
-          const datum = data[firstIndex]
-          const group = groups[firstIndex] ?? null
-          const fallback = resolveColor(colorValues[firstIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            firstIndex,
-            data,
-            fallback,
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: [
+          ...radiusValues.filter(isChartValue),
+          ...radius1Values.filter(isChartValue),
+        ],
+        includeZeroRadius: options.radius1 === undefined,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const stroke =
-            options.stroke === undefined
-              ? undefined
-              : visualValue(options.stroke, datum, firstIndex, data, fallback)
-          const rows = indices.map((datumIndex) => ({
-            datumIndex,
-            angleValue: angleValues[datumIndex],
-            radiusValue: radiusValues[datumIndex],
-            angle: mapPolarScale(angle, angleValues[datumIndex]),
-            radius: mapPolarScale(radius, radiusValues[datumIndex]),
-            radius1: mapPolarScale(radius, radius1Values[datumIndex]),
-          }))
-          const generator = createAreaRadial<(typeof rows)[number]>()
-            .defined(
-              (row) =>
-                isFiniteNumber(row.angle) &&
-                isFiniteNumber(row.radius) &&
-                isFiniteNumber(row.radius1),
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
+          )
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum>[] = []
+          for (const [groupKey, indices] of groupIndices(groups)) {
+            const firstIndex = indices[0]
+            if (firstIndex === undefined) continue
+            const datum = data[firstIndex]
+            const group = groups[firstIndex] ?? null
+            const fallback = resolveColor(colorValues[firstIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
+              datum,
+              firstIndex,
+              data,
+              fallback,
             )
-            .angle((row) => row.angle)
-            .innerRadius((row) => row.radius1)
-            .outerRadius((row) => row.radius)
-          if (options.curve) generator.curve(options.curve)
-          const path = generator(rows)
-          if (typeof path === 'string' && path) {
-            nodes.push({
-              kind: 'area',
-              key: `${id}:${groupKey}`,
-              points: [],
-              path,
-              style: {
-                fill,
-                fillOpacity: options.fillOpacity ?? 0.2,
-                stroke,
-                strokeOpacity: options.strokeOpacity,
-                strokeWidth: options.strokeWidth,
-                strokeDasharray: options.strokeDasharray,
-                opacity: options.opacity,
-                lineJoin: 'round',
-              },
-            })
-          }
-          for (const row of rows) {
-            if (
-              !isChartValue(row.angleValue) ||
-              !isChartValue(row.radiusValue) ||
-              !isFiniteNumber(row.angle) ||
-              !isFiniteNumber(row.radius)
-            ) {
-              continue
-            }
-            const [x, y] = pointRadial(row.angle, row.radius)
-            const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
-            points.push(
-              withPolarFocusGeometry(
-                {
-                  key,
-                  markId: id,
-                  group,
-                  groupLabel: group == null ? id : String(group),
-                  datum: data[row.datumIndex],
-                  datumIndex: row.datumIndex,
-                  xValue: row.angleValue,
-                  yValue: row.radiusValue,
-                  x: layout.centerX + x,
-                  y: layout.centerY + y,
-                  color: fill,
+            const stroke =
+              options.stroke === undefined
+                ? undefined
+                : visualValue(options.stroke, datum, firstIndex, data, fallback)
+            const rows = indices.map((datumIndex) => ({
+              datumIndex,
+              angleValue: angleValues[datumIndex],
+              radiusValue: radiusValues[datumIndex],
+              angle: mapPolarScale(angle, angleValues[datumIndex]),
+              radius: mapPolarScale(radius, radiusValues[datumIndex]),
+              radius1: mapPolarScale(radius, radius1Values[datumIndex]),
+            }))
+            const generator = createAreaRadial<(typeof rows)[number]>()
+              .defined(
+                (row) =>
+                  isFiniteNumber(row.angle) &&
+                  isFiniteNumber(row.radius) &&
+                  isFiniteNumber(row.radius1),
+              )
+              .angle((row) => row.angle)
+              .innerRadius((row) => row.radius1)
+              .outerRadius((row) => row.radius)
+            if (options.curve) generator.curve(options.curve)
+            const path = generator(rows)
+            if (typeof path === 'string' && path) {
+              nodes.push({
+                kind: 'area',
+                key: `${id}:${groupKey}`,
+                points: [],
+                path,
+                style: {
+                  fill,
+                  fillOpacity: options.fillOpacity ?? 0.2,
+                  stroke,
+                  strokeOpacity: options.strokeOpacity,
+                  strokeWidth: options.strokeWidth,
+                  strokeDasharray: options.strokeDasharray,
+                  opacity: options.opacity,
+                  lineJoin: 'round',
                 },
-                layout,
-                row.angle,
-                row.radius,
-                x,
-                y,
-              ),
-            )
+              })
+            }
+            for (const row of rows) {
+              if (
+                !isChartValue(row.angleValue) ||
+                !isChartValue(row.radiusValue) ||
+                !isFiniteNumber(row.angle) ||
+                !isFiniteNumber(row.radius)
+              ) {
+                continue
+              }
+              const [x, y] = pointRadial(row.angle, row.radius)
+              const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
+              points.push(
+                withPolarFocusGeometry(
+                  {
+                    key,
+                    markId: id,
+                    group,
+                    groupLabel: group == null ? id : String(group),
+                    datum: data[row.datumIndex],
+                    datumIndex: row.datumIndex,
+                    xValue: row.angleValue,
+                    yValue: row.radiusValue,
+                    x: layout.centerX + x,
+                    y: layout.centerY + y,
+                    color: fill,
+                  },
+                  layout,
+                  row.angle,
+                  row.radius,
+                  x,
+                  y,
+                ),
+              )
+            }
           }
-        }
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes('ts-chart__radial-area', options.className),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes('ts-chart__radial-area', options.className),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export interface RadialDotOptions<TDatum> extends RadialPathOptions<TDatum> {
@@ -1228,163 +1450,185 @@ export function radialText<
 ): PolarMark<
   TDatum,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  OptionChannelOutput<TDatum, TOptions, 'radius', number>
+  OptionChannelOutput<TDatum, TOptions, 'radius', number>,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialText<TDatum>(
   source: Iterable<TDatum>,
   options: RadialTextOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-text-${markIndex}`
-    const angleValues =
-      typeof options.angle === 'number'
-        ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, { index }) => index)
-    const radiusValues =
-      typeof options.radius === 'number'
-        ? data.map(() => options.radius as number)
-        : channelValues(data, options.radius, (datum) =>
-            typeof datum === 'number' ? datum : undefined,
-          )
-    const textValues = channelValues(data, options.text, (datum) =>
-      datum == null ? '' : String(datum),
-    )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, { groups })
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-text-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (_datum, { index }) => index)
+      const radiusValues =
+        typeof options.radius === 'number'
+          ? data.map(() => options.radius as number)
+          : channelValues(data, options.radius, (datum) =>
+              typeof datum === 'number' ? datum : undefined,
+            )
+      const textValues = channelValues(data, options.text, (datum) =>
+        datum == null ? '' : String(datum),
+      )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, { groups })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: radiusValues.filter(isChartValue),
-      includeZeroRadius: false,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor, theme }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
-        data.forEach((datum, datumIndex) => {
-          const angleValue = angleValues[datumIndex]
-          const radiusValue = radiusValues[datumIndex]
-          const textValue = textValues[datumIndex]
-          const anglePosition = mapPolarScale(angle, angleValue)
-          const radiusPosition = mapPolarScale(radius, radiusValue)
-          if (
-            !isChartValue(angleValue) ||
-            !isChartValue(radiusValue) ||
-            textValue == null ||
-            !isFiniteNumber(anglePosition) ||
-            !isFiniteNumber(radiusPosition)
-          ) {
-            return
-          }
-          const radiusOffset = visualValue(
-            options.radiusOffset,
-            datum,
-            datumIndex,
-            data,
-            0,
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: radiusValues.filter(isChartValue),
+        includeZeroRadius: false,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor, theme }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const projectedRadius = radiusPosition + radiusOffset
-          if (
-            !isFiniteNumber(radiusOffset) ||
-            !isFiniteNumber(projectedRadius)
-          ) {
-            return
-          }
-          const [baseX, baseY] = pointRadial(anglePosition, projectedRadius)
-          const x = baseX + visualValue(options.dx, datum, datumIndex, data, 0)
-          const y = baseY + visualValue(options.dy, datum, datumIndex, data, 0)
-          const group = groups[datumIndex] ?? null
-          const colorValue = colorValues[datumIndex] ?? null
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            colorValue == null ? theme.foreground : resolveColor(colorValue),
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
           )
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const authoredAnchor = visualValue(
-            options.anchor,
-            datum,
-            datumIndex,
-            data,
-            'middle',
-          )
-          nodes.push({
-            kind: 'label',
-            key,
-            x,
-            y,
-            text: String(textValue),
-            anchor:
-              authoredAnchor === 'outside'
-                ? outsideRadialAnchor(anglePosition)
-                : authoredAnchor,
-            baseline: visualValue(
-              options.baseline,
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum>[] = []
+          data.forEach((datum, datumIndex) => {
+            const angleValue = angleValues[datumIndex]
+            const radiusValue = radiusValues[datumIndex]
+            const textValue = textValues[datumIndex]
+            const anglePosition = mapPolarScale(angle, angleValue)
+            const radiusPosition = mapPolarScale(radius, radiusValue)
+            if (
+              !isChartValue(angleValue) ||
+              !isChartValue(radiusValue) ||
+              textValue == null ||
+              !isFiniteNumber(anglePosition) ||
+              !isFiniteNumber(radiusPosition)
+            ) {
+              return
+            }
+            const radiusOffset = visualValue(
+              options.radiusOffset,
+              datum,
+              datumIndex,
+              data,
+              0,
+            )
+            const projectedRadius = radiusPosition + radiusOffset
+            if (
+              !isFiniteNumber(radiusOffset) ||
+              !isFiniteNumber(projectedRadius)
+            ) {
+              return
+            }
+            const [baseX, baseY] = pointRadial(anglePosition, projectedRadius)
+            const x =
+              baseX + visualValue(options.dx, datum, datumIndex, data, 0)
+            const y =
+              baseY + visualValue(options.dy, datum, datumIndex, data, 0)
+            const group = groups[datumIndex] ?? null
+            const colorValue = colorValues[datumIndex] ?? null
+            const fill = visualValue(
+              options.fill,
+              datum,
+              datumIndex,
+              data,
+              colorValue == null ? theme.foreground : resolveColor(colorValue),
+            )
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const authoredAnchor = visualValue(
+              options.anchor,
               datum,
               datumIndex,
               data,
               'middle',
-            ),
-            rotate:
-              options.rotate === undefined
-                ? undefined
-                : visualValue(options.rotate, datum, datumIndex, data, 0),
-            fontSize: options.fontSize,
-            fontWeight: options.fontWeight,
-            style: { fill },
-          })
-          points.push(
-            withPolarFocusGeometry(
-              {
-                key,
-                markId: id,
-                group,
-                groupLabel: group == null ? id : String(group),
-                datum,
-                datumIndex,
-                xValue: angleValue,
-                yValue: radiusValue,
-                x: layout.centerX + x,
-                y: layout.centerY + y,
-                color: fill,
-              },
-              layout,
-              anglePosition,
-              projectedRadius,
+            )
+            nodes.push({
+              kind: 'label',
+              key,
               x,
               y,
-            ),
-          )
-        })
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__radial-text ts-chart__text',
-                options.className,
+              text: String(textValue),
+              anchor:
+                authoredAnchor === 'outside'
+                  ? outsideRadialAnchor(anglePosition)
+                  : authoredAnchor,
+              baseline: visualValue(
+                options.baseline,
+                datum,
+                datumIndex,
+                data,
+                'middle',
               ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+              rotate:
+                options.rotate === undefined
+                  ? undefined
+                  : visualValue(options.rotate, datum, datumIndex, data, 0),
+              fontSize: options.fontSize,
+              fontWeight: options.fontWeight,
+              style: { fill },
+            })
+            points.push(
+              withPolarFocusGeometry(
+                {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group == null ? id : String(group),
+                  datum,
+                  datumIndex,
+                  xValue: angleValue,
+                  yValue: radiusValue,
+                  x: layout.centerX + x,
+                  y: layout.centerY + y,
+                  color: fill,
+                },
+                layout,
+                anglePosition,
+                projectedRadius,
+                x,
+                y,
+              ),
+            )
+          })
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__radial-text ts-chart__text',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export interface RadialRuleOptions<
@@ -1392,6 +1636,10 @@ export interface RadialRuleOptions<
 > extends ChartMarkMotionOptions<never> {
   id?: string
   className?: string
+  /** Named angle scale. Omit to use the reserved `angle` scale. */
+  angleScale?: string
+  /** Named radius scale. Omit to use the reserved `radius` scale. */
+  radiusScale?: string
   angle?: number | Channel<TDatum, ChartValue | null | undefined>
   radius1?: number | Channel<TDatum, number | null | undefined>
   radius2?: number | Channel<TDatum, number | null | undefined>
@@ -1421,144 +1669,164 @@ export function radialRule<
 ): PolarMark<
   never,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  number
+  number,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialRule<TDatum>(
   source: Iterable<TDatum>,
   options: RadialRuleOptions<NoInfer<TDatum>> = {},
 ): PolarMark<never, any, number> {
   const data = asArray(source)
-  return createPolarMark<never, any, number>(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-rule-${markIndex}`
-    const angleValues =
-      typeof options.angle === 'number'
-        ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, { index }) => index)
-    const radius1Values =
-      typeof options.radius1 === 'number'
-        ? data.map(() => options.radius1 as number)
-        : channelValues(data, options.radius1, () => 0)
-    const radius2Values =
-      typeof options.radius2 === 'number'
-        ? data.map(() => options.radius2 as number)
-        : channelValues(data, options.radius2, (datum) =>
-            typeof datum === 'number'
-              ? datum
-              : numberProperty(datum, 'radius2'),
-          )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      candidates: [angleValues],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createPolarMark<never, any, number>(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-rule-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (_datum, { index }) => index)
+      const radius1Values =
+        typeof options.radius1 === 'number'
+          ? data.map(() => options.radius1 as number)
+          : channelValues(data, options.radius1, () => 0)
+      const radius2Values =
+        typeof options.radius2 === 'number'
+          ? data.map(() => options.radius2 as number)
+          : channelValues(data, options.radius2, (datum) =>
+              typeof datum === 'number'
+                ? datum
+                : numberProperty(datum, 'radius2'),
+            )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        candidates: [angleValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: [
-        ...radius1Values.filter(isChartValue),
-        ...radius2Values.filter(isChartValue),
-      ],
-      includeZeroRadius: options.radius1 === undefined,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor, theme }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        data.forEach((datum, datumIndex) => {
-          const anglePosition = mapPolarScale(angle, angleValues[datumIndex])
-          const radius1Position = mapPolarScale(
-            radius,
-            radius1Values[datumIndex],
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: [
+          ...radius1Values.filter(isChartValue),
+          ...radius2Values.filter(isChartValue),
+        ],
+        includeZeroRadius: options.radius1 === undefined,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor, theme }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const radius2Position = mapPolarScale(
-            radius,
-            radius2Values[datumIndex],
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
           )
-          if (
-            !isFiniteNumber(anglePosition) ||
-            !isFiniteNumber(radius1Position) ||
-            !isFiniteNumber(radius2Position)
-          ) {
-            return
-          }
-          const radius1Offset = visualValue(
-            options.radius1Offset,
-            datum,
-            datumIndex,
-            data,
-            0,
-          )
-          const radius2Offset = visualValue(
-            options.radius2Offset,
-            datum,
-            datumIndex,
-            data,
-            0,
-          )
-          const projectedRadius1 = radius1Position + radius1Offset
-          const projectedRadius2 = radius2Position + radius2Offset
-          if (
-            !isFiniteNumber(radius1Offset) ||
-            !isFiniteNumber(radius2Offset) ||
-            !isFiniteNumber(projectedRadius1) ||
-            !isFiniteNumber(projectedRadius2)
-          ) {
-            return
-          }
-          const [x1, y1] = pointRadial(anglePosition, projectedRadius1)
-          const [x2, y2] = pointRadial(anglePosition, projectedRadius2)
-          const group = groups[datumIndex] ?? null
-          const colorValue = colorValues[datumIndex] ?? null
-          const stroke = visualValue(
-            options.stroke,
-            datum,
-            datumIndex,
-            data,
-            colorValue == null ? theme.foreground : resolveColor(colorValue),
-          )
-          nodes.push({
-            kind: 'rule',
-            key: `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`,
-            x1,
-            y1,
-            x2,
-            y2,
-            style: {
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 1.5,
-              strokeDasharray: options.strokeDasharray,
-              opacity: options.opacity,
-              lineCap: 'round',
-            },
+          const nodes: SceneNode[] = []
+          data.forEach((datum, datumIndex) => {
+            const anglePosition = mapPolarScale(angle, angleValues[datumIndex])
+            const radius1Position = mapPolarScale(
+              radius,
+              radius1Values[datumIndex],
+            )
+            const radius2Position = mapPolarScale(
+              radius,
+              radius2Values[datumIndex],
+            )
+            if (
+              !isFiniteNumber(anglePosition) ||
+              !isFiniteNumber(radius1Position) ||
+              !isFiniteNumber(radius2Position)
+            ) {
+              return
+            }
+            const radius1Offset = visualValue(
+              options.radius1Offset,
+              datum,
+              datumIndex,
+              data,
+              0,
+            )
+            const radius2Offset = visualValue(
+              options.radius2Offset,
+              datum,
+              datumIndex,
+              data,
+              0,
+            )
+            const projectedRadius1 = radius1Position + radius1Offset
+            const projectedRadius2 = radius2Position + radius2Offset
+            if (
+              !isFiniteNumber(radius1Offset) ||
+              !isFiniteNumber(radius2Offset) ||
+              !isFiniteNumber(projectedRadius1) ||
+              !isFiniteNumber(projectedRadius2)
+            ) {
+              return
+            }
+            const [x1, y1] = pointRadial(anglePosition, projectedRadius1)
+            const [x2, y2] = pointRadial(anglePosition, projectedRadius2)
+            const group = groups[datumIndex] ?? null
+            const colorValue = colorValues[datumIndex] ?? null
+            const stroke = visualValue(
+              options.stroke,
+              datum,
+              datumIndex,
+              data,
+              colorValue == null ? theme.foreground : resolveColor(colorValue),
+            )
+            nodes.push({
+              kind: 'rule',
+              key: `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`,
+              x1,
+              y1,
+              x2,
+              y2,
+              style: {
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1.5,
+                strokeDasharray: options.strokeDasharray,
+                opacity: options.opacity,
+                lineCap: 'round',
+              },
+            })
           })
-        })
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__radial-rule ts-chart__rule',
-                options.className,
-              ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__radial-rule ts-chart__rule',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export function radialDot<TDatum>(
@@ -1573,136 +1841,156 @@ export function radialDot<
 ): PolarMark<
   TDatum,
   OptionChannelOutput<TDatum, TOptions, 'angle', number>,
-  OptionChannelOutput<TDatum, TOptions, 'radius', number>
+  OptionChannelOutput<TDatum, TOptions, 'radius', number>,
+  OptionScaleId<TOptions, 'angleScale', 'angle'>,
+  OptionScaleId<TOptions, 'radiusScale', 'radius'>
 >
 export function radialDot<TDatum>(
   source: Iterable<TDatum>,
   options: RadialDotOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
-  return createPolarMark(({ markIndex, parentId }) => {
-    const id = options.id ?? `${parentId}:radial-dot-${markIndex}`
-    const angleValues =
-      typeof options.angle === 'number'
-        ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, { index }) => index)
-    const radiusValues =
-      typeof options.radius === 'number'
-        ? data.map(() => options.radius as number)
-        : channelValues(data, options.radius, (datum) =>
-            typeof datum === 'number' ? datum : undefined,
+  return createPolarMark(
+    ({ markIndex, parentId }) => {
+      const id = options.id ?? `${parentId}:radial-dot-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (_datum, { index }) => index)
+      const radiusValues =
+        typeof options.radius === 'number'
+          ? data.map(() => options.radius as number)
+          : channelValues(data, options.radius, (datum) =>
+              typeof datum === 'number' ? datum : undefined,
+            )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, { groups })
+      const rawRadii =
+        typeof options.r === 'number'
+          ? data.map(() => options.r as number)
+          : channelValues(data, options.r, () => 3.5)
+      const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
+      const radii = radiusMapper
+        ? rawRadii.map((value) =>
+            isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
           )
-    const groups = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? groups
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, { groups })
-    const rawRadii =
-      typeof options.r === 'number'
-        ? data.map(() => options.r as number)
-        : channelValues(data, options.r, () => 3.5)
-    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
-    const radii = radiusMapper
-      ? rawRadii.map((value) =>
-          isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
-        )
-      : rawRadii
+        : rawRadii
 
-    return {
-      id,
-      colorValues: colorValues.filter(isChartKey),
-      angleValues: angleValues.filter(isChartValue),
-      radiusValues: radiusValues.filter(isChartValue),
-      includeZeroRadius: false,
-      requiresAngleScale: true,
-      requiresRadiusScale: true,
-      render: ({ layout, color: resolveColor }) => {
-        const angle = requiredScale(layout.angle)
-        const radius = requiredScale(layout.radiusScale)
-        const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
-        data.forEach((datum, datumIndex) => {
-          const angleValue = angleValues[datumIndex]
-          const radiusValue = radiusValues[datumIndex]
-          const anglePosition = mapPolarScale(angle, angleValue)
-          const radiusPosition = mapPolarScale(radius, radiusValue)
-          const dotRadius = radii[datumIndex]
-          if (
-            !isChartValue(angleValue) ||
-            !isChartValue(radiusValue) ||
-            !isFiniteNumber(anglePosition) ||
-            !isFiniteNumber(radiusPosition) ||
-            !isNonnegativeFiniteNumber(dotRadius)
-          ) {
-            return
-          }
-          const [x, y] = pointRadial(anglePosition, radiusPosition)
-          const group = groups[datumIndex] ?? null
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            resolveColor(colorValues[datumIndex] ?? null),
+      return {
+        id,
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: radiusValues.filter(isChartValue),
+        includeZeroRadius: false,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
           )
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          nodes.push({
-            kind: 'dot',
-            key,
-            x,
-            y,
-            radius: dotRadius,
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke: options.stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              opacity: options.opacity,
-            },
-          })
-          points.push(
-            withPolarFocusGeometry(
-              {
-                key,
-                markId: id,
-                group,
-                groupLabel: group == null ? id : String(group),
-                datum,
-                datumIndex,
-                xValue: angleValue,
-                yValue: radiusValue,
-                x: layout.centerX + x,
-                y: layout.centerY + y,
-                color: fill,
-              },
-              layout,
-              anglePosition,
-              radiusPosition,
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
+          )
+          const nodes: SceneNode[] = []
+          const points: ChartPoint<TDatum>[] = []
+          data.forEach((datum, datumIndex) => {
+            const angleValue = angleValues[datumIndex]
+            const radiusValue = radiusValues[datumIndex]
+            const anglePosition = mapPolarScale(angle, angleValue)
+            const radiusPosition = mapPolarScale(radius, radiusValue)
+            const dotRadius = radii[datumIndex]
+            if (
+              !isChartValue(angleValue) ||
+              !isChartValue(radiusValue) ||
+              !isFiniteNumber(anglePosition) ||
+              !isFiniteNumber(radiusPosition) ||
+              !isNonnegativeFiniteNumber(dotRadius)
+            ) {
+              return
+            }
+            const [x, y] = pointRadial(anglePosition, radiusPosition)
+            const group = groups[datumIndex] ?? null
+            const fill = visualValue(
+              options.fill,
+              datum,
+              datumIndex,
+              data,
+              resolveColor(colorValues[datumIndex] ?? null),
+            )
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            nodes.push({
+              kind: 'dot',
+              key,
               x,
               y,
-            ),
-          )
-        })
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: classes(
-                'ts-chart__radial-dot ts-chart__dot',
-                options.className,
+              radius: dotRadius,
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke: options.stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                opacity: options.opacity,
+              },
+            })
+            points.push(
+              withPolarFocusGeometry(
+                {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group == null ? id : String(group),
+                  datum,
+                  datumIndex,
+                  xValue: angleValue,
+                  yValue: radiusValue,
+                  x: layout.centerX + x,
+                  y: layout.centerY + y,
+                  color: fill,
+                },
+                layout,
+                anglePosition,
+                radiusPosition,
+                x,
+                y,
               ),
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+            )
+          })
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__radial-dot ts-chart__dot',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export interface PolarGuideLabelContext {
@@ -1739,6 +2027,10 @@ interface PolarGuideStyle {
 }
 
 export interface RadialGridOptions extends PolarGuideStyle {
+  /** Named radius scale. Omit to use the reserved `radius` scale. */
+  scale?: string
+  /** Angle scale used for polygon rings. Omit to use reserved `angle`. */
+  angleScale?: string
   values?: readonly ChartValue[]
   ticks?: number
   shape?: 'circle' | 'polygon'
@@ -1750,7 +2042,12 @@ export interface RadialGridOptions extends PolarGuideStyle {
 export function radialGrid(options: RadialGridOptions = {}): PolarGuide {
   return {
     render: ({ layout, theme, guideIndex, parentId }) => {
-      const radial = requiredScale(layout.radiusScale)
+      const radial = requiredPolarScale(
+        layout,
+        options.scale ?? 'radius',
+        'radius',
+        'Radial grid',
+      )
       const values = options.values ?? radial.ticks(options.ticks ?? 5)
       const stroke = options.stroke ?? theme.grid
       const rings: SceneNode[] = []
@@ -1760,12 +2057,13 @@ export function radialGrid(options: RadialGridOptions = {}): PolarGuide {
         if (!isFiniteNumber(radius)) continue
         let path: string | null | void
         if (options.shape === 'polygon') {
-          if (!layout.angle) {
-            throw new TypeError(
-              'Polygon radial grid requires a configured angle scale',
-            )
-          }
-          path = polygonRingPath(layout.angle, radius)
+          const angle = requiredPolarScale(
+            layout,
+            options.angleScale ?? 'angle',
+            'angle',
+            'Polygon radial grid',
+          )
+          path = polygonRingPath(angle, radius)
         } else {
           path = createArc<null>()
             .innerRadius(0)
@@ -1851,6 +2149,8 @@ export function radialGrid(options: RadialGridOptions = {}): PolarGuide {
 }
 
 export interface AngleGridOptions extends PolarGuideStyle {
+  /** Named angle scale. Omit to use the reserved `angle` scale. */
+  scale?: string
   values?: readonly ChartValue[]
   format?: (value: ChartValue) => string
   labelOffset?: number
@@ -1859,7 +2159,12 @@ export interface AngleGridOptions extends PolarGuideStyle {
 export function angleGrid(options: AngleGridOptions = {}): PolarGuide {
   return {
     render: ({ layout, theme, guideIndex, parentId }) => {
-      const angle = requiredScale(layout.angle)
+      const angle = requiredPolarScale(
+        layout,
+        options.scale ?? 'angle',
+        'angle',
+        'Angle grid',
+      )
       const values = options.values ?? angle.domain
       const spokes: SceneNode[] = []
       const labels: SceneNode[] = []
@@ -1944,6 +2249,8 @@ export function angleGrid(options: AngleGridOptions = {}): PolarGuide {
   }
 }
 
+let warnedLegacyPolarScales = false
+
 function resolvePolarLayout(
   options: PolarOptions,
   chart: ChartBounds,
@@ -1955,6 +2262,8 @@ function resolvePolarLayout(
   const radiusRatio = Math.max(0, finite(options.radiusRatio, 1))
   const radius =
     Math.max(0, Math.min(chart.width, chart.height) / 2 - inset) * radiusRatio
+  const sourceScales = resolvePolarScaleOptions(options)
+  const scales: Record<string, PolarResolvedScale> = {}
   const layout: PolarLayoutContext = {
     chart,
     centerX: chart.x + chart.width / 2,
@@ -1962,39 +2271,107 @@ function resolvePolarLayout(
     radius,
     startAngle,
     endAngle,
+    scales,
   }
-  if (options.angle) {
-    const wrapPointScale =
-      options.angle.wrap ?? isCompleteRevolution(startAngle, endAngle)
-    layout.angle = resolvePolarScale(
-      options.angle.scale,
-      collectPolarValues(marks, 'angleValues'),
-      startAngle,
-      endAngle,
-      wrapPointScale,
-      false,
-      options.angle.nice,
-    )
-  }
-  if (options.radius) {
-    const [rangeStart, rangeEnd] = resolvePolarRadiusRange(
-      options.radius.range,
-      layout,
-    )
-    layout.radiusScale = resolvePolarScale(
-      options.radius.scale,
-      collectPolarValues(marks, 'radiusValues'),
+
+  for (const [id, scaleOptions] of Object.entries(sourceScales)) {
+    if (!scaleOptions) continue
+    const reservedChannel = id === 'angle' || id === 'radius' ? id : undefined
+    const channel = reservedChannel ?? scaleOptions.channel
+    if (!channel) {
+      throw new TypeError(
+        `Named polar scale "${id}" requires channel: "angle" or channel: "radius"`,
+      )
+    }
+    if (scaleOptions.channel && scaleOptions.channel !== channel) {
+      throw new TypeError(
+        `Polar scale "${id}" is reserved for ${channel} but declares channel: "${scaleOptions.channel}"`,
+      )
+    }
+
+    const valuesKey = channel === 'angle' ? 'angleValues' : 'radiusValues'
+    const values = collectPolarValues(marks, valuesKey, id)
+    const includeZero =
+      channel === 'radius' &&
+      marks.some((mark) => mark.radiusScale === id && mark.includeZeroRadius)
+    let rangeStart: number
+    let rangeEnd: number
+    let wrapPointScale = false
+    if (channel === 'angle') {
+      rangeStart = startAngle
+      rangeEnd = endAngle
+      wrapPointScale =
+        (scaleOptions as PolarAngleOptions).wrap ??
+        isCompleteRevolution(startAngle, endAngle)
+    } else {
+      const radiusRange = resolvePolarRadiusRange(
+        (scaleOptions as PolarRadiusOptions).range,
+        layout,
+      )
+      rangeStart = radiusRange[0]
+      rangeEnd = radiusRange[1]
+    }
+
+    scales[id] = resolvePolarScale(
+      id,
+      channel,
+      scaleOptions.scale,
+      values,
       rangeStart,
       rangeEnd,
-      false,
-      marks.some((mark) => mark.includeZeroRadius),
-      options.radius.nice,
+      wrapPointScale,
+      includeZero,
+      scaleOptions.nice,
     )
   }
+
+  layout.angle = scales.angle
+  layout.radiusScale = scales.radius
   return layout
 }
 
+function resolvePolarScaleOptions(
+  options: PolarOptions,
+): Readonly<Record<string, PolarPositionScaleOptions | null | undefined>> {
+  if (
+    (!options.scales ||
+      options.angle !== undefined ||
+      options.radius !== undefined) &&
+    !warnedLegacyPolarScales
+  ) {
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        warnedLegacyPolarScales = true
+        console.warn(
+          '[TanStack Charts] `polar()` scale options have moved to `scales`. Move `angle` and `radius` to `scales.angle` and `scales.radius`. When neither scale is used, set both entries to `null`. This compatibility will be removed when TanStack Charts enters Alpha.',
+        )
+      }
+    } catch {
+      warnedLegacyPolarScales = true
+      // Keep raw-browser migration help removable by production minifiers.
+      /* @__PURE__ */ console.warn(
+        '[TanStack Charts] `polar()` scale options have moved to `scales`. Move `angle` and `radius` to `scales.angle` and `scales.radius`. When neither scale is used, set both entries to `null`. This compatibility will be removed when TanStack Charts enters Alpha.',
+      )
+    }
+  }
+
+  if (!options.scales) {
+    return { angle: options.angle, radius: options.radius }
+  }
+  if (
+    !Object.hasOwn(options.scales, 'angle') ||
+    !Object.hasOwn(options.scales, 'radius')
+  ) {
+    throw new TypeError(
+      'Polar scales must define reserved `angle` and `radius` entries',
+    )
+  }
+  return options.scales
+}
+
 function resolvePolarScale(
+  id: string,
+  channel: PolarPositionChannel,
   source: ChartScaleInput<any>,
   values: readonly unknown[],
   rangeStart: number,
@@ -2029,6 +2406,8 @@ function resolvePolarScale(
       : Number.NaN
   }
   return {
+    id,
+    channel,
     domain,
     map,
     ticks: (count) => (scale.ticks?.(count) ?? domain).filter(isChartValue),
@@ -2039,9 +2418,15 @@ function resolvePolarScale(
 function collectPolarValues(
   marks: readonly InitializedPolarMark[],
   key: 'angleValues' | 'radiusValues',
+  scaleId: string,
 ): unknown[] {
   const values: unknown[] = []
   for (const mark of marks) {
+    if (
+      (key === 'angleValues' ? mark.angleScale : mark.radiusScale) !== scaleId
+    ) {
+      continue
+    }
     for (const value of mark[key]) values.push(value)
   }
   return values
@@ -2060,6 +2445,34 @@ function polygonRingPath(angle: PolarResolvedScale, radius: number): string {
   )
 }
 
+function createPolarMark<
+  TDatum,
+  TAngle extends ChartValue,
+  TRadius extends ChartValue,
+  TAngleScaleId extends string = 'angle',
+  TRadiusScaleId extends string = 'radius',
+>(
+  initialize: (
+    context: PolarMarkInitializeContext,
+  ) => InitializedPolarMark<TDatum, TAngle, TRadius>,
+  motion?: ChartMotionDefinition<TDatum>,
+  renderer?: ChartMarkRenderer,
+): PolarMark<TDatum, TAngle, TRadius, TAngleScaleId, TRadiusScaleId> {
+  return createInternalPolarMark(
+    initialize as unknown as (
+      context: PolarMarkInitializeContext,
+    ) => InternalInitializedPolarMark<TDatum, TAngle, TRadius>,
+    motion,
+    renderer,
+  ) as unknown as PolarMark<
+    TDatum,
+    TAngle,
+    TRadius,
+    TAngleScaleId,
+    TRadiusScaleId
+  >
+}
+
 function groupIndices(
   groups: readonly (ChartKey | null | undefined)[],
 ): Map<string, number[]> {
@@ -2073,25 +2486,37 @@ function groupIndices(
   return result
 }
 
-function requiredScale(
-  scale: PolarResolvedScale | undefined,
+function requiredPolarScale(
+  layout: PolarLayoutContext,
+  id: string,
+  channel: PolarPositionChannel,
+  owner = 'Polar mark',
 ): PolarResolvedScale {
-  if (!scale) throw new TypeError('Missing configured polar scale')
+  const scale = layout.scales[id]
+  if (!scale) {
+    throw new TypeError(
+      `${owner} requires a configured ${channel} scale "${id}" in polar.scales`,
+    )
+  }
+  if (scale.channel !== channel) {
+    throw new TypeError(
+      `${owner} uses scale "${id}" as ${channel}, but it is configured for ${scale.channel}`,
+    )
+  }
   return scale
 }
 
 function requiredBandScale(
-  scale: PolarResolvedScale | undefined,
+  scale: PolarResolvedScale,
   axis: 'angle' | 'radius',
   markId: string,
 ): PolarResolvedScale {
-  const resolved = requiredScale(scale)
-  if (!isFiniteNumber(resolved.bandwidth) || resolved.bandwidth <= 0) {
+  if (!isFiniteNumber(scale.bandwidth) || scale.bandwidth <= 0) {
     throw new TypeError(
       `Radial bar "${markId}" requires positive ${axis}-scale bandwidth`,
     )
   }
-  return resolved
+  return scale
 }
 
 function mapPolarScale(scale: PolarResolvedScale, value: unknown): number {

@@ -35,16 +35,19 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 0.75,
         }),
       ],
-      x: {
-        scale: scaleLinear().domain([1500, 5500]),
-        grid: true,
-        axis: { label: 'Weight (lb)' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([1500, 5500]),
+          grid: true,
+          axis: { label: 'Weight (lb)' },
+        },
+        y: {
+          scale: scaleLinear().domain([5, 50]),
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([5, 50]),
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
-      },
+
       color: {
         scale: scaleThreshold<number, string>,
         domain: [5, 12, 24],

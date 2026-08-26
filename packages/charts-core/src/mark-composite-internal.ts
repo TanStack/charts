@@ -1,4 +1,5 @@
 import { resolveCompositeChildMotion } from './composite-motion-internal'
+import { preserveMaterializedPositionChannel } from './materialized-channel-internal'
 import { sceneChildId } from './scene-child-id-internal'
 import {
   createScenePointLookup,
@@ -172,7 +173,7 @@ export function composeInitializedMarks<
   }
 }
 
-type AnyChartMark = ChartMark<any, any, any, any, any>
+type AnyChartMark = ChartMark<any, any, any, any, any, any, any>
 
 interface InitializeCompositeMarkOptions<TDatum> {
   motion?: ChartMotionDefinition<TDatum>
@@ -273,7 +274,8 @@ function mergeChildChannels(
         continue
       }
 
-      merged[`${compositeChildMarkId(parentId, child.id)}:${name}`] = channel
+      merged[`${compositeChildMarkId(parentId, child.id)}:${name}`] =
+        preserveMaterializedPositionChannel(name, channel)
     }
   }
 

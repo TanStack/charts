@@ -38,8 +38,11 @@ const definition = defineChart({
     polar({
       startAngle,
       endAngle,
-      angle: { scale: scaleLinear().domain([0, 100]) },
-      radius: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        angle: { scale: scaleLinear().domain([0, 100]) },
+        radius: { scale: scaleLinear().domain([0, 1]) },
+      },
+
       marks: [
         radialArc(bands, {
           key: 'id',
@@ -71,8 +74,10 @@ const definition = defineChart({
     }),
   ],
   guides: false,
-  x: null,
-  y: null,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 export function render(width: number, height: number) {

@@ -45,8 +45,11 @@ export function createExampleChart() {
       marks: [
         polar({
           radiusRatio: height < 220 ? 0.64 : 0.76,
-          angle: { scale: scalePoint<string>().domain(months), wrap: true },
-          radius: { scale: scaleLinear().domain([0, radiusMax]) },
+          scales: {
+            angle: { scale: scalePoint<string>().domain(months), wrap: true },
+            radius: { scale: scaleLinear().domain([0, radiusMax]) },
+          },
+
           guides,
           marks: [
             radialArea(rows, {
@@ -106,6 +109,10 @@ export function createExampleChart() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       margin: 0,
     }),

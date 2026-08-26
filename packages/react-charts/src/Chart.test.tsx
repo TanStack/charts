@@ -3,12 +3,13 @@ import { act } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { areaY, defineChart, dot, lineY } from '@tanstack/charts'
 import type {
   ChartDefinition,
   ChartInteractionController,
 } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
 import { motion } from '@tanstack/charts/motion'
@@ -33,8 +34,25 @@ const definition = defineChart({
       points: true,
     }),
   ],
-  x: { scale: scaleLinear().domain([1, 2]) },
-  y: { scale: scaleLinear().domain([8, 12]) },
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
+})
+const mixedDefinition = defineChart({
+  marks: [
+    lineY(data, {
+      id: 'canvas-revenue',
+      x: 'month',
+      y: 'value',
+      renderer: canvasChartRenderer,
+    }),
+    dot(data, { id: 'svg-points', x: 'month', y: 'value' }),
+  ],
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
 })
 
 const typedDynamicDefinition = defineChart(() => ({
@@ -46,8 +64,10 @@ const typedDynamicDefinition = defineChart(() => ({
       stroke: 'red',
     }),
   ],
-  x: { scale: scaleLinear().domain([1, 2]) },
-  y: { scale: scaleLinear().domain([8, 12]) },
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
 }))
 const widenedDefinition: ChartDefinition<
   (typeof data)[number],
@@ -216,6 +236,22 @@ describe('React adapter', () => {
     expect(html).toContain('<path')
   })
 
+  it('server-renders Canvas marks between SVG layers when a mark opts in', () => {
+    const html = renderToString(
+      <Chart
+        definition={mixedDefinition}
+        width={480}
+        height={260}
+        ariaLabel="Mixed revenue"
+      />,
+    )
+
+    expect(html).toContain('class="ts-chart ts-chart-layers"')
+    expect(html).toContain('ts-chart-canvas__scene')
+    expect(html).toContain('data-ts-key="svg-points"')
+    expect(html).not.toContain('data-ts-key="canvas-revenue"')
+  })
+
   it('server-renders a deterministic proportional size', () => {
     const html = renderToString(
       <Chart
@@ -312,8 +348,11 @@ describe('React adapter', () => {
   it('server-renders unique scoped resource IDs for sibling charts', () => {
     const gradientDefinition = defineChart({
       marks: [areaY([1, 3, 2], { fill: 'url(#fill)' })],
-      x: { scale: scaleLinear().domain([0, 2]) },
-      y: { scale: scaleLinear().domain([0, 3]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 3]) },
+      },
+
       gradients: [
         {
           id: 'fill',
@@ -733,8 +772,10 @@ describe('React adapter', () => {
           stroke: 'red',
         }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
     }))
     const target = document.createElement('div')
     const root = createRoot(target)
@@ -766,6 +807,80 @@ describe('React adapter', () => {
     await act(async () => root.unmount())
   })
 
+  it('mounts mixed marks without breaking the SVG render callback', async () => {
+    const getContext = mockCanvasContexts()
+    const target = document.createElement('div')
+    const root = createRoot(target)
+    const onRender = vi.fn()
+
+    try {
+      await act(async () => {
+        root.render(
+          <Chart
+            definition={mixedDefinition}
+            width={480}
+            height={260}
+            ariaLabel="Mixed revenue"
+            onRender={onRender}
+          />,
+        )
+      })
+
+      const context = onRender.mock.calls.at(-1)?.[0]
+      expect(context.surface.element).toBe(
+        target.querySelector('.ts-chart-layers'),
+      )
+      expect(context.surface.layers).toHaveLength(3)
+      expect(context.svg).toBe(target.querySelectorAll('svg').item(1))
+      expect(
+        context.svg.querySelector('[data-ts-key="svg-points"]'),
+      ).not.toBeNull()
+    } finally {
+      await act(async () => root.unmount())
+      getContext.mockRestore()
+    }
+  })
+
+  it('hydrates mixed server markup without replacing its layers', async () => {
+    const getContext = mockCanvasContexts()
+    const target = document.createElement('div')
+    target.innerHTML = renderToString(
+      <Chart
+        definition={mixedDefinition}
+        width={480}
+        height={260}
+        ariaLabel="Mixed revenue"
+      />,
+    )
+    const serverRoot = target.querySelector('.ts-chart-layers')
+    const serverLayers = [...target.querySelectorAll('.ts-chart-layer')]
+    const serverCanvases = [...target.querySelectorAll('canvas')]
+    let root!: ReturnType<typeof hydrateRoot>
+
+    try {
+      await act(async () => {
+        root = hydrateRoot(
+          target,
+          <Chart
+            definition={mixedDefinition}
+            width={480}
+            height={260}
+            ariaLabel="Mixed revenue"
+          />,
+        )
+      })
+
+      expect(target.querySelector('.ts-chart-layers')).toBe(serverRoot)
+      expect([...target.querySelectorAll('.ts-chart-layer')]).toEqual(
+        serverLayers,
+      )
+      expect([...target.querySelectorAll('canvas')]).toEqual(serverCanvases)
+    } finally {
+      await act(async () => root.unmount())
+      getContext.mockRestore()
+    }
+  })
+
   it('hydrates complete server markup without replacing the SVG', async () => {
     const target = document.createElement('div')
     target.innerHTML = renderToString(
@@ -795,3 +910,49 @@ describe('React adapter', () => {
     await act(async () => root.unmount())
   })
 })
+
+function mockCanvasContexts() {
+  return vi
+    .spyOn(HTMLCanvasElement.prototype, 'getContext')
+    .mockImplementation(() => fakeCanvasContext())
+}
+
+function fakeCanvasContext(): CanvasRenderingContext2D {
+  const gradient = { addColorStop() {} } as CanvasGradient
+  return {
+    save() {},
+    restore() {},
+    setTransform() {},
+    clearRect() {},
+    fillRect() {},
+    beginPath() {},
+    closePath() {},
+    moveTo() {},
+    lineTo() {},
+    rect() {},
+    arc() {},
+    arcTo() {},
+    translate() {},
+    rotate() {},
+    clip() {},
+    fill() {},
+    stroke() {},
+    fillText() {},
+    strokeText() {},
+    setLineDash() {},
+    createLinearGradient: () => gradient,
+    drawImage() {},
+    globalAlpha: 1,
+    fillStyle: '#000000',
+    strokeStyle: '#000000',
+    lineWidth: 1,
+    lineCap: 'butt',
+    lineJoin: 'miter',
+    font: '',
+    fontStretch: 'normal',
+    letterSpacing: '0px',
+    direction: 'inherit',
+    textAlign: 'left',
+    textBaseline: 'alphabetic',
+  } as unknown as CanvasRenderingContext2D
+}

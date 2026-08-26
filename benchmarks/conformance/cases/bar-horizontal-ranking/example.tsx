@@ -21,16 +21,18 @@ export const createExampleChart = (input: ChartOptions) => {
         }),
         ruleX([0]),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: input.preview !== true,
-        axis:
-          input.preview === true
-            ? false
-            : { ticks: { count: 5 }, label: '2015 population' },
-      },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: input.preview !== true,
+          axis:
+            input.preview === true
+              ? false
+              : { ticks: { count: 5 }, label: '2015 population' },
+        },
+        y: {
+          scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

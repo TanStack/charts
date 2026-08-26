@@ -19,6 +19,8 @@ import type {
 } from './transform'
 import type {
   Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMotionDefinition,
@@ -84,6 +86,8 @@ interface BoxOptions<
   inset?: number
   /** Outlier radius in pixels. Defaults to 3. */
   r?: number
+  xScale?: CartesianScaleBindings['xScale']
+  yScale?: CartesianScaleBindings['yScale']
 }
 
 export interface BoxYOptions<
@@ -159,18 +163,27 @@ export function boxY<
     NoInfer<TDatum>,
     ChartValue | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: BoxYCallOptions<TDatum, TXChannel>,
+  options: BoxYCallOptions<TDatum, TXChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   BoxYDatum<TDatum, { x: TXChannel }>,
   OptionChannelOutput<TDatum, { x: TXChannel }, 'x', number>,
-  number
+  number,
+  OptionChannelOutput<TDatum, { x: TXChannel }, 'x', number>,
+  number,
+  TXScaleId,
+  TYScaleId
 >
 export function boxY<TDatum>(
   source: Iterable<TDatum>,
   options: BoxYOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, BoxYOptions<TDatum>> {
   return box(source, options, options.x, options.y, 'y')
 }
 
@@ -181,18 +194,27 @@ export function boxX<
     NoInfer<TDatum>,
     ChartValue | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: BoxXCallOptions<TDatum, TYChannel>,
+  options: BoxXCallOptions<TDatum, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   BoxXDatum<TDatum, { y: TYChannel }>,
   number,
-  OptionChannelOutput<TDatum, { y: TYChannel }, 'y', number>
+  OptionChannelOutput<TDatum, { y: TYChannel }, 'y', number>,
+  number,
+  OptionChannelOutput<TDatum, { y: TYChannel }, 'y', number>,
+  TXScaleId,
+  TYScaleId
 >
 export function boxX<TDatum>(
   source: Iterable<TDatum>,
   options: BoxXOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, BoxXOptions<TDatum>> {
   return box(source, options, options.y, options.x, 'x')
 }
 
@@ -211,140 +233,162 @@ function box<TDatum>(
   category: Channel<TDatum, ChartValue | null | undefined>,
   numeric: Channel<TDatum, number | null | undefined>,
   orientation: 'x' | 'y',
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, BoxOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `box-${orientation}-${markIndex}`
-    const categoryValues = channelValues(data, category, () => undefined)
-    const numericValues = channelValues(data, numeric, () => undefined)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: categoryValues,
-      markId: id,
-      warningIdentity: options,
-    })
-    const rows = boxRows(data, {
-      category: (_datum, { index }) => categoryValues[index],
-      value: (_datum, { index }) => numericValues[index],
-    })
-    const summaries: BoxSummaryMarkDatum<TDatum>[] = rows.flatMap((row) =>
-      row.kind === 'summary'
-        ? [{ ...row, markKey: `box:${valueKey(row.category)}` }]
-        : [],
-    )
-    const outliers: BoxOutlierMarkDatum<TDatum>[] = rows.flatMap((row) => {
-      if (row.kind !== 'outlier') return []
-      const sourceIndex = row.sourceIndexes[0]
-      return [
-        {
-          ...row,
-          markKey: `box:${valueKey(row.category)}:outlier:${valueKey(
-            keys[sourceIndex],
-          )}`,
-        },
-      ]
-    })
-    const stroke = options.stroke ?? 'currentColor'
-    const children =
-      orientation === 'y'
-        ? [
-            link(summaries, {
-              id: 'whisker',
-              x1: 'category',
-              y1: 'whiskerLow',
-              x2: 'category',
-              y2: 'whiskerHigh',
-              key: 'markKey',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 1,
-              lineCap: 'butt',
-            }),
-            barY(summaries, {
-              id: 'box',
-              x: 'category',
-              y: 'median',
-              y1: 'q1',
-              y2: 'q3',
-              key: 'markKey',
-              fill: options.fill ?? '#ccc',
-              fillOpacity: options.fillOpacity,
-              inset: options.inset,
-            }),
-            tickY(summaries, {
-              id: 'median',
-              x: 'category',
-              y: 'median',
-              key: 'markKey',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 2,
-              inset: options.inset,
-            }),
-            dot(outliers, {
-              id: 'outlier',
-              x: 'category',
-              y: 'value',
-              key: 'markKey',
-              r: options.r ?? 3,
-              fill: 'none',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 1.5,
-            }),
-          ]
-        : [
-            link(summaries, {
-              id: 'whisker',
-              x1: 'whiskerLow',
-              y1: 'category',
-              x2: 'whiskerHigh',
-              y2: 'category',
-              key: 'markKey',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 1,
-              lineCap: 'butt',
-            }),
-            barX(summaries, {
-              id: 'box',
-              x: 'median',
-              x1: 'q1',
-              x2: 'q3',
-              y: 'category',
-              key: 'markKey',
-              fill: options.fill ?? '#ccc',
-              fillOpacity: options.fillOpacity,
-              inset: options.inset,
-            }),
-            tickX(summaries, {
-              id: 'median',
-              x: 'median',
-              y: 'category',
-              key: 'markKey',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 2,
-              inset: options.inset,
-            }),
-            dot(outliers, {
-              id: 'outlier',
-              x: 'value',
-              y: 'category',
-              key: 'markKey',
-              r: options.r ?? 3,
-              fill: 'none',
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth ?? 1.5,
-            }),
-          ]
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `box-${orientation}-${markIndex}`
+      const categoryValues = channelValues(data, category, () => undefined)
+      const numericValues = channelValues(data, numeric, () => undefined)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: categoryValues,
+        markId: id,
+        warningIdentity: options,
+      })
+      const rows = boxRows(data, {
+        category: (_datum, { index }) => categoryValues[index],
+        value: (_datum, { index }) => numericValues[index],
+      })
+      const summaries: BoxSummaryMarkDatum<TDatum>[] = rows.flatMap((row) =>
+        row.kind === 'summary'
+          ? [{ ...row, markKey: `box:${valueKey(row.category)}` }]
+          : [],
+      )
+      const outliers: BoxOutlierMarkDatum<TDatum>[] = rows.flatMap((row) => {
+        if (row.kind !== 'outlier') return []
+        const sourceIndex = row.sourceIndexes[0]
+        return [
+          {
+            ...row,
+            markKey: `box:${valueKey(row.category)}:outlier:${valueKey(
+              keys[sourceIndex],
+            )}`,
+          },
+        ]
+      })
+      const stroke = options.stroke ?? 'currentColor'
+      const children =
+        orientation === 'y'
+          ? [
+              link(summaries, {
+                id: 'whisker',
+                x1: 'category',
+                y1: 'whiskerLow',
+                x2: 'category',
+                y2: 'whiskerHigh',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1,
+                lineCap: 'butt',
+                xScale,
+                yScale,
+              }),
+              barY(summaries, {
+                id: 'box',
+                x: 'category',
+                y: 'median',
+                y1: 'q1',
+                y2: 'q3',
+                key: 'markKey',
+                fill: options.fill ?? '#ccc',
+                fillOpacity: options.fillOpacity,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              tickY(summaries, {
+                id: 'median',
+                x: 'category',
+                y: 'median',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 2,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              dot(outliers, {
+                id: 'outlier',
+                x: 'category',
+                y: 'value',
+                key: 'markKey',
+                r: options.r ?? 3,
+                fill: 'none',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1.5,
+                xScale,
+                yScale,
+              }),
+            ]
+          : [
+              link(summaries, {
+                id: 'whisker',
+                x1: 'whiskerLow',
+                y1: 'category',
+                x2: 'whiskerHigh',
+                y2: 'category',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1,
+                lineCap: 'butt',
+                xScale,
+                yScale,
+              }),
+              barX(summaries, {
+                id: 'box',
+                x: 'median',
+                x1: 'q1',
+                x2: 'q3',
+                y: 'category',
+                key: 'markKey',
+                fill: options.fill ?? '#ccc',
+                fillOpacity: options.fillOpacity,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              tickX(summaries, {
+                id: 'median',
+                x: 'median',
+                y: 'category',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 2,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              dot(outliers, {
+                id: 'outlier',
+                x: 'value',
+                y: 'category',
+                key: 'markKey',
+                r: options.r ?? 3,
+                fill: 'none',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1.5,
+                xScale,
+                yScale,
+              }),
+            ]
 
-    return initializeCompositeMark(id, children, {
-      motion: options.motion,
-      interactiveChildren: interactiveBoxChildren,
-    })
-  })
+      return initializeCompositeMark(id, children, {
+        motion: options.motion,
+        interactiveChildren: interactiveBoxChildren,
+      })
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function summarizeBoxes<TDatum>(

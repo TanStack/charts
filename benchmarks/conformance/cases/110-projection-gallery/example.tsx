@@ -58,6 +58,10 @@ export const createExampleChart = (input: ChartOptions) => {
               strokeWidth: 0.45,
             }),
           ],
+          scales: {
+            x: null,
+            y: null,
+          },
           color,
           guides: false,
           margin: 0,

@@ -38,8 +38,11 @@ export const createExampleChart = (input: ChartOptions) =>
       ],
       guides: false,
       margin,
-      x: {
-        scale: scaleLinear().domain([5, 50]),
+      scales: {
+        x: {
+          scale: scaleLinear().domain([5, 50]),
+        },
+        y: null,
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

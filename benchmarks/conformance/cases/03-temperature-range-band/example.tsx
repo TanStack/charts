@@ -30,11 +30,13 @@ export const createExampleChart = () => {
           strokeWidth: 1.75,
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Week' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Temperature (°F)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Week' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Temperature (°F)' },
+        },
       },
     },
     {

@@ -20,6 +20,8 @@ import type {
 } from './resolved-layout-position'
 import type {
   Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartBounds,
   ChartKey,
   ChartMark,
@@ -34,7 +36,8 @@ import type {
   SceneNode,
 } from './types'
 
-export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface DotOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -91,20 +94,23 @@ export function dot<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<
+): CartesianChartMark<
   TDatum,
   DotPointX<TDatum, TOptions>,
   DotPointY<TDatum, TOptions>,
   DotScaleX<TDatum, TOptions>,
-  DotScaleY<TDatum, TOptions>
+  DotScaleY<TDatum, TOptions>,
+  TOptions
 >
 export function dot<TDatum>(
   source: Iterable<TDatum>,
   options: DotOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any, any, any> {
+): CartesianChartMark<TDatum, any, any, any, any, DotOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMarkWithScaleValues<TDatum, any, any, any, any>(
+  return createMarkWithScaleValues<TDatum, any, any, any, any, string, string>(
     ({ markIndex }) => {
       const id = options.id ?? `dot-${markIndex}`
       const layout = options.layout
@@ -237,10 +243,10 @@ export function dot<TDatum>(
 
       const channels = {
         ...(layout?.axis !== 'x'
-          ? { x: { scale: 'x', values: xValues.filter(isChartValue) } }
+          ? { x: { scale: xScale, values: xValues.filter(isChartValue) } }
           : {}),
         ...(layout?.axis !== 'y'
-          ? { y: { scale: 'y', values: yValues.filter(isChartValue) } }
+          ? { y: { scale: yScale, values: yValues.filter(isChartValue) } }
           : {}),
         color: {
           scale: 'color',
@@ -258,12 +264,12 @@ export function dot<TDatum>(
         return {
           ...initialized,
           render: ({ scales, color: resolveColor }) => {
-            const xScale = requiredScale(scales.x, 'x')
-            const yScale = requiredScale(scales.y, 'y')
+            const resolvedXScale = requiredScale(scales[xScale], xScale)
+            const resolvedYScale = requiredScale(scales[yScale], yScale)
             const positions = projectLayoutY(
-              projectLayoutX(sourceRows, xValues, xScale),
+              projectLayoutX(sourceRows, xValues, resolvedXScale),
               yValues,
-              yScale,
+              resolvedYScale,
             )
             return renderPositions(positions, resolveColor)
           },
@@ -277,7 +283,7 @@ export function dot<TDatum>(
             const measured = projectLayoutX(
               sourceRows,
               xValues,
-              requiredScale(scales.x, 'x'),
+              requiredScale(scales[xScale], xScale),
             ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
             const crossPositions = resolveCrossPositions(
               layout,
@@ -301,7 +307,7 @@ export function dot<TDatum>(
           const measured = projectLayoutY(
             sourceRows,
             yValues,
-            requiredScale(scales.y, 'y'),
+            requiredScale(scales[yScale], yScale),
           ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
           const crossPositions = resolveCrossPositions(
             layout,
@@ -325,14 +331,15 @@ export function dot<TDatum>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 
 function requiredScale(
   scale: ResolvedScale | undefined,
-  axis: 'x' | 'y',
+  id: string,
 ): ResolvedScale {
-  if (!scale) throw new TypeError(`dot: missing ${axis} scale`)
+  if (!scale) throw new TypeError(`dot: missing ${id} scale`)
   return scale
 }
 

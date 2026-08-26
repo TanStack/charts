@@ -262,29 +262,32 @@ function createLiveDefinition(rows: readonly LiveSample[], metric: LiveMetric) {
         strokeWidth: 2,
       }),
     ],
-    x: {
-      scale:
-        first && latest ? scaleUtc().domain([first.at, latest.at]) : scaleUtc,
-      axis: {
-        line: false,
-        ticks: { count: 3, format: formatTickTime, size: 0, padding: 8 },
-        tickLabels: { thin: { priority: 'ends', minGap: 20 } },
-      },
-    },
-    y: {
-      scale: scaleLinear().domain([floor, ceiling]),
-      grid: true,
-      axis: {
-        line: false,
-        ticks: {
-          count: 4,
-          format: (value) => compactNumber.format(value),
-          size: 0,
-          padding: 8,
+    scales: {
+      x: {
+        scale:
+          first && latest ? scaleUtc().domain([first.at, latest.at]) : scaleUtc,
+        axis: {
+          line: false,
+          ticks: { count: 3, format: formatTickTime, size: 0, padding: 8 },
+          tickLabels: { thin: { priority: 'ends', minGap: 20 } },
         },
-        tickLabels: { thin: { priority: 'ends', minGap: 14 } },
+      },
+      y: {
+        scale: scaleLinear().domain([floor, ceiling]),
+        grid: true,
+        axis: {
+          line: false,
+          ticks: {
+            count: 4,
+            format: (value) => compactNumber.format(value),
+            size: 0,
+            padding: 8,
+          },
+          tickLabels: { thin: { priority: 'ends', minGap: 14 } },
+        },
       },
     },
+
     margin: { top: 4, right: 8, bottom: 25, left: 38 },
     clip: true,
   })

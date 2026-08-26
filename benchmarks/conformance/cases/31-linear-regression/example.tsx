@@ -41,11 +41,13 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 2,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Power (hp)' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { label: 'Power (hp)' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
       },
     },
     {

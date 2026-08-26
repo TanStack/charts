@@ -47,11 +47,18 @@ export function createExampleChart() {
       marks: [
         polar({
           radiusRatio: 0.78,
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+
           marks,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: browserNames, range: shadcnColors },
       margin: 0,
     },

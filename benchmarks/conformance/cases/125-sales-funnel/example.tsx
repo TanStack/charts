@@ -37,8 +37,11 @@ export const createExampleChart = (input: ChartOptions) => {
           fontWeight: 600,
         }),
       ],
-      x: { scale: scaleLinear().domain(layout.xDomain), axis: false },
-      y: { scale: scaleLinear().domain(layout.yDomain), axis: false },
+      scales: {
+        x: { scale: scaleLinear().domain(layout.xDomain), axis: false },
+        y: { scale: scaleLinear().domain(layout.yDomain), axis: false },
+      },
+
       color: { domain: stages.map((stage) => stage.id), range: colors },
       margin: 12,
     },

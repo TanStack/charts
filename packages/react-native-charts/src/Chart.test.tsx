@@ -181,8 +181,11 @@ const definition = defineChart({
       points: true,
     }),
   ],
-  x: { scale: scaleLinear().domain([1, 2]) },
-  y: { scale: scaleLinear().domain([8, 12]) },
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
+
   tooltip: { use: tooltip, sticky: true },
 })
 
@@ -265,8 +268,11 @@ describe('React Native Chart', () => {
               { id: 'observations', x: 'x', y: 'y', key: 'id' },
             ),
           ],
-          x: { scale: scaleLinear().domain([1, 2]) },
-          y: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([1, 2]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
+
           guides: false,
           margin: 0,
         }),
@@ -280,10 +286,17 @@ describe('React Native Chart', () => {
                   innerRadius: ({ radius }) => radius * 0.55,
                 }),
               ],
+              scales: {
+                angle: null,
+                radius: null,
+              },
             }),
           ],
-          x: null,
-          y: null,
+          scales: {
+            x: null,
+            y: null,
+          },
+
           guides: false,
           margin: 0,
         }),
@@ -397,8 +410,11 @@ describe('React Native Chart', () => {
           selection,
         ),
       ],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
+
       maxFocusDistance: 8,
       selection,
     })
@@ -517,6 +533,10 @@ describe('React Native Chart', () => {
     const controller = createChartCursor<never, never>()
     const pointerDisabledDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       pointer: false,
       cursor: { use: cursorHost, controller, mode: 'free' },
@@ -545,8 +565,11 @@ describe('React Native Chart', () => {
     }
     const foreignDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       tooltip: foreignTooltip,
     })
 
@@ -588,8 +611,11 @@ describe('React Native Chart', () => {
     }
     const customDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       tooltip: { use: customTooltip, sticky: true },
     })
 
@@ -665,8 +691,11 @@ describe('React Native Chart', () => {
     }
     const trackingDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       tooltip: { use: trackingTooltip },
     })
     const container = document.createElement('div')
@@ -719,8 +748,10 @@ describe('React Native Chart', () => {
       const [, rerender] = React.useReducer((value) => value + 1, 0)
       const inlineDefinition = defineChart({
         marks: [lineY(data, { x: 'month', y: 'value' })],
-        x: { scale: scaleLinear().domain([1, 2]) },
-        y: { scale: scaleLinear().domain([8, 12]) },
+        scales: {
+          x: { scale: scaleLinear().domain([1, 2]) },
+          y: { scale: scaleLinear().domain([8, 12]) },
+        },
       })
       return (
         <Chart
@@ -769,8 +800,11 @@ describe('React Native Chart', () => {
         ),
         barY(rows, { x: 'category', y: 'value', fill: '#2563eb' }),
       ],
-      x: { scale: scaleBand<string>().domain(['A', 'B']) },
-      y: { scale: scaleLinear().domain([0, 12]) },
+      scales: {
+        x: { scale: scaleBand<string>().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 12]) },
+      },
+
       guides: false,
       focusRing: false,
     })
@@ -809,8 +843,11 @@ describe('React Native Chart', () => {
   it('honors focusRing false instead of painting a native-only indicator', async () => {
     const noRingDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       guides: false,
       focusRing: false,
     })
@@ -853,8 +890,11 @@ describe('React Native Chart', () => {
           strokeDasharray: '3 2',
         }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       guides: false,
       focusRing: false,
     })
@@ -914,11 +954,14 @@ describe('React Native Chart', () => {
         lineY(rows, { x: 'x', y: 'y', key: 'id' }),
         crosshair({ x: true, y: false }),
       ],
-      x: {
-        scale: scaleLinear().domain([0, 3]),
-        viewport: { domain: [1, 2] },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2] },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
       },
-      y: { scale: scaleLinear().domain([0, 3]) },
+
       guides: false,
       cursor: { use: cursorHost, controller, mode: 'focus', match: 'x' },
     })
@@ -999,8 +1042,11 @@ describe('React Native Chart', () => {
           },
         }),
       ],
-      x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
-      y: { scale: scaleLinear().domain([0, 12]) },
+      scales: {
+        x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
+        y: { scale: scaleLinear().domain([0, 12]) },
+      },
+
       guides: false,
       focusRing: false,
     })
@@ -1077,8 +1123,11 @@ describe('React Native Chart', () => {
           marker: true,
         }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([0, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([0, 12]) },
+      },
+
       guides: false,
       focus: 'group-x',
       focusRing: false,
@@ -1202,8 +1251,11 @@ describe('React Native Chart', () => {
         lineY(rows, { x: 'x', y: 'y', key: 'id' }),
         crosshair({ id: 'disabled-focus-cursor', y: false }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
+
       guides: false,
       focus: false,
       cursor: {
@@ -1295,8 +1347,11 @@ describe('React Native Chart', () => {
         }),
         crosshair({ x: true, y: false, marker: true }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([0, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([0, 12]) },
+      },
+
       guides: false,
       focus: 'group-x',
       focusRing: false,
@@ -1421,8 +1476,11 @@ describe('React Native Chart', () => {
         lineY(data, { x: 'month', y: 'value' }),
         crosshair({ x: true, y: true }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       guides: false,
       focusRing: false,
       maxFocusDistance: 1_000,
@@ -1498,6 +1556,10 @@ describe('React Native Chart', () => {
           marker: true,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       cursor: {
         use: cursorHost,
@@ -1607,6 +1669,10 @@ describe('React Native Chart', () => {
     const controller = createChartCursor<never, never>()
     const sharedDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       cursor: {
         use: cursorHost,
@@ -1720,8 +1786,11 @@ describe('React Native Chart', () => {
         lineY(data, { x: 'month', y: 'value' }),
         crosshair({ x: true, y: false }),
       ],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       guides: false,
       focusRing: false,
       focus: 'group-x',
@@ -1809,11 +1878,19 @@ describe('React Native Chart', () => {
     const second = trackedCursorController()
     const unboundDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
     })
     const definitionFor = (controller: ChartCursorController<never, never>) =>
       defineChart({
         marks: [crosshair({ x: true, y: true })],
+        scales: {
+          x: null,
+          y: null,
+        },
         guides: false,
         cursor: {
           use: cursorHost,
@@ -1906,6 +1983,10 @@ describe('React Native Chart', () => {
     const controller = new MethodCursorController()
     const methodDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       cursor: {
         use: cursorHost,
@@ -1944,6 +2025,10 @@ describe('React Native Chart', () => {
     const controller = createChartCursor<never, never>()
     const bound = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       cursor: {
         use: cursorHost,
@@ -1955,6 +2040,10 @@ describe('React Native Chart', () => {
     })
     const unbound = defineChart({
       marks: [crosshair({ x: true, y: true })],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
     })
     const container = document.createElement('div')
@@ -1995,8 +2084,11 @@ describe('React Native Chart', () => {
   it('rejects browser tooltip portal extensions', () => {
     const portalDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
-      x: { scale: scaleLinear().domain([1, 2]) },
-      y: { scale: scaleLinear().domain([8, 12]) },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+
       tooltip: {
         use: tooltip,
         portal: {

@@ -120,15 +120,17 @@ const nativeDownloads = defineChart({
       y: 'downloads',
     }),
   ],
-  x: {
-    scale: scaleUtc().domain(downloadData.map((point) => point.date)),
-    axis: { ticks: { count: 6 } },
-  },
-  y: {
-    scale: scaleLinear()
-      .domain([0, max(downloadData, (point) => point.downloads) ?? 1])
-      .nice(5),
-    axis: { ticks: { count: 5 } },
+  scales: {
+    x: {
+      scale: scaleUtc().domain(downloadData.map((point) => point.date)),
+      axis: { ticks: { count: 6 } },
+    },
+    y: {
+      scale: scaleLinear()
+        .domain([0, max(downloadData, (point) => point.downloads) ?? 1])
+        .nice(5),
+      axis: { ticks: { count: 5 } },
+    },
   },
 })
 const largeData = Array.from({ length: 10_000 }, (_, index) => ({
@@ -148,8 +150,10 @@ const nativeLarge = defineChart({
       key: 'id',
     }),
   ],
-  x: { scale: scaleLinear().domain([0, largeData.length - 1]) },
-  y: { scale: scaleLinear().domain([largeMinimum, largeMaximum]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, largeData.length - 1]) },
+    y: { scale: scaleLinear().domain([largeMinimum, largeMaximum]) },
+  },
 })
 const d3Downloads = defineD3Chart({
   marks: [
@@ -295,13 +299,15 @@ const createNativeDynamicDefinition = (input: {
           y: 'downloads',
         }),
       ],
-      x: {
-        scale: scaleUtc().domain(input.points.map((point) => point.date)),
-        axis: { ticks: { count: 6 } },
-      },
-      y: {
-        scale: scaleLinear().domain([0, maximum]).nice(5),
-        axis: { ticks: { count: 5 } },
+      scales: {
+        x: {
+          scale: scaleUtc().domain(input.points.map((point) => point.date)),
+          axis: { ticks: { count: 6 } },
+        },
+        y: {
+          scale: scaleLinear().domain([0, maximum]).nice(5),
+          axis: { ticks: { count: 5 } },
+        },
       },
     }
   })
@@ -324,8 +330,10 @@ const d3DynamicDefinition = defineD3Chart<{
       y: 'downloads',
     }),
   ],
-  x: { type: d3ScaleUtc(), ticks: 6 },
-  y: { ticks: 5 },
+  scales: {
+    x: { type: d3ScaleUtc(), ticks: 6 },
+    y: { ticks: 5 },
+  },
 }))
 const d3UpdateSamples = measureD3HostUpdates(
   d3DynamicDefinition,

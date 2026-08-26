@@ -62,14 +62,16 @@ export default defineChart({
       r: 4,
     }),
   ],
-  x: {
-    scale: () => scaleBand<string>().padding(0.2),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Signups' },
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().padding(0.2),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Signups' },
+    },
   },
 })
 ```

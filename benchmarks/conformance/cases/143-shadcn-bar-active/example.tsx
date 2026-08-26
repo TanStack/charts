@@ -34,8 +34,11 @@ export function createExampleChart() {
           radius: 8,
         }),
       ],
-      x: shadcnBrowserXAxis(),
-      y: { scale: scaleLinear, grid: true, axis: false },
+      scales: {
+        x: shadcnBrowserXAxis(),
+        y: { scale: scaleLinear, grid: true, axis: false },
+      },
+
       color: { domain: browserNames, range: shadcnColors },
       margin: { top: 5, right: 5, bottom: 35, left: 5 },
       theme: shadcnTheme(),

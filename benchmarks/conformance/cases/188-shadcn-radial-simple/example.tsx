@@ -21,11 +21,14 @@ export function createExampleChart() {
           radiusRatio: 1,
           startAngle,
           endAngle,
-          angle: { scale: scaleLinear().domain([0, 300]) },
-          radius: {
-            scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
-            range: [30, 110],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 300]) },
+            radius: {
+              scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
+              range: [30, 110],
+            },
           },
+
           guides: [],
           marks: [
             radialBarAngle(backgroundRows, {
@@ -45,6 +48,10 @@ export function createExampleChart() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: browserNames, range: shadcnColors },
       margin: 0,
     },

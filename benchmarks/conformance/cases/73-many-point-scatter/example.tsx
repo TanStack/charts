@@ -29,8 +29,11 @@ export const createExampleChart = (input: ChartOptions) => {
           fillOpacity: 0.72,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
-      y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
+        y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
+      },
+
       color: {
         range: colors,
       },

@@ -47,9 +47,10 @@ Angular hydration is not yet part of the adapter's tested public contract.
 ## Presentation and rendering
 
 `options.class` and the string `options.style` apply to the inner
-`.ts-chart-host`; `options.className` applies to the rendered SVG surface. The
-package exposes the SVG component only. Use `renderSvg` to replace SVG
-serialization without replacing the shared host.
+`.ts-chart-host`; `options.className` applies to the rendered chart surface.
+The component starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `ChartCommonOptions`, `ChartOptions`,
 `ChartPresentationOptions`, `ChartTooltipBodyDirective`,

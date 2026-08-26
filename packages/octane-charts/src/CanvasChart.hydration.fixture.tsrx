@@ -15,8 +15,11 @@ const definition = defineChart({
       stroke: '#2563eb',
     }),
   ],
-  x: { scale: scaleLinear().domain([1, 2]) },
-  y: { scale: scaleLinear().domain([8, 12]) },
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
+
   guides: false,
 })
 

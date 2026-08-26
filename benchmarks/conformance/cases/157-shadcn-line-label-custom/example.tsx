@@ -44,19 +44,22 @@ export function createExampleChart() {
         }),
         ...labelMarks,
       ],
-      x: { scale: scalePoint, axis: false },
-      y: {
-        scale: scaleLinear().domain([0, 300]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: {
-            values: [0, 75, 150, 225, 300],
-            size: 0,
+      scales: {
+        x: { scale: scalePoint, axis: false },
+        y: {
+          scale: scaleLinear().domain([0, 300]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: {
+              values: [0, 75, 150, 225, 300],
+              size: 0,
+            },
+            tickLabels: false,
           },
-          tickLabels: false,
         },
       },
+
       color: {
         domain: browserNames,
         range: shadcnColors,

@@ -33,8 +33,16 @@ export const createExampleChart = (input: ChartOptions) => {
               color: 'letter',
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { range: colors },
       margin: 0,
     },

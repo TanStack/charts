@@ -49,13 +49,16 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 4.5,
         }),
       ],
-      x: {
-        scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
-        axis: {
-          ticks: { format: (value: Date) => dateFormat.format(value) },
+      scales: {
+        x: {
+          scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
+          axis: {
+            ticks: { format: (value: Date) => dateFormat.format(value) },
+          },
         },
+        y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 5 } } },
       },
-      y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 5 } } },
+
       margin: { top: 20, right: 20, bottom: 50, left: 80 },
     },
     { keyboard: true, tooltip: exampleTooltip },

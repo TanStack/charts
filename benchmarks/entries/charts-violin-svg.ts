@@ -43,8 +43,10 @@ const definition = defineChart({
     }),
   ],
   guides: false,
-  x: { scale: categoryScale },
-  y: { scale: scaleLinear().domain([0, 2]) },
+  scales: {
+    x: { scale: categoryScale },
+    y: { scale: scaleLinear().domain([0, 2]) },
+  },
 })
 
 export function render(width: number, height: number) {

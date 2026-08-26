@@ -26,8 +26,11 @@ export const createExampleChart = (input: ChartOptions) => {
       marks: [
         polar({
           radiusRatio: 0.72,
-          angle: { scale: scaleLinear().domain(angleDomain) },
-          radius: { scale: scaleLinear().domain(radiusDomain) },
+          scales: {
+            angle: { scale: scaleLinear().domain(angleDomain) },
+            radius: { scale: scaleLinear().domain(radiusDomain) },
+          },
+
           guides: [
             radialGrid({
               values: radiusGridValues,
@@ -52,6 +55,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: 0,
     },
     {

@@ -93,10 +93,20 @@ describe('catalog definition shapes', () => {
     classifyDefinitions(
       'two-argument.ts',
       `
-        defineChart({ marks: [] }, { focus: 'nearest' })
-        defineChart(defineChart({ marks: [] }), { keyboard: true })
         defineChart(
-          defineChart(({ width }) => ({ marks: [], width })),
+          { marks: [], scales: { x: null, y: null } },
+          { focus: 'nearest' },
+        )
+        defineChart(
+          defineChart({ marks: [], scales: { x: null, y: null } }),
+          { keyboard: true },
+        )
+        defineChart(
+          defineChart(({ width }) => ({
+            marks: [],
+            scales: { x: null, y: null },
+            width,
+          })),
           { keyboard: true },
         )
       `,

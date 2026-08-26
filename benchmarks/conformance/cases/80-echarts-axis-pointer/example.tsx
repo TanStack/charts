@@ -83,20 +83,23 @@ export function createExampleChart(input: ExampleChartInput) {
           },
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: { ticks: { format: (value) => month.format(value) } },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: input.preview !== true,
-        axis: {
-          ticks: { count: 5 },
-          ...(input.preview === true
-            ? {}
-            : { label: 'Unemployed (thousands)' }),
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: { ticks: { format: (value) => month.format(value) } },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: input.preview !== true,
+          axis: {
+            ticks: { count: 5 },
+            ...(input.preview === true
+              ? {}
+              : { label: 'Unemployed (thousands)' }),
+          },
         },
       },
+
       color: {
         domain: axisPointerIndustries,
         range: axisPointerIndustries.map(

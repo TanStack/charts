@@ -27,8 +27,11 @@ export const createExampleChart = (input: ChartOptions) => {
       marks: [
         polar({
           radiusRatio: 0.8,
-          angle: { scale: scaleLinear().domain([0, tau]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: { scale: scaleLinear().domain([0, tau]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+
           marks: [
             radialArc(arcs, {
               id: 'letter-slices',
@@ -49,6 +52,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { range: colors },
       margin: 0,
     },

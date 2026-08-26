@@ -72,10 +72,12 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 3.5,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().padding(0.22),
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().padding(0.22),
+        },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
       },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
     },
     {
       keyboard: true,

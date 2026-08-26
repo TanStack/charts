@@ -10,8 +10,10 @@ const rows = Array.from({ length: 24 }, (_, index) => ({
 }))
 const definition = defineChart({
   marks: [delaunayLink(rows, { x: 'x', y: 'y', key: 'id' })],
-  x: { scale: scaleLinear().domain([0, 100]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 100]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
 })
 
 export function render(width: number, height: number) {

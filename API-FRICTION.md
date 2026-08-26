@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-15
+Last updated: 2026-08-26
 
 ## Triage rule
 
@@ -329,6 +329,8 @@ Each entry records:
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 | F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
+| F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
+| F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 
 ## Findings
 
@@ -8429,3 +8431,56 @@ Each entry records:
 - Follow-up verification: the generator contract covers all four tokens in both
   palettes, and regenerated ShadCN donut, radial, radar, and authored-label
   previews render readable dark text and theme-matched separators.
+
+### F-293 - Root scale slots blocked named axes
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: auditing the claimed TanStack Charts gaps against ECharts,
+  Observable Plot, and the existing React chart implementation
+- Friction: one root `x` slot and one root `y` slot could not describe multiple
+  unit-specific axes or bind different marks to independent scales. Polar marks
+  repeated the same limitation with one `angle` and one `radius` slot. Adding a
+  registry alone was not enough because composite marks could hide positional
+  identity, named callbacks could not see the resolved polar registry, and a
+  misspelled binding otherwise failed later with an undefined scale.
+- Decision: make `scales` the canonical Cartesian and polar registry, reserve
+  `x`, `y`, `angle`, and `radius` as readable defaults, and let marks bind to
+  named entries. Each named scale declares its positional channel and guide
+  side. Axes support all four sides and stack when they share one side. Keep the
+  old root options only as temporary compatibility, warn once with exact
+  migration instructions, and remove the warning text from production bundles.
+  Preserve positional identity through composite channel namespacing and expose
+  the public resolved polar registry to length callbacks.
+- Verification: named scale, axis, grid, focus, facet, motion, composite, box,
+  regression, polar, and type-contract regressions pass. All authored examples,
+  benchmarks, fixtures, adapters, and docs use the canonical registry, while
+  focused compatibility tests are the only intentional legacy syntax. The full
+  1,920-test suite, workspace typecheck, documentation contract, and packed
+  package gate pass.
+
+### F-294 - Automatic mark renderers imposed shared host plumbing
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: adding Canvas rendering for dense marks while retaining SVG
+  guides, labels, focus, and accessibility
+- Friction: renderer choice belonged to the whole chart, and every DOM adapter
+  assumed one surface. A dense mark could not opt into Canvas without moving
+  axes and labels too, while nested compositions, SSR adoption, focus updates,
+  pointer geometry, and image export all depended on the original single-root
+  contract.
+- Decision: add a small universal renderer token to mark options and keep the
+  DOM compositor contract in the DOM layer. The compositor preserves authored
+  source order across nested SVG and Canvas layers, retains a default surface
+  for existing adapter callbacks, rebuilds complete interaction geometry after
+  focus presentation, and supports SSR, responsive updates, accessibility, and
+  mixed image export without importing Canvas into SVG-only bundles.
+- Verification: Canvas unit coverage includes nested ordering, remounting,
+  focus-guide layers, and a second geometry-only pointer resolution after a
+  mixed focus paint. The browser Canvas gate, packed declarations and runtime,
+  React Native Metro gates, and framework package checks pass. Bundle boundary
+  checks keep SVG-only entries free of Canvas and measure the opt-in mixed
+  representative and React consumers at 35.68 KiB and 41.63 KiB gzip.

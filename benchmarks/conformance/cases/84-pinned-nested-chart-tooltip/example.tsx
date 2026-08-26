@@ -147,29 +147,32 @@ export function energyDefinition(
           ],
         }),
       ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(months)
-          .paddingInner(0.16)
-          .paddingOuter(0.06),
-        axis: {
-          line: false,
-          ticks: { size: 0, padding: 8 },
+      scales: {
+        x: {
+          scale: scaleBand<string>()
+            .domain(months)
+            .paddingInner(0.16)
+            .paddingOuter(0.06),
+          axis: {
+            line: false,
+            ticks: { size: 0, padding: 8 },
+          },
         },
-      },
-      y: {
-        scale: scaleLinear().domain([0, 2600]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: {
-            values: [0, 650, 1300, 1950, 2600],
-            size: 0,
-            padding: 7,
-            format: (value) => `${value.toLocaleString('en-US')} kWh`,
+        y: {
+          scale: scaleLinear().domain([0, 2600]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: {
+              values: [0, 650, 1300, 1950, 2600],
+              size: 0,
+              padding: 7,
+              format: (value) => `${value.toLocaleString('en-US')} kWh`,
+            },
           },
         },
       },
+
       margin: { top: 82, right: 24, bottom: 38, left: 72 },
       gradients: [
         {
@@ -222,14 +225,17 @@ export function ConsumptionMixChart({
             inset: 0,
           }),
         ],
-        x: {
-          scale: scaleLinear().domain([0, month.consumption]),
-          axis: false,
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, month.consumption]),
+            axis: false,
+          },
+          y: {
+            scale: scaleBand<string>().domain(['mix']),
+            axis: false,
+          },
         },
-        y: {
-          scale: scaleBand<string>().domain(['mix']),
-          axis: false,
-        },
+
         margin: 0,
       },
       { svgAnimation: false, keyboard: false, tooltip: false },

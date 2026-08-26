@@ -1,4 +1,5 @@
 import { valueKey } from './scales'
+import { mappedFocusCoordinate } from './focus-coordinate-internal'
 import type {
   ChartFocusGroupContext,
   ChartFocusResolveContext,
@@ -12,9 +13,7 @@ export const focusNearestX = axisFocus('x', false)
 export const focusNearestY = axisFocus('y', false)
 
 function axisFocus(axis: 'x' | 'y', grouped: boolean) {
-  const coordinate = (point: ChartPoint) => (axis === 'x' ? point.x : point.y)
-  const value = (point: ChartPoint) =>
-    axis === 'x' ? point.xValue : point.yValue
+  const coordinate = (point: ChartPoint) => mappedFocusCoordinate(point, axis)
   const secondary = (point: ChartPoint) => (axis === 'x' ? point.y : point.x)
 
   return {
@@ -33,7 +32,7 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean) {
         distance = nextDistance
       }
       if (!nearest) return []
-      const candidates = groupPoints(points, nearest, value)
+      const candidates = groupPoints(points, nearest, coordinate)
       const secondaryTarget = axis === 'x' ? y : x
       const primary = candidates.reduce(
         (closest, candidate) =>
@@ -52,7 +51,7 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean) {
       context: ChartFocusGroupContext<TDatum, TXValue, TYValue>,
     ) {
       const { point } = context
-      return grouped ? groupPoints(points, point, value) : [point]
+      return grouped ? groupPoints(points, point, coordinate) : [point]
     },
     navigation<TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
       points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
@@ -63,7 +62,7 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean) {
       if (!grouped) return sorted
       const unique = new Map<string, (typeof points)[number]>()
       for (const point of sorted) {
-        const key = valueKey(value(point))
+        const key = valueKey(coordinate(point))
         if (!unique.has(key)) unique.set(key, point)
       }
       return [...unique.values()]
@@ -92,13 +91,13 @@ function groupPoints<
 >(
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   point: ChartPoint<TDatum, TXValue, TYValue>,
-  value: (point: ChartPoint<TDatum, TXValue, TYValue>) => ChartValue,
+  coordinate: (point: ChartPoint<TDatum, TXValue, TYValue>) => number,
 ) {
-  const key = valueKey(value(point))
+  const key = valueKey(coordinate(point))
   const unique = new Map<string, ChartPoint<TDatum, TXValue, TYValue>>()
   unique.set(valueKey(point.group), point)
   for (const candidate of points) {
-    if (valueKey(value(candidate)) !== key) continue
+    if (valueKey(coordinate(candidate)) !== key) continue
     const group = valueKey(candidate.group)
     if (!unique.has(group)) unique.set(group, candidate)
   }

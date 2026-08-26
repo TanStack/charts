@@ -63,32 +63,35 @@ export function definitionMotionDefinition(
         },
       }),
     ],
-    x: {
-      scale: scaleBand().domain(rows.map((row) => row.period)),
-      axis: {
-        motion: guideMotion,
-        ticks: { motion: guideMotion },
-        tickLabels: {
-          motion(context) {
-            return {
-              delay: context.datumIndex * 18,
-              transition: { type: 'tween', duration: 220 },
-            }
+    scales: {
+      x: {
+        scale: scaleBand().domain(rows.map((row) => row.period)),
+        axis: {
+          motion: guideMotion,
+          ticks: { motion: guideMotion },
+          tickLabels: {
+            motion(context) {
+              return {
+                delay: context.datumIndex * 18,
+                transition: { type: 'tween', duration: 220 },
+              }
+            },
           },
+          label: { text: 'Period', motion: guideMotion },
         },
-        label: { text: 'Period', motion: guideMotion },
+      },
+      y: {
+        scale: scaleLinear().domain([0, yMaximum]),
+        grid: true,
+        axis: {
+          motion: guideMotion,
+          ticks: { motion: guideMotion },
+          tickLabels: { motion: guideMotion },
+          label: { text: 'Value', motion: guideMotion },
+        },
       },
     },
-    y: {
-      scale: scaleLinear().domain([0, yMaximum]),
-      grid: true,
-      axis: {
-        motion: guideMotion,
-        ticks: { motion: guideMotion },
-        tickLabels: { motion: guideMotion },
-        label: { text: 'Value', motion: guideMotion },
-      },
-    },
+
     margin: preview
       ? { top: 12, right: 4, bottom: 40, left: 46 }
       : { top: 20, right: 24 },

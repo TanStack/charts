@@ -51,11 +51,13 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 2.25,
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Date' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Apple close (USD)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Date' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Apple close (USD)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

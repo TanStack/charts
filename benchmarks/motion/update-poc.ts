@@ -214,8 +214,11 @@ function chartDefinition(
           points: true,
         }),
       ],
-      x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
-      y: { scale: scaleLinear().domain([0, 100]) },
+      scales: {
+        x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+      },
+
       guides: false,
       margin: { top: 24, right: 24, bottom: 24, left: 24 },
     },

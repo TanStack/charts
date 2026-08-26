@@ -50,10 +50,10 @@ deterministic.
 ## Presentation and rendering
 
 `class` and `style: StyleValue` apply to the outer host. `className` applies to
-the rendered SVG surface. The component disables general attribute
-inheritance; unrelated attributes are not forwarded. The package exposes the
-SVG component only; use `renderSvg` to replace SVG serialization without
-replacing the shared host.
+the rendered chart surface. The component disables general attribute
+inheritance; unrelated attributes are not forwarded. It starts with SVG and
+can compose marks that use `canvasChartRenderer`. Use `renderSvg` to replace
+SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodySlotContext`, `ChartDefinition`, and `ChartPoint`.
