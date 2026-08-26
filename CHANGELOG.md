@@ -1,5 +1,86 @@
 # Changelog
 
+## 0.15.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#112](https://github.com/TanStack/charts/pull/112) [`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3) - Add named Cartesian and polar scale registries with multiple axes, guided
+  legacy scale migration, and opt-in per-mark Canvas rendering that composes with
+  the default renderer across DOM framework adapters, SSR, focus, and image
+  export.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
 ## 0.14.0
 
 ### @tanstack/charts
