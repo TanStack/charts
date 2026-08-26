@@ -8,7 +8,8 @@ Chart definitions now require Cartesian scales under `scales.x` and `scales.y`.
 Polar definitions require `scales.angle` and `scales.radius`. The temporary
 pre-Alpha root properties, runtime adapters, and development warnings have been
 removed. Custom mark types should replace `ChartMarkX` and `ChartMarkY` with
-`ChartMarkPointX` and `ChartMarkPointY`. Polar layout callbacks should read the
+`ChartMarkPointX` and `ChartMarkPointY`, imported from
+`@tanstack/charts/mark/scale-values`. Polar layout callbacks should read the
 reserved mappings from `layout.scales`.
 
 Reserved scale entries are checked against the marks that use them at the

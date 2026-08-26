@@ -22,7 +22,7 @@ With no custom focus strategy:
 - `Home` and `End` move to the first and last point
 - `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
   the focused point
-- pressing the pointer outside the chart or tooltip dismisses a pinned tooltip
+- pressing the pointer outside both the chart and the tooltip dismisses a pinned tooltip
 - a configured selection controller receives the same focused point before
   `onSelect`
 - a click focuses and selects the nearest point, or selects `null` on the
