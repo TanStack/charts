@@ -42,12 +42,15 @@ export const createExampleChart = (input: ChartOptions) => {
           fontWeight: 600,
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Week' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Unemployed (thousands)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Week' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Unemployed (thousands)' },
+        },
       },
+
       color: {
         range: colors,
       },

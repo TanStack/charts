@@ -55,6 +55,10 @@ export const createExampleChart = (input: ChartOptions) =>
           strokeWidth: 0.75,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: 10,
     },
     { keyboard: true, tooltip: exampleTooltip },

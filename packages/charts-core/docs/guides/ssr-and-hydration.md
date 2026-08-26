@@ -11,12 +11,12 @@ runtime and renderer on the server and in the browser.
 
 | Adapter                                    | Server output                       | Browser contract                                    |
 | ------------------------------------------ | ----------------------------------- | --------------------------------------------------- |
-| [React](../framework/react/adapter.md)     | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
-| [Preact](../framework/preact/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Vue](../framework/vue/adapter.md)         | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Solid](../framework/solid/adapter.md)     | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Svelte](../framework/svelte/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Octane](../framework/octane/adapter.md)   | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
+| [React](../framework/react/adapter.md)     | SVG, Canvas, or mixed shell         | Hydrates and adopts the existing surface            |
+| [Preact](../framework/preact/adapter.md)   | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Vue](../framework/vue/adapter.md)         | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Solid](../framework/solid/adapter.md)     | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Svelte](../framework/svelte/adapter.md)   | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Octane](../framework/octane/adapter.md)   | SVG, Canvas, or mixed shell         | Hydrates and adopts the existing surface            |
 | [Angular](../framework/angular/adapter.md) | Not yet a verified adapter contract | Browser mount, immutable update, and teardown       |
 | [Lit](../framework/lit/adapter.md)         | Not yet a verified adapter contract | Browser registration, update, disconnect, reconnect |
 | [Alpine](../framework/alpine/adapter.md)   | None                                | Browser-only directive                              |
@@ -93,6 +93,11 @@ The client renders the same shell, adopts its existing root and canvases, sizes
 their backing stores for the device-pixel ratio, paints the scene, and attaches
 the shared interaction host. The first image appears after client mount; use
 the default SVG adapter when visible server-rendered geometry is required.
+
+When selected marks use `canvasChartRenderer`, verified server adapters emit
+one accessible mixed root with ordered SVG markup and Canvas shells. The
+browser adopts each child surface. SVG marks remain visible in the server
+response, while Canvas marks receive pixels after mount.
 
 ## Fonts and text measurement
 

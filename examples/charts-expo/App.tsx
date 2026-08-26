@@ -23,8 +23,11 @@ const definition = defineChart({
       points: true,
     }),
   ],
-  x: { label: 'Month', scale: scaleLinear().domain([1, 5]) },
-  y: { label: 'Revenue', scale: scaleLinear().domain([0, 35]) },
+  scales: {
+    x: { label: 'Month', scale: scaleLinear().domain([1, 5]) },
+    y: { label: 'Revenue', scale: scaleLinear().domain([0, 35]) },
+  },
+
   focus: 'nearest-x',
   tooltip: { use: tooltip, sticky: true },
 })

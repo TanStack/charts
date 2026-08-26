@@ -31,15 +31,18 @@ export function createRevenueDefinition(
         points: true,
       }),
     ],
-    x: {
-      label: 'Month',
-      scale: scaleLinear().domain([1, 5]),
+    scales: {
+      x: {
+        label: 'Month',
+        scale: scaleLinear().domain([1, 5]),
+      },
+      y: {
+        label: 'Revenue',
+        grid: true,
+        scale: scaleLinear().domain([0, 35]),
+      },
     },
-    y: {
-      label: 'Revenue',
-      grid: true,
-      scale: scaleLinear().domain([0, 35]),
-    },
+
     focus: 'nearest-x',
     tooltip: { use: tooltip, sticky: true },
   })

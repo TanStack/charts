@@ -31,8 +31,11 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 3,
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
+
       guides: false,
       margin: 20,
     },

@@ -218,145 +218,151 @@ export function treemap<TDatum>(
     number,
     never,
     never
-  >(({ markIndex }) => {
-    const id = options.id ?? `treemap-${markIndex}`
-    return {
-      id,
-      channels: {},
-      seriesFromColor: options.color !== undefined,
-      resolveLayout: ({ chart, layout }) => {
-        const root = hierarchy.root.copy()
-        const laidOut = configureLayout(
-          createTreemapLayout<FlatHierarchyDatum<TDatum>>(),
-          chart.width,
-          chart.height,
-          method,
-          ratio,
-          options.round ?? false,
-          paddingInner,
-          paddingOuter,
-        )(root)
-        const leaves = laidOut.leaves()
-        assertLayoutCoordinates(leaves, chart.width, chart.height)
-        const cells = leaves
-          .map((node) => materializeCell(node, chart.x, chart.y))
-          .filter((cell) => cell.x1 > cell.x0 && cell.y1 > cell.y0)
-        const nodes = cells.map((cell) => cell.node)
-        const colorValues = channelValues(nodes, options.color, () => null)
-        const labels = materializeLabels(
-          cells,
-          options.label,
-          options.labelFontSize ?? 11,
-          options.labelFontWeight,
-          inset,
-          labelPadding,
-          layout.measureText,
-          id,
-        )
+  >(
+    ({ markIndex }) => {
+      const id = options.id ?? `treemap-${markIndex}`
+      return {
+        id,
+        channels: {},
+        seriesFromColor: options.color !== undefined,
+        resolveLayout: ({ chart, layout }) => {
+          const root = hierarchy.root.copy()
+          const laidOut = configureLayout(
+            createTreemapLayout<FlatHierarchyDatum<TDatum>>(),
+            chart.width,
+            chart.height,
+            method,
+            ratio,
+            options.round ?? false,
+            paddingInner,
+            paddingOuter,
+          )(root)
+          const leaves = laidOut.leaves()
+          assertLayoutCoordinates(leaves, chart.width, chart.height)
+          const cells = leaves
+            .map((node) => materializeCell(node, chart.x, chart.y))
+            .filter((cell) => cell.x1 > cell.x0 && cell.y1 > cell.y0)
+          const nodes = cells.map((cell) => cell.node)
+          const colorValues = channelValues(nodes, options.color, () => null)
+          const labels = materializeLabels(
+            cells,
+            options.label,
+            options.labelFontSize ?? 11,
+            options.labelFontWeight,
+            inset,
+            labelPadding,
+            layout.measureText,
+            id,
+          )
 
-        return {
-          channels: {
-            color: {
-              scale: 'color',
-              values: colorValues.filter(isChartKey),
+          return {
+            channels: {
+              color: {
+                scale: 'color',
+                values: colorValues.filter(isChartKey),
+              },
             },
-          },
-          states: markStates(nodes, options.states),
-          render: ({ color: resolveColor, theme }) => {
-            const points: ChartPoint<TreemapNode<TDatum>, string, number>[] = []
-            const children: SceneNode[] = []
-            cells.forEach((cell, nodeIndex) => {
-              const node = cell.node
-              const colorValue = colorValues[nodeIndex]
-              const fallback = resolveColor(
-                isChartKey(colorValue) ? colorValue : null,
-              )
-              const fill = visualValue(
-                options.fill,
-                node,
-                nodeIndex,
-                nodes,
-                fallback,
-              )
-              const key = `${id}:node:${valueKey(node.id)}`
-              const group = isChartKey(colorValue) ? colorValue : null
-              const point: ChartPoint<TreemapNode<TDatum>, string, number> = {
-                key,
-                markId: id,
-                group,
-                groupLabel: group === null ? id : String(group),
-                datum: node,
-                datumIndex: nodeIndex,
-                xValue: node.id,
-                yValue: node.value,
-                x: cell.x,
-                y: cell.y,
-                color: fill,
-              }
-              points.push(point)
-              children.push({
-                kind: 'rect',
-                key,
-                x: cell.x0 + inset,
-                y: cell.y0 + inset,
-                width: Math.max(0, cell.x1 - cell.x0 - inset * 2),
-                height: Math.max(0, cell.y1 - cell.y0 - inset * 2),
-                radius: options.radius,
-                inset,
-                insetAxis: 'xy',
-                interaction: { point },
-                style: {
-                  fill,
-                  fillOpacity: options.fillOpacity,
-                  stroke:
-                    options.stroke === undefined
-                      ? undefined
-                      : visualValue(
-                          options.stroke,
-                          node,
-                          nodeIndex,
-                          nodes,
-                          fallback,
-                        ),
-                  strokeOpacity: options.strokeOpacity,
-                  strokeWidth: options.strokeWidth,
-                },
-              })
-              const label = labels.get(node.id)
-              if (label) {
+            states: markStates(nodes, options.states),
+            render: ({ color: resolveColor, theme }) => {
+              const points: ChartPoint<TreemapNode<TDatum>, string, number>[] =
+                []
+              const children: SceneNode[] = []
+              cells.forEach((cell, nodeIndex) => {
+                const node = cell.node
+                const colorValue = colorValues[nodeIndex]
+                const fallback = resolveColor(
+                  isChartKey(colorValue) ? colorValue : null,
+                )
+                const fill = visualValue(
+                  options.fill,
+                  node,
+                  nodeIndex,
+                  nodes,
+                  fallback,
+                )
+                const key = `${id}:node:${valueKey(node.id)}`
+                const group = isChartKey(colorValue) ? colorValue : null
+                const point: ChartPoint<TreemapNode<TDatum>, string, number> = {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group === null ? id : String(group),
+                  datum: node,
+                  datumIndex: nodeIndex,
+                  xValue: node.id,
+                  yValue: node.value,
+                  x: cell.x,
+                  y: cell.y,
+                  color: fill,
+                }
+                points.push(point)
                 children.push({
-                  ...label,
-                  key: `${key}:label`,
-                  pointOwner: point,
+                  kind: 'rect',
+                  key,
+                  x: cell.x0 + inset,
+                  y: cell.y0 + inset,
+                  width: Math.max(0, cell.x1 - cell.x0 - inset * 2),
+                  height: Math.max(0, cell.y1 - cell.y0 - inset * 2),
+                  radius: options.radius,
+                  inset,
+                  insetAxis: 'xy',
+                  interaction: { point },
                   style: {
-                    fill: visualValue(
-                      options.labelFill,
-                      node,
-                      nodeIndex,
-                      nodes,
-                      theme.foreground,
-                    ),
+                    fill,
+                    fillOpacity: options.fillOpacity,
+                    stroke:
+                      options.stroke === undefined
+                        ? undefined
+                        : visualValue(
+                            options.stroke,
+                            node,
+                            nodeIndex,
+                            nodes,
+                            fallback,
+                          ),
+                    strokeOpacity: options.strokeOpacity,
+                    strokeWidth: options.strokeWidth,
                   },
                 })
+                const label = labels.get(node.id)
+                if (label) {
+                  children.push({
+                    ...label,
+                    key: `${key}:label`,
+                    pointOwner: point,
+                    style: {
+                      fill: visualValue(
+                        options.labelFill,
+                        node,
+                        nodeIndex,
+                        nodes,
+                        theme.foreground,
+                      ),
+                    },
+                  })
+                }
+              })
+              return {
+                nodes: [
+                  {
+                    kind: 'group',
+                    key: id,
+                    className:
+                      'ts-chart__treemap ts-chart__rect ts-chart__text',
+                    ariaHidden: true,
+                    children,
+                  },
+                ],
+                points,
               }
-            })
-            return {
-              nodes: [
-                {
-                  kind: 'group',
-                  key: id,
-                  className: 'ts-chart__treemap ts-chart__rect ts-chart__text',
-                  ariaHidden: true,
-                  children,
-                },
-              ],
-              points,
-            }
-          },
-        }
-      },
-    }
-  }, options.motion)
+            },
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function configureLayout<TDatum>(

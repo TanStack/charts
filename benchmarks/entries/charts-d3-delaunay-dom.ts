@@ -32,8 +32,11 @@ const createDelaunayPointIndex: ChartSpatialIndexFactory<
 
 const definition = defineChart({
   marks: [dot([{ x: 0, y: 0 }], { x: 'x', y: 'y' })],
-  x: { scale: scaleLinear().domain([-1, 1]) },
-  y: { scale: scaleLinear().domain([-1, 1]) },
+  scales: {
+    x: { scale: scaleLinear().domain([-1, 1]) },
+    y: { scale: scaleLinear().domain([-1, 1]) },
+  },
+
   spatialIndex: createDelaunayPointIndex,
 })
 

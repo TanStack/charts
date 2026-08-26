@@ -126,6 +126,28 @@ const threshold = createMark<ThresholdDatum, never, number>(({ markIndex }) => {
 `initialize` materializes channels for one scene build. `render` receives the
 required full `surface` bounds, inner `chart` plot bounds, scales, theme, color
 resolver, and text layout tools.
+
+Pass a mark renderer as the third argument when the custom mark should select
+its own surface:
+
+```ts
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+
+const denseThresholds = createMark<ThresholdDatum, never, number>(
+  initializeThresholds,
+  undefined,
+  canvasChartRenderer,
+)
+```
+
+The second argument remains the optional mark motion definition. A custom mark
+can pass both motion and a renderer, and neither changes the other's meaning.
+The selected renderer still decides whether it consumes that motion policy.
+Built-in marks expose the same renderer choice in their option object. A DOM
+renderer used this way must implement `ChartLayerRenderer`, including
+`compose(defaultRenderer)`, so one compositor can own the ordered child
+surfaces. `canvasChartRenderer` provides that composition.
+
 When a custom mark emits data labels, an optional `layoutLabels(context)` can
 return those positioned `SceneLabel` nodes before render so unlocked margins
 contain them. Keep that method pure because responsive layout may call it more
@@ -335,6 +357,13 @@ pointer gestures need client-coordinate conversion; the interaction controller
 returns `null` when that optional capability is absent. The host retains
 sizing, runtime, keyboard, tooltip, selection, and focus-strategy behavior.
 Keep `prerender` deterministic and make `mount` adopt compatible server markup.
+
+A composed surface exposes its child surfaces from back to front through
+`ChartSurface.layers`. Its `element` remains the single accessible,
+interactive root. `defaultElement` identifies the topmost element owned by the
+host's default renderer. SVG-oriented `onRender` callbacks keep `svg` for
+compatibility and also receive the complete `surface`, so application code can
+inspect a mixed chart without treating the composition root as an SVG.
 
 If `paintFocus` resolves and paints inline mark-state geometry, return that
 destination `ChartScene`. The host will use it for subsequent pointer hits;

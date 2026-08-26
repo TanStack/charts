@@ -85,8 +85,10 @@ import { scaleUtc } from 'd3-scale'
 
 const chart = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: scaleUtc, nice: true },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleUtc, nice: true },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -164,24 +166,31 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const spec = {
   marks,
-  x: { scale: scaleBand },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleBand },
+    y: { scale: scaleLinear, nice: true },
+  },
 }
 ```
 
-Positionless marks omit both axes:
+Positionless marks use explicit null entries:
 
 ```ts
 import { defineChart, frame } from '@tanstack/charts'
 
 const borderOnlyChart = defineChart({
   marks: [frame()],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 
-A mark with x values requires an x scale. A mark with y values requires a y
-scale. One-dimensional marks omit only the unused axis. The scale factory
-chooses the mapping; materialized mark channels supply its domain.
+A mark with x values requires a non-null x scale. A mark with y values requires
+a non-null y scale. One-dimensional charts use `null` only for the unused
+entry. The scale factory chooses the mapping; materialized mark channels
+supply its domain.
 
 ## Factory domains come from marks
 
@@ -193,8 +202,10 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const chart = defineChart({
   marks: [lineY(rows, { x: 'month', y: 'value' })],
-  x: { scale: scalePoint },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scalePoint },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -296,8 +307,10 @@ Omitting `color.scale` uses the chart theme’s ordinal palette for categorical 
 ```ts
 const chart = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', z: 'region' })],
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
 })
 ```
 
@@ -313,8 +326,11 @@ const regionColor = scaleOrdinal(
 
 const chart = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', z: 'region' })],
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   color: {
     scale: regionColor,
     legend: colorLegend({ label: 'Region' }),
@@ -478,15 +494,17 @@ export default defineChart({
       fill: '#2563eb',
     }),
   ],
-  x: {
-    scale: scaleLog().domain([200, 30_000]),
-    grid: true,
-    axis: { label: 'Class size' },
-  },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Hierarchy depth' },
+  scales: {
+    x: {
+      scale: scaleLog().domain([200, 30_000]),
+      grid: true,
+      axis: { label: 'Class size' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Hierarchy depth' },
+    },
   },
 })
 ```

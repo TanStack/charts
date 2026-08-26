@@ -69,36 +69,39 @@ export function createExampleChart(
           strokeWidth: 1,
         }),
       ],
-      x: {
-        scale: scalePoint,
-        axis: {
-          line: false,
-          ticks: {
-            values: tickValues,
-            size: 0,
-            padding: 8,
-            format: formatDashboardDate,
+      scales: {
+        x: {
+          scale: scalePoint,
+          axis: {
+            line: false,
+            ticks: {
+              values: tickValues,
+              size: 0,
+              padding: 8,
+              format: formatDashboardDate,
+            },
+            tickLabels: {
+              fontSize: 12,
+              opacity: 0.72,
+              dy: 5,
+              anchor: ({ value }) =>
+                value === data.at(-1)?.date ? 'end' : 'middle',
+              dx: ({ value }) => (value === data.at(-1)?.date ? 5 : 0),
+              thin: { minGap: 32, priority: 'ends' },
+            },
           },
-          tickLabels: {
-            fontSize: 12,
-            opacity: 0.72,
-            dy: 5,
-            anchor: ({ value }) =>
-              value === data.at(-1)?.date ? 'end' : 'middle',
-            dx: ({ value }) => (value === data.at(-1)?.date ? 5 : 0),
-            thin: { minGap: 32, priority: 'ends' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1_200]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: { values: [0, 300, 600, 900, 1_200], size: 0 },
+            tickLabels: false,
           },
         },
       },
-      y: {
-        scale: scaleLinear().domain([0, 1_200]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: { values: [0, 300, 600, 900, 1_200], size: 0 },
-          tickLabels: false,
-        },
-      },
+
       color: { domain: seriesOrder, range: [primaryColor, primaryColor] },
       gradients: [
         {

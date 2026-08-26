@@ -78,11 +78,13 @@ export default defineChart({
       r: 4,
     }),
   ],
-  x: { scale: () => scaleBand<string>().padding(0.3) },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Mean response (95% confidence interval)' },
+  scales: {
+    x: { scale: () => scaleBand<string>().padding(0.3) },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Mean response (95% confidence interval)' },
+    },
   },
 })
 ```

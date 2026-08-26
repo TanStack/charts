@@ -52,12 +52,15 @@ export default defineChart({
     }),
     ruleY([0]),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.15) },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Revenue (USD thousands)' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.15) },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Revenue (USD thousands)' },
+    },
   },
+
   color: {
     domain: ['Core', 'Services'],
     range: ['#2563eb', '#14b8a6'],

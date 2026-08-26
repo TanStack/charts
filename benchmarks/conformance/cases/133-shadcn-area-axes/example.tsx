@@ -41,12 +41,15 @@ export function createExampleChart() {
           strokeWidth: 1.5,
         }),
       ],
-      x: shadcnPointXAxis(),
-      y: {
-        scale: scaleLinear().domain([0, 600]),
-        grid: true,
-        axis: { line: false, ticks: { size: 0, values: [0, 300, 600] } },
+      scales: {
+        x: shadcnPointXAxis(),
+        y: {
+          scale: scaleLinear().domain([0, 600]),
+          grid: true,
+          axis: { line: false, ticks: { size: 0, values: [0, 300, 600] } },
+        },
       },
+
       color: {
         domain: monthSeries,
         range: shadcnColors.slice(0, 3),

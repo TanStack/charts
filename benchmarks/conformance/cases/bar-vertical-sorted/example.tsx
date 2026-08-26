@@ -20,19 +20,21 @@ export const createExampleChart = () =>
           inset: 1,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
-        axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: {
-          ticks: {
-            count: 5,
-            format: (value: number) => percent.format(value),
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+          axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: {
+            ticks: {
+              count: 5,
+              format: (value: number) => percent.format(value),
+            },
+            label: 'Frequency',
           },
-          label: 'Frequency',
         },
       },
     }),

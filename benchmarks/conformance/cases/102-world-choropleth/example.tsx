@@ -58,6 +58,10 @@ export const createExampleChart = (input: ChartOptions) =>
           strokeWidth: 0.75,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         scale: scaleThreshold<number, string>,
         domain: thresholds,

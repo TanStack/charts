@@ -26,14 +26,17 @@ export function createExampleChart() {
           radiusRatio: 1,
           startAngle,
           endAngle,
-          angle: { scale: scaleLinear().domain([0, 300]) },
-          radius: {
-            scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
-            range: [
-              30 * (height < 220 ? 0.8 : 1),
-              110 * (height < 220 ? 0.8 : 1),
-            ],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 300]) },
+            radius: {
+              scale: scaleBand<string>().domain(browserNames).paddingInner(0.2),
+              range: [
+                30 * (height < 220 ? 0.8 : 1),
+                110 * (height < 220 ? 0.8 : 1),
+              ],
+            },
           },
+
           guides: [],
           marks: [
             radialBarAngle(backgroundRows, {
@@ -55,11 +58,14 @@ export function createExampleChart() {
         polar({
           startAngle,
           endAngle,
-          angle: { scale: scaleLinear().domain([0, 300]) },
-          radius: {
-            scale: scaleLinear().domain([0, 110]),
-            range: [0, 110 * (height < 220 ? 0.8 : 1)],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 300]) },
+            radius: {
+              scale: scaleLinear().domain([0, 110]),
+              range: [0, 110 * (height < 220 ? 0.8 : 1)],
+            },
           },
+
           marks: [
             radialText(
               shadcnBrowsers.map((row, index) => ({
@@ -81,6 +87,10 @@ export function createExampleChart() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: browserNames, range: shadcnColors },
       margin: 0,
     }),

@@ -19,11 +19,15 @@ export function createExampleChart() {
   return defineChart(
     {
       marks,
-      x: { scale: scaleLinear, axis: false },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
-        axis: { line: false, ticks: { size: 0 } },
+      scales: {
+        x: { scale: scaleLinear, axis: false },
+        y: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
+          axis: { line: false, ticks: { size: 0 } },
+        },
       },
+
       margin: { top: 5, right: 5, bottom: 5, left: 72 },
       theme: shadcnTheme(),
     },

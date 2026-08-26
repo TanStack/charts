@@ -49,27 +49,30 @@ export function createExampleChart(timeRange: InteractiveTimeRange = '90d') {
           strokeWidth: 1,
         }),
       ],
-      x: {
-        scale: scalePoint,
-        axis: {
-          line: false,
-          ticks: {
-            values: interactiveDateTicks(timeRange),
-            size: 0,
-            padding: 10,
-            format: formatMonthDay,
+      scales: {
+        x: {
+          scale: scalePoint,
+          axis: {
+            line: false,
+            ticks: {
+              values: interactiveDateTicks(timeRange),
+              size: 0,
+              padding: 10,
+              format: formatMonthDay,
+            },
+          },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1200]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: { values: [0, 300, 600, 900, 1200], size: 0 },
+            tickLabels: false,
           },
         },
       },
-      y: {
-        scale: scaleLinear().domain([0, 1200]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: { values: [0, 300, 600, 900, 1200], size: 0 },
-          tickLabels: false,
-        },
-      },
+
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       gradients: twoSeries.map((series, index) => ({
         id: `shadcn-interactive-${series}`,

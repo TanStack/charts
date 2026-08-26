@@ -37,20 +37,23 @@ const definition = (input: BenchmarkInput) =>
               stroke: BENCHMARK_INTERACTIVE ? undefined : color,
             }),
       ],
-      x: {
-        scale: scaleLinear().domain(
-          BENCHMARK_STRESS
-            ? [xMinimum(input), xMaximum(input)]
-            : [0, Math.max(1, input.rows.length - 1)],
-        ),
-        grid: true,
-        axis: { ticks: { count: 6 } },
+      scales: {
+        x: {
+          scale: scaleLinear().domain(
+            BENCHMARK_STRESS
+              ? [xMinimum(input), xMaximum(input)]
+              : [0, Math.max(1, input.rows.length - 1)],
+          ),
+          grid: true,
+          axis: { ticks: { count: 6 } },
+        },
+        y: {
+          scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
+          grid: true,
+          axis: { ticks: { count: 5 } },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
-        grid: true,
-        axis: { ticks: { count: 5 } },
-      },
+
       color: BENCHMARK_INTERACTIVE
         ? {
             scale: scaleOrdinal<string, string>()

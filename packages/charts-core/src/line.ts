@@ -11,6 +11,8 @@ import {
 import { valueKey } from './scales'
 import type {
   Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -24,7 +26,8 @@ import type {
   OptionChannelOutput,
 } from './types'
 
-interface LineOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+interface LineOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   z?: Channel<TDatum, ChartKey | null | undefined>
   color?: Channel<TDatum, ChartKey | null | undefined>
@@ -75,11 +78,25 @@ export function lineY<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<TDatum, OptionChannelOutput<TDatum, TOptions, 'x', number>, number>
+): CartesianChartMark<
+  TDatum,
+  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  number,
+  TOptions
+>
 export function lineY<TDatum>(
   source: Iterable<TDatum>,
   options: LineYOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, ChartValue, ChartValue> {
+): CartesianChartMark<
+  TDatum,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  LineYOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
 
   return createLineMark(data, options, 'line', () => {
@@ -108,11 +125,25 @@ export function lineX<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<TDatum, number, OptionChannelOutput<TDatum, TOptions, 'y', number>>
+): CartesianChartMark<
+  TDatum,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  TOptions
+>
 export function lineX<TDatum>(
   source: Iterable<TDatum>,
   options: LineXOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, ChartValue, ChartValue> {
+): CartesianChartMark<
+  TDatum,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  LineXOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
 
   return createLineMark(data, options, 'line-x', () => {
@@ -137,149 +168,163 @@ function createLineMark<TDatum>(
   options: LineOptions<TDatum>,
   idPrefix: string,
   channels: () => LineChannels,
-): ChartMark<TDatum, ChartValue, ChartValue> {
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `${idPrefix}-${markIndex}`
-    const { xValues, yValues, isValidX, isValidY, keyValues, affinity } =
-      channels()
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const groupValues =
-      options.z === undefined && options.color !== undefined
-        ? colorValues
-        : zValues
-    const keys = inferredKeyValues(data, options.key, {
-      groups: groupValues,
-      candidates: [keyValues],
-      markId: id,
-      warningIdentity: options,
-    })
-    const rows = data.map((datum, datumIndex): LineRow<TDatum> => ({
-      datum,
-      datumIndex,
-      xValue: xValues[datumIndex],
-      yValue: yValues[datumIndex],
-      groupValue: groupValues[datumIndex],
-      datumKey: keys[datumIndex],
-    }))
+): CartesianChartMark<
+  TDatum,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  ChartValue,
+  LineOptions<TDatum>
+> {
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
+  return createMark(
+    ({ markIndex }) => {
+      const id = options.id ?? `${idPrefix}-${markIndex}`
+      const { xValues, yValues, isValidX, isValidY, keyValues, affinity } =
+        channels()
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const groupValues =
+        options.z === undefined && options.color !== undefined
+          ? colorValues
+          : zValues
+      const keys = inferredKeyValues(data, options.key, {
+        groups: groupValues,
+        candidates: [keyValues],
+        markId: id,
+        warningIdentity: options,
+      })
+      const rows = data.map((datum, datumIndex): LineRow<TDatum> => ({
+        datum,
+        datumIndex,
+        xValue: xValues[datumIndex],
+        yValue: yValues[datumIndex],
+        groupValue: groupValues[datumIndex],
+        datumKey: keys[datumIndex],
+      }))
 
-    return {
-      id,
-      states: markStates(data, options.states),
-      seriesFromColor: options.z === undefined && options.color !== undefined,
-      channels: {
-        x: {
-          scale: 'x',
-          values: xValues.filter(isValidX),
+      return {
+        id,
+        states: markStates(data, options.states),
+        seriesFromColor: options.z === undefined && options.color !== undefined,
+        channels: {
+          x: {
+            scale: xScale,
+            values: xValues.filter(isValidX),
+          },
+          y: {
+            scale: yScale,
+            values: yValues.filter(isValidY),
+          },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
+          },
         },
-        y: {
-          scale: 'y',
-          values: yValues.filter(isValidY),
-        },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, color: resolveColor }) => {
-        const groups = groupRows(rows)
-        const nodes: SceneNode[] = []
+        render: ({ scales, color: resolveColor }) => {
+          const groups = groupRows(rows)
+          const nodes: SceneNode[] = []
 
-        for (const [groupKey, groupRows] of groups) {
-          const firstRow = groupRows[0]
-          if (!firstRow) continue
-          const color = visualValue(
-            options.stroke,
-            firstRow.datum,
-            firstRow.datumIndex,
-            data,
-            resolveColor(colorValues[firstRow.datumIndex] ?? null),
-          )
-          const children: SceneNode[] = []
-          let segment: (readonly [number, number])[] = []
-          let segmentPoints: ChartPoint<TDatum>[] = []
-          let segmentIndex = 0
+          for (const [groupKey, groupRows] of groups) {
+            const firstRow = groupRows[0]
+            if (!firstRow) continue
+            const color = visualValue(
+              options.stroke,
+              firstRow.datum,
+              firstRow.datumIndex,
+              data,
+              resolveColor(colorValues[firstRow.datumIndex] ?? null),
+            )
+            const children: SceneNode[] = []
+            let segment: (readonly [number, number])[] = []
+            let segmentPoints: ChartPoint<TDatum>[] = []
+            let segmentIndex = 0
 
-          const flushSegment = () => {
-            if (!segment.length) return
-            children.push({
-              kind: 'polyline',
-              key: `${id}:${groupKey}:segment:${segmentIndex}`,
-              points: segment,
-              path: options.curve?.line(segment),
-              interaction: {
-                points: segmentPoints,
-                affinity,
-              },
-              style: {
-                fill: 'none',
-                stroke: color,
-                strokeOpacity: options.strokeOpacity,
-                strokeWidth: options.strokeWidth ?? 2.25,
-                strokeDasharray: options.strokeDasharray,
-                lineCap: 'round',
-                lineJoin: 'round',
-              },
-            })
-            segment = []
-            segmentPoints = []
-            segmentIndex += 1
-          }
-
-          for (const row of groupRows) {
-            if (!isValidX(row.xValue) || !isValidY(row.yValue)) {
-              flushSegment()
-              continue
-            }
-
-            const x = scales.x.map(row.xValue)
-            const y = scales.y.map(row.yValue)
-            const point: ChartPoint<TDatum> = {
-              key: `${id}:${groupKey}:${valueKey(row.datumKey)}`,
-              markId: id,
-              group: row.groupValue ?? null,
-              groupLabel: row.groupValue == null ? id : String(row.groupValue),
-              datum: row.datum,
-              datumIndex: row.datumIndex,
-              xValue: row.xValue,
-              yValue: row.yValue,
-              x,
-              y,
-              color,
-            }
-            segmentPoints.push(point)
-            segment.push([x, y])
-
-            if (options.points) {
+            const flushSegment = () => {
+              if (!segment.length) return
               children.push({
-                kind: 'dot',
-                key: `${point.key}:dot`,
+                kind: 'polyline',
+                key: `${id}:${groupKey}:segment:${segmentIndex}`,
+                points: segment,
+                path: options.curve?.line(segment),
+                interaction: {
+                  points: segmentPoints,
+                  affinity,
+                },
+                style: {
+                  fill: 'none',
+                  stroke: color,
+                  strokeOpacity: options.strokeOpacity,
+                  strokeWidth: options.strokeWidth ?? 2.25,
+                  strokeDasharray: options.strokeDasharray,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                },
+              })
+              segment = []
+              segmentPoints = []
+              segmentIndex += 1
+            }
+
+            for (const row of groupRows) {
+              if (!isValidX(row.xValue) || !isValidY(row.yValue)) {
+                flushSegment()
+                continue
+              }
+
+              const x = scales[xScale]!.map(row.xValue)
+              const y = scales[yScale]!.map(row.yValue)
+              const point: ChartPoint<TDatum> = {
+                key: `${id}:${groupKey}:${valueKey(row.datumKey)}`,
+                markId: id,
+                group: row.groupValue ?? null,
+                groupLabel:
+                  row.groupValue == null ? id : String(row.groupValue),
+                datum: row.datum,
+                datumIndex: row.datumIndex,
+                xValue: row.xValue,
+                yValue: row.yValue,
                 x,
                 y,
-                radius: 2.5,
-                pointOwner: point,
-                style: { fill: color },
-              })
+                color,
+              }
+              segmentPoints.push(point)
+              segment.push([x, y])
+
+              if (options.points) {
+                children.push({
+                  kind: 'dot',
+                  key: `${point.key}:dot`,
+                  x,
+                  y,
+                  radius: 2.5,
+                  pointOwner: point,
+                  style: { fill: color },
+                })
+              }
             }
+
+            flushSegment()
+            nodes.push({
+              kind: 'group',
+              key: `${id}:${groupKey}`,
+              className: 'ts-chart__line',
+              ariaHidden: true,
+              children,
+            })
           }
 
-          flushSegment()
-          nodes.push({
-            kind: 'group',
-            key: `${id}:${groupKey}`,
-            className: 'ts-chart__line',
-            ariaHidden: true,
-            children,
-          })
-        }
-
-        return { nodes }
-      },
-    }
-  }, options.motion)
+          return { nodes }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function groupRows<TDatum>(

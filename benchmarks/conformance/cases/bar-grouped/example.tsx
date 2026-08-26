@@ -41,16 +41,19 @@ export const createExampleChart = (input: ChartOptions) =>
             inset: 1,
           }),
         ],
-        x: {
-          scale: () =>
-            scaleBand<string>().paddingInner(0.14).paddingOuter(0.06),
-          axis: { tickLabels: { rotate: width < 640 ? -32 : 0 } },
+        scales: {
+          x: {
+            scale: () =>
+              scaleBand<string>().paddingInner(0.14).paddingOuter(0.06),
+            axis: { tickLabels: { rotate: width < 640 ? -32 : 0 } },
+          },
+          y: {
+            scale: scaleLinear,
+            grid: true,
+            axis: { ticks: { count: 5 }, label: 'Penguins' },
+          },
         },
-        y: {
-          scale: scaleLinear,
-          grid: true,
-          axis: { ticks: { count: 5 }, label: 'Penguins' },
-        },
+
         color: {
           range: sexColors,
           legend: colorLegend({

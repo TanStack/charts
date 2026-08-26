@@ -37,12 +37,18 @@ export const createExampleChart = (input: ChartOptions) => {
         bottom: 40,
         left: 50,
       },
-      x: {
-        scale: scaleLog().domain([200, 30_000]),
-        grid: true,
-        axis: { label: 'Class size' },
+      scales: {
+        x: {
+          scale: scaleLog().domain([200, 30_000]),
+          grid: true,
+          axis: { label: 'Class size' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Hierarchy depth' },
+        },
       },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Hierarchy depth' } },
     },
     { keyboard: true, tooltip: exampleTooltip },
   )

@@ -16,8 +16,10 @@ export const scene = createChartScene(
         key: 'id',
       }),
     ],
-    x: { scale: scaleLinear().domain([0, 2]) },
-    y: { scale: scaleLinear().domain([0, 10]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 2]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+    },
   }),
   { width: 640, height: 320 },
 )

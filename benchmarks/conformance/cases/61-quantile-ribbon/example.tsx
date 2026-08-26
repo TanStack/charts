@@ -41,16 +41,18 @@ export const createExampleChart = () => {
           strokeWidth: 2.25,
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: showAxisLabels ? { label: 'Month' } : {},
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: showAxisLabels
-          ? { label: 'Unemployed people by industry (thousands)' }
-          : {},
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: showAxisLabels ? { label: 'Month' } : {},
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: showAxisLabels
+            ? { label: 'Unemployed people by industry (thousands)' }
+            : {},
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

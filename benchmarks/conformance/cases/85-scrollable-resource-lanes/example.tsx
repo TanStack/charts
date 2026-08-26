@@ -91,19 +91,22 @@ export const resourceTimelineDefinition = (input: ExampleChartInput) => {
             strokeWidth: 1,
           }),
         ],
-        x: {
-          scale: scaleUtc().domain(resourceTimelineDomain),
-          grid: true,
-          axis: { ticks: { count: Math.max(6, Math.floor(width / 84)) } },
+        scales: {
+          x: {
+            scale: scaleUtc().domain(resourceTimelineDomain),
+            grid: true,
+            axis: { ticks: { count: Math.max(6, Math.floor(width / 84)) } },
+          },
+          y: {
+            scale: scaleBand<string>()
+              .domain(resourceLanes)
+              .paddingInner(0.08)
+              .paddingOuter(0.04),
+            grid: false,
+            axis: false,
+          },
         },
-        y: {
-          scale: scaleBand<string>()
-            .domain(resourceLanes)
-            .paddingInner(0.08)
-            .paddingOuter(0.04),
-          grid: false,
-          axis: false,
-        },
+
         color: {
           domain: timelineStatuses,
           range: timelineStatuses.map((status) => timelineStatusColors[status]),

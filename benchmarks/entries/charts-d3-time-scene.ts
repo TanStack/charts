@@ -7,8 +7,10 @@ const data = [
 ]
 const definition = defineChart({
   marks: [lineY(data, { x: 'date', y: 'value' })],
-  x: { scale: scaleUtc().domain(data.map((point) => point.date)) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleUtc().domain(data.map((point) => point.date)) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
 })
 
 export const scene = createChartScene(definition, {

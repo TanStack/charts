@@ -79,15 +79,18 @@ export function focusContextDetailDefinition(window: FocusContextWindow) {
           selection,
         ),
       ],
-      x: {
-        scale: scaleUtc().domain([window.start, window.end]),
-        axis: { label: 'Selected time window' },
+      scales: {
+        x: {
+          scale: scaleUtc().domain([window.start, window.end]),
+          axis: { label: 'Selected time window' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Close ($)' },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Close ($)' },
-      },
+
       margin: detailMargin,
     },
     { svgAnimation: false, keyboard: false },
@@ -109,20 +112,23 @@ export function focusContextOverviewDefinition(
           strokeWidth: 1.75,
         }),
       ],
-      x: {
-        scale: scaleUtc().domain(fullDomain),
-        axis: {
-          ticks: {
-            count: 4,
-            format: (value) =>
-              value.toLocaleDateString(undefined, {
-                month: 'short',
-                timeZone: 'UTC',
-              }),
+      scales: {
+        x: {
+          scale: scaleUtc().domain(fullDomain),
+          axis: {
+            ticks: {
+              count: 4,
+              format: (value) =>
+                value.toLocaleDateString(undefined, {
+                  month: 'short',
+                  timeZone: 'UTC',
+                }),
+            },
           },
         },
+        y: { scale: scaleLinear, axis: false },
       },
-      y: { scale: scaleLinear, axis: false },
+
       margin: overviewMargin,
       controls: [
         brushX({

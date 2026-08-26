@@ -91,13 +91,16 @@ export function paletteMatrixDefinition(
         motion: { transition: { type: 'spring', mass: 1.15 } },
       }),
     ],
-    x: {
-      scale: () =>
-        scalePoint<string>()
-          .domain(rows.map((row) => row.period))
-          .padding(0.12),
+    scales: {
+      x: {
+        scale: () =>
+          scalePoint<string>()
+            .domain(rows.map((row) => row.period))
+            .padding(0.12),
+      },
+      y: { scale: scaleLinear().domain([20, 100]) },
     },
-    y: { scale: scaleLinear().domain([20, 100]) },
+
     guides: false,
     margin: preview ? 5 : { top: 12, right: 14, bottom: 10, left: 14 },
     gradients: [

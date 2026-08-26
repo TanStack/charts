@@ -48,15 +48,17 @@ const chart = defineChart({
       fill: '#2563eb',
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Temperature (°C)' },
-  },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Daily sales' },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Temperature (°C)' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Daily sales' },
+    },
   },
 })
 

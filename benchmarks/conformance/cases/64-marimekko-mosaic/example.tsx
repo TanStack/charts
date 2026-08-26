@@ -67,14 +67,17 @@ export const createExampleChart = (input?: ChartOptions) => {
               }),
             ]),
       ],
-      x: {
-        scale: scaleLinear().domain([0, 1]),
-        axis: { ticks: { format: percent }, label: 'Share of responses' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: { ticks: { format: percent }, label: 'Share of responses' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1.12]),
+          axis: { ticks: { format: percent }, label: 'Within-question share' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, 1.12]),
-        axis: { ticks: { format: percent }, label: 'Within-question share' },
-      },
+
       color: {
         domain: mosaicResponses,
         range: colors,

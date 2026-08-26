@@ -12,14 +12,28 @@ const bundle = await build({
   write: false,
   stdin: {
     contents: `
-      import { scaleLinear } from 'd3-scale'
+      import { scaleBand, scaleLinear } from 'd3-scale'
       import {
         createCanvasChartRenderer,
         mountCanvasChart,
       } from '@tanstack/charts/canvas'
+      import { areaY } from '@tanstack/charts/area'
+      import { areaX } from '@tanstack/charts/area-x'
+      import { arrow } from '@tanstack/charts/arrow'
+      import { barY } from '@tanstack/charts/bar'
       import { dot } from '@tanstack/charts/dot'
       import { renderChartImage } from '@tanstack/charts/export'
+      import { facet } from '@tanstack/charts/facet'
+      import { hexagon } from '@tanstack/charts/hexagon'
+      import { lineY } from '@tanstack/charts/line'
+      import { link } from '@tanstack/charts/link'
+      import { mountChart } from '@tanstack/charts/dom'
+      import { polar, radialDot, radialLine } from '@tanstack/charts/polar'
+      import { rect } from '@tanstack/charts/rect'
       import { defineChart } from '@tanstack/charts/scene'
+      import { text } from '@tanstack/charts/text'
+      import { tickY } from '@tanstack/charts/tick'
+      import { vector } from '@tanstack/charts/vector'
       import { tooltip } from '@tanstack/charts/tooltip'
 
       window.runCanvasRendererCheck = async () => {
@@ -205,8 +219,11 @@ const bundle = await build({
         const host = mountCanvasChart(interactionContainer, {
           definition: defineChart({
             marks: [dot(data, { x: 'x', y: 'y', key: 'id' })],
-            x: { scale: scaleLinear().domain([0, 1]) },
-            y: { scale: scaleLinear().domain([0, 2]) },
+            scales: {
+              x: { scale: scaleLinear().domain([0, 1]) },
+              y: { scale: scaleLinear().domain([0, 2]) },
+            },
+
             tooltip,
             maxFocusDistance: 1000,
           }),
@@ -232,6 +249,454 @@ const bundle = await build({
           !interactionContainer.querySelector('.ts-chart-tooltip')?.hidden
         host.destroy()
 
+        const rows = [
+          { id: 'a', category: 'A', x: 1, y: 3, low: 2, high: 4 },
+          { id: 'b', category: 'B', x: 2, y: 7, low: 5, high: 8 },
+          { id: 'c', category: 'C', x: 3, y: 5, low: 4, high: 6 },
+        ]
+        const cartesianScales = () => ({
+          x: { scale: scaleLinear().domain([0, 4]), grid: true },
+          y: { scale: scaleLinear().domain([0, 10]), grid: true },
+        })
+        const mixedDefinitions = [
+          {
+            id: 'composed',
+            svgKey: 'bars',
+            definition: defineChart(() => ({
+              marks: [
+                areaY(rows, {
+                  id: 'area',
+                  x: 'category',
+                  y: 'y',
+                  renderer,
+                }),
+                barY(rows, {
+                  id: 'bars',
+                  x: 'category',
+                  y: 'y',
+                  key: 'id',
+                }),
+                lineY(rows, {
+                  id: 'line',
+                  x: 'category',
+                  y: 'high',
+                  renderer,
+                }),
+                dot(rows, {
+                  id: 'dots',
+                  x: 'category',
+                  y: 'y',
+                  key: 'id',
+                }),
+              ],
+              scales: {
+                x: { scale: scaleBand().domain(['A', 'B', 'C']) },
+                y: { scale: scaleLinear().domain([0, 10]), grid: true },
+              },
+            })),
+          },
+          {
+            id: 'error-bars',
+            svgKey: 'ticks',
+            definition: defineChart({
+              marks: [
+                link(rows, {
+                  id: 'intervals',
+                  x1: 'x',
+                  x2: 'x',
+                  y1: 'low',
+                  y2: 'high',
+                  renderer,
+                }),
+                tickY(rows, { id: 'ticks', x: 'x', y: 'low' }),
+                dot(rows, { id: 'estimates', x: 'x', y: 'y' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'network',
+            svgKey: 'nodes',
+            definition: defineChart({
+              marks: [
+                link(
+                  [
+                    { x1: 1, y1: 3, x2: 2, y2: 7 },
+                    { x1: 2, y1: 7, x2: 3, y2: 5 },
+                  ],
+                  {
+                    id: 'edges',
+                    x1: 'x1',
+                    y1: 'y1',
+                    x2: 'x2',
+                    y2: 'y2',
+                    renderer,
+                  },
+                ),
+                dot(rows, { id: 'nodes', x: 'x', y: 'y' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'ribbon',
+            svgKey: 'ribbon-points',
+            definition: defineChart({
+              marks: [
+                areaX(rows, {
+                  id: 'range',
+                  y: 'x',
+                  x1: 'low',
+                  x2: 'high',
+                  renderer,
+                }),
+                lineY(rows, { id: 'median', x: 'x', y: 'y' }),
+                dot(rows, { id: 'ribbon-points', x: 'x', y: 'y' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'heatmap',
+            svgKey: 'labels',
+            definition: defineChart({
+              marks: [
+                rect(rows, {
+                  id: 'cells',
+                  x1: (row) => row.x - 0.4,
+                  x2: (row) => row.x + 0.4,
+                  y1: (row) => row.y - 0.8,
+                  y2: (row) => row.y + 0.8,
+                  renderer,
+                }),
+                text(rows, { id: 'labels', x: 'x', y: 'y', text: 'id' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'vectors',
+            svgKey: 'vector-points',
+            definition: defineChart({
+              marks: [
+                vector(rows, {
+                  id: 'vectors',
+                  x: 'x',
+                  y: 'y',
+                  length: 18,
+                  rotate: 35,
+                  renderer,
+                }),
+                dot(rows, { id: 'vector-points', x: 'x', y: 'y' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'arrows',
+            svgKey: 'arrow-points',
+            definition: defineChart({
+              marks: [
+                arrow(rows, {
+                  id: 'arrows',
+                  x1: 'x',
+                  y1: 'low',
+                  x2: 'x',
+                  y2: 'high',
+                  renderer,
+                }),
+                dot(rows, { id: 'arrow-points', x: 'x', y: 'high' }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'hexagons',
+            svgKey: 'hex-labels',
+            definition: defineChart({
+              marks: [
+                hexagon(rows, {
+                  id: 'hexes',
+                  x: 'x',
+                  y: 'y',
+                  r: 10,
+                  renderer,
+                }),
+                text(rows, {
+                  id: 'hex-labels',
+                  x: 'x',
+                  y: 'y',
+                  text: 'id',
+                  dy: -14,
+                }),
+              ],
+              scales: cartesianScales(),
+            }),
+          },
+          {
+            id: 'facets',
+            svgKey: 'facet-dots',
+            definition: defineChart({
+              marks: [
+                facet(
+                  rows.map((row, index) => ({
+                    ...row,
+                    panel: index < 2 ? 'First' : 'Second',
+                  })),
+                  {
+                    id: 'panels',
+                    by: 'panel',
+                    axes: 'cell',
+                    chart: (data) => ({
+                      marks: [
+                        lineY(data, {
+                          id: 'facet-lines',
+                          x: 'category',
+                          y: 'y',
+                          renderer,
+                        }),
+                        dot(data, {
+                          id: 'facet-dots',
+                          x: 'category',
+                          y: 'y',
+                        }),
+                      ],
+                      scales: {
+                        x: {
+                          scale: scaleBand().domain(['A', 'B', 'C']),
+                        },
+                        y: { scale: scaleLinear().domain([0, 10]) },
+                      },
+                    }),
+                  },
+                ),
+              ],
+              scales: { x: null, y: null },
+              guides: false,
+            }),
+          },
+          {
+            id: 'polar',
+            svgKey: 'radial-dots',
+            definition: defineChart({
+              marks: [
+                polar({
+                  scales: {
+                    angle: {
+                      scale: scaleBand().domain(['A', 'B', 'C']),
+                    },
+                    radius: { scale: scaleLinear().domain([0, 10]) },
+                  },
+                  marks: [
+                    radialLine(rows, {
+                      id: 'radial-line',
+                      angle: 'category',
+                      radius: 'y',
+                      renderer,
+                    }),
+                    radialDot(rows, {
+                      id: 'radial-dots',
+                      angle: 'category',
+                      radius: 'y',
+                    }),
+                  ],
+                }),
+              ],
+              scales: { x: null, y: null },
+              guides: false,
+            }),
+          },
+        ]
+        const mixedRoot = document.querySelector('#mixed')
+        const mixedResults = []
+        let mixedExportSize = 0
+        for (const fixture of mixedDefinitions) {
+          const fixtureContainer = document.createElement('div')
+          fixtureContainer.style.cssText = 'width:360px;height:220px'
+          mixedRoot.append(fixtureContainer)
+          const focusedKeys = []
+          let renderContext
+          const options = {
+            definition: fixture.definition,
+            width: 360,
+            height: 220,
+            ariaLabel: fixture.id,
+            maxFocusDistance: 1_000,
+            onFocusChange: (point) => focusedKeys.push(point?.key ?? null),
+            onRender: (context) => {
+              renderContext = context
+            },
+          }
+          const fixtureHost = mountChart(fixtureContainer, options)
+          const layerRoot = fixtureContainer.querySelector('.ts-chart-layers')
+          layerRoot.focus()
+          layerRoot.dispatchEvent(
+            new KeyboardEvent('keydown', {
+              bubbles: true,
+              key: 'ArrowRight',
+            }),
+          )
+          const canvases = [
+            ...fixtureContainer.querySelectorAll(
+              '.ts-chart-canvas__scene',
+            ),
+          ]
+          const canvasInk = canvases.reduce((total, canvas) => {
+            const pixels = canvas
+              .getContext('2d')
+              .getImageData(0, 0, canvas.width, canvas.height).data
+            let ink = 0
+            for (let index = 3; index < pixels.length; index += 4) {
+              if (pixels[index] > 0) ink += 1
+            }
+            return total + ink
+          }, 0)
+          const originalRoot = layerRoot
+          if (fixture.id === 'composed') {
+            mixedExportSize = (
+              await renderChartImage(layerRoot, { scale: 1 })
+            ).size
+          }
+          fixtureHost.update({ ...options, width: 380 })
+          mixedResults.push({
+            id: fixture.id,
+            layers: fixtureContainer.querySelectorAll('.ts-chart-layer')
+              .length,
+            layerTypes: [
+              ...fixtureContainer.querySelectorAll('.ts-chart-layer'),
+            ].map((layer) =>
+              layer.querySelector('.ts-chart-canvas') ? 'canvas' : 'svg',
+            ),
+            canvases: canvases.length,
+            svgs: fixtureContainer.querySelectorAll('svg').length,
+            canvasInk,
+            svgMark:
+              fixtureContainer.querySelector(
+                '[data-ts-key*="' + fixture.svgKey + '"]',
+              ) !== null,
+            rootPreserved:
+              fixtureContainer.querySelector('.ts-chart-layers') ===
+              originalRoot,
+            focused: focusedKeys.length > 0,
+            callbackSurface:
+              renderContext?.surface.element === originalRoot &&
+              renderContext?.surface.layers?.length ===
+                fixtureContainer.querySelectorAll('.ts-chart-layer').length &&
+              renderContext?.svg instanceof SVGSVGElement,
+          })
+          fixtureHost.destroy()
+        }
+
+        const updateContainer = document.createElement('div')
+        updateContainer.style.cssText = 'width:360px;height:220px'
+        mixedRoot.append(updateContainer)
+        const updateDefinition = (values) => {
+          const data = values.map((value, index) => ({
+            id: String(index),
+            category: String.fromCharCode(65 + index),
+            value,
+          }))
+          return defineChart({
+            marks: [
+              areaY(data, {
+                id: 'updated-area',
+                x: 'category',
+                y: 'value',
+                renderer,
+              }),
+              dot(data, {
+                id: 'updated-dots',
+                x: 'category',
+                y: 'value',
+                key: 'id',
+              }),
+            ],
+            scales: {
+              x: { scale: scaleBand().domain(['A', 'B', 'C']) },
+              y: { scale: scaleLinear().domain([0, 10]), grid: true },
+            },
+            tooltip,
+            maxFocusDistance: 1_000,
+            svgAnimation: {
+              duration: 100,
+              respectReducedMotion: false,
+            },
+          })
+        }
+        const updateOptions = {
+          width: 360,
+          height: 220,
+          ariaLabel: 'Mixed renderer update',
+        }
+        const updateHost = mountChart(updateContainer, {
+          ...updateOptions,
+          definition: updateDefinition([2, 5, 7]),
+        })
+        const updateRoot = updateContainer.querySelector('.ts-chart-layers')
+        const canvasHash = () => {
+          const canvas = updateContainer.querySelector(
+            '.ts-chart-canvas__scene',
+          )
+          const pixels = canvas
+            .getContext('2d')
+            .getImageData(0, 0, canvas.width, canvas.height).data
+          let hash = 2166136261
+          for (const value of pixels) {
+            hash ^= value
+            hash = Math.imul(hash, 16777619)
+          }
+          return hash >>> 0
+        }
+        const dotSelector = '[data-ts-key="updated-dots"] circle'
+        const initialDot = updateContainer.querySelector(dotSelector)
+        const initialCy = Number(initialDot.getAttribute('cy'))
+        const initialCanvasHash = canvasHash()
+
+        updateHost.update({
+          ...updateOptions,
+          definition: updateDefinition([8, 3, 4]),
+        })
+        await new Promise((resolve) => setTimeout(resolve, 220))
+
+        const updatedDot = updateContainer.querySelector(dotSelector)
+        const updatedCx = Number(updatedDot.getAttribute('cx'))
+        const updatedCy = Number(updatedDot.getAttribute('cy'))
+        const updatedCanvasHash = canvasHash()
+        const rootBounds = updateRoot.getBoundingClientRect()
+        updateRoot.dispatchEvent(
+          new MouseEvent('pointermove', {
+            bubbles: true,
+            clientX: rootBounds.left + updatedCx,
+            clientY: rootBounds.top + updatedCy,
+          }),
+        )
+        const updatedPoint = updateHost
+          .getScene()
+          .points.find((point) => point.markId === 'updated-dots')
+        if (!updatedPoint) throw new Error('Expected updated SVG focus point')
+        updateHost.interaction.setControlledFocus(updatedPoint, {
+          source: 'pointer',
+        })
+        const focus = updateContainer.querySelector(
+          '[data-ts-focus-layer="over"]:not([data-ts-focus-guide-layer]) circle[visibility="visible"]',
+        )
+        const tooltipElement = updateContainer.querySelector(
+          '.ts-chart-tooltip',
+        )
+        const focusCx = Number(focus?.getAttribute('cx'))
+        const focusCy = Number(focus?.getAttribute('cy'))
+        const updateResult = {
+          rootPreserved:
+            updateContainer.querySelector('.ts-chart-layers') === updateRoot,
+          canvasChanged: initialCanvasHash !== updatedCanvasHash,
+          svgChanged: initialCy !== updatedCy,
+          focusAligned:
+            Math.abs(focusCx - updatedCx) < 0.01 &&
+            Math.abs(focusCy - updatedCy) < 0.01,
+          tooltipVisible: tooltipElement ? !tooltipElement.hidden : false,
+        }
+        updateHost.destroy()
+
         return {
           surface: surfaceResult,
           export: { type: exported.type, size: exported.size },
@@ -241,6 +706,9 @@ const bundle = await build({
             tooltipVisible,
             destroyed: interactionContainer.childElementCount === 0,
           },
+          mixed: mixedResults,
+          mixedExportSize,
+          update: updateResult,
         }
       }
     `,
@@ -259,7 +727,7 @@ try {
   })
   const page = await context.newPage()
   await page.setContent(
-    '<div id="surface" style="width:160px;height:90px"></div><div id="interaction" style="width:320px;height:180px"></div>',
+    '<div id="surface" style="width:160px;height:90px"></div><div id="interaction" style="width:320px;height:180px"></div><div id="mixed"></div>',
   )
   await page.addScriptTag({ content: bundle.outputFiles[0].text })
   const result = await page.evaluate(() => window.runCanvasRendererCheck())
@@ -282,6 +750,38 @@ try {
   assert.deepEqual(result.interaction.selected, ['b'])
   assert.equal(result.interaction.tooltipVisible, true)
   assert.equal(result.interaction.destroyed, true)
+  assert.equal(result.mixed.length, 10)
+  assert.ok(result.mixedExportSize > 100)
+  assert.equal(result.update.rootPreserved, true)
+  assert.equal(result.update.canvasChanged, true)
+  assert.equal(result.update.svgChanged, true)
+  assert.equal(result.update.focusAligned, true, JSON.stringify(result.update))
+  assert.equal(result.update.tooltipVisible, true)
+  for (const fixture of result.mixed) {
+    assert.ok(fixture.layers >= 3, fixture.id + ' omitted mixed layers')
+    assert.ok(fixture.canvases >= 1, fixture.id + ' omitted Canvas')
+    assert.ok(fixture.svgs >= 2, fixture.id + ' omitted SVG framing layers')
+    assert.ok(fixture.canvasInk > 20, fixture.id + ' produced no Canvas ink')
+    assert.equal(fixture.svgMark, true, fixture.id + ' omitted its SVG mark')
+    assert.equal(
+      fixture.rootPreserved,
+      true,
+      fixture.id + ' replaced its root on update',
+    )
+    assert.equal(fixture.focused, true, fixture.id + ' lost keyboard focus')
+    assert.equal(
+      fixture.callbackSurface,
+      true,
+      fixture.id + ' exposed an invalid render callback surface',
+    )
+  }
+  assert.deepEqual(result.mixed[0].layerTypes, [
+    'svg',
+    'canvas',
+    'svg',
+    'canvas',
+    'svg',
+  ])
   await context.close()
   console.log('Canvas renderer browser check passed.')
 } catch (error) {

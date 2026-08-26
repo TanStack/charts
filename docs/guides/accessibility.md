@@ -276,8 +276,11 @@ export function createDefinition(
         selection,
       ),
     ],
-    x: { scale: scaleLinear, axis: { label: 'Setup time (minutes)' } },
-    y: { scale: scaleLinear, grid: true, axis: { label: 'Satisfaction' } },
+    scales: {
+      x: { scale: scaleLinear, axis: { label: 'Setup time (minutes)' } },
+      y: { scale: scaleLinear, grid: true, axis: { label: 'Satisfaction' } },
+    },
+
     selection,
   })
 }

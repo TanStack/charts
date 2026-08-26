@@ -65,24 +65,27 @@ export function playbackDefinition(
         strokeWidth: 1,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      axis: {
-        ticks: {
-          format: (value) =>
-            value.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              timeZone: 'UTC',
-            }),
+    scales: {
+      x: {
+        scale: scaleUtc,
+        axis: {
+          ticks: {
+            format: (value) =>
+              value.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              }),
+          },
         },
       },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
+
     controls: [
       handleX({
         id: 'playback-frame',

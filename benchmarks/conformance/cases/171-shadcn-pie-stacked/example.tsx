@@ -31,8 +31,11 @@ export function createExampleChart() {
       marks: [
         polar({
           radiusRatio: 1,
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+
           marks: [
             radialArc(desktopArcs, {
               id: 'desktop-slices',
@@ -54,6 +57,10 @@ export function createExampleChart() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: months, range: shadcnColors },
       margin: 0,
     },

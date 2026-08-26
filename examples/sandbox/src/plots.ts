@@ -79,24 +79,27 @@ export const createIndustryChart = (input: IndustryChartInput) =>
           curve: smooth,
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: {
-          ticks: {
-            count: width < 680 ? 4 : 7,
-            format: input.compactTime ? formatMonth : formatYear,
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: {
+            ticks: {
+              count: width < 680 ? 4 : 7,
+              format: input.compactTime ? formatMonth : formatYear,
+            },
+          },
+        },
+        y: {
+          scale: scaleLinear,
+          nice: 4,
+          grid: true,
+          axis: {
+            ticks: { count: 4, format: compactNumber },
+            label: 'Unemployed (thousands)',
           },
         },
       },
-      y: {
-        scale: scaleLinear,
-        nice: 4,
-        grid: true,
-        axis: {
-          ticks: { count: 4, format: compactNumber },
-          label: 'Unemployed (thousands)',
-        },
-      },
+
       color: {
         domain: industryNames,
         range: industryNames.map((industry) => industryColors[industry]),
@@ -154,8 +157,11 @@ export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
         r: 3.25,
       }),
     ],
-    x: { scale: scaleUtc },
-    y: { scale: scaleLinear },
+    scales: {
+      x: { scale: scaleUtc },
+      y: { scale: scaleLinear },
+    },
+
     guides: false,
     gradients: [
       {
@@ -178,6 +184,10 @@ export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
 export const createAgreementChart = (input: { value: number }) =>
   defineChart(() => ({
     marks: [radialAgreementMark(input.value)],
+    scales: {
+      x: null,
+      y: null,
+    },
     margin: 4,
     theme: chartTheme,
   }))
@@ -194,24 +204,27 @@ export const createRatingsHeatmap = (input: { rows: readonly SimpsonsRow[] }) =>
         radius: 3,
       }),
     ],
-    x: {
-      scale: () => scaleBand<number>().paddingInner(0.03),
-      axis: {
-        ticks: {
-          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+    scales: {
+      x: {
+        scale: () => scaleBand<number>().paddingInner(0.03),
+        axis: {
+          ticks: {
+            format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+          },
+          label: 'Episode',
         },
-        label: 'Episode',
+      },
+      y: {
+        scale: () => scaleBand<number>().paddingInner(0.03),
+        axis: {
+          ticks: {
+            format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+          },
+          label: 'Season',
+        },
       },
     },
-    y: {
-      scale: () => scaleBand<number>().paddingInner(0.03),
-      axis: {
-        ticks: {
-          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
-        },
-        label: 'Season',
-      },
-    },
+
     color: {
       scale: scaleSequential<string>,
       range: ['#1b181e', '#ff5b56'],
@@ -253,20 +266,23 @@ export const createCarEconomyChart = (input: {
           r: 3,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: {
-          ticks: { count: 3, format: (value: number) => `${value} mpg` },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: {
+            ticks: { count: 3, format: (value: number) => `${value} mpg` },
+          },
+        },
+        y: {
+          scale: () => scaleBand<number>().paddingInner(0.2),
+          axis: {
+            ticks: { format: (value: number) => `${value} cyl` },
+          },
         },
       },
-      y: {
-        scale: () => scaleBand<number>().paddingInner(0.2),
-        axis: {
-          ticks: { format: (value: number) => `${value} cyl` },
-        },
-      },
+
       color: {
         scale: scaleSequential<string>,
         range: ['#7f76e8', '#45d49c'],
@@ -332,18 +348,21 @@ export const createPenguinChart = (input: PenguinChartInput) =>
             ]
           : []),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: { ticks: { count: 3 }, label: 'Bill length (mm)' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: { ticks: { count: 3 }, label: 'Bill length (mm)' },
+        },
+        y: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: { ticks: { count: 3 }, label: 'Bill depth (mm)' },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: { ticks: { count: 3 }, label: 'Bill depth (mm)' },
-      },
+
       color: {
         range: ['#ff625a', '#8579ff', '#45d49c'],
       },
@@ -368,14 +387,17 @@ export const createSurveyStackChart = (input: {
         radius: 3,
       }),
     ],
-    x: {
-      scale: () => scaleBand<string>().paddingInner(0.08),
+    scales: {
+      x: {
+        scale: () => scaleBand<string>().paddingInner(0.08),
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 3 }, label: 'Responses' },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 3 }, label: 'Responses' },
-    },
+
     color: {
       domain: surveyResponses,
       range: surveyResponses.map((response) => responseColors[response]),
@@ -398,14 +420,17 @@ export const createSurveyWaffleChart = (input: {
         radius: 2,
       }),
     ],
-    x: {
-      scale: scaleBand<number>().domain(
-        Array.from({ length: 21 }, (_, index) => index),
-      ),
+    scales: {
+      x: {
+        scale: scaleBand<number>().domain(
+          Array.from({ length: 21 }, (_, index) => index),
+        ),
+      },
+      y: {
+        scale: scaleBand<number>().domain([4, 3, 2, 1, 0]),
+      },
     },
-    y: {
-      scale: scaleBand<number>().domain([4, 3, 2, 1, 0]),
-    },
+
     guides: false,
     color: {
       domain: surveyResponses,

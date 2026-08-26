@@ -648,13 +648,15 @@ async function validateComparisonEvidence(
       bundles.map((bundle) => bundle.incrementalGzipBytes),
     )
     const expectedIncremental =
-      fullRange === incrementalRange ? '—' : incrementalRange
+      fullRange === incrementalRange ? null : incrementalRange
     if (
       !rows.some(
         (row) =>
           row[0] === library.label &&
           row[1] === fullRange &&
-          row[2] === expectedIncremental,
+          (expectedIncremental === null
+            ? row[2] === '\u2014' || row[2] === 'Not applicable'
+            : row[2] === expectedIncremental),
       )
     ) {
       failures.push(

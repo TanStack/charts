@@ -50,20 +50,23 @@ export const createExampleChart = (input: ChartOptions) => {
           fontWeight: 600,
         }),
       ],
-      x: {
-        scale: scaleBand<number>()
-          .domain(episodeDomain)
-          .paddingInner(0.04)
-          .paddingOuter(0.02),
-        axis: { label: 'Episode' },
+      scales: {
+        x: {
+          scale: scaleBand<number>()
+            .domain(episodeDomain)
+            .paddingInner(0.04)
+            .paddingOuter(0.02),
+          axis: { label: 'Episode' },
+        },
+        y: {
+          scale: scaleBand<number>()
+            .domain(seasonDomain)
+            .paddingInner(0.04)
+            .paddingOuter(0.02),
+          axis: { label: 'Season' },
+        },
       },
-      y: {
-        scale: scaleBand<number>()
-          .domain(seasonDomain)
-          .paddingInner(0.04)
-          .paddingOuter(0.02),
-        axis: { label: 'Season' },
-      },
+
       color: {
         scale: () => scaleLinear<string>().range(ratingColors),
         legend: colorGradientLegend({ label: 'IMDb rating', steps: 6 }),

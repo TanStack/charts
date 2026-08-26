@@ -26,8 +26,10 @@ const definition = defineChart({
 			key: 'id',
 		}),
 	],
-	x: { scale: scaleLinear().domain([1, 2]) },
-	y: { scale: scaleLinear().domain([8, 12]) },
+	scales: {
+		x: { scale: scaleLinear().domain([1, 2]) },
+		y: { scale: scaleLinear().domain([8, 12]) },
+	},
 });
 const broadFocusDefinition = defineChart(definition, {
 	maxFocusDistance: 1_000,
@@ -44,8 +46,10 @@ describe('Octane Chart adapter client', () => {
 						key: 'id',
 					}),
 				],
-				x: { scale: scaleLinear().domain([1, 2]) },
-				y: { scale: scaleLinear().domain([8, 12]) },
+				scales: {
+					x: { scale: scaleLinear().domain([1, 2]) },
+					y: { scale: scaleLinear().domain([8, 12]) },
+				},
 			}),
 		);
 		const target = document.createElement('div');

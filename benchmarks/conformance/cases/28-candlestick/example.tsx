@@ -49,8 +49,10 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 5,
         }),
       ],
-      x: { scale: scaleUtc },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Price' } },
+      scales: {
+        x: { scale: scaleUtc },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Price' } },
+      },
     },
     {
       keyboard: true,

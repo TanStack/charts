@@ -22,6 +22,8 @@ import type {
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -30,7 +32,8 @@ import type {
   VisualChannel,
 } from './types'
 
-export interface VoronoiOptions<TDatum> extends ChartMarkMotionOptions<never> {
+export interface VoronoiOptions<TDatum>
+  extends ChartMarkMotionOptions<never>, CartesianScaleBindings {
   id?: string
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
@@ -79,90 +82,97 @@ export function voronoi<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<
+): CartesianChartMark<
   never,
   never,
   never,
   VoronoiXOutput<TDatum, TOptions>,
-  VoronoiYOutput<TDatum, TOptions>
+  VoronoiYOutput<TDatum, TOptions>,
+  TOptions
 >
 export function voronoi<TDatum>(
   source: Iterable<TDatum>,
   options: VoronoiOptions<NoInfer<TDatum>>,
-): ChartMark<never, never, never> {
+): CartesianChartMark<never, never, never, any, any, VoronoiOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
   const xValues = channelValues(data, options.x, () => undefined)
   const yValues = channelValues(data, options.y, () => undefined)
   const zValues = channelValues(data, options.z, () => null)
   const colorValues = channelValues(data, options.color, () => null)
   const completeRows = materializeLayoutXYRows(data, xValues, yValues)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark<never, never, never>(({ markIndex }) => {
-    const id = options.id ?? `voronoi-${markIndex}`
-    const groups = data.map((_datum, index) => {
-      const group = zValues[index]
-      return isChartKey(group) ? group : null
-    })
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      markId: id,
-      warningIdentity: options,
-    })
-    const sourceRows: readonly PreparedVoronoiRow<TDatum>[] = completeRows.map(
-      (row) => ({
-        ...row,
-        group: groups[row.sourceIndex] ?? null,
-        key: keys[row.sourceIndex] ?? row.sourceIndex,
-      }),
-    )
+  return createMark<never, never, never>(
+    ({ markIndex }) => {
+      const id = options.id ?? `voronoi-${markIndex}`
+      const groups = data.map((_datum, index) => {
+        const group = zValues[index]
+        return isChartKey(group) ? group : null
+      })
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        markId: id,
+        warningIdentity: options,
+      })
+      const sourceRows: readonly PreparedVoronoiRow<TDatum>[] =
+        completeRows.map((row) => ({
+          ...row,
+          group: groups[row.sourceIndex] ?? null,
+          key: keys[row.sourceIndex] ?? row.sourceIndex,
+        }))
 
-    return {
-      id,
-      channels: {
-        x: { scale: 'x', values: completeRows.map((row) => row.xValue) },
-        y: { scale: 'y', values: completeRows.map((row) => row.yValue) },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
+      return {
+        id,
+        channels: {
+          x: { scale: xScale, values: completeRows.map((row) => row.xValue) },
+          y: { scale: yScale, values: completeRows.map((row) => row.yValue) },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
+          },
         },
-      },
-      render: ({ chart, scales, color: resolveColor }) => {
-        const xScale = scales.x
-        const yScale = scales.y
-        if (!xScale || !yScale) {
-          throw new TypeError('voronoi: x and y scales are required')
-        }
-        const rows = projectLayoutY(
-          projectLayoutX(sourceRows, xValues, xScale),
-          yValues,
-          yScale,
-        )
-        const nodes = groupRowsByChartKey(rows).flatMap(({ rows: groupRows }) =>
-          createCellNodes(
-            id,
-            data,
-            canonicalDelaunayPoints(groupRows),
-            chart,
-            colorValues,
-            resolveColor,
-            options,
-          ),
-        )
+        render: ({ chart, scales, color: resolveColor }) => {
+          const resolvedXScale = scales[xScale]
+          const resolvedYScale = scales[yScale]
+          if (!resolvedXScale || !resolvedYScale) {
+            throw new TypeError('voronoi: x and y scales are required')
+          }
+          const rows = projectLayoutY(
+            projectLayoutX(sourceRows, xValues, resolvedXScale),
+            yValues,
+            resolvedYScale,
+          )
+          const nodes = groupRowsByChartKey(rows).flatMap(
+            ({ rows: groupRows }) =>
+              createCellNodes(
+                id,
+                data,
+                canonicalDelaunayPoints(groupRows),
+                chart,
+                colorValues,
+                resolveColor,
+                options,
+              ),
+          )
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__voronoi',
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__voronoi',
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function createCellNodes<TDatum>(

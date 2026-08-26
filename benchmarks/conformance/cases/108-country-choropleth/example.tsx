@@ -58,6 +58,10 @@ export const createExampleChart = (input: ChartOptions) =>
           strokeWidth: 0.75,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         scale: scaleQuantize<string>,
         range: colorRanges[input.revision % 2] ?? colorRanges[0],

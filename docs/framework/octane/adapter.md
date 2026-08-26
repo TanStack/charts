@@ -30,7 +30,9 @@ import { Chart as RendererChart } from '@tanstack/charts/octane/core'
 ```
 
 The default `Chart` remains SVG-based. `CanvasChart` selects the optional
-built-in renderer; `RendererChart` requires a `renderer` prop.
+built-in renderer; `RendererChart` requires a `renderer` prop. A definition
+can still import `canvasChartRenderer` and assign it to selected marks, which
+makes the default component render an ordered mixed surface.
 
 The package export map supplies a browser build for browser bundlers and a
 separate Node build for the `node` condition.
@@ -64,6 +66,11 @@ layers. It paints no server pixels. The browser adopts the elements, paints
 after mount, and attaches the same focus, keyboard, tooltip, and selection
 host.
 
+A default chart with selected Canvas marks emits one mixed root containing
+ordered SVG markup and Canvas shells. SVG marks are visible in the server
+response, Canvas pixels appear after mount, and the browser adopts every child
+surface.
+
 Keep data, definitions, scale domains, custom renderers, and dimensions
 deterministic between server and browser. The adapter generates a sanitized
 resource prefix from Octane's `useId()` when `idPrefix` is absent.
@@ -82,7 +89,7 @@ The rendered structure is:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart | div.ts-chart-canvas
+    svg.ts-chart | div.ts-chart-canvas | div.ts-chart-layers
 ```
 
 The outer host uses `position: relative`.

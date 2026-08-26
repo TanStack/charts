@@ -54,16 +54,19 @@ const monthlyRevenueChart = defineChart({
       stroke: '#2563eb',
     }),
   ],
-  x: {
-    scale: () => scalePoint<string>().padding(0.2),
-    axis: { label: 'Month' },
+  scales: {
+    x: {
+      scale: () => scalePoint<string>().padding(0.2),
+      axis: { label: 'Month' },
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Revenue (USD)' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Revenue (USD)' },
-  },
+
   tooltip,
 })
 ```

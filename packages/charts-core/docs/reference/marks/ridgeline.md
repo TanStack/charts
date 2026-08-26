@@ -52,10 +52,12 @@ defineChart({
       color: 'season',
     }),
   ],
-  x: { scale: scaleLinear().domain([4, 10]) },
-  y: {
-    scale: scalePoint<number>().domain(seasons).padding(0.78),
-    reverse: true,
+  scales: {
+    x: { scale: scaleLinear().domain([4, 10]) },
+    y: {
+      scale: scalePoint<number>().domain(seasons).padding(0.78),
+      reverse: true,
+    },
   },
 })
 ```

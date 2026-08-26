@@ -11,8 +11,10 @@ const rows = [
 const definition = defineChart({
   marks: [dot(rows, { x: 'x', y: 'y', key: 'id', r: 4 })],
   guides: false,
-  x: { scale: scaleLinear().domain([0, 4]) },
-  y: { scale: scaleLinear().domain([0, 5]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 4]) },
+    y: { scale: scaleLinear().domain([0, 5]) },
+  },
 })
 
 export function render(width: number, height: number) {

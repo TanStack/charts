@@ -20,8 +20,11 @@ export function createExampleChart() {
   return defineChart(
     {
       marks,
-      x: shadcnXAxis(),
-      y: { scale: scaleLinear, grid: true, axis: false },
+      scales: {
+        x: shadcnXAxis(),
+        y: { scale: scaleLinear, grid: true, axis: false },
+      },
+
       margin: { top: 5, right: 5, bottom: 35, left: 5 },
       theme: shadcnTheme(),
     },

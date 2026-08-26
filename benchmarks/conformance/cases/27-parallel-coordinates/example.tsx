@@ -61,14 +61,17 @@ export const createExampleChart = () =>
           r: 2.75,
         }),
       ],
-      x: {
-        scale: scaleBand<string>().domain(decathlonEvents).padding(0.1),
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(decathlonEvents).padding(0.1),
+        },
+        y: {
+          scale: scaleLinear().domain([0, 100]),
+          grid: true,
+          axis: { label: 'Relative performance within sample' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        grid: true,
-        axis: { label: 'Relative performance within sample' },
-      },
+
       color: {
         range: colors,
         legend: colorLegend({ label: 'Country' }),

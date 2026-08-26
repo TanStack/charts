@@ -3,6 +3,7 @@ import type {
   Channel,
   ChannelAccessor,
   ChartKey,
+  ChartMarkRenderer,
   ChartValue,
   InitializedMark,
   MarkInitialization,
@@ -40,21 +41,83 @@ export function createMark<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 >(
   initialize: (
     context: MarkInitializeContext,
   ) => MarkInitialization<TDatum, TXValue, TYValue>,
   motion?: ChartMotionDefinition<TDatum>,
-): ChartMark<TDatum, TXValue, TYValue> {
+  renderer?: ChartMarkRenderer,
+): ChartMark<TDatum, TXValue, TYValue, TXValue, TYValue, TXScaleId, TYScaleId> {
   const normalizedInitialize = (context: MarkInitializeContext) => {
     const initialized = normalizeMarkInitialization(initialize(context))
-    return motion === undefined || initialized.motion !== undefined
-      ? initialized
-      : { ...initialized, motion }
+    const withMotion =
+      motion === undefined || initialized.motion !== undefined
+        ? initialized
+        : { ...initialized, motion }
+    return renderer === undefined
+      ? withMotion
+      : applyMarkRenderer(withMotion, renderer)
   }
-  return motion === undefined
-    ? { initialize: normalizedInitialize }
-    : { initialize: normalizedInitialize, motion }
+  return {
+    initialize: normalizedInitialize,
+    ...(motion === undefined ? {} : { motion }),
+    ...(renderer === undefined ? {} : { renderer }),
+  }
+}
+
+export function applyMarkRenderer<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  initialized: InitializedMark<TDatum, TXValue, TYValue>,
+  renderer: ChartMarkRenderer,
+): InitializedMark<TDatum, TXValue, TYValue> {
+  const render = initialized.render
+  const resolveLayout = initialized.resolveLayout
+  return {
+    ...initialized,
+    render: (context) => applyMarkRendererToScene(render(context), renderer),
+    ...(resolveLayout
+      ? {
+          resolveLayout(context) {
+            const resolved = resolveLayout(context)
+            return {
+              ...resolved,
+              render: (renderContext) =>
+                applyMarkRendererToScene(
+                  resolved.render(renderContext),
+                  renderer,
+                ),
+            }
+          },
+        }
+      : {}),
+  }
+}
+
+export function applyMarkRendererToScene<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: import('./types').MarkScene<TDatum, TXValue, TYValue>,
+  renderer: ChartMarkRenderer,
+): import('./types').MarkScene<TDatum, TXValue, TYValue> {
+  return {
+    ...scene,
+    nodes: scene.nodes.map((node) => ({ ...node, renderer })),
+    ...(scene.focusGuides
+      ? {
+          focusGuides: scene.focusGuides.map((guide) => ({
+            ...guide,
+            renderer,
+          })),
+        }
+      : {}),
+  }
 }
 
 export function normalizeMarkInitialization<

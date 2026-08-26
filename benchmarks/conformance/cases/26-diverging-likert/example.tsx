@@ -40,17 +40,21 @@ export const createExampleChart = () =>
         }),
         ruleX([0], { stroke: '#64748b' }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: {
-          ticks: { format: (value) => `${Math.abs(value)}` },
-          label: '← more disagree · Number of responses · more agree →',
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: {
+            ticks: { format: (value) => `${Math.abs(value)}` },
+            label: '← more disagree · Number of responses · more agree →',
+          },
+        },
+        y: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.14).paddingOuter(0.08),
         },
       },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.08),
-      },
+
       color: {
         domain: likertResponses,
         range: colors,

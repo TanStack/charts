@@ -186,15 +186,18 @@ export function freeCursorDefinition(
         strokeWidth: 1,
       }),
     ],
-    x: {
-      scale: scaleLinear().domain(freeCursorXDomain),
-      axis: { label: 'Horsepower' },
+    scales: {
+      x: {
+        scale: scaleLinear().domain(freeCursorXDomain),
+        axis: { label: 'Horsepower' },
+      },
+      y: {
+        scale: scaleLinear().domain(freeCursorYDomain),
+        grid: true,
+        axis: { ticks: { count: 7 }, label: 'Fuel economy (mpg)' },
+      },
     },
-    y: {
-      scale: scaleLinear().domain(freeCursorYDomain),
-      grid: true,
-      axis: { ticks: { count: 7 }, label: 'Fuel economy (mpg)' },
-    },
+
     controls: [
       continuousCursor({
         position: controlledSignal<

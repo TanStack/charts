@@ -91,6 +91,10 @@ export function activeDonutDefinition(
               motion: { transition: donutSpring },
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
         decorative(
           polar({
@@ -121,14 +125,21 @@ export function activeDonutDefinition(
                 },
               }),
             ],
+            scales: {
+              angle: null,
+              radius: null,
+            },
           }),
         ),
         decorative(
           polar({
             id: 'donut-center',
             radiusRatio: 0.8,
-            angle: { scale: scaleLinear().domain([0, tau]) },
-            radius: { scale: scaleLinear().domain([0, 1]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, tau]) },
+              radius: { scale: scaleLinear().domain([0, 1]) },
+            },
+
             marks: [
               radialText(centerRows.slice(0, 1), {
                 id: 'donut-center-value',
@@ -158,6 +169,10 @@ export function activeDonutDefinition(
           }),
         ),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         domain: rows.map((row) => row.id),
         range: [

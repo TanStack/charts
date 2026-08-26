@@ -76,10 +76,13 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 3.5,
         }),
       ],
-      x: {
-        scale: scalePoint<string>().domain(violinSpecies).padding(0.5),
+      scales: {
+        x: {
+          scale: scalePoint<string>().domain(violinSpecies).padding(0.5),
+        },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
       },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
+
       color: {
         domain: violinSpecies,
         range: colors,

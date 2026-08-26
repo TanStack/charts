@@ -23,6 +23,10 @@ export const createExampleChart = (input: ChartOptions) =>
           strokeWidth: 1,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: 10,
     },
     {

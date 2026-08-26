@@ -11,6 +11,8 @@ import { valueKey } from './scales'
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -21,7 +23,8 @@ import type {
   SceneNode,
 } from './types'
 
-export interface RectOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface RectOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   x1?: Channel<TDatum, ChartValue | null | undefined>
@@ -87,169 +90,188 @@ export function rect<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<
+): CartesianChartMark<
   TDatum,
   RectPointXOutput<TDatum, TOptions>,
   RectPointYOutput<TDatum, TOptions>,
   RectXOutput<TDatum, TOptions>,
-  RectYOutput<TDatum, TOptions>
+  RectYOutput<TDatum, TOptions>,
+  TOptions
 >
 export function rect<TDatum>(
   source: Iterable<TDatum>,
   options: RectOptions<NoInfer<TDatum>>,
-): ChartMark<TDatum> {
+): CartesianChartMark<TDatum, any, any, any, any, RectOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `rect-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
-    const x1Values = channelValues(data, options.x1, (_datum, { index }) =>
-      options.x === undefined ? index : xValues[index],
-    )
-    const x2Values = channelValues(
-      data,
-      options.x2,
-      (_datum, { index }) => xValues[index],
-    )
-    const yValues = channelValues(data, options.y, (datum) =>
-      typeof datum === 'number' ? datum : undefined,
-    )
-    const y1Values = channelValues(
-      data,
-      options.y1,
-      (_datum, { index }) => yValues[index],
-    )
-    const y2Values = channelValues(
-      data,
-      options.y2,
-      (_datum, { index }) => yValues[index],
-    )
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
-      candidates: [compositeKeyValues(x1Values, x2Values, y1Values, y2Values)],
-      markId: id,
-      warningIdentity: options,
-    })
+  return createMark(
+    ({ markIndex }) => {
+      const id = options.id ?? `rect-${markIndex}`
+      const xValues = channelValues(
+        data,
+        options.x,
+        (_datum, { index }) => index,
+      )
+      const x1Values = channelValues(data, options.x1, (_datum, { index }) =>
+        options.x === undefined ? index : xValues[index],
+      )
+      const x2Values = channelValues(
+        data,
+        options.x2,
+        (_datum, { index }) => xValues[index],
+      )
+      const yValues = channelValues(data, options.y, (datum) =>
+        typeof datum === 'number' ? datum : undefined,
+      )
+      const y1Values = channelValues(
+        data,
+        options.y1,
+        (_datum, { index }) => yValues[index],
+      )
+      const y2Values = channelValues(
+        data,
+        options.y2,
+        (_datum, { index }) => yValues[index],
+      )
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: zValues,
+        candidates: [
+          compositeKeyValues(x1Values, x2Values, y1Values, y2Values),
+        ],
+        markId: id,
+        warningIdentity: options,
+      })
 
-    return {
-      id,
-      states: markStates(data, options.states),
-      channels: {
-        x: {
-          scale: 'x',
-          values: [...x1Values, ...x2Values].filter(isChartValue),
+      return {
+        id,
+        states: markStates(data, options.states),
+        channels: {
+          x: {
+            scale: xScale,
+            values: [...x1Values, ...x2Values].filter(isChartValue),
+          },
+          y: {
+            scale: yScale,
+            values: [...y1Values, ...y2Values].filter(isChartValue),
+          },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
+          },
         },
-        y: {
-          scale: 'y',
-          values: [...y1Values, ...y2Values].filter(isChartValue),
-        },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, color: resolveColor }) => {
-        const nodes: SceneNode[] = []
-        const inset = Math.max(0, options.inset ?? 0.75)
+        render: ({ scales, color: resolveColor }) => {
+          const nodes: SceneNode[] = []
+          const inset = Math.max(0, options.inset ?? 0.75)
 
-        data.forEach((datum, datumIndex) => {
-          const xValue = xValues[datumIndex]
-          const x1Value = x1Values[datumIndex]
-          const x2Value = x2Values[datumIndex]
-          const yValue = yValues[datumIndex]
-          const y1Value = y1Values[datumIndex]
-          const y2Value = y2Values[datumIndex]
-          if (
-            !isChartValue(x1Value) ||
-            !isChartValue(x2Value) ||
-            !isChartValue(y1Value) ||
-            !isChartValue(y2Value)
-          )
-            return
+          data.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex]
+            const x1Value = x1Values[datumIndex]
+            const x2Value = x2Values[datumIndex]
+            const yValue = yValues[datumIndex]
+            const y1Value = y1Values[datumIndex]
+            const y2Value = y2Values[datumIndex]
+            if (
+              !isChartValue(x1Value) ||
+              !isChartValue(x2Value) ||
+              !isChartValue(y1Value) ||
+              !isChartValue(y2Value)
+            )
+              return
 
-          const x1 = scales.x.map(x1Value)
-          const x2 = scales.x.map(x2Value)
-          const y1 = scales.y.map(y1Value)
-          const y2 = scales.y.map(y2Value)
-          const categoricalWidth =
-            valueKey(x1Value) === valueKey(x2Value) ? scales.x.bandwidth : 0
-          const categoricalHeight =
-            valueKey(y1Value) === valueKey(y2Value) ? scales.y.bandwidth : 0
-          const left =
-            categoricalWidth > 0 ? x1 - categoricalWidth / 2 : Math.min(x1, x2)
-          const top =
-            categoricalHeight > 0
-              ? y1 - categoricalHeight / 2
-              : Math.min(y1, y2)
-          const width = categoricalWidth || Math.max(0, Math.abs(x2 - x1))
-          const height = categoricalHeight || Math.max(0, Math.abs(y2 - y1))
-          const group = zValues[datumIndex] ?? null
-          const color =
-            options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const paintedX = left + inset
-          const paintedY = top + inset
-          const paintedWidth = Math.max(0, width - inset * 2)
-          const paintedHeight = Math.max(0, height - inset * 2)
-          const pointXValue = isChartValue(xValue) ? xValue : x2Value
-          const pointYValue = isChartValue(yValue) ? yValue : y2Value
-          const point: ChartPoint<TDatum> = {
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: pointXValue,
-            yValue: pointYValue,
-            x1Value,
-            x2Value,
-            y1Value,
-            y2Value,
-            xInterval: 'range',
-            yInterval: 'range',
-            x: left + width / 2,
-            y: top + height / 2,
-            color,
-          }
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: paintedX,
-            y: paintedY,
-            width: paintedWidth,
-            height: paintedHeight,
-            radius: options.radius,
-            inset,
-            interaction: { point },
-            style: {
-              fill: color,
-              fillOpacity: options.fillOpacity,
-              stroke: options.stroke,
-              strokeWidth: options.strokeWidth,
-            },
+            const x1 = scales[xScale]!.map(x1Value)
+            const x2 = scales[xScale]!.map(x2Value)
+            const y1 = scales[yScale]!.map(y1Value)
+            const y2 = scales[yScale]!.map(y2Value)
+            const categoricalWidth =
+              valueKey(x1Value) === valueKey(x2Value)
+                ? scales[xScale]!.bandwidth
+                : 0
+            const categoricalHeight =
+              valueKey(y1Value) === valueKey(y2Value)
+                ? scales[yScale]!.bandwidth
+                : 0
+            const left =
+              categoricalWidth > 0
+                ? x1 - categoricalWidth / 2
+                : Math.min(x1, x2)
+            const top =
+              categoricalHeight > 0
+                ? y1 - categoricalHeight / 2
+                : Math.min(y1, y2)
+            const width = categoricalWidth || Math.max(0, Math.abs(x2 - x1))
+            const height = categoricalHeight || Math.max(0, Math.abs(y2 - y1))
+            const group = zValues[datumIndex] ?? null
+            const color =
+              options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const paintedX = left + inset
+            const paintedY = top + inset
+            const paintedWidth = Math.max(0, width - inset * 2)
+            const paintedHeight = Math.max(0, height - inset * 2)
+            const pointXValue = isChartValue(xValue) ? xValue : x2Value
+            const pointYValue = isChartValue(yValue) ? yValue : y2Value
+            const point: ChartPoint<TDatum> = {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue: pointXValue,
+              yValue: pointYValue,
+              x1Value,
+              x2Value,
+              y1Value,
+              y2Value,
+              xInterval: 'range',
+              yInterval: 'range',
+              x: left + width / 2,
+              y: top + height / 2,
+              color,
+            }
+            nodes.push({
+              kind: 'rect',
+              key,
+              x: paintedX,
+              y: paintedY,
+              width: paintedWidth,
+              height: paintedHeight,
+              radius: options.radius,
+              inset,
+              interaction: { point },
+              style: {
+                fill: color,
+                fillOpacity: options.fillOpacity,
+                stroke: options.stroke,
+                strokeWidth: options.strokeWidth,
+              },
+            })
           })
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__rect',
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__rect',
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export function cell<
@@ -258,16 +280,17 @@ export function cell<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<
+): CartesianChartMark<
   TDatum,
   RectPointXOutput<TDatum, TOptions>,
   RectPointYOutput<TDatum, TOptions>,
   RectXOutput<TDatum, TOptions>,
-  RectYOutput<TDatum, TOptions>
+  RectYOutput<TDatum, TOptions>,
+  TOptions
 >
 export function cell<TDatum>(
   source: Iterable<TDatum>,
   options: CellOptions<NoInfer<TDatum>>,
-): ChartMark<TDatum> {
+): CartesianChartMark<TDatum, any, any, any, any, CellOptions<TDatum>> {
   return rect(source, options)
 }

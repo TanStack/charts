@@ -44,9 +44,10 @@ browser definitions, formatters, and dimensions deterministic.
 ## Presentation and rendering
 
 `class` and `style: JSX.CSSProperties` apply to the outer host. `className`
-applies to the rendered SVG surface. Custom outer styles are spread after
-adapter sizing. The package exposes the SVG component only; use `renderSvg` to
-replace SVG serialization without replacing the shared host.
+applies to the rendered chart surface. Custom outer styles are spread after
+adapter sizing. The component starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodyRenderContext`, `ChartDefinition`, and `ChartPoint`.

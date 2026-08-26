@@ -131,35 +131,38 @@ export function createExampleChart(
           motion: { transition: themedAreaSpring },
         }),
       ],
-      x: {
-        scale: scaleUtc().domain([first.date, last.date]),
-        axis: {
-          line: false,
-          ticks: {
-            values: dateTicks,
-            size: 0,
-            padding: preview ? 5 : 8,
-            format: formatThemedAreaTick,
+      scales: {
+        x: {
+          scale: scaleUtc().domain([first.date, last.date]),
+          axis: {
+            line: false,
+            ticks: {
+              values: dateTicks,
+              size: 0,
+              padding: preview ? 5 : 8,
+              format: formatThemedAreaTick,
+            },
+            tickLabels: {
+              fontSize: preview ? 8 : 10,
+              opacity: 0.62,
+              thin: { minGap: preview ? 5 : 12, priority: 'ends' },
+            },
           },
-          tickLabels: {
-            fontSize: preview ? 8 : 10,
-            opacity: 0.62,
-            thin: { minGap: preview ? 5 : 12, priority: 'ends' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, yMaximum]),
+          grid: true,
+          axis: {
+            line: false,
+            ticks: {
+              values: [0, yMaximum / 3, (yMaximum * 2) / 3, yMaximum],
+              size: 0,
+            },
+            tickLabels: false,
           },
         },
       },
-      y: {
-        scale: scaleLinear().domain([0, yMaximum]),
-        grid: true,
-        axis: {
-          line: false,
-          ticks: {
-            values: [0, yMaximum / 3, (yMaximum * 2) / 3, yMaximum],
-            size: 0,
-          },
-          tickLabels: false,
-        },
-      },
+
       gradients: [
         {
           id: 'themed-area-fill',

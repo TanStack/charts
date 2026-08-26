@@ -58,8 +58,11 @@ const definition = defineChart({
     lineY(rows, { x: 'date', y: 'value' }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
 })
@@ -124,8 +127,11 @@ const definition = defineChart({
       marker: true,
     }),
   ],
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   cursor: {
     use: cursorHost,
     controller: freeCursor,
@@ -231,6 +237,10 @@ const definition = defineChart({
       selection,
     ),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   selection,
 })
 ```
@@ -270,8 +280,11 @@ type Position = ContinuousCursorPosition<number, number>
 
 const definition = defineChart({
   marks: [dot(rows, { x: 'horsepower', y: 'economy' })],
-  x: { scale: horsepowerScale },
-  y: { scale: economyScale },
+  scales: {
+    x: { scale: horsepowerScale },
+    y: { scale: economyScale },
+  },
+
   controls: [
     continuousCursor({
       position: controlledSignal<
@@ -333,8 +346,11 @@ let interaction: ChartInteractionController<Row, Date, number> | undefined
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
-  x: { scale: scaleUtc() },
-  y: { scale: scaleLinear() },
+  scales: {
+    x: { scale: scaleUtc() },
+    y: { scale: scaleLinear() },
+  },
+
   focus: 'nearest-x',
   pointer: false,
   tooltip,
@@ -479,8 +495,11 @@ export default function App() {
             strokeWidth: 2.5,
           }),
         ],
-        x: { scale: scaleLinear().domain([1, 8]) },
-        y: { scale: scaleLinear, grid: true, axis: { label: 'Signups' } },
+        scales: {
+          x: { scale: scaleLinear().domain([1, 8]) },
+          y: { scale: scaleLinear, grid: true, axis: { label: 'Signups' } },
+        },
+
         controls: [
           brushX({
             range: controlledSignal<BrushRange<number>, BrushXChange<number>>(
@@ -573,7 +592,10 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale },
+  scales: {
+    x: { scale: utcScale },
+    y: null,
+  },
   controls: [
     handleX({
       value: controlledSignal<Date, HandleXChange<Date>>(currentDate, (next) =>
@@ -623,7 +645,10 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale.copy().domain([window.start, window.end]) },
+  scales: {
+    x: { scale: utcScale.copy().domain([window.start, window.end]) },
+    y: null,
+  },
   controls: [
     zoomX({
       window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(

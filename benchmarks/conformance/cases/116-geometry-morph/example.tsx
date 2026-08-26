@@ -55,8 +55,11 @@ export function geometryMorphDefinition(
         },
       }),
     ],
-    x: { scale: scaleLinear().domain([0, data.length - 1]) },
-    y: { scale: scaleLinear().domain([0, 100]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, data.length - 1]) },
+      y: { scale: scaleLinear().domain([0, 100]) },
+    },
+
     guides: false,
     margin: 0,
   })

@@ -70,15 +70,18 @@ export const createExampleChart = () =>
           }),
           decorative(ruleY([0], { stroke: '#64748b', strokeOpacity: 0.6 })),
         ] as const,
-        x: {
-          scale: () => scaleBand<string>().padding(0.14),
-          axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
+        scales: {
+          x: {
+            scale: () => scaleBand<string>().padding(0.14),
+            axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
+          },
+          y: {
+            scale: scaleLinear,
+            grid: true,
+            axis: { label: 'Change in gasoline price (USD per gallon)' },
+          },
         },
-        y: {
-          scale: scaleLinear,
-          grid: true,
-          axis: { label: 'Change in gasoline price (USD per gallon)' },
-        },
+
         color: {
           domain: kinds,
           range: colors,

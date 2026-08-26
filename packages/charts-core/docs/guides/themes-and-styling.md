@@ -51,8 +51,11 @@ Use `theme` when a chart needs explicit scene colors:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   theme: {
     foreground: '#e5e7eb',
     muted: '#94a3b8',
@@ -126,12 +129,15 @@ export default defineChart({
       strokeWidth: 2,
     }),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.2) },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Revenue (USD)' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Revenue (USD)' },
+    },
   },
+
   gradients: [
     {
       id: 'revenue-fill',

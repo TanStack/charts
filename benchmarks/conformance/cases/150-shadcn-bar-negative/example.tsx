@@ -42,11 +42,14 @@ export function createExampleChart() {
   return defineChart(
     {
       marks,
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
-        axis: false,
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+          axis: false,
+        },
+        y: { scale: scaleLinear, grid: true, axis: false },
       },
-      y: { scale: scaleLinear, grid: true, axis: false },
+
       margin: { top: 24, right: 5, bottom: 24, left: 5 },
       theme: shadcnTheme(),
     },

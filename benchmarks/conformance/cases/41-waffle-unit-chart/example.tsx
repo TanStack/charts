@@ -28,6 +28,10 @@ export const createExampleChart = () =>
           radius: 2,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
       color: {
         domain: letters,

@@ -15,6 +15,8 @@ import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChannelAccessor,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -32,7 +34,8 @@ import type { StackLayout } from './stack'
 
 type BarLayout = GroupLayout | StackLayout
 
-export interface BarYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface BarYOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, number | null | undefined>
@@ -56,7 +59,8 @@ export interface BarYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
-export interface BarXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface BarXOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, number | null | undefined>
   x1?: number | Channel<TDatum, number | null | undefined>
@@ -89,200 +93,219 @@ export function barY<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<TDatum, OptionChannelOutput<TDatum, TOptions, 'x', number>, number>
+): CartesianChartMark<
+  TDatum,
+  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'x', number>,
+  number,
+  TOptions
+>
 export function barY<TDatum>(
   source: Iterable<TDatum>,
   options: BarYOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any> {
+): CartesianChartMark<TDatum, any, any, any, any, BarYOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `bar-y-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
-    const rawYValues = numericChannelValues(
-      data,
-      options.y ?? options.y2,
-      (datum) => (typeof datum === 'number' ? datum : undefined),
-    )
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const seriesValues =
-      options.z === undefined && options.color !== undefined
-        ? colorValues
-        : zValues
-    const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
-    if (explicitExtent && options.layout?.type === 'stack') {
-      throw new TypeError(
-        'A bar with explicit y1 or y2 endpoints cannot also configure a stack layout',
+  return createMark(
+    ({ markIndex }) => {
+      const id = options.id ?? `bar-y-${markIndex}`
+      const xValues = channelValues(
+        data,
+        options.x,
+        (_datum, { index }) => index,
       )
-    }
-    const grouped = options.layout?.type === 'group'
-    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
-    const stacked =
-      !explicitExtent && !grouped
-        ? stackValues(xValues, rawYValues, seriesValues, stackLayout, 'index')
-        : undefined
-    const y1Values = explicitExtent
-      ? numericChannelValues(data, options.y1, () => 0)
-      : (stacked?.starts ?? data.map(() => 0))
-    const y2Values = explicitExtent
-      ? numericChannelValues(data, options.y2 ?? options.y, () => undefined)
-      : grouped
-        ? rawYValues
-        : stacked!.ends
-    const duplicatePositions = hasDuplicateValues(xValues)
-    const groupValues =
-      grouped || (!explicitExtent && duplicatePositions)
-        ? seriesValues
-        : zValues
-    const keys = inferredKeyValues(data, options.key, {
-      groups: groupValues,
-      candidates: [xValues],
-      markId: id,
-      warningIdentity: options,
-    })
-
-    return {
-      id,
-      states: markStates(data, options.states),
-      seriesFromColor:
-        options.z === undefined &&
-        options.color !== undefined &&
-        (grouped || duplicatePositions),
-      channels: {
-        x: { scale: 'x', values: xValues.filter(isChartValue) },
-        y: {
-          scale: 'y',
-          values: [
-            ...y2Values.filter(isFiniteNumber),
-            ...y1Values.filter(isFiniteNumber),
-          ],
-          includeZero: options.y1 === undefined,
-        },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, chart, color: resolveColor }) => {
-        const totalBandwidth =
-          scales.x.bandwidth ||
-          inferBandwidth(scales.x, xValues, chart.width, data.length)
-        const groupScale = resolveGroupScale(
-          options.layout?.type === 'group' ? options.layout : undefined,
-          groupValues,
-          totalBandwidth,
+      const rawYValues = numericChannelValues(
+        data,
+        options.y ?? options.y2,
+        (datum) => (typeof datum === 'number' ? datum : undefined),
+      )
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const seriesValues =
+        options.z === undefined && options.color !== undefined
+          ? colorValues
+          : zValues
+      const explicitExtent =
+        options.y1 !== undefined || options.y2 !== undefined
+      if (explicitExtent && options.layout?.type === 'stack') {
+        throw new TypeError(
+          'A bar with explicit y1 or y2 endpoints cannot also configure a stack layout',
         )
-        const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
-        const thickness = resolveBarThickness(
-          groupBandwidth,
-          options.inset,
-          options.maxThickness,
-        )
-        const nodes: SceneNode[] = []
+      }
+      const grouped = options.layout?.type === 'group'
+      const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+      const stacked =
+        !explicitExtent && !grouped
+          ? stackValues(xValues, rawYValues, seriesValues, stackLayout, 'index')
+          : undefined
+      const y1Values = explicitExtent
+        ? numericChannelValues(data, options.y1, () => 0)
+        : (stacked?.starts ?? data.map(() => 0))
+      const y2Values = explicitExtent
+        ? numericChannelValues(data, options.y2 ?? options.y, () => undefined)
+        : grouped
+          ? rawYValues
+          : stacked!.ends
+      const duplicatePositions = hasDuplicateValues(xValues)
+      const groupValues =
+        grouped || (!explicitExtent && duplicatePositions)
+          ? seriesValues
+          : zValues
+      const keys = inferredKeyValues(data, options.key, {
+        groups: groupValues,
+        candidates: [xValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-        data.forEach((datum, datumIndex) => {
-          const xValue = xValues[datumIndex]
-          const yValue = rawYValues[datumIndex]
-          const y1Value = y1Values[datumIndex]
-          const y2Value = y2Values[datumIndex]
-          if (
-            !isChartValue(xValue) ||
-            !isFiniteNumber(yValue) ||
-            !isFiniteNumber(y1Value) ||
-            !isFiniteNumber(y2Value)
+      return {
+        id,
+        states: markStates(data, options.states),
+        seriesFromColor:
+          options.z === undefined &&
+          options.color !== undefined &&
+          (grouped || duplicatePositions),
+        channels: {
+          x: { scale: xScale, values: xValues.filter(isChartValue) },
+          y: {
+            scale: yScale,
+            values: [
+              ...y2Values.filter(isFiniteNumber),
+              ...y1Values.filter(isFiniteNumber),
+            ],
+            includeZero: options.y1 === undefined,
+          },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
+          },
+        },
+        render: ({ scales, chart, color: resolveColor }) => {
+          const totalBandwidth =
+            scales[xScale]!.bandwidth ||
+            inferBandwidth(scales[xScale]!, xValues, chart.width, data.length)
+          const groupScale = resolveGroupScale(
+            options.layout?.type === 'group' ? options.layout : undefined,
+            groupValues,
+            totalBandwidth,
           )
-            return
-          const group = groupValues[datumIndex] ?? null
-          const groupOffset = groupScale?.map(group) ?? 0
-          const resolvedColor = resolveColor(colorValues[datumIndex])
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            resolvedColor,
+          const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
+          const thickness = resolveBarThickness(
+            groupBandwidth,
+            options.inset,
+            options.maxThickness,
           )
-          const stroke = visualValue(
-            options.stroke,
-            datum,
-            datumIndex,
-            data,
-            'none',
-          )
-          const strokeDasharray = visualValue(
-            options.strokeDasharray,
-            datum,
-            datumIndex,
-            data,
-            'none',
-          )
-          const center = scales.x.map(xValue)
-          const baselinePosition = scales.y.map(y1Value)
-          const valuePosition = scales.y.map(y2Value)
-          const x = center - totalBandwidth / 2 + groupOffset + thickness.inset
-          const y = Math.min(baselinePosition, valuePosition)
-          const width = thickness.size
-          const height = Math.abs(baselinePosition - valuePosition)
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const point: ChartPoint<TDatum> = {
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue,
-            yValue,
-            y1Value,
-            y2Value,
-            yInterval: 'difference',
-            x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
-            y: valuePosition,
-            color: fill,
-          }
-          nodes.push({
-            kind: 'rect',
-            key,
-            x,
-            y,
-            width,
-            height,
-            radius: options.radius,
-            inset: thickness.inset,
-            insetAxis: 'x',
-            ...(thickness.maximum === undefined
-              ? {}
-              : { maxThickness: thickness.maximum }),
-            interaction: { point, affinity: 'x' },
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              strokeDasharray,
-            },
+          const nodes: SceneNode[] = []
+
+          data.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex]
+            const yValue = rawYValues[datumIndex]
+            const y1Value = y1Values[datumIndex]
+            const y2Value = y2Values[datumIndex]
+            if (
+              !isChartValue(xValue) ||
+              !isFiniteNumber(yValue) ||
+              !isFiniteNumber(y1Value) ||
+              !isFiniteNumber(y2Value)
+            )
+              return
+            const group = groupValues[datumIndex] ?? null
+            const groupOffset = groupScale?.map(group) ?? 0
+            const resolvedColor = resolveColor(colorValues[datumIndex])
+            const fill = visualValue(
+              options.fill,
+              datum,
+              datumIndex,
+              data,
+              resolvedColor,
+            )
+            const stroke = visualValue(
+              options.stroke,
+              datum,
+              datumIndex,
+              data,
+              'none',
+            )
+            const strokeDasharray = visualValue(
+              options.strokeDasharray,
+              datum,
+              datumIndex,
+              data,
+              'none',
+            )
+            const center = scales[xScale]!.map(xValue)
+            const baselinePosition = scales[yScale]!.map(y1Value)
+            const valuePosition = scales[yScale]!.map(y2Value)
+            const x =
+              center - totalBandwidth / 2 + groupOffset + thickness.inset
+            const y = Math.min(baselinePosition, valuePosition)
+            const width = thickness.size
+            const height = Math.abs(baselinePosition - valuePosition)
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const point: ChartPoint<TDatum> = {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue,
+              yValue,
+              y1Value,
+              y2Value,
+              yInterval: 'difference',
+              x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
+              y: valuePosition,
+              color: fill,
+            }
+            nodes.push({
+              kind: 'rect',
+              key,
+              x,
+              y,
+              width,
+              height,
+              radius: options.radius,
+              inset: thickness.inset,
+              insetAxis: 'x',
+              ...(thickness.maximum === undefined
+                ? {}
+                : { maxThickness: thickness.maximum }),
+              interaction: { point, affinity: 'x' },
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray,
+              },
+            })
           })
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__bar ts-chart__bar-y',
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__bar ts-chart__bar-y',
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export function barX<TDatum>(
@@ -294,200 +317,219 @@ export function barX<
 >(
   source: Iterable<TDatum>,
   options: TOptions,
-): ChartMark<TDatum, number, OptionChannelOutput<TDatum, TOptions, 'y', number>>
+): CartesianChartMark<
+  TDatum,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  number,
+  OptionChannelOutput<TDatum, TOptions, 'y', number>,
+  TOptions
+>
 export function barX<TDatum>(
   source: Iterable<TDatum>,
   options: BarXOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any> {
+): CartesianChartMark<TDatum, any, any, any, any, BarXOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `bar-x-${markIndex}`
-    const rawXValues = numericChannelValues(
-      data,
-      options.x ?? options.x2,
-      (datum) => (typeof datum === 'number' ? datum : undefined),
-    )
-    const yValues = channelValues(data, options.y, (_datum, { index }) => index)
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const seriesValues =
-      options.z === undefined && options.color !== undefined
-        ? colorValues
-        : zValues
-    const explicitExtent = options.x1 !== undefined || options.x2 !== undefined
-    if (explicitExtent && options.layout?.type === 'stack') {
-      throw new TypeError(
-        'A bar with explicit x1 or x2 endpoints cannot also configure a stack layout',
+  return createMark(
+    ({ markIndex }) => {
+      const id = options.id ?? `bar-x-${markIndex}`
+      const rawXValues = numericChannelValues(
+        data,
+        options.x ?? options.x2,
+        (datum) => (typeof datum === 'number' ? datum : undefined),
       )
-    }
-    const grouped = options.layout?.type === 'group'
-    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
-    const stacked =
-      !explicitExtent && !grouped
-        ? stackValues(yValues, rawXValues, seriesValues, stackLayout, 'index')
-        : undefined
-    const x1Values = explicitExtent
-      ? numericChannelValues(data, options.x1, () => 0)
-      : (stacked?.starts ?? data.map(() => 0))
-    const x2Values = explicitExtent
-      ? numericChannelValues(data, options.x2 ?? options.x, () => undefined)
-      : grouped
-        ? rawXValues
-        : stacked!.ends
-    const duplicatePositions = hasDuplicateValues(yValues)
-    const groupValues =
-      grouped || (!explicitExtent && duplicatePositions)
-        ? seriesValues
-        : zValues
-    const keys = inferredKeyValues(data, options.key, {
-      groups: groupValues,
-      candidates: [yValues],
-      markId: id,
-      warningIdentity: options,
-    })
-
-    return {
-      id,
-      states: markStates(data, options.states),
-      seriesFromColor:
-        options.z === undefined &&
-        options.color !== undefined &&
-        (grouped || duplicatePositions),
-      channels: {
-        x: {
-          scale: 'x',
-          values: [
-            ...x2Values.filter(isFiniteNumber),
-            ...x1Values.filter(isFiniteNumber),
-          ],
-          includeZero: options.x1 === undefined,
-        },
-        y: { scale: 'y', values: yValues.filter(isChartValue) },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, chart, color: resolveColor }) => {
-        const totalBandwidth =
-          scales.y.bandwidth ||
-          inferBandwidth(scales.y, yValues, chart.height, data.length)
-        const groupScale = resolveGroupScale(
-          options.layout?.type === 'group' ? options.layout : undefined,
-          groupValues,
-          totalBandwidth,
+      const yValues = channelValues(
+        data,
+        options.y,
+        (_datum, { index }) => index,
+      )
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const seriesValues =
+        options.z === undefined && options.color !== undefined
+          ? colorValues
+          : zValues
+      const explicitExtent =
+        options.x1 !== undefined || options.x2 !== undefined
+      if (explicitExtent && options.layout?.type === 'stack') {
+        throw new TypeError(
+          'A bar with explicit x1 or x2 endpoints cannot also configure a stack layout',
         )
-        const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
-        const thickness = resolveBarThickness(
-          groupBandwidth,
-          options.inset,
-          options.maxThickness,
-        )
-        const nodes: SceneNode[] = []
+      }
+      const grouped = options.layout?.type === 'group'
+      const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+      const stacked =
+        !explicitExtent && !grouped
+          ? stackValues(yValues, rawXValues, seriesValues, stackLayout, 'index')
+          : undefined
+      const x1Values = explicitExtent
+        ? numericChannelValues(data, options.x1, () => 0)
+        : (stacked?.starts ?? data.map(() => 0))
+      const x2Values = explicitExtent
+        ? numericChannelValues(data, options.x2 ?? options.x, () => undefined)
+        : grouped
+          ? rawXValues
+          : stacked!.ends
+      const duplicatePositions = hasDuplicateValues(yValues)
+      const groupValues =
+        grouped || (!explicitExtent && duplicatePositions)
+          ? seriesValues
+          : zValues
+      const keys = inferredKeyValues(data, options.key, {
+        groups: groupValues,
+        candidates: [yValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-        data.forEach((datum, datumIndex) => {
-          const xValue = rawXValues[datumIndex]
-          const x1Value = x1Values[datumIndex]
-          const x2Value = x2Values[datumIndex]
-          const yValue = yValues[datumIndex]
-          if (
-            !isFiniteNumber(xValue) ||
-            !isFiniteNumber(x1Value) ||
-            !isFiniteNumber(x2Value) ||
-            !isChartValue(yValue)
+      return {
+        id,
+        states: markStates(data, options.states),
+        seriesFromColor:
+          options.z === undefined &&
+          options.color !== undefined &&
+          (grouped || duplicatePositions),
+        channels: {
+          x: {
+            scale: xScale,
+            values: [
+              ...x2Values.filter(isFiniteNumber),
+              ...x1Values.filter(isFiniteNumber),
+            ],
+            includeZero: options.x1 === undefined,
+          },
+          y: { scale: yScale, values: yValues.filter(isChartValue) },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
+          },
+        },
+        render: ({ scales, chart, color: resolveColor }) => {
+          const totalBandwidth =
+            scales[yScale]!.bandwidth ||
+            inferBandwidth(scales[yScale]!, yValues, chart.height, data.length)
+          const groupScale = resolveGroupScale(
+            options.layout?.type === 'group' ? options.layout : undefined,
+            groupValues,
+            totalBandwidth,
           )
-            return
-          const group = groupValues[datumIndex] ?? null
-          const groupOffset = groupScale?.map(group) ?? 0
-          const resolvedColor = resolveColor(colorValues[datumIndex])
-          const fill = visualValue(
-            options.fill,
-            datum,
-            datumIndex,
-            data,
-            resolvedColor,
+          const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
+          const thickness = resolveBarThickness(
+            groupBandwidth,
+            options.inset,
+            options.maxThickness,
           )
-          const stroke = visualValue(
-            options.stroke,
-            datum,
-            datumIndex,
-            data,
-            'none',
-          )
-          const strokeDasharray = visualValue(
-            options.strokeDasharray,
-            datum,
-            datumIndex,
-            data,
-            'none',
-          )
-          const baselinePosition = scales.x.map(x1Value)
-          const valuePosition = scales.x.map(x2Value)
-          const center = scales.y.map(yValue)
-          const y = center - totalBandwidth / 2 + groupOffset + thickness.inset
-          const x = Math.min(baselinePosition, valuePosition)
-          const width = Math.abs(baselinePosition - valuePosition)
-          const height = thickness.size
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          const point: ChartPoint<TDatum> = {
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue,
-            yValue,
-            x1Value,
-            x2Value,
-            xInterval: 'difference',
-            x: valuePosition,
-            y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
-            color: fill,
-          }
-          nodes.push({
-            kind: 'rect',
-            key,
-            x,
-            y,
-            width,
-            height,
-            radius: options.radius,
-            inset: thickness.inset,
-            insetAxis: 'y',
-            ...(thickness.maximum === undefined
-              ? {}
-              : { maxThickness: thickness.maximum }),
-            interaction: { point, affinity: 'y' },
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-              strokeDasharray,
-            },
+          const nodes: SceneNode[] = []
+
+          data.forEach((datum, datumIndex) => {
+            const xValue = rawXValues[datumIndex]
+            const x1Value = x1Values[datumIndex]
+            const x2Value = x2Values[datumIndex]
+            const yValue = yValues[datumIndex]
+            if (
+              !isFiniteNumber(xValue) ||
+              !isFiniteNumber(x1Value) ||
+              !isFiniteNumber(x2Value) ||
+              !isChartValue(yValue)
+            )
+              return
+            const group = groupValues[datumIndex] ?? null
+            const groupOffset = groupScale?.map(group) ?? 0
+            const resolvedColor = resolveColor(colorValues[datumIndex])
+            const fill = visualValue(
+              options.fill,
+              datum,
+              datumIndex,
+              data,
+              resolvedColor,
+            )
+            const stroke = visualValue(
+              options.stroke,
+              datum,
+              datumIndex,
+              data,
+              'none',
+            )
+            const strokeDasharray = visualValue(
+              options.strokeDasharray,
+              datum,
+              datumIndex,
+              data,
+              'none',
+            )
+            const baselinePosition = scales[xScale]!.map(x1Value)
+            const valuePosition = scales[xScale]!.map(x2Value)
+            const center = scales[yScale]!.map(yValue)
+            const y =
+              center - totalBandwidth / 2 + groupOffset + thickness.inset
+            const x = Math.min(baselinePosition, valuePosition)
+            const width = Math.abs(baselinePosition - valuePosition)
+            const height = thickness.size
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const point: ChartPoint<TDatum> = {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue,
+              yValue,
+              x1Value,
+              x2Value,
+              xInterval: 'difference',
+              x: valuePosition,
+              y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
+              color: fill,
+            }
+            nodes.push({
+              kind: 'rect',
+              key,
+              x,
+              y,
+              width,
+              height,
+              radius: options.radius,
+              inset: thickness.inset,
+              insetAxis: 'y',
+              ...(thickness.maximum === undefined
+                ? {}
+                : { maxThickness: thickness.maximum }),
+              interaction: { point, affinity: 'y' },
+              style: {
+                fill,
+                fillOpacity: options.fillOpacity,
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray,
+              },
+            })
           })
-        })
 
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__bar ts-chart__bar-x',
-              ariaHidden: true,
-              children: nodes,
-            },
-          ],
-        }
-      },
-    }
-  }, options.motion)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__bar ts-chart__bar-x',
+                ariaHidden: true,
+                children: nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function resolveBarThickness(

@@ -39,15 +39,17 @@ export const createExampleChart = () => {
           headLength: 8,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Log₁₀ population' },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: '90th-to-10th-percentile wage ratio' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Log₁₀ population' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: '90th-to-10th-percentile wage ratio' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

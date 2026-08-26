@@ -41,8 +41,11 @@ export const createExampleChart = (input: ChartOptions) => {
     {
       marks: [
         polar({
-          angle: { scale: angleScale },
-          radius: { scale: radiusScale },
+          scales: {
+            angle: { scale: angleScale },
+            radius: { scale: radiusScale },
+          },
+
           startAngle,
           endAngle,
           radiusRatio: 0.82,
@@ -96,6 +99,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: bandIds, range: bandColors },
       margin: 0,
     },

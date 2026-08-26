@@ -38,11 +38,13 @@ export const createExampleChart = () => {
           strokeDasharray: '4 4',
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Date' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fourteen-day average temperature (°F)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Date' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fourteen-day average temperature (°F)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

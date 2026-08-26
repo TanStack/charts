@@ -13,7 +13,7 @@ import { lineY } from './line'
 import { ruleY } from './rule'
 import { resolveScaleInput } from './scale-input'
 import type {
-  ChartAxisOptions,
+  ChartPositionScaleOptions,
   ChartScale,
   ChartSpec,
   ConfiguredScaleLike,
@@ -224,7 +224,7 @@ describe('configured scales', () => {
           x: {
             scale: scaleBand<string>,
             viewport: { domain: ['A', 'B'] },
-          } as unknown as ChartAxisOptions<any>,
+          } as unknown as ChartPositionScaleOptions<any>,
           y: { scale: scaleLinear().domain([0, 1]) },
         }),
         { width: 480, height: 260 },

@@ -58,12 +58,15 @@ export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
           ],
         }),
       ],
-      x: { scale: scaleUtc },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Unemployed (thousands)' },
+      scales: {
+        x: { scale: scaleUtc },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Unemployed (thousands)' },
+        },
       },
+
       color: { domain: industryNames, range: colors },
     },
     {

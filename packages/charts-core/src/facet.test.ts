@@ -332,6 +332,40 @@ describe('facets', () => {
     ).toBeLessThanOrEqual(320)
   })
 
+  it('rejects named guides that outer-axis composition cannot place safely', () => {
+    const data = [
+      { group: 'A', x: 0, y: 1 },
+      { group: 'B', x: 0, y: 2 },
+    ]
+    const definition = facetChart(data, {
+      by: 'group',
+      chart: (group) => ({
+        marks: [
+          lineY(group, {
+            x: 'x',
+            y: 'y',
+            yScale: 'alternate',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+          alternate: {
+            channel: 'y' as const,
+            side: 'right' as const,
+            scale: scaleLinear().domain([0, 2]),
+          },
+        },
+      }),
+    })
+
+    expect(() =>
+      createChartScene(definition, { width: 480, height: 260 }),
+    ).toThrowError(
+      'cannot share outer axes because its cell scales or guide options differ',
+    )
+  })
+
   it('composes nested facets with unique points and responsive outer flow', () => {
     const data = ['North', 'South'].flatMap((region) =>
       ['A', 'B'].flatMap((series, seriesIndex) => [

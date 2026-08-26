@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { scaleLinear } from 'd3-scale'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { areaY } from './area'
+import { createChartRendererAdapter } from './adapter-renderer'
+import { barY } from './bar'
 import {
   canvasChartRenderer,
   createCanvasChartRenderer,
   mountCanvasChart,
   type CanvasChartHost,
 } from './canvas'
+import { crosshair } from './crosshair'
 import { controlledSignal } from './interaction-signal'
 import {
   continuousCursor,
@@ -16,10 +20,15 @@ import { handleX, type HandleXChange } from './interaction-handle'
 import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
 import { interactiveColorLegend } from './interactive-legend'
 import { dot } from './dot'
+import { facet } from './facet'
 import { lineX, lineY } from './line'
-import { pie, polar, radialArc } from './polar'
+import { mountChart } from './dom'
+import { pie, polar, radialArc, radialDot, radialLine } from './polar'
 import { resolveCrosshairGuide } from './crosshair-resolver'
 import { createChartScene, defineChart } from './scene'
+import { createSvgChartRenderer } from './svg-surface'
+import { renderChartSvgWithResources } from './svg-resources'
+import { text } from './text'
 import { tooltip } from './tooltip'
 import { composeViews, fill, inset, layer } from './view'
 import type { ChartSurfaceRenderOptions } from './dom-types'
@@ -68,6 +77,507 @@ afterEach(() => {
 })
 
 describe('Canvas renderer', () => {
+  it('composes renderer-tagged marks in source order', () => {
+    const data = [
+      { id: 'a', category: 'A', value: 3 },
+      { id: 'b', category: 'B', value: 7 },
+      { id: 'c', category: 'C', value: 5 },
+    ]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          areaY(data, {
+            id: 'canvas-area',
+            x: 'category',
+            y: 'value',
+            renderer: canvasChartRenderer,
+          }),
+          barY(data, {
+            id: 'svg-bars',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+          lineY(data, {
+            id: 'canvas-line',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            renderer: canvasChartRenderer,
+          }),
+          dot(data, {
+            id: 'svg-dots',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+          text(data, {
+            id: 'svg-labels',
+            x: 'category',
+            y: 'value',
+            text: 'id',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A', 'B', 'C']) },
+          y: { scale: scaleLinear().domain([0, 8]) },
+        },
+      }),
+      width: 400,
+      height: 240,
+      ariaLabel: 'Mixed renderer chart',
+    })
+
+    const root = container.querySelector<HTMLElement>('.ts-chart-layers')
+    expect(root?.getAttribute('aria-label')).toBe('Mixed renderer chart')
+    const layers = [
+      ...container.querySelectorAll<HTMLElement>('.ts-chart-layer'),
+    ]
+    expect(layers).toHaveLength(5)
+    expect(
+      layers.map((layer) => layer.querySelector('canvas') !== null),
+    ).toEqual([false, true, false, true, false])
+    expect(container.querySelectorAll('canvas')).toHaveLength(10)
+    expect(container.querySelectorAll('svg')).toHaveLength(3)
+    expect(container.querySelector('[data-ts-key="svg-bars"]')).not.toBeNull()
+    expect(container.querySelector('[data-ts-key="svg-dots"]')).not.toBeNull()
+    expect(container.querySelector('[data-ts-key="svg-labels"]')).not.toBeNull()
+    expect(container.querySelector('[data-ts-key="canvas-area"]')).toBeNull()
+    expect(container.querySelector('[data-ts-key="canvas-line"]')).toBeNull()
+    expect(
+      [...contexts.values()].flatMap((context) => context.operations),
+    ).toEqual(expect.arrayContaining(['fill:current', 'stroke:current']))
+
+    host.destroy()
+  })
+
+  it('preserves mixed-layer geometry after painting focus', () => {
+    const arcs = pie(
+      [
+        { id: 'first', value: 1 },
+        { id: 'second', value: 1 },
+      ],
+      { value: 'value' },
+    )
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          polar({
+            radiusRatio: 0.9,
+            scales: { angle: null, radius: null },
+            marks: [
+              radialArc(arcs, {
+                key: 'id',
+                innerRadius: ({ radius }) => radius * 0.4,
+                renderer: canvasChartRenderer,
+              }),
+            ],
+          }),
+        ],
+        scales: { x: null, y: null },
+        guides: false,
+        margin: 0,
+        maxFocusDistance: 1,
+      }),
+      width: 400,
+      height: 400,
+      ariaLabel: 'Mixed renderer geometry',
+    })
+    const surface = container.querySelector<HTMLElement>('.ts-chart-layers')
+    if (!surface) throw new Error('Expected a mixed renderer surface')
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 400,
+      bottom: 400,
+      left: 0,
+      width: 400,
+      height: 400,
+      toJSON: () => ({}),
+    })
+
+    const angle = arcs[0]!.startAngle + 0.1
+    const radius = 162
+    const clientX = 200 + Math.sin(angle) * radius
+    const clientY = 200 - Math.cos(angle) * radius
+    const first = host.interaction.resolvePointer(clientX, clientY)
+    if (!first) throw new Error('Expected the first arc to resolve')
+    expect(first.point.datum).toBe(arcs[0])
+
+    host.interaction.setControlledFocus(first)
+
+    expect(host.interaction.resolvePointer(clientX, clientY)?.point.datum).toBe(
+      arcs[0],
+    )
+    host.destroy()
+  })
+
+  it('finds renderer-tagged marks inside facet and polar groups', () => {
+    const rows = [
+      { id: 'a', panel: 'First', metric: 'A', value: 3 },
+      { id: 'b', panel: 'First', metric: 'B', value: 7 },
+      { id: 'c', panel: 'Second', metric: 'A', value: 5 },
+      { id: 'd', panel: 'Second', metric: 'B', value: 6 },
+    ]
+    const definitions = [
+      defineChart({
+        marks: [
+          facet(rows, {
+            id: 'facets',
+            by: 'panel',
+            axes: 'cell',
+            chart: (data) => ({
+              marks: [
+                lineY(data, {
+                  id: 'facet-lines',
+                  x: 'metric',
+                  y: 'value',
+                  renderer: canvasChartRenderer,
+                }),
+                dot(data, { id: 'facet-dots', x: 'metric', y: 'value' }),
+              ],
+              scales: {
+                x: { scale: scaleBand<string>().domain(['A', 'B']) },
+                y: { scale: scaleLinear().domain([0, 8]) },
+              },
+            }),
+          }),
+        ],
+        scales: { x: null, y: null },
+        guides: false,
+      }),
+      defineChart({
+        marks: [
+          polar({
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+              radius: { scale: scaleLinear().domain([0, 8]) },
+            },
+            marks: [
+              radialLine(rows.slice(0, 2), {
+                id: 'radial-line',
+                angle: 'metric',
+                radius: 'value',
+                renderer: canvasChartRenderer,
+              }),
+              radialDot(rows.slice(0, 2), {
+                id: 'radial-dots',
+                angle: 'metric',
+                radius: 'value',
+              }),
+            ],
+          }),
+        ],
+        scales: { x: null, y: null },
+        guides: false,
+      }),
+    ]
+
+    for (const [index, definition] of definitions.entries()) {
+      const container = document.createElement('div')
+      const host = mountChart(container, {
+        definition,
+        width: 400,
+        height: 240,
+        ariaLabel: index === 0 ? 'Mixed facets' : 'Mixed polar',
+      })
+
+      expect(container.querySelector('.ts-chart-layers')).not.toBeNull()
+      expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+      expect(container.querySelector('svg')).not.toBeNull()
+      expect(
+        [...contexts.values()].flatMap((context) => context.operations),
+      ).toContain(index === 0 ? 'stroke:current' : 'stroke:path')
+      expect(
+        container.querySelector(
+          index === 0
+            ? '[data-ts-key*="facet-dots"]'
+            : '[data-ts-key="radial-dots"]',
+        ),
+      ).not.toBeNull()
+      host.destroy()
+    }
+  })
+
+  it('prerenders and adopts the same mixed layer shell', () => {
+    const definition = defineChart({
+      marks: [
+        lineY([2, 6, 4], {
+          id: 'canvas-line',
+          renderer: canvasChartRenderer,
+        }),
+        dot([2, 6, 4], { id: 'svg-dots' }),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 6]) },
+      },
+    })
+    const adapter = createChartRendererAdapter({
+      definition,
+      renderer: createSvgChartRenderer(),
+      initialWidth: 320,
+      height: 180,
+      ariaLabel: 'Mixed server chart',
+    })
+
+    const markup = adapter.prerender()
+
+    expect(markup).toContain('class="ts-chart ts-chart-layers"')
+    expect(markup).toContain('aria-label="Mixed server chart"')
+    expect(markup).toContain('ts-chart-canvas__scene')
+    expect(markup).toContain('data-ts-key="svg-dots"')
+    expect(markup).not.toContain('data-ts-key="canvas-line"')
+    expect(markup.match(/class="ts-chart-layer"/g)).toHaveLength(3)
+    const container = document.createElement('div')
+    container.innerHTML = markup
+    const roots = [...container.querySelectorAll('.ts-chart-layer')]
+    adapter.mount(container)
+    expect([...container.querySelectorAll('.ts-chart-layer')]).toEqual(roots)
+    expect(container.querySelectorAll('canvas')).toHaveLength(5)
+    expect(container.querySelectorAll('svg')).toHaveLength(2)
+    adapter.destroy()
+  })
+
+  it('keeps the default SVG callback and exposes every composed surface', () => {
+    const onRender = vi.fn()
+    const definition = defineChart({
+      marks: [
+        lineY([2, 6, 4], {
+          id: 'canvas-line',
+          renderer: canvasChartRenderer,
+        }),
+        dot([2, 6, 4], { id: 'svg-dots' }),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 6]) },
+      },
+    })
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition,
+      width: 320,
+      height: 180,
+      ariaLabel: 'Mixed callback chart',
+      onRender,
+    })
+
+    const context = onRender.mock.calls[0]?.[0]
+    expect(context.surface.element).toBe(
+      container.querySelector('.ts-chart-layers'),
+    )
+    expect(context.surface.layers).toHaveLength(3)
+    expect(context.svg).toBe(container.querySelectorAll('svg').item(1))
+    expect(context.svg.querySelector('[data-ts-key="svg-dots"]')).not.toBeNull()
+
+    host.destroy()
+  })
+
+  it('scopes SVG resources independently in each composed layer', () => {
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          areaY([2, 6, 4], { id: 'svg-area', fill: 'url(#fill)' }),
+          lineY([2, 6, 4], {
+            id: 'canvas-line',
+            renderer: canvasChartRenderer,
+          }),
+          dot([2, 6, 4], { id: 'svg-dots', fill: 'url(#fill)' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 6]) },
+        },
+        gradients: [
+          {
+            id: 'fill',
+            stops: [
+              { offset: 0, color: '#2563eb' },
+              { offset: 1, color: '#60a5fa' },
+            ],
+          },
+        ],
+      }),
+      renderSvg: renderChartSvgWithResources,
+      width: 320,
+      height: 180,
+      idPrefix: 'mixed-resources',
+      ariaLabel: 'Mixed resources',
+    })
+    const ids = [...container.querySelectorAll('linearGradient')].map(
+      (gradient) => gradient.id,
+    )
+
+    expect(ids).toHaveLength(2)
+    expect(new Set(ids).size).toBe(2)
+    expect(ids.every((id) => id.startsWith('mixed-resources-layer-'))).toBe(
+      true,
+    )
+    for (const svg of container.querySelectorAll('svg')) {
+      const gradient = svg.querySelector('linearGradient')
+      expect(gradient).not.toBeNull()
+      expect(svg.querySelector(`[fill="url(#${gradient!.id})"]`)).not.toBeNull()
+    }
+
+    host.destroy()
+  })
+
+  it('reuses mixed layers across updates and removes them when marks return to SVG', () => {
+    const mixedDefinition = (values: readonly number[]) =>
+      defineChart({
+        marks: [
+          lineY(values, {
+            id: 'canvas-line',
+            renderer: canvasChartRenderer,
+          }),
+          dot(values, { id: 'svg-dots' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 8]) },
+        },
+      })
+    const options = {
+      definition: mixedDefinition([2, 6, 4]),
+      width: 320,
+      height: 180,
+      ariaLabel: 'Updated mixed chart',
+    }
+    const container = document.createElement('div')
+    const host = mountChart(container, options)
+    const root = container.querySelector('.ts-chart-layers')
+    const layers = [...container.querySelectorAll('.ts-chart-layer')]
+    const canvas = container.querySelector('.ts-chart-canvas')
+
+    host.update({ ...options, definition: mixedDefinition([3, 7, 5]) })
+
+    expect(container.querySelector('.ts-chart-layers')).toBe(root)
+    expect([...container.querySelectorAll('.ts-chart-layer')]).toEqual(layers)
+    expect(container.querySelector('.ts-chart-canvas')).toBe(canvas)
+
+    host.update({
+      ...options,
+      definition: defineChart({
+        marks: [dot([4, 8, 6], { id: 'svg-only' })],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 8]) },
+        },
+      }),
+    })
+
+    expect(container.querySelector('.ts-chart-layers')).toBeNull()
+    expect(container.querySelector('.ts-chart-canvas')).toBeNull()
+    expect(container.querySelector('svg')).not.toBeNull()
+    host.destroy()
+  })
+
+  it('does not request another render for unchanged layered root attributes', async () => {
+    const container = document.createElement('div')
+    const requestRender = vi.fn()
+    const surface = canvasChartRenderer
+      .compose(createSvgChartRenderer())
+      .mount(container, requestRender)
+    const chart = scene([
+      {
+        kind: 'dot',
+        key: 'canvas-dot',
+        x: 30,
+        y: 30,
+        radius: 5,
+        renderer: canvasChartRenderer,
+        style: { fill: '#2563eb' },
+      },
+      {
+        kind: 'dot',
+        key: 'svg-dot',
+        x: 70,
+        y: 30,
+        radius: 5,
+        style: { fill: '#111111' },
+      },
+    ])
+
+    surface.render(chart, renderOptions())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    requestRender.mockClear()
+
+    surface.render(chart, renderOptions())
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(requestRender).not.toHaveBeenCalled()
+    surface.destroy()
+  })
+
+  it('paints a renderer-tagged crosshair in its own composed focus layer', () => {
+    const chart = createChartScene(
+      defineChart({
+        marks: [
+          dot([{ id: 'a', x: 2, y: 7 }], {
+            id: 'svg-dot',
+            x: 'x',
+            y: 'y',
+            key: 'id',
+          }),
+          crosshair({
+            id: 'canvas-crosshair',
+            renderer: canvasChartRenderer,
+            x: true,
+            y: false,
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
+        guides: false,
+        margin: 20,
+      }),
+      { width: 320, height: 180 },
+    )
+    const point = chart.points[0]
+    if (!point) throw new Error('Expected one focus point')
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer
+      .compose(createSvgChartRenderer())
+      .mount(container, () => {})
+
+    surface.render(chart, renderOptions())
+
+    const layers = [
+      ...container.querySelectorAll<HTMLElement>('.ts-chart-layer'),
+    ]
+    expect(
+      layers.map((layer) => layer.querySelector('canvas') !== null),
+    ).toEqual([false, true, false])
+    const focusCanvas = layers[1]?.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__focus',
+    )
+    const focusContext = focusCanvas ? contexts.get(focusCanvas) : undefined
+    if (!focusContext) throw new Error('Expected a Canvas focus layer')
+    const paintStart = focusContext.operations.length
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(focusContext.operations.slice(paintStart)).toEqual(
+      expect.arrayContaining([
+        `moveTo:${point.x},${chart.chart.y}`,
+        `lineTo:${point.x},${chart.chart.y + chart.chart.height}`,
+      ]),
+    )
+    surface.destroy()
+  })
+
   it('prerenders an accessible shell without accessing Canvas APIs', () => {
     const markup = canvasChartRenderer.prerender(scene([]), {
       ariaLabel: 'Dense scatter',

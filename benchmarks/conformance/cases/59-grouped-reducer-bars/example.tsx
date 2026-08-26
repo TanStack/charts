@@ -39,13 +39,15 @@ export const createExampleChart = (input?: ChartOptions) => {
           dy: input?.preview === true ? 10 : -8,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Mean body mass (g)' },
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Mean body mass (g)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

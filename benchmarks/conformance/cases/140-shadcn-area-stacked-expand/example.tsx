@@ -57,12 +57,15 @@ export function createExampleChart() {
           strokeWidth: 1.5,
         }),
       ],
-      x: shadcnPointXAxis(),
-      y: {
-        scale: scaleLinear().domain([0, 1]),
-        grid: true,
-        axis: { line: false, ticks: false, tickLabels: false },
+      scales: {
+        x: shadcnPointXAxis(),
+        y: {
+          scale: scaleLinear().domain([0, 1]),
+          grid: true,
+          axis: { line: false, ticks: false, tickLabels: false },
+        },
       },
+
       color: {
         domain: ['other', 'mobile', 'desktop'],
         range: [shadcnColors[2], shadcnColors[1], shadcnColors[0]],

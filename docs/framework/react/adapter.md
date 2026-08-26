@@ -30,7 +30,9 @@ import { Chart as RendererChart } from '@tanstack/charts/react/core'
 
 `CanvasChart` selects the optional built-in renderer. `RendererChart` requires
 a `renderer` prop. The default `Chart` remains SVG-based, so importing the
-default adapter does not pull Canvas into its module graph.
+default adapter does not pull Canvas into its module graph. A definition can
+still import `canvasChartRenderer` and assign it to selected marks, which makes
+the default component render an ordered mixed surface.
 
 The base entries render the built-in tooltip without the React tooltip-body
 bridge. Import from the optional tooltip entry when passing
@@ -90,6 +92,11 @@ layers. It does not paint pixels on the server. The client adopts those
 elements, paints after mount, and attaches the same focus, keyboard, tooltip,
 and selection host.
 
+A default chart with selected Canvas marks emits one mixed root containing
+ordered SVG markup and Canvas shells. SVG marks are visible in the server
+response, Canvas pixels appear after mount, and the client adopts every child
+surface.
+
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`
 from `React.useId()` when one is not supplied, keeping document resources
@@ -109,7 +116,7 @@ The adapter renders two nested containers:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart | div.ts-chart-canvas
+    svg.ts-chart | div.ts-chart-canvas | div.ts-chart-layers
 ```
 
 The outer host has `position: relative`.
@@ -183,6 +190,10 @@ import { defineChart } from '@tanstack/charts'
 
 const definition = defineChart({
   marks: [],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 

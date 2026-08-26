@@ -29,13 +29,15 @@ function RankingChart({ rows, metric, accent }: Props) {
             fill: accent,
           }),
         ],
-        x: {
-          scale: scaleLinear,
-          nice: true,
-          axis: { ticks: { count: width < 420 ? 4 : 7 } },
-        },
-        y: {
-          scale: () => scaleBand<string>().padding(0.1),
+        scales: {
+          x: {
+            scale: scaleLinear,
+            nice: true,
+            axis: { ticks: { count: width < 420 ? 4 : 7 } },
+          },
+          y: {
+            scale: () => scaleBand<string>().padding(0.1),
+          },
         },
       }),
     })
@@ -131,8 +133,10 @@ const definition = defineChart({
       motion: { transition: { type: 'spring', mass: 1.25 } },
     }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
 })
 
 const host = mountChartRenderer(container, {
@@ -231,6 +235,10 @@ const definition = defineChart({
     transition: { type: 'tween', duration: sampleInterval, easing: 'linear' },
   },
   marks,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 

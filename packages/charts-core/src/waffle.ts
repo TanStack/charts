@@ -265,6 +265,7 @@ function waffle<TDatum>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 

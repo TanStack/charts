@@ -1046,9 +1046,12 @@ describe('public type contracts', () => {
     type InferredDatum = NonNullable<typeof heterogeneousDefinition.__datum>
 
     expectTypeOf<InferredDatum>().toEqualTypeOf<LineRow | BarRow>()
-    expectTypeOf(optionalOptionsMark).toMatchTypeOf<
-      ChartMark<Row, ChartValue, number>
-    >()
+    expectTypeOf<
+      ChartMarkPointX<typeof optionalOptionsMark>
+    >().toEqualTypeOf<ChartValue>()
+    expectTypeOf<
+      ChartMarkPointY<typeof optionalOptionsMark>
+    >().toEqualTypeOf<number>()
     expectTypeOf<ChartMarkX<typeof categoricalMark>>().toEqualTypeOf<string>()
     expectTypeOf<ChartMarkY<typeof categoricalMark>>().toEqualTypeOf<number>()
     expectTypeOf<ChartMarkX<typeof numericMark>>().toEqualTypeOf<number>()

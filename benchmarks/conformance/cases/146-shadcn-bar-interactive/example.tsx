@@ -40,29 +40,32 @@ export function createExampleChart(
           fill: activeSeries === 'desktop' ? shadcnColors[1] : shadcnColors[0],
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
-        axis: {
-          line: false,
-          ticks: {
-            values: [
-              '2024-04-01',
-              '2024-04-11',
-              '2024-04-22',
-              '2024-05-03',
-              '2024-05-14',
-              '2024-05-26',
-              '2024-06-06',
-              '2024-06-17',
-              '2024-06-29',
-            ],
-            size: 0,
-            padding: 10,
-            format: formatMonthDay,
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+          axis: {
+            line: false,
+            ticks: {
+              values: [
+                '2024-04-01',
+                '2024-04-11',
+                '2024-04-22',
+                '2024-05-03',
+                '2024-05-14',
+                '2024-05-26',
+                '2024-06-06',
+                '2024-06-17',
+                '2024-06-29',
+              ],
+              size: 0,
+              padding: 10,
+              format: formatMonthDay,
+            },
           },
         },
+        y: { scale: scaleLinear, grid: true, axis: false },
       },
-      y: { scale: scaleLinear, grid: true, axis: false },
+
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       margin: { top: 5, right: 12, bottom: 25, left: 12 },
       theme: shadcnTheme(),

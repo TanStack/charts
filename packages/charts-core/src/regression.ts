@@ -14,6 +14,8 @@ import type {
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -22,10 +24,8 @@ import type {
 
 type RegressionIndependentValue = number | Date
 
-interface LinearRegressionOptions<
-  TDatum,
-  TRegressionDatum,
-> extends ChartMarkMotionOptions<TRegressionDatum> {
+interface LinearRegressionOptions<TDatum, TRegressionDatum>
+  extends ChartMarkMotionOptions<TRegressionDatum>, CartesianScaleBindings {
   id?: string
   /** Fits one independent regression for each series value. */
   z?: Channel<TDatum, ChartKey | null | undefined>
@@ -277,72 +277,104 @@ export function linearRegressionY<
     NoInfer<TDatum>,
     RegressionIndependentValue | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: LinearRegressionYCallOptions<TDatum, TXChannel>,
+  options: LinearRegressionYCallOptions<TDatum, TXChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   LinearRegressionYDatum<TDatum, IndependentOutput<TDatum, TXChannel>>,
   IndependentOutput<TDatum, TXChannel>,
-  number
+  number,
+  IndependentOutput<TDatum, TXChannel>,
+  number,
+  TXScaleId,
+  TYScaleId
 >
 export function linearRegressionY<TDatum>(
   source: Iterable<TDatum>,
   options: LinearRegressionYOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<
+  any,
+  any,
+  any,
+  any,
+  any,
+  LinearRegressionYOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `linear-regression-y-${markIndex}`
-    const normalized = normalizeRegressionOptions(options, 'linearRegressionY')
-    const independentValues = channelValues(data, options.x, () => undefined)
-    const dependentValues = channelValues(data, options.y, () => undefined)
-    const groups = channelValues(data, options.z, () => null)
-    const semanticRows = linearRegressionRowsY<
-      TDatum,
-      TransformAccessor<TDatum, RegressionIndependentValue | null | undefined>,
-      TransformAccessor<TDatum, number | null | undefined>,
-      TransformAccessor<TDatum, ChartKey | null | undefined>
-    >(data, {
-      x: (_datum, { index }) => independentValues[index],
-      y: (_datum, { index }) => dependentValues[index],
-      z: (_datum, { index }) => groups[index],
-      ...normalized,
-    })
-    const rows = withRegressionMarkKeys(semanticRows)
-    const children = [
-      ...(normalized.ci === 0
-        ? []
-        : [
-            areaY(rows, {
-              id: 'band',
-              x: 'x',
-              y: 'y',
-              y1: 'y1',
-              y2: 'y2',
-              z: 'group',
-              key: 'markKey',
-              fill: options.fill ?? options.stroke,
-              fillOpacity: options.fillOpacity ?? 0.1,
-            }),
-          ]),
-      lineY(rows, {
-        id: 'line',
-        x: 'x',
-        y: 'y',
-        z: 'group',
-        key: 'markKey',
-        stroke: options.stroke,
-        strokeOpacity: options.strokeOpacity,
-        strokeWidth: options.strokeWidth ?? 1.5,
-        strokeDasharray: options.strokeDasharray,
-      }),
-    ]
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `linear-regression-y-${markIndex}`
+      const normalized = normalizeRegressionOptions(
+        options,
+        'linearRegressionY',
+      )
+      const independentValues = channelValues(data, options.x, () => undefined)
+      const dependentValues = channelValues(data, options.y, () => undefined)
+      const groups = channelValues(data, options.z, () => null)
+      const semanticRows = linearRegressionRowsY<
+        TDatum,
+        TransformAccessor<
+          TDatum,
+          RegressionIndependentValue | null | undefined
+        >,
+        TransformAccessor<TDatum, number | null | undefined>,
+        TransformAccessor<TDatum, ChartKey | null | undefined>
+      >(data, {
+        x: (_datum, { index }) => independentValues[index],
+        y: (_datum, { index }) => dependentValues[index],
+        z: (_datum, { index }) => groups[index],
+        ...normalized,
+      })
+      const rows = withRegressionMarkKeys(semanticRows)
+      const children = [
+        ...(normalized.ci === 0
+          ? []
+          : [
+              areaY(rows, {
+                id: 'band',
+                x: 'x',
+                y: 'y',
+                y1: 'y1',
+                y2: 'y2',
+                z: 'group',
+                key: 'markKey',
+                fill: options.fill ?? options.stroke,
+                fillOpacity: options.fillOpacity ?? 0.1,
+                xScale,
+                yScale,
+              }),
+            ]),
+        lineY(rows, {
+          id: 'line',
+          x: 'x',
+          y: 'y',
+          z: 'group',
+          key: 'markKey',
+          stroke: options.stroke,
+          strokeOpacity: options.strokeOpacity,
+          strokeWidth: options.strokeWidth ?? 1.5,
+          strokeDasharray: options.strokeDasharray,
+          xScale,
+          yScale,
+        }),
+      ]
 
-    return initializeCompositeMark(id, children, {
-      motion: options.motion,
-      interactiveChildren: interactiveRegressionChildren,
-    })
-  })
+      return initializeCompositeMark(id, children, {
+        motion: options.motion,
+        interactiveChildren: interactiveRegressionChildren,
+      })
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 /** Fits least-squares x-values from raw observations. */
@@ -352,72 +384,104 @@ export function linearRegressionX<
     NoInfer<TDatum>,
     RegressionIndependentValue | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: LinearRegressionXCallOptions<TDatum, TYChannel>,
+  options: LinearRegressionXCallOptions<TDatum, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   LinearRegressionXDatum<TDatum, IndependentOutput<TDatum, TYChannel>>,
   number,
-  IndependentOutput<TDatum, TYChannel>
+  IndependentOutput<TDatum, TYChannel>,
+  number,
+  IndependentOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function linearRegressionX<TDatum>(
   source: Iterable<TDatum>,
   options: LinearRegressionXOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<
+  any,
+  any,
+  any,
+  any,
+  any,
+  LinearRegressionXOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `linear-regression-x-${markIndex}`
-    const normalized = normalizeRegressionOptions(options, 'linearRegressionX')
-    const independentValues = channelValues(data, options.y, () => undefined)
-    const dependentValues = channelValues(data, options.x, () => undefined)
-    const groups = channelValues(data, options.z, () => null)
-    const semanticRows = linearRegressionRowsX<
-      TDatum,
-      TransformAccessor<TDatum, number | null | undefined>,
-      TransformAccessor<TDatum, RegressionIndependentValue | null | undefined>,
-      TransformAccessor<TDatum, ChartKey | null | undefined>
-    >(data, {
-      x: (_datum, { index }) => dependentValues[index],
-      y: (_datum, { index }) => independentValues[index],
-      z: (_datum, { index }) => groups[index],
-      ...normalized,
-    })
-    const rows = withRegressionMarkKeys(semanticRows)
-    const children = [
-      ...(normalized.ci === 0
-        ? []
-        : [
-            areaX(rows, {
-              id: 'band',
-              x: 'x',
-              x1: 'x1',
-              x2: 'x2',
-              y: 'y',
-              z: 'group',
-              key: 'markKey',
-              fill: options.fill ?? options.stroke,
-              fillOpacity: options.fillOpacity ?? 0.1,
-            }),
-          ]),
-      lineX(rows, {
-        id: 'line',
-        x: 'x',
-        y: 'y',
-        z: 'group',
-        key: 'markKey',
-        stroke: options.stroke,
-        strokeOpacity: options.strokeOpacity,
-        strokeWidth: options.strokeWidth ?? 1.5,
-        strokeDasharray: options.strokeDasharray,
-      }),
-    ]
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `linear-regression-x-${markIndex}`
+      const normalized = normalizeRegressionOptions(
+        options,
+        'linearRegressionX',
+      )
+      const independentValues = channelValues(data, options.y, () => undefined)
+      const dependentValues = channelValues(data, options.x, () => undefined)
+      const groups = channelValues(data, options.z, () => null)
+      const semanticRows = linearRegressionRowsX<
+        TDatum,
+        TransformAccessor<TDatum, number | null | undefined>,
+        TransformAccessor<
+          TDatum,
+          RegressionIndependentValue | null | undefined
+        >,
+        TransformAccessor<TDatum, ChartKey | null | undefined>
+      >(data, {
+        x: (_datum, { index }) => dependentValues[index],
+        y: (_datum, { index }) => independentValues[index],
+        z: (_datum, { index }) => groups[index],
+        ...normalized,
+      })
+      const rows = withRegressionMarkKeys(semanticRows)
+      const children = [
+        ...(normalized.ci === 0
+          ? []
+          : [
+              areaX(rows, {
+                id: 'band',
+                x: 'x',
+                x1: 'x1',
+                x2: 'x2',
+                y: 'y',
+                z: 'group',
+                key: 'markKey',
+                fill: options.fill ?? options.stroke,
+                fillOpacity: options.fillOpacity ?? 0.1,
+                xScale,
+                yScale,
+              }),
+            ]),
+        lineX(rows, {
+          id: 'line',
+          x: 'x',
+          y: 'y',
+          z: 'group',
+          key: 'markKey',
+          stroke: options.stroke,
+          strokeOpacity: options.strokeOpacity,
+          strokeWidth: options.strokeWidth ?? 1.5,
+          strokeDasharray: options.strokeDasharray,
+          xScale,
+          yScale,
+        }),
+      ]
 
-    return initializeCompositeMark(id, children, {
-      motion: options.motion,
-      interactiveChildren: interactiveRegressionChildren,
-    })
-  })
+      return initializeCompositeMark(id, children, {
+        motion: options.motion,
+        interactiveChildren: interactiveRegressionChildren,
+      })
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 type LinearRegressionOwner =

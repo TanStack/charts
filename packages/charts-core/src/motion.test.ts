@@ -1217,6 +1217,61 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('scopes named-axis motion by scale ID while retaining its channel', () => {
+    const contexts: ChartMotionContext[] = []
+    const definition = defineChart({
+      marks: [lineY([0, 1])],
+      margin: 0,
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]), axis: false },
+        y: { scale: scaleLinear().domain([0, 1]), axis: false },
+        alternate: {
+          channel: 'y',
+          side: 'right',
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            motion(context) {
+              contexts.push(context)
+              return {
+                transition: { type: 'tween', duration: 100, easing: 'linear' },
+              }
+            },
+          },
+        },
+      },
+    })
+    const first = createChartScene(definition, { width: 300, height: 200 })
+    const next = createChartScene(definition, { width: 400, height: 200 })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false, resize: true }).mount(
+      container,
+      () => {},
+    )
+    surface.render(first, { ariaLabel: 'Named guide motion' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Named guide motion' })
+
+    expect(
+      container
+        .querySelector('[data-ts-key="alternate-axis"]')
+        ?.getAttribute('data-ts-motion-role'),
+    ).toBe('axis')
+    expect(contexts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          axis: 'y',
+          scaleId: 'alternate',
+          seriesKey: 'axis:alternate',
+        }),
+      ]),
+    )
+
+    frames.run(0)
+    frames.run(100)
+    surface.destroy()
+    frames.restore()
+  })
+
   it('cascades definition motion through marks, axes, ticks, and labels', () => {
     const chartRoles: string[] = []
     const markRoles: string[] = []

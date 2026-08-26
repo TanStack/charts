@@ -17,6 +17,8 @@ import type { AreaXCurve } from './area-x'
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartAreaStateStyle,
   ChartCurve,
   ChartKey,
@@ -32,7 +34,8 @@ export type ViolinPosition = number | Date
 export type ViolinYCurve = AreaXCurve
 export type ViolinXCurve = Pick<ChartCurve, 'area'>
 
-interface ViolinOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+interface ViolinOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   /** Normalized half-envelope width in the inclusive range [0, 1]. */
   width: Channel<TDatum, number | null | undefined>
@@ -120,18 +123,27 @@ export function violinY<
     NoInfer<TDatum>,
     ViolinPosition | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: ViolinYCallOptions<TDatum, TXChannel, TYChannel>,
+  options: ViolinYCallOptions<TDatum, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   CategoryOutput<TDatum, TXChannel>,
-  PositionOutput<TDatum, TYChannel>
+  PositionOutput<TDatum, TYChannel>,
+  CategoryOutput<TDatum, TXChannel>,
+  PositionOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function violinY<TDatum>(
   source: Iterable<TDatum>,
   options: ViolinYOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, ViolinYOptions<TDatum>> {
   return violin(source, options, options.y, options.x, options.curve, 'y')
 }
 
@@ -143,18 +155,27 @@ export function violinX<
     ViolinPosition | null | undefined
   >,
   const TYChannel extends Channel<NoInfer<TDatum>, ChartKey | null | undefined>,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: ViolinXCallOptions<TDatum, TXChannel, TYChannel>,
+  options: ViolinXCallOptions<TDatum, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   PositionOutput<TDatum, TXChannel>,
-  CategoryOutput<TDatum, TYChannel>
+  CategoryOutput<TDatum, TYChannel>,
+  PositionOutput<TDatum, TXChannel>,
+  CategoryOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function violinX<TDatum>(
   source: Iterable<TDatum>,
   options: ViolinXOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, ViolinXOptions<TDatum>> {
   return violin(source, options, options.x, options.y, options.curve, 'x')
 }
 
@@ -165,214 +186,222 @@ function violin<TDatum>(
   category: Channel<TDatum, ChartKey | null | undefined>,
   curve: ViolinXCurve | ViolinYCurve | undefined,
   orientation: 'x' | 'y',
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, ViolinOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
   const span = options.span ?? 0.8
   if (!isFiniteNumber(span) || span <= 0) {
     throw new TypeError('violin: span must be a positive finite number')
   }
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `violin-${orientation}-${markIndex}`
-    const positionValues = channelValues(data, position, () => undefined)
-    const categoryValues = channelValues(data, category, () => undefined)
-    const widths = channelValues(data, options.width, () => undefined)
-    widths.forEach((width, index) => {
-      if (!isFiniteNumber(width)) return
-      if (width < 0 || width > 1) {
-        throw new TypeError(
-          `violin: width must be between 0 and 1; received ${width} at index ${index}`,
-        )
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `violin-${orientation}-${markIndex}`
+      const positionValues = channelValues(data, position, () => undefined)
+      const categoryValues = channelValues(data, category, () => undefined)
+      const widths = channelValues(data, options.width, () => undefined)
+      widths.forEach((width, index) => {
+        if (!isFiniteNumber(width)) return
+        if (width < 0 || width > 1) {
+          throw new TypeError(
+            `violin: width must be between 0 and 1; received ${width} at index ${index}`,
+          )
+        }
+      })
+      const categoryKeys = categoryValues.map((value) =>
+        isChartKey(value) ? value : null,
+      )
+      const colorValues =
+        options.color === undefined
+          ? categoryKeys
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: categoryKeys,
+        candidates: [positionValues],
+        markId: id,
+        warningIdentity: options,
+      })
+
+      return {
+        id,
+        states: markStates(data, options.states),
+        channels:
+          orientation === 'y'
+            ? {
+                x: {
+                  scale: xScale,
+                  values: categoryValues.filter(isChartKey),
+                },
+                y: {
+                  scale: yScale,
+                  values: positionValues.filter(isViolinPosition),
+                },
+                color: {
+                  scale: 'color',
+                  values: colorValues.filter(isChartKey),
+                },
+              }
+            : {
+                x: {
+                  scale: xScale,
+                  values: positionValues.filter(isViolinPosition),
+                },
+                y: {
+                  scale: yScale,
+                  values: categoryValues.filter(isChartKey),
+                },
+                color: {
+                  scale: 'color',
+                  values: colorValues.filter(isChartKey),
+                },
+              },
+        render: ({ chart, scales, color: resolveColor }) => {
+          const categoryScale =
+            orientation === 'y' ? scales[xScale]! : scales[yScale]!
+          if (!isResolvedCategoryScale(categoryScale)) {
+            throw new TypeError(
+              `violin${orientation.toUpperCase()}: the category axis requires a band or point scale`,
+            )
+          }
+          const positionScale =
+            orientation === 'y' ? scales[yScale] : scales[xScale]
+          if (!positionScale) {
+            throw new TypeError(
+              `violin${orientation.toUpperCase()}: the profile axis scale is required`,
+            )
+          }
+          const plotSpan = orientation === 'y' ? chart.width : chart.height
+          const step = resolvedCategoryStep(categoryScale, plotSpan, span)
+          const areas: SceneArea[] = []
+          const points: ChartPoint<TDatum>[] = []
+
+          for (const { key: group, indexes } of groupedIndexes(categoryKeys)) {
+            const firstIndex = indexes.find((index) =>
+              isChartKey(categoryValues[index]),
+            )
+            if (firstIndex === undefined) continue
+            const categoryValue = categoryValues[firstIndex]!
+            const baseline = categoryScale.map(categoryValue)
+            if (!Number.isFinite(baseline)) continue
+            const datum = data[firstIndex]!
+            const fallback = resolveColor(colorValues[firstIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
+              datum,
+              firstIndex,
+              data,
+              fallback,
+            )
+            const stroke =
+              options.stroke === null
+                ? undefined
+                : visualValue(options.stroke, datum, firstIndex, data, fallback)
+            let positive: (readonly [number, number])[] = []
+            let negative: (readonly [number, number])[] = []
+            let segmentPoints: ChartPoint<TDatum>[] = []
+            let segmentIndex = 0
+
+            const flush = () => {
+              if (!positive.length) return
+              const reversedNegative = [...negative].reverse()
+              const path = violinPath(curve, orientation, positive, negative)
+              areas.push({
+                kind: 'area',
+                key: `${id}:${valueKey(group)}:segment:${segmentIndex}`,
+                points: [...positive, ...reversedNegative],
+                ...(path ? { path } : {}),
+                interaction: {
+                  points: segmentPoints,
+                  affinity: orientation,
+                },
+                style: {
+                  fill,
+                  fillOpacity: options.fillOpacity ?? 0.5,
+                  stroke,
+                  strokeOpacity: options.strokeOpacity,
+                  strokeWidth: options.strokeWidth ?? 1.5,
+                  strokeDasharray: options.strokeDasharray,
+                },
+              })
+              points.push(...segmentPoints)
+              positive = []
+              negative = []
+              segmentPoints = []
+              segmentIndex += 1
+            }
+
+            for (const index of indexes) {
+              const positionValue = positionValues[index]
+              const nextCategory = categoryValues[index]
+              const width = widths[index]
+              if (
+                !isViolinPosition(positionValue) ||
+                !isChartKey(nextCategory) ||
+                !isFiniteNumber(width)
+              ) {
+                flush()
+                continue
+              }
+              const positionPixel = positionScale.map(positionValue)
+              const nextBaseline = categoryScale.map(nextCategory)
+              if (
+                !Number.isFinite(positionPixel) ||
+                !Number.isFinite(nextBaseline)
+              ) {
+                flush()
+                continue
+              }
+              const halfWidth = (width * span * step) / 2
+              const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
+              const x = orientation === 'y' ? nextBaseline : positionPixel
+              const y = orientation === 'y' ? positionPixel : nextBaseline
+              const point: ChartPoint<TDatum> = {
+                key,
+                markId: id,
+                group,
+                groupLabel: String(nextCategory),
+                datum: data[index]!,
+                datumIndex: index,
+                xValue: orientation === 'y' ? nextCategory : positionValue,
+                yValue: orientation === 'y' ? positionValue : nextCategory,
+                x,
+                y,
+                color: fill,
+              }
+              positive.push(
+                orientation === 'y'
+                  ? [nextBaseline + halfWidth, positionPixel]
+                  : [positionPixel, nextBaseline - halfWidth],
+              )
+              negative.push(
+                orientation === 'y'
+                  ? [nextBaseline - halfWidth, positionPixel]
+                  : [positionPixel, nextBaseline + halfWidth],
+              )
+              segmentPoints.push(point)
+            }
+            flush()
+          }
+
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: `ts-chart__area ts-chart__violin ts-chart__violin-${orientation}`,
+                ariaHidden: true,
+                children: areas,
+              },
+            ],
+            points,
+          }
+        },
       }
-    })
-    const categoryKeys = categoryValues.map((value) =>
-      isChartKey(value) ? value : null,
-    )
-    const colorValues =
-      options.color === undefined
-        ? categoryKeys
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: categoryKeys,
-      candidates: [positionValues],
-      markId: id,
-      warningIdentity: options,
-    })
-
-    return {
-      id,
-      states: markStates(data, options.states),
-      channels:
-        orientation === 'y'
-          ? {
-              x: {
-                scale: 'x',
-                values: categoryValues.filter(isChartKey),
-              },
-              y: {
-                scale: 'y',
-                values: positionValues.filter(isViolinPosition),
-              },
-              color: {
-                scale: 'color',
-                values: colorValues.filter(isChartKey),
-              },
-            }
-          : {
-              x: {
-                scale: 'x',
-                values: positionValues.filter(isViolinPosition),
-              },
-              y: {
-                scale: 'y',
-                values: categoryValues.filter(isChartKey),
-              },
-              color: {
-                scale: 'color',
-                values: colorValues.filter(isChartKey),
-              },
-            },
-      render: ({ chart, scales, color: resolveColor }) => {
-        const categoryScale = orientation === 'y' ? scales.x : scales.y
-        if (!isResolvedCategoryScale(categoryScale)) {
-          throw new TypeError(
-            `violin${orientation.toUpperCase()}: the category axis requires a band or point scale`,
-          )
-        }
-        const positionScale = orientation === 'y' ? scales.y : scales.x
-        if (!positionScale) {
-          throw new TypeError(
-            `violin${orientation.toUpperCase()}: the profile axis scale is required`,
-          )
-        }
-        const plotSpan = orientation === 'y' ? chart.width : chart.height
-        const step = resolvedCategoryStep(categoryScale, plotSpan, span)
-        const areas: SceneArea[] = []
-        const points: ChartPoint<TDatum>[] = []
-
-        for (const { key: group, indexes } of groupedIndexes(categoryKeys)) {
-          const firstIndex = indexes.find((index) =>
-            isChartKey(categoryValues[index]),
-          )
-          if (firstIndex === undefined) continue
-          const categoryValue = categoryValues[firstIndex]!
-          const baseline = categoryScale.map(categoryValue)
-          if (!Number.isFinite(baseline)) continue
-          const datum = data[firstIndex]!
-          const fallback = resolveColor(colorValues[firstIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            firstIndex,
-            data,
-            fallback,
-          )
-          const stroke =
-            options.stroke === null
-              ? undefined
-              : visualValue(options.stroke, datum, firstIndex, data, fallback)
-          let positive: (readonly [number, number])[] = []
-          let negative: (readonly [number, number])[] = []
-          let segmentPoints: ChartPoint<TDatum>[] = []
-          let segmentIndex = 0
-
-          const flush = () => {
-            if (!positive.length) return
-            const reversedNegative = [...negative].reverse()
-            const path = violinPath(curve, orientation, positive, negative)
-            areas.push({
-              kind: 'area',
-              key: `${id}:${valueKey(group)}:segment:${segmentIndex}`,
-              points: [...positive, ...reversedNegative],
-              ...(path ? { path } : {}),
-              interaction: {
-                points: segmentPoints,
-                affinity: orientation,
-              },
-              style: {
-                fill,
-                fillOpacity: options.fillOpacity ?? 0.5,
-                stroke,
-                strokeOpacity: options.strokeOpacity,
-                strokeWidth: options.strokeWidth ?? 1.5,
-                strokeDasharray: options.strokeDasharray,
-              },
-            })
-            points.push(...segmentPoints)
-            positive = []
-            negative = []
-            segmentPoints = []
-            segmentIndex += 1
-          }
-
-          for (const index of indexes) {
-            const positionValue = positionValues[index]
-            const nextCategory = categoryValues[index]
-            const width = widths[index]
-            if (
-              !isViolinPosition(positionValue) ||
-              !isChartKey(nextCategory) ||
-              !isFiniteNumber(width)
-            ) {
-              flush()
-              continue
-            }
-            const positionPixel = positionScale.map(positionValue)
-            const nextBaseline = categoryScale.map(nextCategory)
-            if (
-              !Number.isFinite(positionPixel) ||
-              !Number.isFinite(nextBaseline)
-            ) {
-              flush()
-              continue
-            }
-            const halfWidth = (width * span * step) / 2
-            const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
-            const x = orientation === 'y' ? nextBaseline : positionPixel
-            const y = orientation === 'y' ? positionPixel : nextBaseline
-            const point: ChartPoint<TDatum> = {
-              key,
-              markId: id,
-              group,
-              groupLabel: String(nextCategory),
-              datum: data[index]!,
-              datumIndex: index,
-              xValue: orientation === 'y' ? nextCategory : positionValue,
-              yValue: orientation === 'y' ? positionValue : nextCategory,
-              x,
-              y,
-              color: fill,
-            }
-            positive.push(
-              orientation === 'y'
-                ? [nextBaseline + halfWidth, positionPixel]
-                : [positionPixel, nextBaseline - halfWidth],
-            )
-            negative.push(
-              orientation === 'y'
-                ? [nextBaseline - halfWidth, positionPixel]
-                : [positionPixel, nextBaseline + halfWidth],
-            )
-            segmentPoints.push(point)
-          }
-          flush()
-        }
-
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: `ts-chart__area ts-chart__violin ts-chart__violin-${orientation}`,
-              ariaHidden: true,
-              children: areas,
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function isViolinPosition(value: unknown): value is ViolinPosition {

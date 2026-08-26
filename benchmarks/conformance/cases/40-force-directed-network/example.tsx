@@ -72,12 +72,15 @@ export const createExampleChart = (input: ChartOptions) => {
               }),
             ]),
       ],
-      x: {
-        scale: scaleLinear().domain(graph.xDomain),
+      scales: {
+        x: {
+          scale: scaleLinear().domain(graph.xDomain),
+        },
+        y: {
+          scale: scaleLinear().domain(graph.yDomain),
+        },
       },
-      y: {
-        scale: scaleLinear().domain(graph.yDomain),
-      },
+
       guides: false,
       color: {
         range: colors,

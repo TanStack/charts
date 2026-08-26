@@ -35,11 +35,14 @@ export function createExampleChart() {
         polar({
           startAngle: rechartsPolarAngle(0),
           endAngle: rechartsPolarAngle(180),
-          angle: { scale: scaleLinear().domain([0, 1260]) },
-          radius: {
-            scale: scaleBand<string>().domain(['visitors']),
-            range: [80, 110],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 1260]) },
+            radius: {
+              scale: scaleBand<string>().domain(['visitors']),
+              range: [80, 110],
+            },
           },
+
           marks: [
             radialBarAngle(rows, {
               id: 'stacked-values',
@@ -57,6 +60,10 @@ export function createExampleChart() {
         }),
         radialCenterLabels('1,830', 24, -16, 4),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       margin: 0,
     },
@@ -82,8 +89,11 @@ function radialCenterLabels(
   labelDy: number,
 ) {
   return polar({
-    angle: { scale: scaleLinear().domain([0, 1]) },
-    radius: { scale: scaleLinear().domain([0, 1]) },
+    scales: {
+      angle: { scale: scaleLinear().domain([0, 1]) },
+      radius: { scale: scaleLinear().domain([0, 1]) },
+    },
+
     marks: [
       radialText([{ id: 'total', angle: 0, radius: 0, text: total }], {
         id: `radial-total-${total}`,
