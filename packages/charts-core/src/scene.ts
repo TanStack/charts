@@ -1501,9 +1501,12 @@ function createAxes(
       children.push(candidate.label)
     }
 
-    const labelText = axisLabelText(presentation)
+    const axisLabel = presentation?.label
+    const labelText =
+      typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
     if (!labelText) return
-    const labelOffset = axisLabelOffset(presentation)
+    const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
+    const labelOffset = labelOptions?.offset ?? 'auto'
     const explicitOffset = labelOffset !== 'auto'
     const label: SceneLabel = {
       kind: 'label',
@@ -1515,9 +1518,13 @@ function createAxes(
       text: labelText,
       anchor: 'middle',
       baseline: bottom && !explicitOffset ? 'hanging' : 'auto',
-      fontSize: width < 360 ? 10 : 11,
-      fontWeight: 600,
-      style: { fill: theme.foreground, fillOpacity: 0.76 },
+      fontSize: labelOptions?.fontSize ?? (width < 360 ? 10 : 11),
+      fontWeight: labelOptions?.fontWeight ?? 600,
+      style: {
+        fill: labelOptions?.fill ?? theme.foreground,
+        fillOpacity: labelOptions?.opacity === undefined ? 0.76 : undefined,
+        opacity: labelOptions?.opacity,
+      },
     }
     includeOutward(measureSceneLabelBounds(label, measureText))
     children.push(label)
@@ -1594,8 +1601,11 @@ function createAxes(
       children.push(candidate.label)
     }
 
-    const labelText = axisLabelText(presentation)
+    const axisLabel = presentation?.label
+    const labelText =
+      typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
     if (!labelText) return
+    const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
     const label: SceneLabel = {
       kind: 'label',
       key: `${guide.id}-label`,
@@ -1605,11 +1615,15 @@ function createAxes(
       anchor: 'middle',
       baseline: 'middle',
       rotate: right ? 90 : -90,
-      fontSize: 11,
-      fontWeight: 600,
-      style: { fill: theme.foreground, fillOpacity: 0.76 },
+      fontSize: labelOptions?.fontSize ?? 11,
+      fontWeight: labelOptions?.fontWeight ?? 600,
+      style: {
+        fill: labelOptions?.fill ?? theme.foreground,
+        fillOpacity: labelOptions?.opacity === undefined ? 0.76 : undefined,
+        opacity: labelOptions?.opacity,
+      },
     }
-    const labelOffset = axisLabelOffset(presentation)
+    const labelOffset = labelOptions?.offset ?? 'auto'
     if (labelOffset !== 'auto') {
       label.x = axisX + direction * Math.max(0, finiteMargin(labelOffset))
     } else {
@@ -1674,20 +1688,6 @@ function tickLabelPresentation(
 ): false | ChartAxisTickLabelOptions {
   if (axis?.ticks === false || axis?.tickLabels === false) return false
   return axis?.tickLabels ?? {}
-}
-
-function axisLabelText(
-  axis: ChartAxisPresentationOptions | undefined,
-): string | undefined {
-  return typeof axis?.label === 'string' ? axis.label : axis?.label?.text
-}
-
-function axisLabelOffset(
-  axis: ChartAxisPresentationOptions | undefined,
-): number | 'auto' {
-  return typeof axis?.label === 'object'
-    ? (axis.label.offset ?? 'auto')
-    : 'auto'
 }
 
 interface TickLabelCandidate {

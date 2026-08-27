@@ -37,6 +37,11 @@ import type { ChartScene, SceneNode } from './types'
 interface FakeCanvasContext {
   operations: string[]
   gradientStops: Array<[number, string]>
+  textPaints: Array<{
+    text: string
+    globalAlpha: number
+    font: string
+  }>
   context: CanvasRenderingContext2D
 }
 
@@ -985,6 +990,49 @@ describe('Canvas renderer', () => {
     expect(focus.operations).toEqual(
       expect.arrayContaining([expect.stringMatching(/^stroke:.*:2\.5:1$/)]),
     )
+    surface.destroy()
+  })
+
+  it('paints Cartesian axis-title typography and paint', () => {
+    const definition = defineChart({
+      marks: [lineY([1, 2, 3])],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]), axis: false },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          axis: {
+            ticks: false,
+            label: {
+              text: 'Revenue',
+              fontSize: 17,
+              fontWeight: 650,
+              fill: '#0f766e',
+              opacity: 0.6,
+            },
+          },
+        },
+      },
+    })
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const generated = createChartScene(definition, {
+      width: 480,
+      height: 260,
+    })
+    const title = generated.nodes
+      .flatMap((node) => (node.kind === 'group' ? node.children : [node]))
+      .find((node) => node.key === 'y-label')
+
+    expect(title?.style?.fill).toBe('#0f766e')
+    surface.render(generated, { ariaLabel: 'Revenue chart' })
+
+    const painted = contexts
+      .get(surface.sceneCanvas)
+      ?.textPaints.find(({ text }) => text === 'Revenue')
+    expect(painted).toMatchObject({
+      globalAlpha: 0.6,
+    })
+    expect(painted?.font).toMatch(/650 17px/)
     surface.destroy()
   })
 
@@ -2432,6 +2480,7 @@ function renderOptions(): ChartSurfaceRenderOptions {
 function fakeContext(): FakeCanvasContext {
   const operations: string[] = []
   const gradientStops: Array<[number, string]> = []
+  const textPaints: FakeCanvasContext['textPaints'] = []
   let fillStyle: string | CanvasGradient = '#000000'
   let strokeStyle: string | CanvasGradient = '#000000'
   let lineWidth = 1
@@ -2480,8 +2529,14 @@ function fakeContext(): FakeCanvasContext {
         `stroke:${String(strokeStyle)}:${lineWidth}:${globalAlpha}`,
       )
     },
-    fillText: (text: string, x: number, y: number) =>
-      operations.push(`fillText:${text},${x},${y}`),
+    fillText: (text: string, x: number, y: number) => {
+      operations.push(`fillText:${text},${x},${y}`)
+      textPaints.push({
+        text,
+        globalAlpha,
+        font: context.font,
+      })
+    },
     strokeText: (text: string, x: number, y: number) =>
       operations.push(`strokeText:${text},${x},${y}`),
     setLineDash: (values: number[]) =>
@@ -2537,5 +2592,5 @@ function fakeContext(): FakeCanvasContext {
     textAlign: 'left',
     textBaseline: 'alphabetic',
   } as unknown as CanvasRenderingContext2D
-  return { operations, gradientStops, context }
+  return { operations, gradientStops, textPaints, context }
 }
