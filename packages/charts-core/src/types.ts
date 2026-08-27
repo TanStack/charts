@@ -581,6 +581,15 @@ export interface ChartTheme {
   palette: readonly string[]
 }
 
+/** Paint and geometry for the built-in primary-point focus indicator. */
+export interface ChartFocusRingOptions {
+  radius?: number
+  fill?: string
+  /** Defaults to the focused point's resolved color. */
+  stroke?: string
+  strokeWidth?: number
+}
+
 export interface ChartGradientStop {
   offset: number
   color: string
@@ -879,8 +888,8 @@ export interface ChartDefinitionOptions<
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  /** Shows the built-in primary-point focus ring. Defaults to true. */
-  focusRing?: boolean
+  /** Shows and optionally styles the built-in primary-point focus ring. Defaults to true. */
+  focusRing?: boolean | ChartFocusRingOptions
   /** Optional app-owned cursor shared by one or more chart definitions. */
   cursor?: ChartCursorBinding<
     NoInfer<TDatum>,
@@ -913,7 +922,7 @@ export interface ChartDefinitionOptions<
 interface StoredChartDefinitionOptions<TTooltipHost extends string = string> {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
-  focusRing?: boolean
+  focusRing?: boolean | ChartFocusRingOptions
   cursor?: ChartCursorBinding<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   svgAnimation?: boolean | ChartAnimationOptions

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "d3177faf65fca2414b431c195a003cf9afdceb8ae2f1b37e4f8cb81578dc8293",
+  "sourceHash": "88bdc0f135db9eb8322fa2d6f20b2fc0cffde41467724d5a876348c50b39e29c",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -166,8 +166,8 @@
     },
     {
       "id": "34-pointer-tooltip",
-      "sha256": "e4ff132c905893b271d67984435b50620b267447c8081c2ac9f96295d99482e5",
-      "bytes": 15814
+      "sha256": "dd7351252b3594da5e6fe0ac0b3a7bc0e748764fd588cd2c1432fd2ff1f9b218",
+      "bytes": 15780
     },
     {
       "id": "35-grouped-tooltip",

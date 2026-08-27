@@ -878,6 +878,54 @@ describe('React Native Chart', () => {
     }
   })
 
+  it('paints configured focus-ring geometry and paint in native SVG', async () => {
+    const configuredDefinition = defineChart({
+      marks: [lineY(data, { x: 'month', y: 'value' })],
+      scales: {
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      },
+      guides: false,
+      focusRing: {
+        radius: 4,
+        strokeWidth: 1.5,
+        fill: '#ffffff',
+        stroke: '#0f172a',
+      },
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      await React.act(() => {
+        root.render(
+          <Chart
+            definition={configuredDefinition}
+            accessibilityLabel="Configured focus ring"
+            width={320}
+            height={180}
+          />,
+        )
+      })
+      await React.act(() => {
+        container.firstElementChild?.dispatchEvent(
+          new FocusEvent('focusin', { bubbles: true }),
+        )
+      })
+
+      const ring = container.querySelector('circle')
+      expect(ring?.getAttribute('r')).toBe('4')
+      expect(ring?.getAttribute('fill')).toBe('#ffffff')
+      expect(ring?.getAttribute('stroke')).toBe('#0f172a')
+      expect(ring?.getAttribute('stroke-width')).toBe('1.5')
+      expect(
+        container.firstElementChild?.getAttribute('data-accessibility-role'),
+      ).toBe('adjustable')
+    } finally {
+      await React.act(() => root.unmount())
+    }
+  })
+
   it('renders a clipped two-axis crosshair, marker, labels, and focus fill', async () => {
     const crosshairDefinition = defineChart({
       marks: [

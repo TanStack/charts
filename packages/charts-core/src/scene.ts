@@ -27,6 +27,7 @@ import type {
   ResponsiveChartConfig,
   ChartColorLegend,
   ChartFocusFilter,
+  ChartFocusRingOptions,
   ChartLayoutOptions,
   ChartMargin,
   ChartMark,
@@ -529,6 +530,8 @@ function createChartSceneWithScaleResolver<
     definition.focusRing !== false &&
     points.length
   ) {
+    const { radius = 5, ...focusRingStyle } = (definition.focusRing ||
+      {}) as ChartFocusRingOptions
     for (const entry of defaultFocusEntries) {
       nodes.push({
         kind: 'group',
@@ -547,11 +550,12 @@ function createChartSceneWithScaleResolver<
           key: point.key,
           x: point.x,
           y: point.y,
-          radius: 5,
+          radius,
           style: {
             fill: 'var(--ts-chart-focus-fill, Canvas)',
             stroke: point.color,
             strokeWidth: 2.5,
+            ...focusRingStyle,
           },
         })),
       })

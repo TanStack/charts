@@ -988,6 +988,51 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
+  it('paints configured focus-ring geometry and paint on Canvas', () => {
+    const chart = createChartScene(
+      defineChart({
+        marks: [dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' })],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
+        guides: false,
+        focusRing: {
+          radius: 4,
+          strokeWidth: 1.5,
+          fill: '#ffffff',
+          stroke: '#0f172a',
+        },
+      }),
+      { width: 200, height: 120 },
+    )
+    const point = chart.points[0]
+    if (!point) throw new Error('Expected a focus point')
+    const container = document.createElement('div')
+    document.body.append(container)
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(chart, renderOptions())
+    const focus = contexts.get(surface.focusCanvas)
+    if (!focus) throw new Error('Expected a Canvas focus layer')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(focus.operations).toContain(`arc:${point.x},${point.y},4`)
+    expect(focus.operations).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^stroke:.*:1\.5:1$/)]),
+    )
+    expect(focus.operations).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^fill:.*(?:ffffff|255)/)]),
+    )
+    surface.destroy()
+    container.remove()
+  })
+
   it('snaps retargeting focus candidates without adding interaction points', () => {
     const container = document.createElement('div')
     const surface = createCanvasChartRenderer().mount(container, () => {})
@@ -2466,14 +2511,16 @@ function fakeContext(): FakeCanvasContext {
       operations.push(`translate:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
     clip: () => operations.push('clip'),
-    fill: (pathOrRule?: Path2D | CanvasFillRule) =>
+    fill: (pathOrRule?: Path2D | CanvasFillRule) => {
       operations.push(
         pathOrRule === 'evenodd'
           ? 'fill:evenodd'
           : pathOrRule
             ? 'fill:path'
             : 'fill:current',
-      ),
+      )
+      operations.push(`fill:${String(fillStyle)}:${globalAlpha}`)
+    },
     stroke: (path?: Path2D) => {
       operations.push(path ? 'stroke:path' : 'stroke:current')
       operations.push(
