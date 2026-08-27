@@ -178,7 +178,15 @@ describe('facets', () => {
             },
             y: {
               scale: scaleLinear().domain([0, 6]),
-              axis: { label: 'Vertical' },
+              axis: {
+                label: {
+                  text: 'Vertical',
+                  fontSize: 18,
+                  fontWeight: 700,
+                  fill: '#7c3aed',
+                  opacity: 0.5,
+                },
+              },
             },
           },
         }),
@@ -201,6 +209,10 @@ describe('facets', () => {
     )
     const aPoints = scene.points.filter((point) => point.datum.group === 'A')
     const bPoints = scene.points.filter((point) => point.datum.group === 'B')
+    const yTitle = nodes.find(
+      (node): node is Extract<SceneNode, { kind: 'label' }> =>
+        node.kind === 'label' && node.key === 'facet-0:y-label',
+    )
 
     expect(yAxes).toHaveLength(1)
     expect(xAxes).toHaveLength(2)
@@ -210,6 +222,11 @@ describe('facets', () => {
     expect(nodes.filter((node) => node.key === 'facet-0:y-label')).toHaveLength(
       1,
     )
+    expect(yTitle).toMatchObject({
+      fontSize: 18,
+      fontWeight: 700,
+      style: { fill: '#7c3aed', opacity: 0.5 },
+    })
     expect(yLabels).toHaveLength(
       new Set(yLabels.map((node) => (node.kind === 'label' ? node.text : '')))
         .size,

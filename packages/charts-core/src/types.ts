@@ -381,6 +381,11 @@ export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
 export interface ChartAxisLabelOptions {
   text: string
   offset?: number | 'auto'
+  fontSize?: number
+  fontWeight?: number
+  /** Text fill color. Defaults to the theme foreground. */
+  fill?: string
+  opacity?: number
   motion?: ChartMotionDefinition
 }
 

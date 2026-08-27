@@ -37,6 +37,10 @@ gzip ceiling. The locked shared-host entries record the reviewed integration
 cost, while noninteractive consumers retain only the small scene-compiler
 portion of that contract.
 
+Cartesian axis-title styling is also part of the shared scene contract. Its
+static SVG fixture adds no retained modules over the ordinary line consumer
+and keeps authored title options under a 0.25 KiB incremental gzip ceiling.
+
 Continuous viewports and the controlled interaction controller are also part
 of the default scene and host contracts. Default static SVG consumes scene
 clips and gradients. Their reviewed shared-path cost is recorded in the locked

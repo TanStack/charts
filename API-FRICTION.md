@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## Triage rule
 
@@ -332,6 +332,7 @@ Each entry records:
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 | F-295 | Line marks forced round endpoints                              | API                   | resolved   |
+| F-296 | Axis titles could not carry authored typography or paint       | API                   | resolved   |
 
 ## Findings
 
@@ -8523,3 +8524,28 @@ Each entry records:
   supported values. Scene, SVG, Canvas, motion, export, and React Native tests
   preserve configured values. The Rewardo chart can use `lineCap: 'butt'` on
   its existing pink `lineY` mark.
+
+### F-296 - Axis titles could not carry authored typography or paint
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: migrating Rewardo dashboard charts to TanStack Charts on the
+  `experimental-tanstack-charts` branch and issue #93
+- Friction: tick labels accepted font size, weight, and opacity, but
+  `axis.label` accepted only text, offset, and motion. Rewardo's 14-pixel chart
+  typography and foreground treatment therefore required a generated-node CSS
+  override that Canvas and React Native could not honor.
+- Decision: extend the existing axis-label object with `fontSize`,
+  `fontWeight`, `fill`, and `opacity`. Keep the string form and every omitted
+  object field on the existing defaults. Resolve the options into the shared
+  scene label so automatic guide measurement and every renderer use one
+  contract.
+- Verification: scene layout covers configured typography, paint, default
+  compatibility, automatic margins, and shared facet titles. SVG, Canvas,
+  React Native, and motion tests exercise the same public definition. The
+  composed weather catalog case uses independently styled titles on three y
+  axes without renderer callbacks or CSS selectors. The reviewed shared-path
+  delta is 169 minified bytes and 29 gzip bytes for the locked line plus static
+  SVG consumer. A dedicated styled-title fixture adds 0.06 KiB gzip and no
+  retained modules over that consumer.

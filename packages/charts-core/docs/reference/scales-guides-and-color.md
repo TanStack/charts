@@ -228,7 +228,17 @@ interface ChartAxisOptions<TValue extends ChartValue> {
                     keep?: readonly TValue[]
                   }
             }
-        label?: string | { text: string; offset?: number | 'auto' }
+        label?:
+          | string
+          | {
+              text: string
+              offset?: number | 'auto'
+              fontSize?: number
+              fontWeight?: number
+              fill?: string
+              opacity?: number
+              motion?: ChartMotionDefinition
+            }
       }
 }
 ```
@@ -348,6 +358,30 @@ const x = {
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
 anchor changes snap.
+
+Axis titles keep the compact string form when only text is needed. Use the
+object form for title typography, paint, offset, or motion:
+
+```ts
+const y = {
+  scale: scaleLinear,
+  axis: {
+    label: {
+      text: 'Average order value (PLN)',
+      fontSize: 14,
+      fontWeight: 500,
+      fill: '#363636',
+      opacity: 0.9,
+    },
+  },
+}
+```
+
+`fill` sets the text color. Omitted presentation fields retain the existing
+title defaults: responsive 10 or 11 pixel sizing on x, 11 pixels on y, weight
+600, theme foreground fill, and 0.76 fill opacity. Configured font size and
+weight participate in text measurement, automatic offsets, and automatic
+margins for SVG, Canvas, and native rendering.
 
 ## Named scales and multiple axes
 

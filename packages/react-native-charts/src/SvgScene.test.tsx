@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { createChartScene, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
 import { NativeChartFocusOverlay } from './FocusOverlay'
 import { resolveNativePaint } from './paint'
@@ -70,6 +72,43 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('font-stretch="condensed"')
     expect(markup).toContain('letter-spacing="1"')
     expect(markup).toContain('font-size="24"')
+  })
+
+  it('renders Cartesian axis-title typography and paint', () => {
+    const generated = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            axis: {
+              ticks: false,
+              label: {
+                text: 'Revenue',
+                fontSize: 17,
+                fontWeight: 650,
+                fill: '#0f766e',
+                opacity: 0.6,
+              },
+            },
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={generated}
+        color="#111827"
+        idPrefix="native-axis-title"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toMatch(
+      /<text[^>]*fill="#0f766e"[^>]*opacity="0\.6"[^>]*font-size="17" font-weight="650"[^>]*>Revenue<\/text>/,
+    )
   })
 
   it('makes the two unsupported SVG joins an explicit lossy mapping', () => {
