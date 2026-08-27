@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## Triage rule
 
@@ -331,6 +331,7 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
+| F-295 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 
 ## Findings
 
@@ -8505,3 +8506,23 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+
+### F-295 - Categorical legend styling required a replacement renderer
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: replacing Rewardo's line, bar, mixed, and pie chart legends
+- Friction: changing label typography, series-colored labels, spacing, or
+  indicators required a complete `ChartColorLegend`. The application repeated
+  color-domain resolution, estimated text widths, wrapped rows, centered each
+  row, and reserved legend height itself.
+- Decision: let `colorLegend()` configure categorical item labels and
+  indicators while retaining chart-owned measurement and wrapping. Keep the
+  equal-column layout as the default. Compact start and center layouts measure
+  formatted labels from their configured typography. Indicator callbacks receive
+  resolved color-scale items and a measured bounds box.
+- Verification: focused layout, measurement, renderer, type, and mixed-mark
+  tests cover compact wrapping, per-series symbols, resolved label paint, and
+  custom scene indicators. The composed and pie catalog examples use the
+  built-in legend instead of application-owned layout.

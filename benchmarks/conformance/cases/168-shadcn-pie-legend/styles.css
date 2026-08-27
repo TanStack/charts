@@ -90,25 +90,6 @@
 .sc-chart > * {
   display: block;
 }
-.sc-chart-footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
-  color: var(--muted-foreground);
-  font-size: 12px;
-}
-.sc-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.sc-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-}
 .sc-centered {
   justify-content: center;
   align-items: center;

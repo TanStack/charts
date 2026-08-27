@@ -105,6 +105,7 @@ Options:
 
 - `label`: optional legend title;
 - `itemWidth`: minimum categorical item width;
+- `items`: categorical item layout, indicator, and label presentation;
 - `width`: preferred quantitative legend width;
 - `format`: numeric boundary formatter;
 - `placement`: `top` by default or `bottom`.
@@ -112,6 +113,37 @@ Options:
 The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
+
+The default categorical legend stretches equal-width item columns. Use
+`items.justify: 'start'` or `'center'` for compact rows measured from the
+formatted labels. The built-in legend keeps responsive wrapping when you
+change typography, spacing, label paint, or indicator shape:
+
+```ts
+colorLegend<'Revenue' | 'Orders'>({
+  placement: 'bottom',
+  items: {
+    justify: 'center',
+    gap: 20,
+    rowGap: 10,
+    indicator: {
+      width: 20,
+      height: 14,
+      gap: 6,
+      shape: (series) => (series === 'Revenue' ? 'line-dot' : 'square'),
+    },
+    label: {
+      fontSize: 14,
+      fill: (_series, { color }) => color,
+    },
+  },
+})
+```
+
+`dot`, `square`, `line`, and `line-dot` are renderer-neutral scene shapes.
+For another symbol, provide `items.indicator.render`; its context contains the
+resolved item color and the indicator bounds. The legend still owns row
+measurement and wrapping.
 
 ```ts group=automatic-color-legend env=charts file=/src/chart.ts entry
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'

@@ -488,7 +488,10 @@ subpath. Cartesian, radial, and composite option types include the shared
 - `TextOptions`, `TextAnchor`
 - `FrameOptions`
 - `FacetOptions`, `FacetAxes`, `FacetChartContext`
-- `ColorLegendOptions`, `ColorGradientLegendOptions`
+- `ColorLegendOptions`, `ColorLegendItemOptions`, `ColorLegendItemValue`,
+  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorShape`,
+  `ColorLegendLabelOptions`,
+  `ColorGradientLegendOptions`
 
 Their public fields and defaults are owned by the
 [mark reference](./index.md#mark-reference) and

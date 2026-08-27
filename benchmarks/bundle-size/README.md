@@ -92,6 +92,12 @@ The interactive categorical legend fixture adds 2.53 KiB gzip over the DOM
 host and has a 2.6 KiB incremental cap. Both retain only their declared exact
 subpath modules.
 
+The static categorical legend item fixture measures centered flow layout,
+custom label paint, and mixed square and line-point indicators through the
+exact `@tanstack/charts/legend` subpath. Its retained-input gate rejects the
+interactive legend, host renderers, interactions, and D3 geometry.
+The complete feature fixture has a 2.7 KiB gzip ceiling.
+
 Update the universal baseline only after reviewing why a shared path changed:
 
 ```sh

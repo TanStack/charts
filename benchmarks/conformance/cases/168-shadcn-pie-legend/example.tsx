@@ -1,4 +1,4 @@
-import { defineChart, type ChartPoint } from '@tanstack/charts'
+import { colorLegend, defineChart, type ChartPoint } from '@tanstack/charts'
 import { focusGroupAngle, pie, polar, radialArc } from '@tanstack/charts/polar'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -40,7 +40,29 @@ export function createExampleChart() {
         x: null,
         y: null,
       },
-      color: { domain: browserNames, range: shadcnColors },
+      color: {
+        domain: browserNames,
+        range: shadcnColors,
+        legend: colorLegend<string>({
+          placement: 'bottom',
+          items: {
+            justify: 'center',
+            gap: 12,
+            rowGap: 8,
+            indicator: {
+              shape: 'square',
+              width: 12,
+              height: 12,
+              gap: 6,
+            },
+            label: {
+              format: titleCase,
+              fontSize: 12,
+              fill: (_browser, { color }) => color,
+            },
+          },
+        }),
+      },
       margin: 0,
     },
     {
@@ -121,26 +143,8 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               ariaLabel="Pie Chart - Legend"
             />
           </div>
-          <div className="sc-chart-footer">
-            <Legend />
-          </div>
         </div>
       </article>
     </div>
-  )
-}
-function Legend() {
-  return (
-    <>
-      {['chrome', 'safari', 'firefox', 'edge', 'other'].map((label, index) => (
-        <span className="sc-legend-item" key={label}>
-          <span
-            className="sc-legend-dot"
-            style={{ background: shadcnColors[index] }}
-          />
-          {titleCase(label)}
-        </span>
-      ))}
-    </>
   )
 }

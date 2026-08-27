@@ -590,6 +590,12 @@ import { colorLegend } from '@tanstack/charts/legend'
 colorLegend({
   label: 'Package',
   itemWidth: 120,
+  items: {
+    justify: 'center',
+    gap: 16,
+    indicator: { shape: 'square' },
+    label: { fontSize: 12 },
+  },
   width: 240,
   format: (value) => value.toFixed(0),
   placement: 'bottom',
@@ -597,20 +603,95 @@ colorLegend({
 ```
 
 ```ts
-interface ColorLegendOptions {
+interface ColorLegendOptions<TValue extends ChartKey = ChartKey> {
   label?: string
   itemWidth?: number
+  items?: ColorLegendItemOptions<TValue>
   width?: number
   format?: (value: number) => string
   placement?: 'top' | 'bottom'
 }
+
+interface ColorLegendItemOptions<TValue extends ChartKey> {
+  justify?: 'start' | 'center' | 'stretch'
+  gap?: number
+  rowGap?: number
+  indicator?: ColorLegendIndicatorOptions<TValue>
+  label?: ColorLegendLabelOptions<TValue>
+}
+
+interface ColorLegendIndicatorOptions<TValue extends ChartKey> {
+  shape?:
+    | 'dot'
+    | 'square'
+    | 'line'
+    | 'line-dot'
+    | ((
+        value: TValue,
+        context: ColorLegendItemContext,
+      ) => 'dot' | 'square' | 'line' | 'line-dot')
+  width?: number
+  height?: number
+  gap?: number
+  render?: (
+    value: TValue,
+    context: ColorLegendIndicatorRenderContext,
+  ) => SceneNode | readonly SceneNode[]
+}
+
+interface ColorLegendLabelOptions<TValue extends ChartKey> {
+  format?: (value: TValue) => string
+  fontSize?: number
+  fontWeight?: number
+  fill?: string | ((value: TValue, context: ColorLegendItemContext) => string)
+  fillOpacity?: number
+}
 ```
 
 `itemWidth` defaults to `110` and is clamped to a minimum of `64`. Items wrap
-to responsive columns for categorical scales. Continuous scales render a
-sampled ramp. Quantize, quantile, and threshold scales render exact range bins
-at their resolved thresholds. `width` and `format` configure the quantitative
-forms. `placement` defaults to `top`.
+to responsive columns for categorical scales. The default `stretch`
+justification retains those equal-width columns. `start` and `center` measure
+each formatted label from its configured font size and weight, wrap compact
+rows, and use `gap` between items. `rowGap` adds vertical space to every item
+row.
+
+`indicator.shape` selects a dot, square, line, or line with an outlined point.
+`width`, `height`, and `gap` reserve the indicator box and its distance from
+the label. A custom `render` callback receives the categorical value plus
+`{ bounds, color, index, label }`; the built-in legend still measures, wraps,
+and positions the item. Label `fill` callbacks receive the same resolved color
+and formatted label.
+
+Continuous scales render a sampled ramp. Quantize, quantile, and threshold
+scales render exact range bins at their resolved thresholds. `width` and the
+top-level `format` configure the quantitative forms. `placement` defaults to
+`top`.
+
+This mixed-series legend uses only the resolved color scale for labels and
+paint:
+
+```ts
+type Series = 'Revenue' | 'Orders'
+
+colorLegend<Series>({
+  placement: 'bottom',
+  items: {
+    justify: 'center',
+    gap: 20,
+    rowGap: 10,
+    indicator: {
+      width: 20,
+      height: 14,
+      gap: 6,
+      shape: (series) => (series === 'Revenue' ? 'line-dot' : 'square'),
+    },
+    label: {
+      fontSize: 14,
+      fill: (_series, { color }) => color,
+    },
+  },
+})
+```
 
 ## Gradient legend
 

@@ -13,7 +13,8 @@
     "left axis and stacked right axes",
     "daily observations",
     "monotone curves",
-    "resolved maximum bar thickness"
+    "resolved maximum bar thickness",
+    "mixed-mark color legend"
   ],
   "geometry": [
     { "role": "area", "count": 1 },

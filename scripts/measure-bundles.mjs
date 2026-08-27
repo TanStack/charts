@@ -124,6 +124,7 @@ const retainedInputGroups = {
   interactiveLegend: [
     /(?:^|\/)packages\/charts-core\/src\/interactive-legend\.ts$/u,
   ],
+  staticLegend: [/(?:^|\/)packages\/charts-core\/src\/legend-static\.ts$/u],
   keyedSelection: [/(?:^|\/)packages\/charts-core\/src\/selection\.ts$/u],
   decorativeMarkPublic: [
     /(?:^|\/)packages\/charts-core\/src\/mark-decorative\.ts$/u,
@@ -1363,6 +1364,25 @@ const entries = [
           'markSceneFilter',
           'scenePointOwnership',
           'categoricalLegendLayout',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Categorical legend item presentation',
+    'benchmarks/entries/charts-categorical-legend-items.ts',
+    2.7,
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['staticLegend', 'categoricalLegendLayout'],
+        forbid: [
+          'interactiveLegend',
+          'interactionSignal',
+          'markSceneFilter',
+          'keyedSelection',
+          'platformRendererRuntime',
+          'd3GeometryRuntime',
         ],
       },
     },

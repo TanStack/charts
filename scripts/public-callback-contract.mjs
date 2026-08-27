@@ -174,6 +174,15 @@ const callbackInventory = {
       '@tanstack/charts:src/legend-static.ts:ColorGradientLegendOptions',
       'format',
     ],
+    [
+      '@tanstack/charts:src/legend-static.ts:ColorLegendIndicatorOptions',
+      'render shape',
+    ],
+    ['@tanstack/charts:src/legend-static.ts:ColorLegendItemValue', '$call'],
+    [
+      '@tanstack/charts:src/legend-static.ts:ColorLegendLabelOptions',
+      'fill format',
+    ],
     ['@tanstack/charts:src/legend-static.ts:ColorLegendOptions', 'format'],
     ['@tanstack/charts:src/line.ts:LineOptions', 'color key stroke z'],
     ['@tanstack/charts:src/line.ts:LineXOptions', 'x y'],
