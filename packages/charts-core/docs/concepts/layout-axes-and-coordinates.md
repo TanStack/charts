@@ -152,20 +152,27 @@ const x = {
       format: (date: Date) => monthFormatter.format(date),
     },
     tickLabels: { rotate: -30 },
-    label: { text: 'Month', offset: 12 },
+    label: {
+      text: 'Month',
+      offset: 12,
+      fontSize: 13,
+      fontWeight: 600,
+      fill: '#334155',
+      opacity: 0.9,
+    },
   },
 }
 ```
 
-| Option            | Purpose                                              |
-| ----------------- | ---------------------------------------------------- |
-| `axis`            | Configure the axis or hide it with `false`           |
-| `axis.line`       | Show or hide the baseline                            |
-| `axis.ticks`      | Configure candidates, stubs, padding, and formatting |
-| `axis.tickLabels` | Configure label rotation and collision thinning      |
-| `axis.label`      | Configure the axis title and offset                  |
-| `grid`            | Draw grid lines at semantic candidates               |
-| `reverse`         | Reverse the responsive range                         |
+| Option            | Purpose                                                  |
+| ----------------- | -------------------------------------------------------- |
+| `axis`            | Configure the axis or hide it with `false`               |
+| `axis.line`       | Show or hide the baseline                                |
+| `axis.ticks`      | Configure candidates, stubs, padding, and formatting     |
+| `axis.tickLabels` | Configure label rotation and collision thinning          |
+| `axis.label`      | Configure axis title text, typography, paint, and offset |
+| `grid`            | Draw grid lines at semantic candidates                   |
+| `reverse`         | Reverse the responsive range                             |
 
 The y grid defaults to visible and the x grid defaults to hidden when `grid` is omitted.
 

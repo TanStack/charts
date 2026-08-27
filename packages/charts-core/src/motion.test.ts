@@ -2106,6 +2106,72 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('applies axis-title motion to configured typography and opacity', () => {
+    const definition = (
+      fontSize: number,
+      fontWeight: number,
+      opacity: number,
+    ) =>
+      defineChart({
+        marks: [lineY([0, 1])],
+        margin: 0,
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: false,
+              label: {
+                text: 'Revenue',
+                fontSize,
+                fontWeight,
+                opacity,
+                motion: {
+                  transition: {
+                    type: 'tween',
+                    duration: 100,
+                    easing: 'linear',
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    const first = createChartScene(definition(10, 400, 0.4), {
+      width: 300,
+      height: 200,
+    })
+    const next = createChartScene(definition(20, 700, 0.8), {
+      width: 300,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Axis title typography' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Axis title typography' })
+    const label = container.querySelector<SVGTextElement>(
+      '[data-ts-key="y-label"]',
+    )
+
+    expect(label?.getAttribute('font-size')).toBe('10')
+    expect(label?.getAttribute('font-weight')).toBe('400')
+    expect(label?.getAttribute('opacity')).toBe('0.4')
+    frames.run(0)
+    frames.run(50)
+    expect(Number(label?.getAttribute('font-size'))).toBeCloseTo(15)
+    expect(Number(label?.getAttribute('font-weight'))).toBeCloseTo(550)
+    expect(Number(label?.getAttribute('opacity'))).toBeCloseTo(0.6)
+    frames.run(100)
+    expect(label?.getAttribute('font-size')).toBe('20')
+    expect(label?.getAttribute('font-weight')).toBe('700')
+    expect(label?.getAttribute('opacity')).toBe('0.8')
+
+    surface.destroy()
+    frames.restore()
+  })
+
   it('reports radial-bar paths with the semantic bar motion role', () => {
     const roles: string[] = []
     const definition = (value: number) =>

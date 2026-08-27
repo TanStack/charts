@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "d3177faf65fca2414b431c195a003cf9afdceb8ae2f1b37e4f8cb81578dc8293",
+  "sourceHash": "e8fb24cd96d6fbfbb8327eb97ab506f7f60fd4870baa986a725da75d736c87b9",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -306,8 +306,8 @@
     },
     {
       "id": "70-composed-chart",
-      "sha256": "642139631cae72ef76ff81e148e6d40e2ff83225a11b582a32878d0f166beae7",
-      "bytes": 14436
+      "sha256": "9d79b12f0fbcf14f8bfa4115ea0ee75147fe0d9fa27ca2ec20a0f29a50857fc0",
+      "bytes": 14480
     },
     {
       "id": "71-recharts-population-pyramid",
