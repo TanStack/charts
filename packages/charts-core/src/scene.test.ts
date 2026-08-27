@@ -263,6 +263,26 @@ describe('native mark and channel scene', () => {
         strokeWidth: 2.5,
       },
     ])
+
+    const undefinedFields = createChartScene(
+      defineChart({
+        ...spec,
+        focusRing: {
+          radius: undefined,
+          fill: undefined,
+          stroke: undefined,
+          strokeWidth: undefined,
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+    const undefinedDots = flatten(undefinedFields.nodes).filter(
+      (node) => node.kind === 'dot' && node.radius === 5,
+    )
+
+    expect(undefinedDots.map((node) => node.style)).toEqual(
+      booleanDots.map((node) => node.style),
+    )
     expectTypeOf(scene).toMatchTypeOf<ChartScene<(typeof rows)[number]>>()
   })
 
