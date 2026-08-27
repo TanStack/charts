@@ -36,6 +36,37 @@ Authored `whenFocused` marks compose with the primary-point ring. Set
 definition `focusRing: false` only when authored focus geometry replaces that
 indicator.
 
+### Built-in focus ring
+
+Pass an options object to change the built-in ring without targeting generated
+SVG:
+
+```ts
+const definition = defineChart({
+  marks,
+  scales,
+  focusRing: {
+    radius: 4,
+    strokeWidth: 2,
+    fill: '#ffffff',
+  },
+})
+```
+
+| Option        | Default                                   |
+| ------------- | ----------------------------------------- |
+| `radius`      | `5`                                       |
+| `strokeWidth` | `2.5`                                     |
+| `fill`        | `var(--ts-chart-focus-fill, Canvas)`      |
+| `stroke`      | The focused point's resolved series color |
+
+The object form still enables the ring. `true` keeps every default and `false`
+removes only the built-in ring. The definition compiles this presentation into
+ordinary scene dots, so SVG, Canvas, React Native, facets, polar marks, custom
+mark renderers, and the optional motion renderer share the same values. The
+ring remains hidden from the accessibility tree; the chart root continues to
+report focus and values.
+
 Use `focusGuideX` or `focusGuideY` from `@tanstack/charts/focus/guide` for
 datum-bound rules, markers, and axis labels. Their active geometry uses stable
 structural keys, so the optional motion renderer can animate rapid focus

@@ -116,7 +116,7 @@ The definition owns these chart controls:
 | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                        |
 | `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables chart-owned focus and its generated layer |
-| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                             |
+| `focusRing`        | `true`                    | Generated primary-point indicator; an options object styles it and `false` keeps authored focus layers only   |
 | `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                        |
 | `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                                |
 | `svgAnimation`     | `false`                   | Keyed attribute, enter, and exit animation                                                                    |

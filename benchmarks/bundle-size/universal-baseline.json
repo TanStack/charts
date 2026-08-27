@@ -3,44 +3,44 @@
   "policy": "Exact minified and gzip output for entries that optional features must not affect. Review every change before updating.",
   "bundles": {
     "D3-scale line scene": {
-      "bytes": 50813,
-      "gzip": 19070
+      "bytes": 50878,
+      "gzip": 19095
     },
     "D3-scale line + static SVG": {
-      "bytes": 55544,
-      "gzip": 20776
+      "bytes": 55612,
+      "gzip": 20808
     },
     "Representative marks": {
-      "bytes": 75617,
-      "gzip": 27582
+      "bytes": 75683,
+      "gzip": 27615
     },
     "TanStack DOM host": {
-      "bytes": 74947,
-      "gzip": 26053
+      "bytes": 75026,
+      "gzip": 26087
     },
     "React adapter": {
-      "bytes": 77130,
-      "gzip": 26831
+      "bytes": 77209,
+      "gzip": 26866
     },
     "React line consumer": {
-      "bytes": 100766,
-      "gzip": 36222
+      "bytes": 100839,
+      "gzip": 36251
     },
     "Compact-scale line scene": {
-      "bytes": 33265,
-      "gzip": 11935
+      "bytes": 33336,
+      "gzip": 11969
     },
     "React compact-scale line consumer": {
-      "bytes": 83266,
-      "gzip": 29144
+      "bytes": 83345,
+      "gzip": 29173
     },
     "Custom-scale line scene": {
-      "bytes": 31447,
-      "gzip": 11193
+      "bytes": 31518,
+      "gzip": 11229
     },
     "D3 linear-scale line scene": {
-      "bytes": 50745,
-      "gzip": 19032
+      "bytes": 50810,
+      "gzip": 19057
     }
   }
 }

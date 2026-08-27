@@ -331,6 +331,7 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
+| F-295 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
 
 ## Findings
 
@@ -8505,3 +8506,24 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+
+### F-295 - Focus ring paint required generated SVG selectors
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: Rewardo's TanStack Charts migration and issue #94
+- Friction: the built-in primary-point ring exposed only a boolean definition
+  option. Rewardo had to target `.ts-chart__focus-layer--default circle` to
+  reduce the fixed 5-pixel radius, tying application styling to generated SVG
+  structure and leaving Canvas and React Native without the same control.
+- Decision: extend `focusRing` to accept a reusable `ChartFocusRingOptions`
+  object with radius, stroke width, fill, and stroke. Preserve `true`, `false`,
+  and every existing default. An omitted stroke keeps each point's resolved
+  series color.
+- Verification: scene, SVG, Canvas, and React Native tests cover configured
+  geometry and paint, series-color fallback, keyboard focus, and hidden
+  accessibility presentation. The catalog's pointer-tooltip case uses the
+  object form, and the reference docs record the complete contract. Locked
+  universal consumers add 65-79 minified bytes and 25-36 gzip bytes; the
+  reviewed bundle baselines and budgets pass.

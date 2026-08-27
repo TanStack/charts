@@ -173,6 +173,119 @@ describe('native mark and channel scene', () => {
     )
   })
 
+  it('configures the built-in focus ring while retaining point-color defaults', () => {
+    const rows = [
+      { id: 'alpha', series: 'Alpha', x: 0, y: 1 },
+      { id: 'beta', series: 'Beta', x: 1, y: 2 },
+    ]
+    const spec = {
+      marks: [
+        lineY(rows, {
+          id: 'series',
+          x: 'x',
+          y: 'y',
+          z: 'series',
+          key: 'id',
+        }),
+      ],
+      color: {
+        domain: ['Alpha', 'Beta'],
+        range: ['#2563eb', '#f97316'],
+      },
+      theme: { background: '#f8fafc', foreground: '#0f172a' },
+      ...linearAxes([0, 1], [0, 2]),
+    } as const
+    const scene = createChartScene(
+      defineChart({
+        ...spec,
+        focusRing: {
+          radius: 4,
+          strokeWidth: 1.5,
+          fill: '#ffffff',
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+    const focusDots = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'dot' &&
+        scene.points.some((point) => point.key === node.key) &&
+        node.radius === 4,
+    )
+
+    expect(scene.theme).toMatchObject({
+      background: '#f8fafc',
+      foreground: '#0f172a',
+    })
+    expect(focusDots.map((node) => node.style)).toEqual([
+      { fill: '#ffffff', stroke: '#2563eb', strokeWidth: 1.5 },
+      { fill: '#ffffff', stroke: '#f97316', strokeWidth: 1.5 },
+    ])
+
+    const fixedStroke = createChartScene(
+      defineChart({
+        ...spec,
+        focusRing: {
+          radius: 3,
+          strokeWidth: 2,
+          fill: '#ffffff',
+          stroke: '#0f172a',
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+    const fixedDots = flatten(fixedStroke.nodes).filter(
+      (node) => node.kind === 'dot' && node.radius === 3,
+    )
+
+    expect(fixedDots.map((node) => node.style)).toEqual([
+      { fill: '#ffffff', stroke: '#0f172a', strokeWidth: 2 },
+      { fill: '#ffffff', stroke: '#0f172a', strokeWidth: 2 },
+    ])
+
+    const booleanRing = createChartScene(
+      defineChart({ ...spec, focusRing: true }),
+      { width: 320, height: 180 },
+    )
+    const booleanDots = flatten(booleanRing.nodes).filter(
+      (node) => node.kind === 'dot' && node.radius === 5,
+    )
+
+    expect(booleanDots.map((node) => node.style)).toEqual([
+      {
+        fill: 'var(--ts-chart-focus-fill, Canvas)',
+        stroke: '#2563eb',
+        strokeWidth: 2.5,
+      },
+      {
+        fill: 'var(--ts-chart-focus-fill, Canvas)',
+        stroke: '#f97316',
+        strokeWidth: 2.5,
+      },
+    ])
+
+    const undefinedFields = createChartScene(
+      defineChart({
+        ...spec,
+        focusRing: {
+          radius: undefined,
+          fill: undefined,
+          stroke: undefined,
+          strokeWidth: undefined,
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+    const undefinedDots = flatten(undefinedFields.nodes).filter(
+      (node) => node.kind === 'dot' && node.radius === 5,
+    )
+
+    expect(undefinedDots.map((node) => node.style)).toEqual(
+      booleanDots.map((node) => node.style),
+    )
+    expectTypeOf(scene).toMatchTypeOf<ChartScene<(typeof rows)[number]>>()
+  })
+
   it('rejects duplicate control ids', () => {
     const behavior = { id: 'duplicate', resolve: () => ({}) }
 
