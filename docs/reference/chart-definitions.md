@@ -103,6 +103,11 @@ does not return or own them.
 belong to both static and responsive definitions. Hosts and framework adapters
 do not override them.
 
+`focusRing` accepts `true`, `false`, or a `ChartFocusRingOptions` object with
+`radius`, `strokeWidth`, `fill`, and `stroke`. Omitted fields keep the built-in
+defaults, including the focused point's resolved color for `stroke`. See
+[Focus and interaction](./focus-and-interaction.md#built-in-focus-ring).
+
 Each `ChartControl` resolves after final scales and plot bounds exist. It can
 provide renderer-neutral fallback nodes and an optional host control. Control
 IDs and host-control identities must be unique. Browser hosts remove a

@@ -333,6 +333,7 @@ Each entry records:
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 | F-295 | Line marks forced round endpoints                              | API                   | resolved   |
 | F-296 | Axis titles could not carry authored typography or paint       | API                   | resolved   |
+| F-297 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
 
 ## Findings
 
@@ -8549,3 +8550,24 @@ Each entry records:
   delta is 169 minified bytes and 29 gzip bytes for the locked line plus static
   SVG consumer. A dedicated styled-title fixture adds 0.06 KiB gzip and no
   retained modules over that consumer.
+
+### F-297 - Focus ring paint required generated SVG selectors
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: Rewardo's TanStack Charts migration and issue #94
+- Friction: the built-in primary-point ring exposed only a boolean definition
+  option. Rewardo had to target `.ts-chart__focus-layer--default circle` to
+  reduce the fixed 5-pixel radius, tying application styling to generated SVG
+  structure and leaving Canvas and React Native without the same control.
+- Decision: extend `focusRing` to accept a reusable `ChartFocusRingOptions`
+  object with radius, stroke width, fill, and stroke. Preserve `true`, `false`,
+  and every existing default. An omitted stroke keeps each point's resolved
+  series color.
+- Verification: scene, SVG, Canvas, and React Native tests cover configured
+  geometry and paint, series-color fallback, keyboard focus, and hidden
+  accessibility presentation. The catalog's pointer-tooltip case uses the
+  object form, and the reference docs record the complete contract. Locked
+  universal consumers add 37-48 minified bytes and 14-28 gzip bytes; the
+  reviewed bundle baselines and budgets pass.

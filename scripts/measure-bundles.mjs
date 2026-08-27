@@ -671,7 +671,7 @@ const entries = [
   budgeted(
     'D3-scale lineX + static SVG',
     'benchmarks/entries/charts-line-x-svg.ts',
-    20.24,
+    20.25,
   ),
   budgeted(
     'D3-scale UTC line + static SVG',
@@ -691,7 +691,7 @@ const entries = [
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    20.2,
+    20.21,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
@@ -1178,7 +1178,7 @@ const entries = [
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    16.56,
+    16.57,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(

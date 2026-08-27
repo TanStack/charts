@@ -9,6 +9,62 @@ import { renderChartSvgWithResources } from './svg-resources'
 import { createSvgChartRenderer, svgChartRenderer } from './svg-surface'
 
 describe('SVG surface coordinates', () => {
+  it('paints a configured focus ring without exposing it to accessibility', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([{ x: 1, y: 2 }], {
+            id: 'trend',
+            x: 'x',
+            y: 'y',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
+        guides: false,
+        focusRing: {
+          radius: 4,
+          strokeWidth: 1.5,
+          fill: '#ffffff',
+          stroke: '#0f172a',
+        },
+      }),
+      { width: 200, height: 120 },
+    )
+    const point = scene.points[0]
+    if (!point) throw new Error('Expected a focus point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Configured focus ring' })
+    const svg = container.querySelector('svg')
+    const layer = container.querySelector<SVGGElement>(
+      '.ts-chart__focus-layer--default',
+    )
+    const ring = layer?.querySelector('circle')
+
+    expect(svg?.getAttribute('role')).toBe('img')
+    expect(svg?.getAttribute('aria-label')).toBe('Configured focus ring')
+    expect(layer?.getAttribute('aria-hidden')).toBe('true')
+    expect(layer?.getAttribute('visibility')).toBe('hidden')
+    expect(ring?.getAttribute('r')).toBe('4')
+    expect(ring?.getAttribute('fill')).toBe('#ffffff')
+    expect(ring?.getAttribute('stroke')).toBe('#0f172a')
+    expect(ring?.getAttribute('stroke-width')).toBe('1.5')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'keyboard',
+      pinned: false,
+    })
+
+    expect(layer?.getAttribute('visibility')).toBe('visible')
+    expect(ring?.getAttribute('visibility')).toBe('visible')
+    surface.destroy()
+  })
+
   it('mounts viewport content with the fixed authored plot clip', () => {
     const scene = createChartScene(
       defineChart({
