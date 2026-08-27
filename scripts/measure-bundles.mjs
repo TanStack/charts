@@ -998,7 +998,7 @@ const entries = [
     'Difference mark + static SVG',
     'benchmarks/entries/charts-difference-svg.ts',
     'D3-scale line + static SVG',
-    7.03,
+    7.06,
     {
       inputBoundary: {
         require: [
