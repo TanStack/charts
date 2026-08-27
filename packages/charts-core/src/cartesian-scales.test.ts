@@ -4,7 +4,7 @@ import { crosshair } from './crosshair'
 import { lineY } from './line'
 import { ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
-import type { SceneNode, SceneRule } from './types'
+import type { ChartTextMeasurer, SceneNode, SceneRule } from './types'
 
 describe('Cartesian scale registry', () => {
   it('binds marks to named y scales and stacks axes sharing the right side', () => {
@@ -65,6 +65,16 @@ describe('Cartesian scale registry', () => {
       scene.chart.y + scene.chart.height,
     )
     expect(rules.find((node) => node.key === 'y-axis')?.x1).toBe(scene.chart.x)
+  })
+
+  it('reserves the gutter for a right-side axis reading right to left', () => {
+    const leftToRight = createRightAxisScene('ltr')
+    const rightToLeft = createRightAxisScene('rtl')
+
+    expect(rightToLeft.chart.width).toBeCloseTo(leftToRight.chart.width)
+    expect(
+      sceneWidth - rightToLeft.chart.x - rightToLeft.chart.width,
+    ).toBeGreaterThanOrEqual(labelWidth)
   })
 
   it('keeps named grids off by default', () => {
@@ -272,6 +282,39 @@ function createNamedScaleScene() {
       },
     }),
     { width: 640, height: 320 },
+  )
+}
+
+const sceneWidth = 480
+const labelWidth = 40
+
+/**
+ * Reports the painted box the way a DOM text measurer does: `anchor` resolves
+ * against inline base direction, so the box sits on the opposite side of the
+ * origin once the container reads right to left.
+ */
+const mirroredText: ChartTextMeasurer = (_text, options) => {
+  const leftwardAnchor = options.direction === 'rtl' ? 'start' : 'end'
+  const x =
+    options.anchor === 'middle'
+      ? -labelWidth / 2
+      : options.anchor === leftwardAnchor
+        ? -labelWidth
+        : 0
+  return { x, y: -8, width: labelWidth, height: 10 }
+}
+
+function createRightAxisScene(direction: 'ltr' | 'rtl') {
+  return createChartScene(
+    defineChart({
+      marks: [lineY([1, 2, 3])],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 3]), side: 'right' },
+      },
+    }),
+    { width: sceneWidth, height: 260 },
+    { measureText: mirroredText, typography: { direction } },
   )
 }
 
