@@ -106,6 +106,24 @@ describe('guide layout', () => {
     })
   })
 
+  it('mirrors the estimated painted box in a right-to-left direction', () => {
+    const options = {
+      ...typography,
+      direction: 'rtl' as const,
+      fontSize: 10,
+      fontWeight: 400,
+      baseline: 'auto' as const,
+    }
+    const start = estimateSceneText('Margin 100', {
+      ...options,
+      anchor: 'start',
+    })
+    const end = estimateSceneText('Margin 100', { ...options, anchor: 'end' })
+
+    expect(start.x).toBeCloseTo(-start.width)
+    expect(end.x).toBe(0)
+  })
+
   it('rotates the measured rectangle around the label position', () => {
     const bounds = measureSceneLabelBounds(
       label({

@@ -55,8 +55,16 @@ export function estimateSceneText(
       Math.max(0, Array.from(text).length - 1) * letterSpacing,
   )
   const height = fontSize
+  // `anchor` resolves against inline base direction, so which side of the
+  // origin the painted box occupies mirrors with that direction. The DOM
+  // measurer already reports the mirrored origin; match it here so a host
+  // without one lays out the same chart.
   const x =
-    style.anchor === 'middle' ? -width / 2 : style.anchor === 'end' ? -width : 0
+    style.anchor === 'middle'
+      ? -width / 2
+      : (style.anchor === 'end') === (style.direction !== 'rtl')
+        ? -width
+        : 0
   const y =
     style.baseline === 'middle'
       ? -height / 2
