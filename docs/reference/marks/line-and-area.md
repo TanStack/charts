@@ -55,6 +55,8 @@ function lineY<TDatum>(
 | `strokeOpacity`   | `number`                        | SVG default                    | Stroke opacity                                 |
 | `strokeWidth`     | `number`                        | `2.25`                         | Stroke width                                   |
 | `strokeDasharray` | `string`                        | None                           | SVG dash array                                 |
+| `lineCap`         | `SceneStyle["lineCap"]`         | `"round"`                      | Stroke endpoint shape                          |
+| `lineJoin`        | `SceneStyle["lineJoin"]`        | `"round"`                      | Stroke corner shape                            |
 | `points`          | `boolean`                       | `false`                        | Draws a radius-`2.5` dot at each valid point   |
 | `curve`           | `ChartCurve`                    | Straight segments              | Optional path generator                        |
 | `states`          | `readonly ChartMarkState[]`     | None                           | Focus-driven presentation overrides            |

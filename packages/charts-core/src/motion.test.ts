@@ -28,6 +28,52 @@ const rows = [
 ]
 
 describe('SVG motion', () => {
+  it('applies discrete line cap and join revisions synchronously', () => {
+    const definition = (
+      lineCap: 'butt' | 'round',
+      lineJoin: 'bevel' | 'round',
+    ) =>
+      defineChart({
+        motion: {
+          transition: { type: 'tween', duration: 100, easing: 'linear' },
+        },
+        marks: [
+          lineY(rows, {
+            id: 'series',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            lineCap,
+            lineJoin,
+          }),
+        ],
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
+        guides: false,
+      })
+    const first = createChartScene(definition('round', 'round'), {
+      width: 300,
+      height: 200,
+    })
+    const next = createChartScene(definition('butt', 'bevel'), {
+      width: 300,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Line style motion' })
+    const line = container.querySelector('g.ts-chart__line > path')
+
+    surface.render(next, { ariaLabel: 'Line style motion' })
+
+    expect(container.querySelector('g.ts-chart__line > path')).toBe(line)
+    expect(line?.getAttribute('stroke-linecap')).toBe('butt')
+    expect(line?.getAttribute('stroke-linejoin')).toBe('bevel')
+    surface.destroy()
+  })
+
   it('maps client coordinates through the rendered SVG transform', () => {
     const scene = createChartScene(
       defineChart({
