@@ -77,6 +77,79 @@ afterEach(() => {
 })
 
 describe('Canvas renderer', () => {
+  it('paints authored caps and joins for both line directions', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([4, 9], { lineCap: 'butt', lineJoin: 'bevel' }),
+          lineX([4, 9], { lineCap: 'square', lineJoin: 'miter' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+        guides: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(scene, renderOptions())
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.operations).toEqual(
+      expect.arrayContaining([
+        'lineCap:butt',
+        'lineJoin:bevel',
+        'lineCap:square',
+        'lineJoin:miter',
+      ]),
+    )
+
+    surface.destroy()
+  })
+
+  it('paints round caps and joins by default for both line directions', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([4, 9]), lineX([4, 9])],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+        guides: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(scene, renderOptions())
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(
+      painted.operations.filter((operation) =>
+        operation.startsWith('lineCap:'),
+      ),
+    ).toEqual(['lineCap:round', 'lineCap:round'])
+    expect(
+      painted.operations.filter((operation) =>
+        operation.startsWith('lineJoin:'),
+      ),
+    ).toEqual(['lineJoin:round', 'lineJoin:round'])
+
+    surface.destroy()
+  })
+
   it('composes renderer-tagged marks in source order', () => {
     const data = [
       { id: 'a', category: 'A', value: 3 },

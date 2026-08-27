@@ -18,6 +18,8 @@ describe('optional export', () => {
         defineChart({
           marks: [
             lineY([1, 3, 2], {
+              lineCap: 'butt',
+              lineJoin: 'bevel',
               stroke: 'currentColor',
             }),
           ],
@@ -34,6 +36,8 @@ describe('optional export', () => {
     expect(result).toContain('width="480"')
     expect(result).toContain('height="260"')
     expect(result).toContain('aria-label="Exported chart"')
+    expect(result).toContain('stroke-linecap="butt"')
+    expect(result).toContain('stroke-linejoin="bevel"')
     expect(result).not.toContain('data-ts-focus-layer')
   })
 
