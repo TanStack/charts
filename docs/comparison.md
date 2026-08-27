@@ -12,14 +12,14 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `e4c9fa1` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `2ddcf66` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `e4c9fa1`.
+at page render time. The measured TanStack workspace revision is `2ddcf66`.
 
 ## Capability matrix
 
@@ -106,7 +106,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 
 | Library            | Bundle size                            | React externalized | Evidence                                                   |
 | ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 38.96–45.97 KiB                        |     Not applicable | Controlled suite                                           |
+| TanStack Charts    | 38.96–45.03 KiB                        |     Not applicable | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                  — | External main export                                       |
 | Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
 | Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
