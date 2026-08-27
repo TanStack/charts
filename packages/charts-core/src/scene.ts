@@ -1104,6 +1104,7 @@ function resolveSceneLayout(
       theme,
       width,
       layout.measureText,
+      layout.typography?.direction === 'rtl',
     )
     return {
       margin,
@@ -1362,6 +1363,7 @@ function createAxes(
   theme: ChartTheme,
   width: number,
   measureText?: ChartTextMeasurer,
+  rightToLeft = false,
 ): ResolvedAxes {
   const children: SceneNode[] = []
   const inset = guides.length ? automaticGuideInset : 0
@@ -1476,6 +1478,7 @@ function createAxes(
             width,
             theme,
             measureText,
+            rightToLeft,
           )
     const visibleLabels =
       tickLabels === false
@@ -1578,6 +1581,7 @@ function createAxes(
             width,
             theme,
             measureText,
+            rightToLeft,
           )
     const visibleLabels =
       tickLabels === false ? [] : thinTickLabels(candidates, tickLabels, false)
@@ -1744,6 +1748,7 @@ function createTickLabelCandidates(
   width: number,
   theme: ChartTheme,
   measureText: ChartTextMeasurer | undefined,
+  rightToLeft = false,
 ): TickLabelCandidate[] {
   const defaultFontSize = width < 360 ? 10 : 11
   const positiveSide = guide.side === 'bottom' || guide.side === 'right'
@@ -1762,11 +1767,14 @@ function createTickLabelCandidates(
     const opacity = resolveTickLabelValue(options.opacity, context)
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
+    // A y axis anchors its labels away from the plot, a physical relation,
+    // while `text-anchor` resolves against inline base direction. The two
+    // agree only left to right, so the far side takes `end` once they differ.
     const defaultAnchor =
       guide.channel === 'y'
-        ? positiveSide
-          ? 'start'
-          : 'end'
+        ? positiveSide === rightToLeft
+          ? 'end'
+          : 'start'
         : (rotate ?? 0) < 0
           ? 'end'
           : (rotate ?? 0) > 0
