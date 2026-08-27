@@ -331,6 +331,7 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
+| F-295 | Line marks forced round endpoints                              | API                   | resolved   |
 
 ## Findings
 
@@ -8505,3 +8506,20 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+
+### F-295 - Line marks forced round endpoints
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: migrating Rewardo's composed statistics chart from Recharts
+- Friction: `lineY` and `lineX` exposed stroke width, opacity, dash pattern,
+  and curve options, but hard-coded round caps and joins. Reproducing the
+  previous Recharts line, which inherited SVG's butt cap, required replacing
+  or patching rendered output.
+- Decision: expose `lineCap` and `lineJoin` on the shared line options using
+  the values from `SceneStyle`. Preserve round as the default for both options.
+- Verification: public type tests bind both line APIs to the scene renderer's
+  supported values. Scene, SVG, Canvas, motion, export, and React Native tests
+  preserve configured values. The Rewardo chart can use `lineCap: 'butt'` on
+  its existing pink `lineY` mark.

@@ -37,6 +37,8 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('<clipPath')
     expect(markup).toContain('transform="translate(10 12)"')
     expect(markup).toContain('stroke-dasharray="2 4"')
+    expect(markup).toContain('stroke-linecap="square"')
+    expect(markup).toContain('stroke-linejoin="bevel"')
     expect(markup).toContain('d="M2,4L20,30"')
     expect(markup).toContain('d="M0,20L20,0L40,20Z"')
     expect(markup).toContain('d="M0,0C10,20,20,20,30,0"')
@@ -338,7 +340,12 @@ function scene(): ChartScene {
         [2, 4],
         [20, 30],
       ],
-      style: { fill: 'none', stroke: '#abcdef', lineJoin: 'arcs' },
+      style: {
+        fill: 'none',
+        stroke: '#abcdef',
+        lineCap: 'square',
+        lineJoin: 'bevel',
+      },
     },
     {
       kind: 'polyline',

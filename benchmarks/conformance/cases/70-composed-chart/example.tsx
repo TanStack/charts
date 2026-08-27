@@ -41,6 +41,7 @@ export const createExampleChart = (input: ChartOptions) => {
           y: 'temp_min',
           stroke: '#ff7300',
           strokeWidth: 2,
+          lineCap: 'butt',
           curve: monotone,
         }),
         dot(rows, {
