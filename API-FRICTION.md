@@ -8569,5 +8569,5 @@ Each entry records:
   geometry and paint, series-color fallback, keyboard focus, and hidden
   accessibility presentation. The catalog's pointer-tooltip case uses the
   object form, and the reference docs record the complete contract. Locked
-  universal consumers add 37-48 minified bytes and 14-28 gzip bytes; the
+  universal consumers add 65-79 minified bytes and 25-36 gzip bytes; the
   reviewed bundle baselines and budgets pass.
