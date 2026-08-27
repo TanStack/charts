@@ -4,7 +4,6 @@ import {
   resolveCategoricalLegendItems,
 } from './legend-layout-internal'
 import { valueKey } from './scales'
-import { estimateTextWidth } from './text-estimate-internal'
 import type {
   ChartBounds,
   ChartColorLegend,
@@ -59,10 +58,16 @@ export interface ColorLegendItemOptions<TValue extends ChartKey = ChartKey> {
   label?: ColorLegendLabelOptions<TValue>
 }
 
+declare const colorLegendItemsBrand: unique symbol
+
+export interface ColorLegendItems<TValue extends ChartKey = ChartKey> {
+  readonly [colorLegendItemsBrand]: TValue
+}
+
 export interface ColorLegendOptions<TValue extends ChartKey = ChartKey> {
   label?: string
   itemWidth?: number
-  items?: ColorLegendItemOptions<TValue>
+  items?: ColorLegendItems<TValue>
   width?: number
   format?: (value: number) => string
   placement?: ChartLegendPlacement
@@ -76,6 +81,77 @@ export interface ColorGradientLegendOptions {
   placement?: ChartLegendPlacement
 }
 
+type ResolvedColorLegendItems<TValue extends ChartKey> = (
+  context: Parameters<ChartColorLegend['height']>[1],
+  minimumItemWidth: number,
+  labelOffset?: number,
+) => number | readonly SceneNode[]
+
+export function colorLegendItems<TValue extends ChartKey = ChartKey>(
+  options: ColorLegendItemOptions<TValue> = {},
+): ColorLegendItems<TValue> {
+  const items: ResolvedColorLegendItems<TValue> = (
+    context,
+    minimumItemWidth,
+    labelOffset,
+  ) => {
+    const presentation = resolveCategoricalLegendPresentation(
+      options,
+      context,
+      minimumItemWidth,
+    )
+    if (labelOffset === undefined) {
+      return presentation.rows * presentation.rowHeight
+    }
+    const { bounds, theme } = context
+    const children: SceneNode[] = []
+    presentation.items.forEach(({ item, row, x }) => {
+      const y = bounds.y + 10 + labelOffset + row * presentation.rowHeight
+      const indicatorBounds = {
+        x: bounds.x + x,
+        y: y - presentation.indicatorHeight / 2,
+        width: presentation.indicatorWidth,
+        height: presentation.indicatorHeight,
+      }
+      children.push(
+        ...renderCategoricalLegendIndicator(
+          options.indicator,
+          item.value,
+          item.context,
+          indicatorBounds,
+          theme.background,
+        ),
+        {
+          kind: 'label',
+          key: `legend-label:${item.key}`,
+          x:
+            indicatorBounds.x +
+            indicatorBounds.width +
+            presentation.indicatorGap,
+          y,
+          text: item.label,
+          baseline: 'middle',
+          fontSize: presentation.fontSize,
+          fontWeight: presentation.fontWeight,
+          style: {
+            fill: resolveItemValue(
+              options.label?.fill,
+              item.value,
+              item.context,
+              theme.foreground,
+            ),
+            fillOpacity:
+              options.label?.fillOpacity ??
+              (options.label?.fill === undefined ? 0.76 : 1),
+          },
+        } satisfies SceneLabel,
+      )
+    })
+    return children
+  }
+  return items as unknown as ColorLegendItems<TValue>
+}
+
 export function colorLegend<TValue extends ChartKey = ChartKey>(
   options: ColorLegendOptions<TValue> = {},
 ): ChartColorLegend {
@@ -85,6 +161,7 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
     format: options.format,
     placement: options.placement,
   })
+  const items = options.items as ResolvedColorLegendItems<TValue> | undefined
   const minimumItemWidth = Math.max(64, options.itemWidth ?? 110)
   const labelOffset = options.label ? 13 : 0
   return {
@@ -93,12 +170,15 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
       if (isQuantitativeLegend(context.colors.kind)) {
         return gradient.height(itemCount, context)
       }
-      const presentation = resolveCategoricalLegendPresentation(
-        options,
-        context,
+      if (items) {
+        return 18 + labelOffset + (items(context, minimumItemWidth) as number)
+      }
+      const layout = layoutCategoricalLegendItems(
+        itemCount,
+        context.chart.width,
         minimumItemWidth,
       )
-      return 18 + labelOffset + presentation.rows * presentation.rowHeight
+      return 18 + labelOffset + layout.rows * 19
     },
     render(context) {
       if (isContinuousLegend(context.colors.kind)) {
@@ -108,11 +188,6 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         return renderSteppedLegend(options, context)
       }
       const { bounds, theme } = context
-      const presentation = resolveCategoricalLegendPresentation(
-        options,
-        context,
-        minimumItemWidth,
-      )
       const children: SceneNode[] = []
       if (options.label) {
         children.push({
@@ -126,48 +201,19 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
           style: { fill: theme.foreground, fillOpacity: 0.78 },
         })
       }
-      presentation.items.forEach(({ item, row, x }) => {
-        const y = bounds.y + 10 + labelOffset + row * presentation.rowHeight
-        const indicatorBounds = {
-          x: bounds.x + x,
-          y: y - presentation.indicatorHeight / 2,
-          width: presentation.indicatorWidth,
-          height: presentation.indicatorHeight,
-        }
-        children.push(
-          ...renderCategoricalLegendIndicator(
-            options.items?.indicator,
-            item.value,
-            item.context,
-            indicatorBounds,
-            theme.background,
-          ),
-          {
-            kind: 'label',
-            key: `legend-label:${item.key}`,
-            x:
-              indicatorBounds.x +
-              indicatorBounds.width +
-              presentation.indicatorGap,
-            y,
-            text: item.label,
-            baseline: 'middle',
-            fontSize: presentation.fontSize,
-            fontWeight: presentation.fontWeight,
-            style: {
-              fill: resolveItemValue(
-                options.items?.label?.fill,
-                item.value,
-                item.context,
-                theme.foreground,
-              ),
-              fillOpacity:
-                options.items?.label?.fillOpacity ??
-                (options.items?.label?.fill === undefined ? 0.76 : 1),
-            },
-          } satisfies SceneLabel,
-        )
-      })
+      children.push(
+        ...(items
+          ? (items(
+              context,
+              minimumItemWidth,
+              labelOffset,
+            ) as readonly SceneNode[])
+          : renderDefaultCategoricalLegend(
+              context,
+              labelOffset,
+              minimumItemWidth,
+            )),
+      )
 
       return {
         kind: 'group',
@@ -178,6 +224,47 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
       }
     },
   }
+}
+
+function renderDefaultCategoricalLegend(
+  { colors, bounds, theme }: Parameters<ChartColorLegend['render']>[0],
+  labelOffset: number,
+  minimumItemWidth: number,
+): readonly SceneNode[] {
+  const items = resolveCategoricalLegendItems(colors)
+  const layout = layoutCategoricalLegendItems(
+    items.length,
+    bounds.width,
+    minimumItemWidth,
+  )
+  const children: SceneNode[] = []
+  items.forEach((item, index) => {
+    const column = index % layout.columns
+    const row = Math.floor(index / layout.columns)
+    const x = bounds.x + column * layout.itemWidth
+    const y = bounds.y + 10 + labelOffset + row * 19
+    children.push(
+      {
+        kind: 'dot',
+        key: `legend-dot:${item.key}`,
+        x: x + 4,
+        y,
+        radius: 4,
+        style: { fill: item.color },
+      },
+      {
+        kind: 'label',
+        key: `legend-label:${item.key}`,
+        x: x + 13,
+        y,
+        text: item.label,
+        baseline: 'middle',
+        fontSize: 11,
+        style: { fill: theme.foreground, fillOpacity: 0.76 },
+      },
+    )
+  })
+  return children
 }
 
 interface ResolvedCategoricalLegendItem<TValue extends ChartKey> {
@@ -206,19 +293,20 @@ interface CategoricalLegendPresentation<TValue extends ChartKey> {
 }
 
 function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
-  options: ColorLegendOptions<TValue>,
+  options: ColorLegendItemOptions<TValue>,
   context: Parameters<ChartColorLegend['height']>[1],
   minimumItemWidth: number,
 ): CategoricalLegendPresentation<TValue> {
-  const itemOptions = options.items
-  const labelOptions = itemOptions?.label
-  const indicatorOptions = itemOptions?.indicator
+  const labelOptions = options.label
+  const indicatorOptions = options.indicator
   const fontSize = finiteNonnegative(labelOptions?.fontSize, 11)
-  const fontWeight = labelOptions?.fontWeight
+  const fontWeight = Number.isFinite(labelOptions?.fontWeight)
+    ? labelOptions?.fontWeight
+    : undefined
   const indicatorWidth = finiteNonnegative(indicatorOptions?.width, 8)
   const indicatorHeight = finiteNonnegative(indicatorOptions?.height, 8)
   const indicatorGap = finiteNonnegative(indicatorOptions?.gap, 5)
-  const rowGap = finiteNonnegative(itemOptions?.rowGap, 8)
+  const rowGap = finiteNonnegative(options.rowGap, 8)
   const resolvedItems = resolveCategoricalLegendItems<TValue>(
     context.colors,
     labelOptions?.format,
@@ -231,11 +319,22 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
       width:
         indicatorWidth +
         indicatorGap +
-        estimateTextWidth(item.label, fontSize, fontWeight ?? 400),
+        (context.layout?.measureText?.(item.label, {
+          fontSize,
+          fontWeight,
+          fontFamily: 'sans-serif',
+          fontStyle: 'normal',
+          fontStretch: 'normal',
+          letterSpacing: 0,
+          direction: 'inherit',
+          fontScale: 1,
+          anchor: 'start',
+          baseline: 'middle',
+        }).width ?? item.label.length * fontSize * 0.6),
     }
   })
   const rowHeight = Math.max(fontSize, indicatorHeight) + rowGap
-  const justify = itemOptions?.justify ?? 'stretch'
+  const justify = options.justify ?? 'stretch'
   if (justify === 'stretch') {
     const layout = layoutCategoricalLegendItems(
       items.length,
@@ -261,7 +360,7 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
   const layout = layoutCategoricalLegendFlow(
     items.map((item) => item.width),
     context.bounds.width,
-    finiteNonnegative(itemOptions?.gap, 16),
+    finiteNonnegative(options.gap, 16),
     justify,
   )
   return {

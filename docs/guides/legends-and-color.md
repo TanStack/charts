@@ -105,7 +105,7 @@ Options:
 
 - `label`: optional legend title;
 - `itemWidth`: minimum categorical item width;
-- `items`: categorical item layout, indicator, and label presentation;
+- `items`: categorical item presentation from `colorLegendItems()`;
 - `width`: preferred quantitative legend width;
 - `format`: numeric boundary formatter;
 - `placement`: `top` by default or `bottom`.
@@ -114,15 +114,18 @@ The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
 
-The default categorical legend stretches equal-width item columns. Use
-`items.justify: 'start'` or `'center'` for compact rows measured from the
-formatted labels. The built-in legend keeps responsive wrapping when you
-change typography, spacing, label paint, or indicator shape:
+The default categorical legend stretches equal-width item columns. Pass
+`colorLegendItems()` to configure compact rows, typography, spacing, label
+paint, or indicator shape. `justify: 'start'` and `'center'` use the chart
+host's text measurer, including configured typography, to wrap formatted
+labels responsively:
 
 ```ts
-colorLegend<'Revenue' | 'Orders'>({
+import { colorLegend, colorLegendItems } from '@tanstack/charts'
+
+colorLegend({
   placement: 'bottom',
-  items: {
+  items: colorLegendItems<'Revenue' | 'Orders'>({
     justify: 'center',
     gap: 20,
     rowGap: 10,
@@ -136,14 +139,14 @@ colorLegend<'Revenue' | 'Orders'>({
       fontSize: 14,
       fill: (_series, { color }) => color,
     },
-  },
+  }),
 })
 ```
 
 `dot`, `square`, `line`, and `line-dot` are renderer-neutral scene shapes.
-For another symbol, provide `items.indicator.render`; its context contains the
-resolved item color and the indicator bounds. The legend still owns row
-measurement and wrapping.
+For another symbol, provide `indicator.render` to `colorLegendItems()`; its
+context contains the resolved item color and the indicator bounds. The legend
+still owns row measurement and wrapping.
 
 ```ts group=automatic-color-legend env=charts file=/src/chart.ts entry
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'

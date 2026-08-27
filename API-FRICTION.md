@@ -8517,11 +8517,12 @@ Each entry records:
   indicators required a complete `ChartColorLegend`. The application repeated
   color-domain resolution, estimated text widths, wrapped rows, centered each
   row, and reserved legend height itself.
-- Decision: let `colorLegend()` configure categorical item labels and
-  indicators while retaining chart-owned measurement and wrapping. Keep the
-  equal-column layout as the default. Compact start and center layouts measure
-  formatted labels from their configured typography. Indicator callbacks receive
-  resolved color-scale items and a measured bounds box.
+- Decision: let `colorLegend()` accept a `colorLegendItems()` presentation for
+  categorical labels and indicators while retaining chart-owned measurement
+  and wrapping. The separate factory keeps its machinery out of default legend
+  bundles. Keep the equal-column layout as the default. Compact start and center
+  layouts use the chart host's configured text measurer. Indicator callbacks
+  receive resolved color-scale items and a measured bounds box.
 - Verification: focused layout, measurement, renderer, type, and mixed-mark
   tests cover compact wrapping, per-series symbols, resolved label paint, and
   custom scene indicators. The composed and pie catalog examples use the

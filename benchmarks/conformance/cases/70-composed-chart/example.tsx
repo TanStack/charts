@@ -6,6 +6,7 @@ import {
   areaY,
   barY,
   colorLegend,
+  colorLegendItems,
   d3Curve,
   defineChart,
   dot,
@@ -111,7 +112,7 @@ export const createExampleChart = (input: ChartOptions) => {
         range: ['#8884d8', '#413ea0', '#ff7300', '#ef4444'],
         legend: colorLegend<WeatherSeries>({
           placement: 'bottom',
-          items: {
+          items: colorLegendItems({
             justify: 'center',
             gap: 18,
             rowGap: 8,
@@ -129,7 +130,7 @@ export const createExampleChart = (input: ChartOptions) => {
               fontSize: 12,
               fill: (_series, { color }) => color,
             },
-          },
+          }),
         }),
       },
 

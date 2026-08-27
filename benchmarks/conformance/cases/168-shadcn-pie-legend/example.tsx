@@ -1,4 +1,9 @@
-import { colorLegend, defineChart, type ChartPoint } from '@tanstack/charts'
+import {
+  colorLegend,
+  colorLegendItems,
+  defineChart,
+  type ChartPoint,
+} from '@tanstack/charts'
 import { focusGroupAngle, pie, polar, radialArc } from '@tanstack/charts/polar'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -6,6 +11,18 @@ import { motion } from '@tanstack/charts/motion'
 import { shadcnBrowsers, shadcnColors } from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const browserNames = shadcnBrowsers.map((row) => row.browser)
+const visuallyHidden = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+} as const
+
 export function createExampleChart() {
   const arcs = pie(shadcnBrowsers, {
     value: 'visitors',
@@ -45,7 +62,7 @@ export function createExampleChart() {
         range: shadcnColors,
         legend: colorLegend<string>({
           placement: 'bottom',
-          items: {
+          items: colorLegendItems({
             justify: 'center',
             gap: 12,
             rowGap: 8,
@@ -60,7 +77,7 @@ export function createExampleChart() {
               fontSize: 12,
               fill: (_browser, { color }) => color,
             },
-          },
+          }),
         }),
       },
       margin: 0,
@@ -143,6 +160,11 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               ariaLabel="Pie Chart - Legend"
             />
           </div>
+          <ul aria-label="Browser legend" style={visuallyHidden}>
+            {browserNames.map((browser) => (
+              <li key={browser}>{titleCase(browser)}</li>
+            ))}
+          </ul>
         </div>
       </article>
     </div>

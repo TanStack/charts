@@ -585,17 +585,17 @@ automatically.
 ## Automatic color legend
 
 ```ts
-import { colorLegend } from '@tanstack/charts/legend'
+import { colorLegend, colorLegendItems } from '@tanstack/charts/legend'
 
 colorLegend({
   label: 'Package',
   itemWidth: 120,
-  items: {
+  items: colorLegendItems({
     justify: 'center',
     gap: 16,
     indicator: { shape: 'square' },
     label: { fontSize: 12 },
-  },
+  }),
   width: 240,
   format: (value) => value.toFixed(0),
   placement: 'bottom',
@@ -606,11 +606,15 @@ colorLegend({
 interface ColorLegendOptions<TValue extends ChartKey = ChartKey> {
   label?: string
   itemWidth?: number
-  items?: ColorLegendItemOptions<TValue>
+  items?: ColorLegendItems<TValue>
   width?: number
   format?: (value: number) => string
   placement?: 'top' | 'bottom'
 }
+
+declare function colorLegendItems<TValue extends ChartKey>(
+  options?: ColorLegendItemOptions<TValue>,
+): ColorLegendItems<TValue>
 
 interface ColorLegendItemOptions<TValue extends ChartKey> {
   justify?: 'start' | 'center' | 'stretch'
@@ -651,9 +655,9 @@ interface ColorLegendLabelOptions<TValue extends ChartKey> {
 `itemWidth` defaults to `110` and is clamped to a minimum of `64`. Items wrap
 to responsive columns for categorical scales. The default `stretch`
 justification retains those equal-width columns. `start` and `center` measure
-each formatted label from its configured font size and weight, wrap compact
-rows, and use `gap` between items. `rowGap` adds vertical space to every item
-row.
+each formatted label with the chart host's configured text measurer, wrap
+compact rows, and use `gap` between items. `rowGap` adds vertical space to
+every item row.
 
 `indicator.shape` selects a dot, square, line, or line with an outlined point.
 `width`, `height`, and `gap` reserve the indicator box and its distance from
@@ -673,9 +677,9 @@ paint:
 ```ts
 type Series = 'Revenue' | 'Orders'
 
-colorLegend<Series>({
+colorLegend({
   placement: 'bottom',
-  items: {
+  items: colorLegendItems<Series>({
     justify: 'center',
     gap: 20,
     rowGap: 10,
@@ -689,7 +693,7 @@ colorLegend<Series>({
       fontSize: 14,
       fill: (_series, { color }) => color,
     },
-  },
+  }),
 })
 ```
 

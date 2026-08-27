@@ -240,7 +240,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ResolvedColorScale`            | Resolved mapping and optional stepped legend boundaries               |
 | `ResolvedColorScaleKind`        | Categorical, continuous, quantile, quantize, or threshold             |
 | `ChartColorLegend`              | Legend layout and scene rendering                                     |
-| `ChartColorLegendContext`       | Resolved colors, chart bounds, theme, and width                       |
+| `ChartColorLegendContext`       | Resolved colors, chart bounds, theme, layout, and viewport size       |
 | `CrosshairOptions`              | Data-less x/y guides, marker, style, and motion options               |
 | `CrosshairRuleOptions`          | Stroke shared by both crosshair axes or overridden per axis           |
 | `CrosshairAxisOptions`          | Per-axis rule or categorical band with an optional label              |

@@ -1369,9 +1369,9 @@ const entries = [
     },
   ),
   budgeted(
-    'Categorical legend item presentation',
-    'benchmarks/entries/charts-categorical-legend-items.ts',
-    2.7,
+    'Categorical legend',
+    'benchmarks/entries/charts-categorical-legend.ts',
+    1.8,
     {
       rendererBoundary: 'neutral',
       inputBoundary: {
@@ -1384,6 +1384,28 @@ const entries = [
           'platformRendererRuntime',
           'd3GeometryRuntime',
         ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Categorical legend item presentation',
+    'benchmarks/entries/charts-categorical-legend-items.ts',
+    'Categorical legend',
+    1.15,
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['staticLegend', 'categoricalLegendLayout'],
+        forbid: [
+          'interactiveLegend',
+          'interactionSignal',
+          'markSceneFilter',
+          'keyedSelection',
+          'platformRendererRuntime',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'Categorical legend',
+        allowAdded: [],
       },
     },
   ),

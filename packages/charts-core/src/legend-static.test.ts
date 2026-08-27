@@ -1,7 +1,8 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
-import { colorLegend } from './legend-static'
+import { estimateSceneText } from './guide-layout'
+import { colorLegend, colorLegendItems } from './legend-static'
 import { lineY } from './line'
 import { createChartScene, defaultChartTheme, defineChart } from './scene'
 import type {
@@ -29,6 +30,7 @@ function legendContext(
     chart: { x: 40, y: 60, width: 200, height: 200 },
     bounds: { x: 40, y: 0, width: 200, height: 100 },
     theme: defaultChartTheme,
+    layout: { measureText: estimateSceneText },
     width: 280,
     height: 320,
     ...overrides,
@@ -63,13 +65,13 @@ describe('categorical color legend presentation', () => {
 
   it('measures labels to center and wrap compact rows', () => {
     const legend = colorLegend({
-      items: {
+      items: colorLegendItems({
         justify: 'center',
         gap: 20,
         rowGap: 10,
         indicator: { width: 20, height: 14, gap: 6 },
         label: { fontSize: 14 },
-      },
+      }),
     })
     const context = legendContext()
 
@@ -82,9 +84,39 @@ describe('categorical color legend presentation', () => {
     expect(labels[2]!.x).toBeGreaterThan(labels[0]!.x)
   })
 
+  it('uses host text measurement and ignores invalid font weights', () => {
+    const measureText = vi.fn((text: string) => ({
+      x: 0,
+      y: 0,
+      width: text.length * 10,
+      height: 14,
+    }))
+    const legend = colorLegend({
+      items: colorLegendItems({
+        justify: 'center',
+        label: { fontSize: 14, fontWeight: Number.NaN },
+      }),
+    })
+    const context = legendContext({ layout: { measureText } })
+
+    const labels = renderLegend(legend, context).children.filter(
+      (node) => node.kind === 'label',
+    )
+
+    expect(measureText).toHaveBeenCalledWith(
+      'Alpha',
+      expect.objectContaining({ fontSize: 14, fontWeight: undefined }),
+    )
+    expect(labels.map((label) => label.fontWeight)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ])
+  })
+
   it('renders per-series symbols and label colors from resolved items', () => {
     const legend = colorLegend<'Alpha' | 'Beta' | 'Gamma'>({
-      items: {
+      items: colorLegendItems<'Alpha' | 'Beta' | 'Gamma'>({
         justify: 'center',
         indicator: {
           width: 20,
@@ -95,7 +127,7 @@ describe('categorical color legend presentation', () => {
           fontSize: 14,
           fill: (_value, { color }) => color,
         },
-      },
+      }),
     })
     const children = renderLegend(legend).children
 
@@ -141,7 +173,9 @@ describe('categorical color legend presentation', () => {
       style: { stroke: context.color },
     }))
     const legend = colorLegend<string>({
-      items: { indicator: { width: 18, height: 12, render } },
+      items: colorLegendItems({
+        indicator: { width: 18, height: 12, render },
+      }),
     })
 
     renderLegend(legend)
@@ -186,13 +220,13 @@ describe('categorical color legend presentation', () => {
         range: ['#2563eb', '#f97316'],
         legend: colorLegend<'Revenue' | 'Orders'>({
           placement: 'bottom',
-          items: {
+          items: colorLegendItems<'Revenue' | 'Orders'>({
             indicator: {
               width: 20,
               height: 12,
               shape: (value) => (value === 'Revenue' ? 'line-dot' : 'square'),
             },
-          },
+          }),
         }),
       },
     })
@@ -216,7 +250,7 @@ describe('categorical color legend presentation', () => {
 })
 
 colorLegend<'Revenue' | 'Orders'>({
-  items: {
+  items: colorLegendItems<'Revenue' | 'Orders'>({
     indicator: {
       shape: (value, context) => {
         expectTypeOf(value).toEqualTypeOf<'Revenue' | 'Orders'>()
@@ -230,14 +264,14 @@ colorLegend<'Revenue' | 'Orders'>({
         return value
       },
     },
-  },
+  }),
 })
 
 colorLegend({
-  items: {
+  items: colorLegendItems({
     indicator: {
       // @ts-expect-error Indicator shapes are a closed renderer-neutral set.
       shape: 'triangle',
     },
-  },
+  }),
 })

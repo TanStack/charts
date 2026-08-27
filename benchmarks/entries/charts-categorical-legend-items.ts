@@ -1,8 +1,8 @@
-import { colorLegend } from '@tanstack/charts/legend'
+import { colorLegend, colorLegendItems } from '@tanstack/charts/legend'
 
 export const legend = colorLegend<'Revenue' | 'Orders'>({
   placement: 'bottom',
-  items: {
+  items: colorLegendItems({
     justify: 'center',
     gap: 20,
     rowGap: 10,
@@ -16,5 +16,5 @@ export const legend = colorLegend<'Revenue' | 'Orders'>({
       fontSize: 14,
       fill: (_series, { color }) => color,
     },
-  },
+  }),
 })
