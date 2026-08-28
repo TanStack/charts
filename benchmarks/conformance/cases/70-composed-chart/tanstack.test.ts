@@ -17,7 +17,11 @@ describe('native composed-chart bar sizing', () => {
     const points = scene.points.filter(
       ({ markId }) => markId === 'precipitation-bars',
     )
-    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+    const bars = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'rect' &&
+        node.interaction?.point?.markId === 'precipitation-bars',
+    )
 
     expect(points).toHaveLength(6)
     expect(bars).toHaveLength(6)
@@ -30,7 +34,11 @@ describe('native composed-chart bar sizing', () => {
 
   it('keeps narrower responsive bands instead of forcing 20 pixels', () => {
     const scene = render({ ...input, width: 180 })
-    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+    const bars = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'rect' &&
+        node.interaction?.point?.markId === 'precipitation-bars',
+    )
 
     expect(scene.scales.x.bandwidth).toBeLessThan(20)
     expect(bars).toHaveLength(6)

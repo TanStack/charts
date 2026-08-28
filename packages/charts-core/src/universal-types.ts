@@ -65,6 +65,14 @@ export type {
 export type { LinkOptions } from './link'
 export type {
   ColorGradientLegendOptions,
+  ColorLegendIndicatorOptions,
+  ColorLegendIndicatorRenderContext,
+  ColorLegendIndicatorShape,
+  ColorLegendItemContext,
+  ColorLegendItemOptions,
+  ColorLegendItems,
+  ColorLegendItemValue,
+  ColorLegendLabelOptions,
   ColorLegendOptions,
 } from './legend-static'
 export type { CompositeMarkOptions } from './mark-composite'

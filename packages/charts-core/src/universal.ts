@@ -35,7 +35,11 @@ export {
 } from './regression'
 export { ridgelineX, ridgelineY } from './ridgeline'
 export { link } from './link'
-export { colorGradientLegend, colorLegend } from './legend-static'
+export {
+  colorGradientLegend,
+  colorLegend,
+  colorLegendItems,
+} from './legend-static'
 export { createMark } from './mark'
 export { compositeMark } from './mark-composite'
 export { cell, rect } from './rect'

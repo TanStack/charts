@@ -97,9 +97,21 @@ export type {
 } from './ridgeline'
 export { link } from './link'
 export type { LinkOptions } from './link'
-export { colorGradientLegend, colorLegend } from './legend-static'
+export {
+  colorGradientLegend,
+  colorLegend,
+  colorLegendItems,
+} from './legend-static'
 export type {
   ColorGradientLegendOptions,
+  ColorLegendIndicatorOptions,
+  ColorLegendIndicatorRenderContext,
+  ColorLegendIndicatorShape,
+  ColorLegendItemContext,
+  ColorLegendItemOptions,
+  ColorLegendItems,
+  ColorLegendItemValue,
+  ColorLegendLabelOptions,
   ColorLegendOptions,
 } from './legend-static'
 export { createMark } from './mark'

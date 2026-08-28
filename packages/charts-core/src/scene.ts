@@ -510,6 +510,7 @@ function createChartSceneWithScaleResolver<
       chart,
       bounds: legendBounds,
       theme,
+      layout: layoutOptions,
       width,
       height,
     }
@@ -1075,6 +1076,7 @@ function resolveSceneLayout(
       chart,
       bounds: { x: chart.x, y: 0, width: chart.width, height: 0 },
       theme,
+      layout,
       width,
       height,
     })
@@ -1129,6 +1131,7 @@ function resolveSceneLayout(
             height: 0,
           },
           theme,
+          layout,
           width,
           height,
         },
