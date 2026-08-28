@@ -106,7 +106,12 @@ export function colorLegendItems<TValue extends ChartKey = ChartKey>(
     const { bounds, theme } = context
     const children: SceneNode[] = []
     presentation.items.forEach(({ item, row, x }) => {
-      const y = bounds.y + 10 + labelOffset + row * presentation.rowHeight
+      const firstRowCenter = Math.max(
+        10,
+        Math.max(presentation.fontSize, presentation.indicatorHeight) / 2,
+      )
+      const y =
+        bounds.y + firstRowCenter + labelOffset + row * presentation.rowHeight
       const indicatorBounds = {
         x: bounds.x + x,
         y: y - presentation.indicatorHeight / 2,

@@ -191,6 +191,23 @@ describe('categorical color legend presentation', () => {
     )
   })
 
+  it('keeps oversized indicators within the legend bounds', () => {
+    const legend = colorLegend({
+      items: colorLegendItems({
+        indicator: { width: 24, height: 24, shape: 'square' },
+      }),
+    })
+    const context = legendContext()
+    const children = renderLegend(legend, context).children
+    const indicators = children.filter((node) => node.kind === 'rect')
+    const labels = children.filter((node) => node.kind === 'label')
+
+    expect(indicators[0]).toEqual(
+      expect.objectContaining({ y: context.bounds.y, height: 24 }),
+    )
+    expect(labels[0]).toEqual(expect.objectContaining({ y: 12 }))
+  })
+
   it('supports mixed marks with one resolved categorical legend', () => {
     const rows = [
       { month: 'Jan', revenue: 10, orders: 4 },
