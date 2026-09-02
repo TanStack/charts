@@ -65,7 +65,8 @@ removes only the built-in ring. The definition compiles this presentation into
 ordinary scene dots, so SVG, Canvas, React Native, facets, polar marks, custom
 mark renderers, and the optional motion renderer share the same values. The
 ring remains hidden from the accessibility tree; the chart root continues to
-report focus and values.
+report focus and values. `radius` and `strokeWidth` accept finite nonnegative
+numbers, including zero. Invalid values use their defaults.
 
 Use `focusGuideX` or `focusGuideY` from `@tanstack/charts/focus/guide` for
 datum-bound rules, markers, and axis labels. Their active geometry uses stable
