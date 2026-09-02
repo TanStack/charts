@@ -3,6 +3,7 @@ import {
   estimateSceneText,
   logicalTextAnchorOffset,
   measureSceneLabelBounds,
+  physicalTextAnchor,
   resolveGuideMargins,
 } from './guide-layout'
 import type { ChartTextMeasurer, SceneGroup, SceneLabel } from './types'
@@ -132,6 +133,16 @@ describe('guide layout', () => {
     expect(logicalTextAnchorOffset(40, 'end', 'rtl')).toBe(0)
     expect(logicalTextAnchorOffset(40, 'middle', 'rtl')).toBe(-20)
     expect(logicalTextAnchorOffset(40, 'start', 'inherit')).toBe(0)
+  })
+
+  it('maps physical text sides to logical anchors', () => {
+    expect(physicalTextAnchor('left', 'ltr')).toBe('start')
+    expect(physicalTextAnchor('right', 'ltr')).toBe('end')
+    expect(physicalTextAnchor('left', 'rtl')).toBe('end')
+    expect(physicalTextAnchor('right', 'rtl')).toBe('start')
+    expect(physicalTextAnchor('left', 'inherit')).toBe('start')
+    expect(physicalTextAnchor('right', undefined)).toBe('end')
+    expect(physicalTextAnchor('middle', 'rtl')).toBe('middle')
   })
 
   it('rotates the measured rectangle around the label position', () => {

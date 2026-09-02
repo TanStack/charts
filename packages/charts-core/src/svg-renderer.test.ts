@@ -46,6 +46,31 @@ describe('SVG scene renderer', () => {
       /<text data-ts-key="y-label"[^>]* fill="#0f766e" opacity="0\.6"[^>]* font-size="17" font-weight="650"/,
     )
   })
+
+  it('serializes right-to-left scene direction on the root SVG', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            side: 'right',
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+      { typography: { direction: 'rtl' } },
+    )
+
+    const svg = renderChartSvg(scene, { ariaLabel: 'RTL chart' })
+
+    expect(scene.direction).toBe('rtl')
+    expect(svg).toMatch(/^<svg [^>]* direction="rtl"[^>]*>/)
+    expect(svg).toMatch(
+      /data-ts-key="y-tick-label:[^"]+"[^>]*text-anchor="end"/,
+    )
+  })
 })
 
 function testScene(): ChartScene {

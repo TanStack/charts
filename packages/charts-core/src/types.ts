@@ -524,6 +524,7 @@ export interface ChartColorLegendContext {
   theme: ChartTheme
   width: number
   height: number
+  direction?: ChartTextTypography['direction']
 }
 
 export type ChartLegendPlacement = 'top' | 'bottom'
@@ -1398,6 +1399,7 @@ export interface SceneFocusGuide {
   projectY?: (value: ChartValue) => number | undefined
   motion?: ChartMotionDefinition<never>
   measureText?: ChartTextMeasurer
+  direction?: ChartTextTypography['direction']
   /** Facet-owned point-key prefix. Omitted for a top-level guide. */
   scope?: string
   /** Resolves this guide's dynamic presentation without retaining its implementation in every renderer bundle. */
@@ -1541,6 +1543,7 @@ export interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  direction?: ChartTextTypography['direction']
   controls?: readonly ChartHostControl[]
   focusGuides?: readonly SceneFocusGuide[]
 }

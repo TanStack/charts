@@ -2,6 +2,7 @@ import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import {
   measureSceneLabelBounds,
+  physicalTextAnchor,
   withChartTextTypography,
 } from './guide-layout'
 import { nearestScenePoint } from './nearest'
@@ -512,6 +513,7 @@ function createChartSceneWithScaleResolver<
       theme,
       width,
       height,
+      direction: layoutOptions.typography?.direction,
     }
     nodes.push(legend.render(legendContext))
     if (legend.control) controls.push(legend.control(legendContext))
@@ -577,6 +579,9 @@ function createChartSceneWithScaleResolver<
     colors,
     gradients: definition.gradients ?? [],
     theme,
+    ...(layoutOptions.typography?.direction === undefined
+      ? {}
+      : { direction: layoutOptions.typography.direction }),
     ...(controls.length ? { controls } : {}),
     ...(focusGuides.length ? { focusGuides } : {}),
     [chartSceneSource]: [definition, initialized],
@@ -1085,6 +1090,7 @@ function resolveSceneLayout(
       theme,
       width,
       height,
+      direction: layout.typography?.direction,
     })
     const legendBounds =
       legend && legendHeight !== undefined
@@ -1140,6 +1146,7 @@ function resolveSceneLayout(
           theme,
           width,
           height,
+          direction: layout.typography?.direction,
         },
       )
       if (resolved.legend.placement === 'bottom') {
@@ -1784,16 +1791,15 @@ function createTickLabelCandidates(
     const automaticAnchor: NonNullable<SceneLabel['anchor']> =
       guide.channel === 'y'
         ? positiveSide
-          ? 'start'
-          : 'end'
+          ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
+          : physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
         : (rotate ?? 0) < 0
-          ? 'end'
+          ? physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
           : (rotate ?? 0) > 0
-            ? 'start'
+            ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
             : 'middle'
     const anchor =
-      resolveTickLabelValue(options.anchor, context) ??
-      mirrorAutomaticAnchor(automaticAnchor, rightToLeft)
+      resolveTickLabelValue(options.anchor, context) ?? automaticAnchor
     const label: SceneLabel =
       guide.channel === 'x'
         ? {
@@ -1835,14 +1841,6 @@ function createTickLabelCandidates(
       hard: tick.hard ?? false,
     }
   })
-}
-
-function mirrorAutomaticAnchor(
-  anchor: NonNullable<SceneLabel['anchor']>,
-  rightToLeft: boolean,
-): NonNullable<SceneLabel['anchor']> {
-  if (!rightToLeft || anchor === 'middle') return anchor
-  return anchor === 'start' ? 'end' : 'start'
 }
 
 function resolveTickLabelValue<TValue extends ChartValue, TOutput>(

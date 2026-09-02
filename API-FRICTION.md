@@ -8584,9 +8584,20 @@ Each entry records:
   layout could therefore measure a right-axis label over the plot and reserve
   no right gutter. Canvas paint, fallback measurement, exported SVG, and React
   Native also disagreed about whether those values were logical or physical.
-- Decision: keep scene anchors logical, mirror only automatic physical axis
-  defaults under RTL, and normalize at renderer boundaries that do not support
-  logical anchors. Explicit authored anchors retain their SVG meaning.
+- Decision: keep scene anchors logical, map every automatic physical text
+  placement through the resolved inline direction, and normalize at renderer
+  boundaries that do not support logical anchors. This covers Cartesian axes,
+  crosshair labels, static legends, and polar outside labels. Carry the
+  resolved direction with the scene so direct static SVG rendering preserves
+  the same layout. Explicit authored anchors retain their SVG meaning.
 - Verification: layout tests cover both y-axis sides, both rotated x-axis
-  directions, and explicit anchors. Estimator, DOM fallback, Canvas, SVG
-  export, and React Native tests cover their direction-specific boundaries.
+  directions, crosshair labels, categorical and quantitative legends, polar
+  outside labels, explicit anchors, and direct static SVG. Estimator, DOM
+  fallback, Canvas, SVG export, and React Native tests cover their
+  direction-specific boundaries. A Chromium reproduction with the issue's
+  data measures the same 51.24 px right gutter in LTR and RTL, keeps labels 8
+  px beyond the plot, and produces byte-identical LTR and RTL Canvas output.
+  A second Chromium pass confirms that direct static SVG matches the live
+  mount, the crosshair label stays 8 px left of the plot, quantitative legend
+  endpoints stay inside their physical bounds, and polar outside labels stay
+  8 px beyond both physical edges.

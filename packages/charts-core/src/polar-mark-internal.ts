@@ -4,6 +4,7 @@ import type {
   ChartMarkRenderer,
   ChartMotionDefinition,
   ChartTheme,
+  ChartTextTypography,
   ChartValue,
   MarkScene,
 } from './types'
@@ -25,6 +26,7 @@ export interface PolarLayoutContext {
   radius: number
   startAngle: number
   endAngle: number
+  direction?: ChartTextTypography['direction']
   scales: Readonly<Record<string, PolarResolvedScale>>
 }
 

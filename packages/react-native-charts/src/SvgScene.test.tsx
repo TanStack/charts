@@ -399,6 +399,55 @@ describe('React Native SVG scene renderer', () => {
     expect(render([second])).not.toContain('x1="10"')
   })
 
+  it('passes RTL direction through the native focus overlay', () => {
+    const focusScene = scene()
+    const point = {
+      key: 'focused-point',
+      markId: 'focused-mark',
+      group: null,
+      groupLabel: 'focused-mark',
+      datum: { id: 'focused-point' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 40,
+      y: 30,
+      color: '#2563eb',
+    }
+    focusScene.nodes = [
+      {
+        kind: 'group',
+        key: 'focus:label',
+        children: [label(point.key, 'start')],
+        focus: {
+          match: 'primary',
+          points: [point],
+          placement: 'over',
+        },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartFocusOverlay
+        width={100}
+        height={60}
+        scene={focusScene}
+        points={[point]}
+        placement="over"
+        source="pointer"
+        pinned={false}
+        showDefault={false}
+        color="#111827"
+        fill="#ffffff"
+        direction="rtl"
+        idPrefix="native-focus-rtl"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(renderedTextAnchor(markup, point.key)).toBe('end')
+  })
+
   it('paints focus underlays and overlays around the base scene in one SVG', () => {
     const base = scene()
     base.nodes = [

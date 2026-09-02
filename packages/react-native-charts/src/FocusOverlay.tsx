@@ -9,6 +9,7 @@ import type {
   ChartFocusSource,
   ChartPoint,
   ChartScene,
+  ChartTextTypography,
   ChartValue,
 } from '@tanstack/charts/types'
 import { resolveNativeSolidPaint, type NativePaintResolver } from './paint'
@@ -30,6 +31,7 @@ export interface NativeChartFocusOverlayProps<
   color: ColorValue
   fill: ColorValue
   fontFamily?: string
+  direction?: ChartTextTypography['direction']
   idPrefix: string
   resolvePaint: NativePaintResolver
 }
@@ -50,6 +52,7 @@ export function NativeChartFocusOverlay<
   color,
   fill,
   fontFamily,
+  direction,
   idPrefix,
   resolvePaint,
 }: NativeChartFocusOverlayProps<TDatum, TXValue, TYValue>) {
@@ -81,6 +84,7 @@ export function NativeChartFocusOverlay<
         nodes={nodes}
         color={color}
         fontFamily={fontFamily}
+        direction={direction}
         idPrefix={idPrefix}
         resolvePaint={resolvePaint}
       />

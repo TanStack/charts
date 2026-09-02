@@ -27,6 +27,16 @@ export interface GuideMarginOptions {
   measureText?: ChartTextMeasurer
 }
 
+export function physicalTextAnchor(
+  side: 'left' | 'middle' | 'right',
+  direction: ChartTextMeasureOptions['direction'] | undefined,
+): ChartTextMeasureOptions['anchor'] {
+  if (side === 'middle') return 'middle'
+  const startsAtLeft = direction !== 'rtl'
+  if (side === 'left') return startsAtLeft ? 'start' : 'end'
+  return startsAtLeft ? 'end' : 'start'
+}
+
 export function logicalTextAnchorOffset(
   width: number,
   anchor: ChartTextMeasureOptions['anchor'],
