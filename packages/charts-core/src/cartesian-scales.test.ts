@@ -4,7 +4,12 @@ import { crosshair } from './crosshair'
 import { lineY } from './line'
 import { ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
-import type { ChartTextMeasurer, SceneNode, SceneRule } from './types'
+import type {
+  ChartTextMeasurer,
+  SceneLabel,
+  SceneNode,
+  SceneRule,
+} from './types'
 
 describe('Cartesian scale registry', () => {
   it('binds marks to named y scales and stacks axes sharing the right side', () => {
@@ -75,6 +80,75 @@ describe('Cartesian scale registry', () => {
     expect(
       sceneWidth - rightToLeft.chart.x - rightToLeft.chart.width,
     ).toBeGreaterThanOrEqual(labelWidth)
+  })
+
+  it('keeps automatic axis labels physically outward in both directions', () => {
+    const leftToRight = createDirectionalAxisScene('ltr')
+    const rightToLeft = createDirectionalAxisScene('rtl')
+    const anchors = (nodes: readonly SceneNode[]) =>
+      Object.fromEntries(
+        flatten(nodes)
+          .filter(
+            (node): node is SceneLabel =>
+              node.kind === 'label' && node.key.includes('-tick-label:'),
+          )
+          .map((node) => [node.key.split('-tick-label:')[0], node.anchor]),
+      )
+
+    expect(anchors(leftToRight.nodes)).toMatchObject({
+      x: 'end',
+      y: 'end',
+      top: 'start',
+      right: 'start',
+    })
+    expect(anchors(rightToLeft.nodes)).toMatchObject({
+      x: 'start',
+      y: 'start',
+      top: 'end',
+      right: 'end',
+    })
+    expect(rightToLeft.chart).toEqual(leftToRight.chart)
+  })
+
+  it('stacks multiple right-side axes outward under RTL', () => {
+    const scene = createNamedScaleScene('rtl')
+    const rules = flatten(scene.nodes).filter(
+      (node): node is SceneRule => node.kind === 'rule',
+    )
+    const inner = rules.find((node) => node.key === 'percent-axis')
+    const outer = rules.find((node) => node.key === 'temperature-axis')
+    if (!inner || !outer) throw new Error('Expected both right-side axes')
+
+    expect(inner.x1).toBe(scene.chart.x + scene.chart.width)
+    expect(outer.x1).toBeGreaterThan(inner.x1)
+    expect(outer.x1).toBeLessThan(scene.width)
+  })
+
+  it('keeps an authored logical anchor unchanged in RTL', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 2]),
+            side: 'right',
+            axis: {
+              ticks: { values: [1] },
+              tickLabels: { anchor: 'start' },
+            },
+          },
+        },
+      }),
+      { width: sceneWidth, height: 260 },
+      { measureText: mirroredText, typography: { direction: 'rtl' } },
+    )
+    const label = flatten(scene.nodes).find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('y-tick-label:'),
+    )
+
+    expect(label?.anchor).toBe('start')
   })
 
   it('keeps named grids off by default', () => {
@@ -248,7 +322,7 @@ describe('Cartesian scale registry', () => {
   })
 })
 
-function createNamedScaleScene() {
+function createNamedScaleScene(direction: 'ltr' | 'rtl' = 'ltr') {
   return createChartScene(
     defineChart({
       marks: [
@@ -282,6 +356,7 @@ function createNamedScaleScene() {
       },
     }),
     { width: 640, height: 320 },
+    { measureText: mirroredText, typography: { direction } },
   )
 }
 
@@ -311,6 +386,46 @@ function createRightAxisScene(direction: 'ltr' | 'rtl') {
       scales: {
         x: { scale: scaleLinear().domain([0, 2]) },
         y: { scale: scaleLinear().domain([0, 3]), side: 'right' },
+      },
+    }),
+    { width: sceneWidth, height: 260 },
+    { measureText: mirroredText, typography: { direction } },
+  )
+}
+
+function createDirectionalAxisScene(direction: 'ltr' | 'rtl') {
+  return createChartScene(
+    defineChart({
+      marks: [lineY([1, 2])],
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          side: 'bottom',
+          axis: {
+            ticks: { values: [0.5] },
+            tickLabels: { rotate: -30 },
+          },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 2]),
+          side: 'left',
+          axis: { ticks: { values: [1] } },
+        },
+        top: {
+          channel: 'x',
+          side: 'top',
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            ticks: { values: [0.5] },
+            tickLabels: { rotate: 30 },
+          },
+        },
+        right: {
+          channel: 'y',
+          side: 'right',
+          scale: scaleLinear().domain([0, 2]),
+          axis: { ticks: { values: [1] } },
+        },
       },
     }),
     { width: sceneWidth, height: 260 },

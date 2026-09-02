@@ -27,7 +27,6 @@ import type {
   ResponsiveChartConfig,
   ChartColorLegend,
   ChartFocusFilter,
-  ChartFocusRingOptions,
   ChartLayoutOptions,
   ChartMargin,
   ChartMark,
@@ -530,12 +529,14 @@ function createChartSceneWithScaleResolver<
     definition.focusRing !== false &&
     points.length
   ) {
-    const {
-      radius = 5,
-      fill = 'var(--ts-chart-focus-fill, Canvas)',
-      stroke,
-      strokeWidth = 2.5,
-    } = (definition.focusRing || {}) as ChartFocusRingOptions
+    const focusRing =
+      typeof definition.focusRing === 'object'
+        ? definition.focusRing
+        : undefined
+    const radius = finiteNonNegative(focusRing?.radius, 5)
+    const fill = focusRing?.fill ?? 'var(--ts-chart-focus-fill, Canvas)'
+    const stroke = focusRing?.stroke
+    const strokeWidth = finiteNonNegative(focusRing?.strokeWidth, 2.5)
     for (const entry of defaultFocusEntries) {
       nodes.push({
         kind: 'group',
@@ -1282,6 +1283,15 @@ function finiteMargin(value: number | undefined): number {
   return value !== undefined && Number.isFinite(value) ? Math.max(0, value) : 0
 }
 
+function finiteNonNegative(
+  value: number | undefined,
+  fallback: number,
+): number {
+  return value !== undefined && Number.isFinite(value) && value >= 0
+    ? value
+    : fallback
+}
+
 function uniformMargin(value: number): ChartMargin {
   return { top: value, right: value, bottom: value, left: value }
 }
@@ -1532,8 +1542,9 @@ function createAxes(
       fontWeight: labelOptions?.fontWeight ?? 600,
       style: {
         fill: labelOptions?.fill ?? theme.foreground,
-        fillOpacity: labelOptions?.opacity === undefined ? 0.76 : undefined,
-        opacity: labelOptions?.opacity,
+        ...(labelOptions?.opacity === undefined
+          ? { fillOpacity: 0.76 }
+          : { opacity: labelOptions.opacity }),
       },
     }
     includeOutward(measureSceneLabelBounds(label, measureText))
@@ -1630,8 +1641,9 @@ function createAxes(
       fontWeight: labelOptions?.fontWeight ?? 600,
       style: {
         fill: labelOptions?.fill ?? theme.foreground,
-        fillOpacity: labelOptions?.opacity === undefined ? 0.76 : undefined,
-        opacity: labelOptions?.opacity,
+        ...(labelOptions?.opacity === undefined
+          ? { fillOpacity: 0.76 }
+          : { opacity: labelOptions.opacity }),
       },
     }
     const labelOffset = labelOptions?.offset ?? 'auto'
@@ -1767,21 +1779,21 @@ function createTickLabelCandidates(
     const opacity = resolveTickLabelValue(options.opacity, context)
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
-    // A y axis anchors its labels away from the plot, a physical relation,
-    // while `text-anchor` resolves against inline base direction. The two
-    // agree only left to right, so the far side takes `end` once they differ.
-    const defaultAnchor =
+    // Automatic anchors preserve a physical placement outside the plot.
+    // Authored anchors remain logical SVG start/end values.
+    const automaticAnchor: NonNullable<SceneLabel['anchor']> =
       guide.channel === 'y'
-        ? positiveSide === rightToLeft
-          ? 'end'
-          : 'start'
+        ? positiveSide
+          ? 'start'
+          : 'end'
         : (rotate ?? 0) < 0
           ? 'end'
           : (rotate ?? 0) > 0
             ? 'start'
             : 'middle'
     const anchor =
-      resolveTickLabelValue(options.anchor, context) ?? defaultAnchor
+      resolveTickLabelValue(options.anchor, context) ??
+      mirrorAutomaticAnchor(automaticAnchor, rightToLeft)
     const label: SceneLabel =
       guide.channel === 'x'
         ? {
@@ -1823,6 +1835,14 @@ function createTickLabelCandidates(
       hard: tick.hard ?? false,
     }
   })
+}
+
+function mirrorAutomaticAnchor(
+  anchor: NonNullable<SceneLabel['anchor']>,
+  rightToLeft: boolean,
+): NonNullable<SceneLabel['anchor']> {
+  if (!rightToLeft || anchor === 'middle') return anchor
+  return anchor === 'start' ? 'end' : 'start'
 }
 
 function resolveTickLabelValue<TValue extends ChartValue, TOutput>(

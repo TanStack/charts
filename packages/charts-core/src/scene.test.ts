@@ -19,6 +19,7 @@ import type {
   ChartDefinition,
   ChartPoint,
   ChartScene,
+  SceneDot,
   SceneNode,
 } from './types'
 
@@ -248,7 +249,7 @@ describe('native mark and channel scene', () => {
       { width: 320, height: 180 },
     )
     const booleanDots = flatten(booleanRing.nodes).filter(
-      (node) => node.kind === 'dot' && node.radius === 5,
+      (node): node is SceneDot => node.kind === 'dot' && node.radius === 5,
     )
 
     expect(booleanDots.map((node) => node.style)).toEqual([
@@ -283,6 +284,78 @@ describe('native mark and channel scene', () => {
     expect(undefinedDots.map((node) => node.style)).toEqual(
       booleanDots.map((node) => node.style),
     )
+
+    const zeroFields = createChartScene(
+      defineChart({
+        ...spec,
+        focusRing: {
+          radius: 0,
+          strokeWidth: 0,
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+    const zeroDots = flatten(zeroFields.nodes).filter(
+      (node): node is SceneDot =>
+        node.kind === 'dot' &&
+        zeroFields.points.some((point) => point.key === node.key),
+    )
+
+    expect(
+      zeroDots.map((node) => ({ radius: node.radius, style: node.style })),
+    ).toEqual([
+      {
+        radius: 0,
+        style: {
+          fill: 'var(--ts-chart-focus-fill, Canvas)',
+          stroke: '#2563eb',
+          strokeWidth: 0,
+        },
+      },
+      {
+        radius: 0,
+        style: {
+          fill: 'var(--ts-chart-focus-fill, Canvas)',
+          stroke: '#f97316',
+          strokeWidth: 0,
+        },
+      },
+    ])
+
+    for (const invalid of [
+      -1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]) {
+      const invalidFields = createChartScene(
+        defineChart({
+          ...spec,
+          focusRing: {
+            radius: invalid,
+            strokeWidth: invalid,
+          },
+        }),
+        { width: 320, height: 180 },
+      )
+      const invalidDots = flatten(invalidFields.nodes).filter(
+        (node): node is SceneDot =>
+          node.kind === 'dot' &&
+          invalidFields.points.some((point) => point.key === node.key),
+      )
+
+      expect(
+        invalidDots.map((node) => ({
+          radius: node.radius,
+          style: node.style,
+        })),
+      ).toEqual(
+        booleanDots.map((node) => ({
+          radius: node.radius,
+          style: node.style,
+        })),
+      )
+    }
     expectTypeOf(scene).toMatchTypeOf<ChartScene<(typeof rows)[number]>>()
   })
 

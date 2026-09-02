@@ -41,6 +41,8 @@ interface FakeCanvasContext {
     text: string
     globalAlpha: number
     font: string
+    direction: CanvasDirection
+    textAlign: CanvasTextAlign
   }>
   context: CanvasRenderingContext2D
 }
@@ -1106,6 +1108,39 @@ describe('Canvas renderer', () => {
       globalAlpha: 0.6,
     })
     expect(painted?.font).toMatch(/650 17px/)
+    surface.destroy()
+  })
+
+  it('paints start and end as logical anchors in right-to-left hosts', () => {
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    surface.element.style.direction = 'rtl'
+    surface.render(
+      scene([
+        {
+          kind: 'label',
+          key: 'start',
+          x: 20,
+          y: 20,
+          text: 'Start',
+          anchor: 'start',
+        },
+        {
+          kind: 'label',
+          key: 'end',
+          x: 80,
+          y: 40,
+          text: 'End',
+          anchor: 'end',
+        },
+      ]),
+      renderOptions(),
+    )
+
+    expect(contexts.get(surface.sceneCanvas)?.textPaints).toMatchObject([
+      { text: 'Start', direction: 'rtl', textAlign: 'start' },
+      { text: 'End', direction: 'rtl', textAlign: 'end' },
+    ])
     surface.destroy()
   })
 
@@ -2655,6 +2690,8 @@ function fakeContext(): FakeCanvasContext {
         text,
         globalAlpha,
         font: context.font,
+        direction: context.direction,
+        textAlign: context.textAlign,
       })
     },
     strokeText: (text: string, x: number, y: number) =>

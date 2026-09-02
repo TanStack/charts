@@ -353,7 +353,8 @@ const x = {
 }
 ```
 
-`anchor` defaults to the rotation-derived x anchor or `end` on y. `dx` and
+`anchor` defaults to an outward anchor derived from x rotation or the y-axis
+side. The automatic value accounts for the host's inline direction. `dx` and
 `dy` apply after the normal tick position and padding. Resolved font size,
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
@@ -429,6 +430,12 @@ Every non-null scale renders an axis by default. Set `axis: false` when a
 mapping should not draw another axis. X scales can use the top or bottom side,
 and y scales can use the left or right side. Axes on the same side stack
 outward and contribute their measured size to the automatic margin.
+
+Axis sides stay physical in a right-to-left container, so `side: 'right'`
+still puts the axis on the right. Automatic tick anchors account for the
+container's inline direction and keep labels outside the plot. An explicitly
+authored `start` or `end` anchor remains logical. Text measurement, SVG,
+Canvas, native rendering, and standalone SVG export preserve that direction.
 
 ## Automatic guide layout
 

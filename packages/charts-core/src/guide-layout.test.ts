@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   estimateSceneText,
+  logicalTextAnchorOffset,
   measureSceneLabelBounds,
   resolveGuideMargins,
 } from './guide-layout'
@@ -122,6 +123,15 @@ describe('guide layout', () => {
 
     expect(start.x).toBeCloseTo(-start.width)
     expect(end.x).toBe(0)
+  })
+
+  it('resolves logical anchors against the inline direction', () => {
+    expect(logicalTextAnchorOffset(40, 'start', 'ltr')).toBe(0)
+    expect(logicalTextAnchorOffset(40, 'end', 'ltr')).toBe(-40)
+    expect(logicalTextAnchorOffset(40, 'start', 'rtl')).toBe(-40)
+    expect(logicalTextAnchorOffset(40, 'end', 'rtl')).toBe(0)
+    expect(logicalTextAnchorOffset(40, 'middle', 'rtl')).toBe(-20)
+    expect(logicalTextAnchorOffset(40, 'start', 'inherit')).toBe(0)
   })
 
   it('rotates the measured rectangle around the label position', () => {

@@ -334,6 +334,7 @@ Each entry records:
 | F-295 | Line marks forced round endpoints                              | API                   | resolved   |
 | F-296 | Axis titles could not carry authored typography or paint       | API                   | resolved   |
 | F-297 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
+| F-298 | Physical axis sides depended on logical text direction         | API                   | resolved   |
 
 ## Findings
 
@@ -8571,3 +8572,21 @@ Each entry records:
   object form, and the reference docs record the complete contract. Locked
   universal consumers add 65-79 minified bytes and 25-36 gzip bytes; the
   reviewed bundle baselines and budgets pass.
+
+### F-298 - Physical axis sides depended on logical text direction
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #117, with a right-side y axis inside an RTL host
+- Friction: automatic tick-label anchors encoded a physical outward placement
+  with logical `start` and `end` values that change sides under RTL. Browser
+  layout could therefore measure a right-axis label over the plot and reserve
+  no right gutter. Canvas paint, fallback measurement, exported SVG, and React
+  Native also disagreed about whether those values were logical or physical.
+- Decision: keep scene anchors logical, mirror only automatic physical axis
+  defaults under RTL, and normalize at renderer boundaries that do not support
+  logical anchors. Explicit authored anchors retain their SVG meaning.
+- Verification: layout tests cover both y-axis sides, both rotated x-axis
+  directions, and explicit anchors. Estimator, DOM fallback, Canvas, SVG
+  export, and React Native tests cover their direction-specific boundaries.

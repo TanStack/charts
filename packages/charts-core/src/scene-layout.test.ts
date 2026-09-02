@@ -285,6 +285,49 @@ describe('automatic scene guide layout', () => {
       fontWeight: 600,
       style: { fill: 'currentColor', fillOpacity: 0.76 },
     })
+    expect(styled?.style).toStrictEqual({
+      fill: '#7c3aed',
+      opacity: 0.45,
+    })
+    expect(defaulted?.style).toStrictEqual({
+      fill: 'currentColor',
+      fillOpacity: 0.76,
+    })
+
+    const xTitle = (label: string | ChartAxisLabelOptions) => {
+      const titleScene = createChartScene(
+        defineChart({
+          marks: [lineY([0, 1])],
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: { label },
+            },
+            y: { scale: scaleLinear().domain([0, 1]), axis: false },
+          },
+        }),
+        { width: 480, height: 240 },
+        { measureText },
+      )
+      const title = flatten(titleScene.nodes).find(
+        (node): node is SceneLabel =>
+          node.kind === 'label' && node.key === 'x-label',
+      )
+      if (!title) throw new Error('Expected an x-axis title')
+      return title
+    }
+    const defaultStringTitle = xTitle('Default horizontal title')
+    const defaultObjectTitle = xTitle({ text: 'Default horizontal title' })
+    const transparentTitle = xTitle({
+      text: 'Transparent horizontal title',
+      opacity: 0,
+    })
+
+    expect(defaultObjectTitle).toStrictEqual(defaultStringTitle)
+    expect(transparentTitle.style).toStrictEqual({
+      fill: 'currentColor',
+      opacity: 0,
+    })
   })
 
   it('measures configured axis-title typography into automatic margins', () => {

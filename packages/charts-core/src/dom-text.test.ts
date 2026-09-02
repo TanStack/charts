@@ -78,4 +78,56 @@ describe('DOM text measurement', () => {
       value: previousCanvasContext,
     })
   })
+
+  it('mirrors logical anchors when Canvas omits exact painted bounds', () => {
+    const context = {
+      direction: 'inherit',
+      font: '',
+      fontStretch: 'normal',
+      letterSpacing: '0px',
+      textAlign: 'start',
+      textBaseline: 'alphabetic',
+      measureText: vi.fn(() => ({ width: 32 })),
+    } as unknown as CanvasRenderingContext2D
+    const previousCanvasContext = window.CanvasRenderingContext2D
+    Object.defineProperty(window, 'CanvasRenderingContext2D', {
+      configurable: true,
+      value: class TestCanvasContext {},
+    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context)
+
+    try {
+      const measureText = createDomTextMeasurer(
+        document.createElement('div'),
+      ).measureText
+      const options = {
+        fontSize: 10,
+        fontFamily: 'sans-serif',
+        fontStyle: 'normal',
+        fontStretch: 'normal',
+        letterSpacing: 0,
+        direction: 'rtl' as const,
+        fontScale: 1,
+        baseline: 'auto' as const,
+      }
+
+      expect(measureText('Start', { ...options, anchor: 'start' })).toEqual({
+        x: -32,
+        y: -8,
+        width: 32,
+        height: 10,
+      })
+      expect(measureText('End', { ...options, anchor: 'end' })).toEqual({
+        x: 0,
+        y: -8,
+        width: 32,
+        height: 10,
+      })
+    } finally {
+      Object.defineProperty(window, 'CanvasRenderingContext2D', {
+        configurable: true,
+        value: previousCanvasContext,
+      })
+    }
+  })
 })

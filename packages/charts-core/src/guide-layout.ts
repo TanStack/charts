@@ -27,6 +27,16 @@ export interface GuideMarginOptions {
   measureText?: ChartTextMeasurer
 }
 
+export function logicalTextAnchorOffset(
+  width: number,
+  anchor: ChartTextMeasureOptions['anchor'],
+  direction: ChartTextMeasureOptions['direction'],
+): number {
+  if (anchor === 'middle') return -width / 2
+  const startsAtLeft = direction !== 'rtl'
+  return (anchor === 'start') === startsAtLeft ? 0 : -width
+}
+
 export function estimateSceneText(
   text: string,
   style: ChartTextMeasureOptions,
@@ -59,12 +69,7 @@ export function estimateSceneText(
   // origin the painted box occupies mirrors with that direction. The DOM
   // measurer already reports the mirrored origin; match it here so a host
   // without one lays out the same chart.
-  const x =
-    style.anchor === 'middle'
-      ? -width / 2
-      : (style.anchor === 'end') === (style.direction !== 'rtl')
-        ? -width
-        : 0
+  const x = logicalTextAnchorOffset(width, style.anchor, style.direction)
   const y =
     style.baseline === 'middle'
       ? -height / 2

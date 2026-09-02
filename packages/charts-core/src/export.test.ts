@@ -93,6 +93,37 @@ describe('optional export', () => {
     readStyle.mockRestore()
   })
 
+  it('preserves the computed text direction in standalone SVG', () => {
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(
+      createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2])],
+          ...linearAxes([0, 2], [0, 3]),
+        }),
+        { width: 480, height: 260 },
+      ),
+      { ariaLabel: 'RTL export' },
+    )
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected an SVG chart')
+    const readStyle = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element) => {
+        return {
+          direction: element === svg ? 'rtl' : '',
+          getPropertyValue() {
+            return ''
+          },
+        } as unknown as CSSStyleDeclaration
+      })
+
+    const result = serializeChartSvg(container)
+
+    expect(result).toContain('direction="rtl"')
+    readStyle.mockRestore()
+  })
+
   it('includes the currently painted crosshair only when requested', () => {
     const scene = createChartScene(
       defineChart({

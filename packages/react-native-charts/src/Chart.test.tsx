@@ -69,6 +69,7 @@ const nativeViewState = vi.hoisted(() => ({
 vi.mock('react-native', async () => {
   const ReactModule = await import('react')
   return {
+    Platform: { OS: 'ios' },
     Text: 'span',
     View: ReactModule.forwardRef<HTMLDivElement, MockNativeViewProps>(
       function MockView(props, ref) {

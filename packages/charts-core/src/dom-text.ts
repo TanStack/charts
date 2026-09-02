@@ -1,4 +1,4 @@
-import { estimateSceneText } from './guide-layout'
+import { estimateSceneText, logicalTextAnchorOffset } from './guide-layout'
 import type {
   ChartTextMeasurer,
   ChartTextMeasureOptions,
@@ -137,12 +137,7 @@ function paintedBounds(
   const width = Number.isFinite(measured.width)
     ? Math.max(0, measured.width)
     : 0
-  const x =
-    options.anchor === 'middle'
-      ? -width / 2
-      : options.anchor === 'end'
-        ? -width
-        : 0
+  const x = logicalTextAnchorOffset(width, options.anchor, options.direction)
   const y =
     options.baseline === 'middle'
       ? -fontSize / 2

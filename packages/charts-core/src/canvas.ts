@@ -1509,11 +1509,7 @@ function paintLabel(
   }
   context.direction = painter.font.direction
   context.textAlign =
-    node.anchor === 'middle'
-      ? 'center'
-      : node.anchor === 'end'
-        ? 'right'
-        : 'left'
+    node.anchor === 'middle' ? 'center' : (node.anchor ?? 'start')
   context.textBaseline =
     node.baseline === 'middle'
       ? 'middle'
