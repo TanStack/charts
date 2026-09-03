@@ -1,8 +1,7 @@
 import { extent } from 'd3-array'
-import { decathlonEvents } from './selection'
-import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
-
-export type DecathlonEvent = (typeof decathlonEvents)[number]
+import { decathlonEvents, timedEvents } from './selection'
+import type { DecathlonRow } from '@tanstack/charts-data/decathlon'
+import type { DecathlonEvent } from './selection'
 
 export interface NormalizedDecathlonResult {
   readonly Country: string
@@ -10,7 +9,6 @@ export interface NormalizedDecathlonResult {
   readonly relativePerformance: number
 }
 
-const timedEvents = new Set<DecathlonEvent>(['100 Meters', '100 Meter Hurdles'])
 export function normalizeDecathlonResults(
   sourceRows: readonly DecathlonRow[],
   rows: readonly DecathlonRow[],

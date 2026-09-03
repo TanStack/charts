@@ -5,13 +5,12 @@
   "title": "Hexagonally binned density",
   "family": "distribution",
   "intent": "Reveal the relationship between automobile weight and fuel economy by aggregating raw observations into fixed-pixel hexagonal bins.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "hexbin",
-    "hexagon mark",
-    "d3-hexbin",
+    "spatial hexbin mark",
     "threshold color",
-    "responsive pixel-space binning"
+    "resolved-layout pixel-space binning"
   ],
   "geometry": [{ "role": "hexagon", "count": 20 }],
   "source": {
@@ -19,7 +18,7 @@
     "url": "https://observablehq.com/plot/transforms/hexbin"
   },
   "ai": {
-    "create": "Create a responsive hexbin density chart from the Cars dataset's weight and fuel-economy fields. Plot may use its hexbin transform; TanStack should use granular d3-hexbin in the resolved manual pixel range and pass inverted bin centers to hexagon.",
-    "maintain": "Change bin radius and thresholds while keeping the D3 extent synchronized with chart margins, fixed-pixel hexagons, stable bin keys, and cast-free channels."
+    "create": "Create a responsive hexbin density chart from the Cars dataset's weight and fuel-economy fields. Use each library's semantic hexbin transform or mark with a 24-pixel bin width and threshold color.",
+    "maintain": "Change bin width and thresholds while preserving raw-row lineage, fixed-pixel bins, stable keys, and cast-free channels."
   }
 }

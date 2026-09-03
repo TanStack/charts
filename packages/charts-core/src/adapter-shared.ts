@@ -1,4 +1,4 @@
-import type { ChartScene, ChartValue } from './types'
+import type { ChartScene, ChartValue, StaticChartDefinition } from './types'
 
 export interface ChartAdapterLayoutOptions {
   width?: number
@@ -44,4 +44,15 @@ export function resolveChartAdapterLayout(
       options.height ??
       (aspectRatio === undefined ? 320 : initialWidth / aspectRatio),
   }
+}
+
+export function resolveChartHostTabIndex(
+  definition: Pick<StaticChartDefinition, 'cursor' | 'focus' | 'keyboard'>,
+  tabIndex = 0,
+): number {
+  return definition.keyboard === false ||
+    definition.focus === false ||
+    definition.cursor?.mode === 'free'
+    ? -1
+    : tabIndex
 }

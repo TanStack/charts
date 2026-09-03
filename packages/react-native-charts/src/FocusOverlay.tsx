@@ -1,8 +1,18 @@
 import * as React from 'react'
 import type { ColorValue } from 'react-native'
 import { Circle, Svg } from 'react-native-svg'
-import type { ChartPoint, ChartValue } from '@tanstack/charts/types'
+import {
+  focusedSceneNodes,
+  resolveFocusScene,
+} from '@tanstack/charts/universal'
+import type {
+  ChartFocusSource,
+  ChartPoint,
+  ChartScene,
+  ChartValue,
+} from '@tanstack/charts/types'
 import { resolveNativeSolidPaint, type NativePaintResolver } from './paint'
+import { NativeChartSceneNodes } from './SvgScene'
 
 export interface NativeChartFocusOverlayProps<
   TDatum,
@@ -11,9 +21,16 @@ export interface NativeChartFocusOverlayProps<
 > {
   width: number
   height: number
+  scene: ChartScene<TDatum, TXValue, TYValue>
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  placement: 'under' | 'over'
+  source: ChartFocusSource
+  pinned: boolean
+  showDefault: boolean
   color: ColorValue
   fill: ColorValue
+  fontFamily?: string
+  idPrefix: string
   resolvePaint: NativePaintResolver
 }
 
@@ -24,12 +41,30 @@ export function NativeChartFocusOverlay<
 >({
   width,
   height,
+  scene,
   points,
+  placement,
+  source,
+  pinned,
+  showDefault,
   color,
   fill,
+  fontFamily,
+  idPrefix,
   resolvePaint,
 }: NativeChartFocusOverlayProps<TDatum, TXValue, TYValue>) {
-  if (!points.length) return null
+  const focus = points[0]
+    ? {
+        primary: points[0],
+        group: points,
+        source,
+        pinned,
+      }
+    : null
+  const focusedScene = resolveFocusScene(scene, focus).scene
+  const nodes = focusedSceneNodes(focusedScene, focus, placement)
+  const defaultPoints = placement === 'over' && showDefault ? points : []
+  if (!nodes.length && !defaultPoints.length) return null
   return (
     <Svg
       width="100%"
@@ -37,11 +72,21 @@ export function NativeChartFocusOverlay<
       viewBox={`0 0 ${width} ${height}`}
       pointerEvents="none"
       accessible={false}
+      color={color}
+      fontFamily={fontFamily}
       style={absoluteFill}
     >
-      {points.map((point, index) => (
+      <NativeChartSceneNodes
+        scene={focusedScene}
+        nodes={nodes}
+        color={color}
+        fontFamily={fontFamily}
+        idPrefix={idPrefix}
+        resolvePaint={resolvePaint}
+      />
+      {defaultPoints.map((point, index) => (
         <Circle
-          key={`${point.markId}:${point.key}:${point.datumIndex}`}
+          key={`default-focus:${index}`}
           cx={point.x}
           cy={point.y}
           r={index === 0 ? 6 : 4}

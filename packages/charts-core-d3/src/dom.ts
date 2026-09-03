@@ -44,7 +44,9 @@ export function mountChart<TDatum, TInput = undefined>(
         ...options,
         tabIndex: options.keyboard === false ? -1 : 0,
       }),
-      hasRendered ? resolveAnimation(options.animate, container) : undefined,
+      hasRendered
+        ? resolveAnimation(options.svgAnimation, container)
+        : undefined,
     )
     hasRendered = true
     spatialIndex = options.spatialIndex?.(scene.points)
@@ -317,7 +319,7 @@ export function mountChart<TDatum, TInput = undefined>(
 }
 
 function resolveAnimation(
-  animation: ChartHostOptions['animate'],
+  animation: ChartHostOptions['svgAnimation'],
   container: HTMLElement,
 ) {
   const resolved = animation === true ? {} : animation || undefined

@@ -13,7 +13,10 @@
     "polygon grid",
     "radial tick labels",
     "closed D3 curves",
-    "series visual channels"
+    "series visual channels",
+    "TanStack fold",
+    "TanStack normalize",
+    "TanStack select"
   ],
   "geometry": [
     { "role": "radar", "count": 2, "maxCount": 2 },
@@ -25,7 +28,7 @@
     "url": "https://recharts.github.io/en-US/examples/SimpleRadarChart/"
   },
   "ai": {
-    "create": "Create a comparative radar chart from representative raw USA and GBR decathlon rows, visibly normalizing four differently scaled events to a shared zero-to-one-hundred radial scale.",
-    "maintain": "Update either profile while preserving metric order, series identity, the fixed radial domain, closed D3 curves, and shared guide geometry."
+    "create": "Create a comparative radar chart by folding and normalizing the full decathlon population, then filtering USA and GBR and selecting the first row per country and event.",
+    "maintain": "Update either profile while preserving authored metric direction, event order, first-row country selection, stable country-event identity, the fixed zero-to-one radial domain, and shared guide geometry."
   }
 }

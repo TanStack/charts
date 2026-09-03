@@ -30,6 +30,10 @@ const svg = renderChartSvg(scene, {
 })
 ```
 
+This direct serializer paints the complete renderer-neutral scene as SVG. It
+does not run mark-level surface composition, so it can provide a vector
+snapshot of a definition that selects Canvas when mounted.
+
 For a responsive definition, create a runtime with its datum, x-value, and
 y-value generics, then call `render(...)` with the definition and explicit
 size. See [Runtime and Scene](../reference/runtime-and-scene.md#createchartruntime)
@@ -59,7 +63,9 @@ downloadChartSvg(chartContainer, 'quarterly-revenue.svg', {
 
 The target may be the chart SVG or an ancestor containing `svg.ts-chart`.
 Focus decoration is omitted by default; set `includeFocus: true` when it is
-part of the intended artifact.
+part of the intended artifact. This includes authored `whenFocused` geometry,
+the primary focus ring, and the currently painted crosshair or controlled
+cursor guide.
 
 ## Export PNG, JPEG, or WebP
 
@@ -89,16 +95,32 @@ coordinate system.
 ## Export a Canvas chart
 
 Pass the Canvas root or an ancestor containing it to the same
-`renderChartImage` or `downloadChartImage` functions. The exporter draws the
-base scene layer at the requested dimensions and scale. Set
-`includeFocus: true` to composite the focus layers; they are excluded by
-default.
+`renderChartImage` or `downloadChartImage` functions. Without focus, the
+exporter draws the stable base bitmap at the requested dimensions and scale.
+Set `includeFocus: true` to composite the live background, focus underlay,
+ordinary scene, and focus overlay layers in that order. Crosshair guides use
+the same underlay and overlay canvases.
 
 Canvas focus is painted on underlay and overlay canvases so pointer movement
 does not repaint the base scene. Applications that need only the raw base
 bitmap may also call `toBlob()` or `toDataURL()` on
-`CanvasChartSurface.canvas`. Unlike SVG serialization, Canvas export does not
-retain vector geometry, accessible markup, or independently styleable nodes.
+`CanvasChartSurface.canvas`; it contains the chart background and ordinary
+scene but no transient focus. `backgroundCanvas`, `focusUnderCanvas`,
+`sceneCanvas`, and `focusCanvas` expose the modeled live layers. Unlike
+SVG serialization, Canvas export does not retain vector geometry, accessible
+markup, or independently styleable nodes.
+
+## Export a mixed SVG and Canvas chart
+
+Pass the mixed chart root or its host to `renderChartImage` or
+`downloadChartImage`. The exporter composites every SVG and Canvas child
+surface in visual order. Set `includeFocus: true` to include the live focus
+layers in the same positions used by the mounted chart.
+
+`serializeChartSvg` and `downloadChartSvg` reject a mixed root. A mixed chart
+contains raster pixels, so a pure vector SVG would either omit those marks or
+embed a raster image. Use the raster export path when any mounted mark selects
+Canvas.
 
 ## Theme and resource policy
 
@@ -129,7 +151,7 @@ needs embedded or inlined assets.
 - Fonts and external resources are portable.
 - Focus decoration is included only when meaningful.
 - Raster scale is chosen for the target medium.
-- A Canvas export intentionally includes or excludes focus layers.
+- A Canvas or mixed export intentionally includes or excludes focus layers.
 
 See [Rendering and Export](../reference/rendering-and-export.md) for every
 function and option.

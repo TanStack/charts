@@ -1,131 +1,36 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import { createMark, defineChart, dot, mountChart } from '@tanstack/charts'
-import { tooltip } from '@tanstack/charts/tooltip'
-import { Delaunay } from 'd3-delaunay'
-import { scaleLinear } from 'd3-scale'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { ChartHostOptions, SceneNode } from '@tanstack/charts'
+import { mountChart } from '@tanstack/charts'
+import type { ChartHostOptions } from '@tanstack/charts'
 import type {
   ConformanceHandle,
-  ConformanceInput,
   ConformanceMount,
   ConformanceTestDriver,
 } from '../../types'
+import {
+  carKey,
+  createExampleChart,
+  exampleAriaLabel,
+  selectedCars,
+} from './example'
+import type { CompleteCar } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-type CompleteCar = CarsRow & {
-  readonly 'economy (mpg)': number
-}
+export * from './example'
 
-const colors = ['#2563eb', '#0d9488', '#d97706']
-
-function voronoiCells(rows: readonly CompleteCar[]) {
-  return createMark<CompleteCar, number, number>(({ markIndex }) => {
-    const id = `voronoi-cells-${markIndex}`
-
-    return {
-      id,
-      channels: {
-        x: {
-          scale: 'x',
-          values: rows.map((row) => row['weight (lb)']),
-        },
-        y: {
-          scale: 'y',
-          values: rows.map((row) => row['economy (mpg)']),
-        },
-        color: {
-          scale: 'color',
-          values: rows.map(cylinderLabel),
-        },
-      },
-      render: ({ chart, scales, color }) => {
-        const delaunay = Delaunay.from(
-          rows,
-          (row) => scales.x.map(row['weight (lb)']),
-          (row) => scales.y.map(row['economy (mpg)']),
-        )
-        const cells = delaunay.voronoi([
-          chart.x,
-          chart.y,
-          chart.x + chart.width,
-          chart.y + chart.height,
-        ])
-        const children: SceneNode[] = []
-
-        rows.forEach((row, index) => {
-          const path = cells.renderCell(index)
-          if (path === null) return
-          children.push({
-            kind: 'area',
-            key: `${id}:${carKey(row)}`,
-            points: [],
-            path,
-            style: {
-              fill: color(cylinderLabel(row)),
-              fillOpacity: 0.14,
-              stroke: '#ffffff',
-              strokeWidth: 1,
-            },
-          })
-        })
-
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__voronoi',
-              ariaHidden: true,
-              children,
-            },
-          ],
-        }
-      },
-    }
-  })
-}
-
-const definition = (rows: readonly CompleteCar[]) =>
-  defineChart({
-    marks: [
-      voronoiCells(rows),
-      dot(rows, {
-        x: 'weight (lb)',
-        y: 'economy (mpg)',
-        color: cylinderLabel,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-        r: 4,
-      }),
-    ],
-    x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Fuel economy (mpg)' },
+export const catalogCase = tanstackExampleMount(
+  createExampleChart,
+  exampleAriaLabel,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'voronoi-points' &&
+            carKey(point.datum) === 'AMC Gremlin:71:2634',
+        ) ?? null
+      )
     },
-    color: {
-      range: colors,
-    },
-  })
-
-const configuredDefinition = (rows: readonly CompleteCar[]) =>
-  defineChart(definition(rows), {
-    animate: false,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      anchor: 'pointer',
-      items: [
-        {
-          id: 'car',
-          label: 'Car',
-          text: (point) =>
-            `${point.datum.name} · ${cylinderLabel(point.datum)}`,
-        },
-      ],
-    },
-  })
+  },
+)
 
 export const mount: ConformanceMount = (
   container,
@@ -134,10 +39,10 @@ export const mount: ConformanceMount = (
   let rows = selectedCars(input.revision)
   let focusedIds: string[] = []
   const options: ChartHostOptions<CompleteCar> = {
-    definition: configuredDefinition(rows),
+    definition: createExampleChart(input),
     width: input.width,
     height: input.height,
-    ariaLabel: 'Voronoi nearest-point interaction',
+    ariaLabel: exampleAriaLabel,
     onFocusGroupChange(points) {
       focusedIds = points.map((point) => carKey(point.datum))
     },
@@ -181,7 +86,7 @@ export const mount: ConformanceMount = (
       rows = selectedCars(nextInput.revision)
       host.update({
         ...options,
-        definition: configuredDefinition(rows),
+        definition: createExampleChart(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })
@@ -190,18 +95,4 @@ export const mount: ConformanceMount = (
       host.destroy()
     },
   }
-}
-
-function selectedCars(revision: number): CompleteCar[] {
-  return cars
-    .filter((row): row is CompleteCar => row['economy (mpg)'] !== null)
-    .slice(revision * 3, revision * 3 + 18)
-}
-
-function cylinderLabel(row: CarsRow): string {
-  return `${row.cylinders} cylinders`
-}
-
-function carKey(row: CarsRow): string {
-  return `${row.name}:${row.year}:${row['weight (lb)']}`
 }

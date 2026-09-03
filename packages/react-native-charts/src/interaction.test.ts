@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { scaleLinear } from 'd3-scale'
+import { lineY } from '@tanstack/charts/line'
+import { createChartScene, defineChart } from '@tanstack/charts/scene'
 import type {
   ChartDefinition,
   ChartPoint,
   ChartScene,
+  SceneNode,
 } from '@tanstack/charts/types'
 import { adjacentFocusPoint, createNativeChartFocusModel } from './interaction'
 
@@ -51,6 +55,43 @@ describe('native focus model', () => {
     expect(calls).toBe(1)
   })
 
+  it('disables focus resolution and spatial indexing when focus is false', () => {
+    const points = [point('alpha', 'alpha', 0, 10, 10, 1, 2)]
+    let indexCalls = 0
+    const model = createNativeChartFocusModel(
+      chartScene(points),
+      definition({
+        focus: false,
+        spatialIndex: () => {
+          indexCalls += 1
+          return { findNearest: () => points[0] ?? null }
+        },
+      }),
+    )
+
+    expect(indexCalls).toBe(0)
+    expect(model.resolve(10, 10)).toEqual([])
+    expect(model.group(points[0]!)).toEqual([])
+    expect(model.navigation).toEqual([])
+  })
+
+  it('uses painted containment to seed grouped axis focus', () => {
+    const disease = point('disease', 'disease', 0, 10, 40, 1, 100)
+    const wounds = point('wounds', 'wounds', 1, 10, 20, 1, 40)
+    const model = createNativeChartFocusModel(
+      chartScene(
+        [disease, wounds],
+        [rectangle(disease, 5, 40, 10, 20), rectangle(wounds, 5, 20, 10, 20)],
+      ),
+      definition({ focus: 'group-x', maxFocusDistance: 0 }),
+    )
+
+    expect(model.resolve(10, 30).map((candidate) => candidate.key)).toEqual([
+      'wounds',
+      'disease',
+    ])
+  })
+
   it('restores duplicate keys by datum identity after a scene update', () => {
     const datum = { id: 'same' }
     const previous = point('duplicate', 'alpha', 0, 10, 10, 1, 2, datum)
@@ -63,12 +104,64 @@ describe('native focus model', () => {
 
     expect(model.restore(previous)).toBe(restored)
   })
+
+  it('limits viewport geometry, navigation, restoration, and indexes to visible points', () => {
+    const rows = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const chartDefinition = (translate: number) =>
+      defineChart({
+        marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
+        },
+
+        guides: false,
+      })
+    const settled = createChartScene(chartDefinition(0), {
+      width: 480,
+      height: 260,
+    })
+    const settledOne = settled.points.find((point) => point.datum.x === 1)
+    const settledTwo = settled.points.find((point) => point.datum.x === 2)
+    if (!settledOne || !settledTwo) throw new Error('Expected history points')
+    const scene = createChartScene(
+      chartDefinition((settledTwo.x - settledOne.x) / 4),
+      { width: 480, height: 260 },
+    )
+    const visible = scene.points.find((point) => point.datum.x === 1)
+    const excluded = scene.points.find((point) => point.datum.x === 2)
+    if (!visible || !excluded) throw new Error('Expected presented points')
+    const right = scene.chart.x + scene.chart.width
+    const progress = (right - visible.x) / (excluded.x - visible.x)
+    const model = createNativeChartFocusModel(scene, chartDefinition(0))
+
+    expect(
+      model.resolve(right, visible.y + (excluded.y - visible.y) * progress)[0]
+        ?.datum.x,
+    ).toBe(1)
+    expect(model.navigation.map((point) => point.datum.x)).toEqual([1])
+    expect(model.restore(excluded)).toBeNull()
+
+    let indexed: readonly (typeof scene.points)[number][] = []
+    const indexedDefinition = defineChart(chartDefinition(0), {
+      spatialIndex(points) {
+        indexed = points
+        return { findNearest: () => excluded }
+      },
+    })
+    const indexedModel = createNativeChartFocusModel(scene, indexedDefinition)
+    expect(indexed.map((point) => point.datum.x)).toEqual([1])
+    expect(indexedModel.resolve(right, visible.y)).toEqual([])
+  })
 })
 
 function definition(
   options: Partial<ChartDefinition<Datum, number, number>>,
 ): ChartDefinition<Datum, number, number> {
-  return { marks: [], ...options }
+  return { marks: [], scales: { x: null, y: null }, ...options }
 }
 
 function point(
@@ -98,13 +191,14 @@ function point(
 
 function chartScene(
   points: readonly ChartPoint<Datum, number, number>[],
+  nodes: readonly SceneNode[] = [],
 ): ChartScene<Datum, number, number> {
   return {
     width: 100,
     height: 60,
     margin: { top: 0, right: 0, bottom: 0, left: 0 },
     chart: { x: 0, y: 0, width: 100, height: 60 },
-    nodes: [],
+    nodes,
     points,
     scales: {},
     colors: {
@@ -121,5 +215,23 @@ function chartScene(
       background: 'transparent',
       palette: ['#2563eb', '#f97316'],
     },
+  }
+}
+
+function rectangle(
+  target: ChartPoint<Datum, number, number>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): SceneNode {
+  return {
+    kind: 'rect',
+    key: target.key,
+    x,
+    y,
+    width,
+    height,
+    interaction: { point: target, affinity: 'x' },
   }
 }

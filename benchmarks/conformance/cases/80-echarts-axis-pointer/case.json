@@ -6,13 +6,14 @@
   "title": "Snapped axis pointer with grouped tooltip",
   "family": "interaction",
   "intent": "Track the nearest shared date with a vertical crosshair and compare every series in one rich tooltip.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "snapped x crosshair",
-    "grouped tooltip",
+    "native snapped x focus",
+    "native focus guide",
+    "native grouped tooltip",
+    "native categorical legend",
     "semantic interaction driver",
-    "multi-series time line",
-    "rich color swatches"
+    "multi-series time line"
   ],
   "geometry": [
     { "view": "main", "role": "line", "count": 3 },
@@ -54,21 +55,21 @@
           "assertions": [
             {
               "target": {
-                "selector": "[data-conformance-tooltip=\"grouped\"]"
+                "selector": ".conformance-tooltip-grouped, [data-conformance-tooltip=\"grouped\"]"
               },
               "property": "visible",
               "equals": true
             },
             {
               "target": {
-                "selector": "[data-conformance-tooltip=\"grouped\"]"
+                "selector": ".conformance-tooltip-grouped, [data-conformance-tooltip=\"grouped\"]"
               },
               "property": "text",
               "includes": "Manufacturing"
             },
             {
               "target": {
-                "selector": "[data-conformance-tooltip=\"grouped\"]"
+                "selector": ".conformance-tooltip-grouped, [data-conformance-tooltip=\"grouped\"]"
               },
               "property": "contained",
               "equals": true,
@@ -102,7 +103,7 @@
           "assertions": [
             {
               "target": {
-                "selector": "[data-conformance-tooltip=\"grouped\"]"
+                "selector": ".conformance-tooltip-grouped, [data-conformance-tooltip=\"grouped\"]"
               },
               "property": "contained",
               "equals": true,
@@ -139,6 +140,6 @@
   },
   "ai": {
     "create": "Create a three-industry UTC line chart from the industries dataset's date, industry, and unemployed fields with a snapped vertical crosshair and one rich tooltip at the nearest month.",
-    "maintain": "Change the selected industries while preserving semantic date anchors, grouped focus state, external tooltip ownership, SVG accessibility, and the original observations."
+    "maintain": "Change the selected industries while preserving semantic date anchors, native grouped focus, the definition-owned focus guide and tooltip, SVG accessibility, and the original observations."
   }
 }

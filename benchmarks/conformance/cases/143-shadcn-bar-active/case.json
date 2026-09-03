@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1440,
+  "id": "143-shadcn-bar-active",
+  "title": "shadcn Bar Chart - Active",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-active example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "active", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-active",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-active"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-active card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar active treatment, card dimensions, and light and dark tokens."
+  }
+}

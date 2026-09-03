@@ -1,4 +1,4 @@
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scalePoint } from '@tanstack/charts/scales/point'
 
 const scale = scalePoint(['a', 'b', 'c'], [0, 100])
   .padding(0.2)

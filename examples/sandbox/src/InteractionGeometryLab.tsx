@@ -23,8 +23,8 @@ import {
   type StaticChartDefinition,
 } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
+import { Chart } from '@tanstack/charts/react'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import proofSource from './InteractionGeometryLab.tsx?raw'
 
@@ -60,12 +60,12 @@ interface ProofCase {
   beforeExpected: string
   afterExpected: string
   source: string
-  before: StaticChartDefinition<ProofDatum, number, number>
-  after: StaticChartDefinition<ProofDatum, number, number>
+  before: StaticChartDefinition<ProofDatum, number, number, 'dom'>
+  after: StaticChartDefinition<ProofDatum, number, number, 'dom'>
   grouped?: {
     axis: 'x' | 'y'
     expected: readonly string[]
-    definition: StaticChartDefinition<ProofDatum, number, number>
+    definition: StaticChartDefinition<ProofDatum, number, number, 'dom'>
   }
   probe: (
     scene: ChartScene<ProofDatum, number, number>,
@@ -93,7 +93,7 @@ const canvasProofIds = new Set<string>([
 
 export const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> =
   {
-    resolve(points, x, y, maxDistance) {
+    resolve(points, { x, y, maxDistance }) {
       let nearest: ChartPoint<ProofDatum, number, number> | undefined
       let nearestDistance = Number.POSITIVE_INFINITY
       for (const point of points) {
@@ -107,7 +107,7 @@ export const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> =
         ? [nearest]
         : []
     },
-    group(_points, point) {
+    group(_points, { point }) {
       return [point]
     },
     navigation(points) {
@@ -200,8 +200,11 @@ function facetedBarsDefinition(syncAxis?: FacetSyncAxis) {
                       inset: 5,
                     }),
                   ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2, 3, 4, 5]) },
-          y: { scale: scaleLinear().domain([0, 260]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2, 3, 4, 5]) },
+            y: { scale: scaleLinear().domain([0, 260]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -251,7 +254,7 @@ export const animatedDestinationDefinition = defineChart(
   animatedDestinationBase,
   {
     maxFocusDistance: 12,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',
@@ -1713,8 +1716,11 @@ function createProofCases(): ProofCase[] {
               inset: 2,
             }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
-          y: { scale: scaleLinear().domain([0, 250]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
+            y: { scale: scaleLinear().domain([0, 250]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -1773,8 +1779,11 @@ function createProofCases(): ProofCase[] {
               inset: 6,
             }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
-          y: { scale: scaleLinear().domain([0, 250]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1, 2]).padding(0.12) },
+            y: { scale: scaleLinear().domain([0, 250]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -1858,8 +1867,11 @@ function createProofCases(): ProofCase[] {
               strokeWidth: 1.5,
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 100]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 100]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
+
           guides: false,
           margin: 0,
           clip: true,
@@ -2552,18 +2564,21 @@ function createProofCases(): ProofCase[] {
 }
 
 function baseDefinition(
-  marks: StaticChartDefinition<ProofDatum, number, number>['marks'],
+  marks: StaticChartDefinition<ProofDatum, number, number, 'dom'>['marks'],
   xScale:
     | ReturnType<typeof scaleLinear<number, number>>
     | ReturnType<typeof scaleBand<number>>,
   yScale:
     | ReturnType<typeof scaleLinear<number, number>>
     | ReturnType<typeof scaleBand<number>>,
-): StaticChartDefinition<ProofDatum, number, number> {
+): StaticChartDefinition<ProofDatum, number, number, 'dom'> {
   return {
     marks,
-    x: { scale: xScale, grid: true },
-    y: { scale: yScale, grid: true },
+    scales: {
+      x: { scale: xScale, grid: true },
+      y: { scale: yScale, grid: true },
+    },
+
     guides: false,
     margin: { top: 18, right: 20, bottom: 18, left: 20 },
     theme: {
@@ -2581,7 +2596,7 @@ function makeCase(
     ProofCase,
     'before' | 'after' | 'grouped' | 'renderer' | 'source'
   > & {
-    base: StaticChartDefinition<ProofDatum, number, number>
+    base: StaticChartDefinition<ProofDatum, number, number, 'dom'>
     grouped?: {
       axis: 'x' | 'y'
       expected: readonly string[]
@@ -2605,13 +2620,13 @@ function makeCase(
 }
 
 function interactiveDefinition(
-  base: StaticChartDefinition<ProofDatum, number, number>,
+  base: StaticChartDefinition<ProofDatum, number, number, 'dom'>,
   focus?: ChartFocusStrategy<ProofDatum, number, number>,
 ) {
   return defineChart(base, {
     focus,
     maxFocusDistance: 48,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',
@@ -2623,13 +2638,13 @@ function interactiveDefinition(
 }
 
 function groupedInteractiveDefinition(
-  base: StaticChartDefinition<ProofDatum, number, number>,
+  base: StaticChartDefinition<ProofDatum, number, number, 'dom'>,
   axis: 'x' | 'y',
 ) {
   return defineChart(base, {
     focus: axis === 'x' ? 'group-x' : 'group-y',
     maxFocusDistance: 48,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',

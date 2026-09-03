@@ -6,12 +6,14 @@
   "title": "Flare analytics treemap",
   "family": "hierarchy",
   "intent": "Show the relative sizes of Flare analytics classes as nested, area-proportional rectangles.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "hierarchical data",
-    "squarified layout",
+    "responsive resolved treemap mark",
+    "squarified plot-space layout",
     "area encoding",
-    "in-cell labels"
+    "in-cell label fitting",
+    "source lineage"
   ],
   "geometry": [
     { "role": "rect", "count": 10 },
@@ -22,7 +24,7 @@
     "url": "https://recharts.github.io/en-US/examples/BundleSizeTreemap/"
   },
   "ai": {
-    "create": "Create a treemap from Observable's flat Flare name and size fields with leaf area proportional to size, package colors, and in-cell class labels.",
-    "maintain": "Change the selected Flare subtree while preserving the raw name and size fields, deterministic squarification, stable leaf identity, colors, and label placement."
+    "create": "Create a native responsive treemap from Observable's flat Flare name and size fields with leaf area proportional to size, package colors, and fitted in-cell class labels.",
+    "maintain": "Change the selected Flare subtree while preserving authored order, raw-row lineage, deterministic squarification, stable leaf identity, colors, and fitted label placement."
   }
 }

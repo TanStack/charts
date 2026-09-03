@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { brushX } from 'd3-brush'
 import { select } from 'd3-selection'
 import {
@@ -147,7 +147,7 @@ export const mount: ConformanceMount = (container, input) => {
   overviewView.dataset.conformanceView = 'overview'
   controls.dataset.focusControls = ''
   overviewView.style.position = 'relative'
-  brushOverlay.dataset.focusWindow = ''
+  brushOverlay.dataset.chartBrush = 'focus-window'
   brushOverlay.setAttribute('aria-hidden', 'true')
   brushOverlay.append(brushGroup)
   Object.assign(brushOverlay.style, {

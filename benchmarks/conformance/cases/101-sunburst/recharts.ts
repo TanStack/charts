@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { SunburstChart } from 'recharts'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { selectSunburstData } from './selection'
 import { sunburstTree } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'

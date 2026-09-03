@@ -2,7 +2,7 @@ import * as React from 'react'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import {
   createDashboardData,
   industryColors,
@@ -13,9 +13,10 @@ import {
   type IndustryStackPoint,
   type TimeRange,
 } from './transforms'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import {
   createAgreementChart,
+  createAaplPriceVolumeChart,
   createCarEconomyChart,
   createIndustryChart,
   createPenguinChart,
@@ -43,7 +44,14 @@ export function App() {
         createAgreementChart({ value: data.agreementPercent }),
         {
           keyboard: false,
-          animate: { duration: 800, easing: 'ease-out' },
+          svgAnimation: { duration: 800, easing: 'ease-out' },
+        },
+      ),
+      aaplPriceVolume: defineChart(
+        createAaplPriceVolumeChart({ rows: data.aapl }),
+        {
+          keyboard: false,
+          svgAnimation: { duration: 720, easing: 'ease-out' },
         },
       ),
       industries: defineChart(
@@ -59,7 +67,7 @@ export function App() {
             sticky: true,
             formatGroup: formatIndustryGroup,
           },
-          animate: { duration: 720, easing: 'ease-out' },
+          svgAnimation: { duration: 720, easing: 'ease-out' },
         },
       ),
       ratings: defineChart(createRatingsHeatmap({ rows: data.simpsons }), {
@@ -69,7 +77,7 @@ export function App() {
           format: (point) =>
             `S${point.datum.season} E${point.datum.number_in_season} · ${point.datum.title}\nIMDb ${point.datum.imdb_rating?.toFixed(1)}`,
         },
-        animate: { duration: 520, easing: 'ease-out' },
+        svgAnimation: { duration: 520, easing: 'ease-out' },
       }),
       cars: defineChart(createCarEconomyChart({ rows: data.carEconomy }), {
         tooltip: {
@@ -78,7 +86,7 @@ export function App() {
           format: (point) =>
             `${point.datum.cylinders} cylinders\n${point.datum.economy.toFixed(1)} mpg mean`,
         },
-        animate: { duration: 680, easing: 'ease-out' },
+        svgAnimation: { duration: 680, easing: 'ease-out' },
       }),
       surveyStack: defineChart(
         createSurveyStackChart({ rows: data.surveyStack }),
@@ -89,7 +97,7 @@ export function App() {
             format: (point) =>
               `${point.datum.Question} · ${point.datum.Response}\n${point.datum.count} responses`,
           },
-          animate: { duration: 720, easing: 'ease-out' },
+          svgAnimation: { duration: 720, easing: 'ease-out' },
         },
       ),
       surveyWaffle: defineChart(
@@ -101,7 +109,7 @@ export function App() {
             format: (point) =>
               `${point.datum.Question} · ${point.datum.Response}`,
           },
-          animate: { duration: 560, easing: 'ease-out' },
+          svgAnimation: { duration: 560, easing: 'ease-out' },
         },
       ),
       sparks: {
@@ -114,7 +122,7 @@ export function App() {
           }),
           {
             keyboard: false,
-            animate: { duration: 650, easing: 'ease-out' },
+            svgAnimation: { duration: 650, easing: 'ease-out' },
           },
         ),
         travelers: defineChart(
@@ -126,7 +134,7 @@ export function App() {
           }),
           {
             keyboard: false,
-            animate: { duration: 650, easing: 'ease-out' },
+            svgAnimation: { duration: 650, easing: 'ease-out' },
           },
         ),
         temperature: defineChart(
@@ -138,7 +146,7 @@ export function App() {
           }),
           {
             keyboard: false,
-            animate: { duration: 650, easing: 'ease-out' },
+            svgAnimation: { duration: 650, easing: 'ease-out' },
           },
         ),
         wind: defineChart(
@@ -150,7 +158,7 @@ export function App() {
           }),
           {
             keyboard: false,
-            animate: { duration: 650, easing: 'ease-out' },
+            svgAnimation: { duration: 650, easing: 'ease-out' },
           },
         ),
       },
@@ -172,7 +180,7 @@ export function App() {
             format: (point) =>
               `${point.datum.species} · ${point.datum.island}\n${point.datum.culmen_length_mm} × ${point.datum.culmen_depth_mm} mm · ${point.datum.body_mass_g} g`,
           },
-          animate: { duration: 620, easing: 'ease-out' },
+          svgAnimation: { duration: 620, easing: 'ease-out' },
         },
       ),
     [data.penguins, selectedPenguin],
@@ -467,6 +475,33 @@ export function App() {
                     <strong>{row.count}</strong>
                   </div>
                 ))}
+              </div>
+            </article>
+
+            <article className="card multi-axis-card">
+              <CardHeader
+                eyebrow="AAPL price and volume"
+                value="Independent axes"
+              >
+                <div className="legend">
+                  <span>
+                    <i style={{ background: '#ff625a' }} />
+                    Close
+                  </span>
+                  <span>
+                    <i style={{ background: '#8579ff' }} />
+                    Volume
+                  </span>
+                </div>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={definitions.aaplPriceVolume}
+                  height={280}
+                  initialWidth={1120}
+                  ariaLabel="Apple closing price and trading volume"
+                  ariaDescription="Closing price uses the left dollar axis. Trading volume uses the independent right axis."
+                />
               </div>
             </article>
           </section>

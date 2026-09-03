@@ -3,23 +3,23 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-TanStack Charts `0.6.4` is a pre-alpha release. Its results on this page measure
-the current workspace source and pinned competitor packages. This comparison
-records architectural differences and reproducible evidence without turning
-untested behavior into a checkmark.
+The latest published TanStack Charts release is `0.16.0`, while this page
+measures unreleased workspace source against pinned competitor packages. This
+comparison records architectural differences and reproducible evidence without
+turning untested behavior into a checkmark.
 
 ## Tested versions
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `3fdff48` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `3df87d7` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `3fdff48`.
+at page render time. The measured TanStack workspace revision is `3df87d7`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-08-03`.
+Baseline date: `2026-08-26`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -106,7 +106,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 
 | Library            | Bundle size                            | React externalized | Evidence                                                   |
 | ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 28.64–34.09 KiB                        |                  — | Controlled suite                                           |
+| TanStack Charts    | 38.96–44.98 KiB                        |     Not applicable | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                  — | External main export                                       |
 | Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
 | Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
@@ -135,8 +135,8 @@ browser run, so this page does not publish a cross-machine timing leaderboard.
 
 ## Broader conformance
 
-The catalog corpus contains 100 TanStack/reference pairs: 68 sourced from
-Observable Plot, 21 from Recharts, and 11 from Apache ECharts. Sixteen pairs
+The catalog corpus contains 117 TanStack/reference pairs: 79 sourced from
+Observable Plot, 27 from Recharts, and 11 from Apache ECharts. Twenty-two pairs
 carry executable interaction scenarios. Those counts describe selected
 reference coverage, not each library's feature ceiling or a list of built-in
 TanStack chart types. Chart.js participates in the standard and stress suites,
@@ -156,7 +156,8 @@ runtime:
 | --------------------------------------------------- | ---------------------------------------------------- |
 | Binning, grouping, stacking, and statistics         | Hoistable TanStack transforms or granular D3 modules |
 | Spatial layouts                                     | Application code using a suitable layout library     |
-| Brush, zoom, scrubber, and editor state             | Application state and optional D3 behavior           |
+| Brush and zoom                                      | Controlled application state plus an exact behavior  |
+| Scrubber and editor state                           | Application state and optional direct manipulation   |
 | Data fetching, cleaning, filtering, and persistence | The application's data and state layers              |
 
 Choose Chart.js when Canvas-first standard charts and its plugin ecosystem fit
@@ -169,11 +170,11 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.6.4/benchmarks/comparison/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.16.0/benchmarks/comparison/README.md)
 - [Current tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [0.6.4 tagged bundle baseline](https://github.com/TanStack/charts/blob/v0.6.4/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.6.4/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.6.4/benchmarks/conformance/README.md)
+- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/v0.16.0/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.16.0/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.16.0/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

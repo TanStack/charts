@@ -4,13 +4,13 @@ description: Render and hydrate TanStack Charts with Solid.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
+pnpm add @tanstack/charts solid-js
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/solid-charts'
+import { Chart } from '@tanstack/charts/solid'
 
 const definition = createMemo(() =>
   defineChart(createRevenueChart(rows()), { tooltip }),
@@ -44,9 +44,10 @@ browser definitions, formatters, and dimensions deterministic.
 ## Presentation and rendering
 
 `class` and `style: JSX.CSSProperties` apply to the outer host. `className`
-applies to the rendered SVG surface. Custom outer styles are spread after
-adapter sizing. The package exposes the SVG component only; use `renderSvg` to
-replace SVG serialization without replacing the shared host.
+applies to the rendered chart surface. Custom outer styles are spread after
+adapter sizing. The component starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodyRenderContext`, `ChartDefinition`, and `ChartPoint`.

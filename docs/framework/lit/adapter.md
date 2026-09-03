@@ -4,13 +4,13 @@ description: Render TanStack Charts with a light-DOM Lit custom element.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
+pnpm add @tanstack/charts lit
 ```
 
 Register the element once:
 
 ```ts
-import { defineChartElement } from '@tanstack/lit-charts'
+import { defineChartElement } from '@tanstack/charts/lit'
 
 defineChartElement()
 ```
@@ -50,9 +50,10 @@ the adapter's tested public contract. Call `defineChartElement` only where
 ## Presentation and rendering
 
 `options.class` and the string `options.style` apply to the inner
-`.ts-chart-host`; `options.className` applies to the rendered SVG surface. The
-package exposes the SVG custom element only. Use `renderSvg` to replace SVG
-serialization without replacing the shared host.
+`.ts-chart-host`; `options.className` applies to the rendered chart surface.
+The custom element starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `defineChartElement`, `ChartCommonProps`,
 `ChartPresentationProps`, `ChartProps`, `ChartTooltipBodyRenderContext`,

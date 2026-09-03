@@ -3,36 +3,38 @@ title: React Adapter
 description: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
 ---
 
-`@tanstack/react-charts` is a thin lifecycle and SSR adapter around
+`@tanstack/charts/react` is a thin lifecycle and SSR adapter around
 `@tanstack/charts`. Chart definitions, scale resolution, guide layout, scenes,
 rendering, animation, and interaction remain in the framework-neutral core.
 
 ## Public exports
 
 ```ts
-export { Chart } from '@tanstack/react-charts'
+export { Chart } from '@tanstack/charts/react'
 
 export type {
   ChartCommonProps,
   ChartProps,
   ChartDefinition,
   ChartPoint,
-} from '@tanstack/react-charts'
+} from '@tanstack/charts/react'
 ```
 
 Choose Canvas or an application-supplied renderer through an explicit
 subpath:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/react-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/react/core'
 ```
 
 `CanvasChart` selects the optional built-in renderer. `RendererChart` requires
 a `renderer` prop. The default `Chart` remains SVG-based, so importing the
-default adapter does not pull Canvas into its module graph.
+default adapter does not pull Canvas into its module graph. A definition can
+still import `canvasChartRenderer` and assign it to selected marks, which makes
+the default component render an ordered mixed surface.
 
-The base entries render the native tooltip without the React tooltip-body
+The base entries render the built-in tooltip without the React tooltip-body
 bridge. Import from the optional tooltip entry when passing
 `renderTooltipBody`:
 
@@ -42,11 +44,11 @@ import {
   CanvasChart,
   RendererChart,
   type ChartTooltipBodyRenderContext,
-} from '@tanstack/react-charts/tooltip'
+} from '@tanstack/charts/react/tooltip'
 ```
 
 Existing `renderTooltipBody` users should move the default component import
-from `@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. For Canvas
+from `@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. For Canvas
 or an application renderer, replace the aliased `Chart` import from `/canvas`
 or `/core` with `CanvasChart` or `RendererChart` from `/tooltip`.
 
@@ -85,9 +87,15 @@ The client renders the same initial structure, then the layout effect adopts
 and reconciles that SVG. There is no placeholder-only server mode.
 
 The Canvas entry emits the same outer structure with a named Canvas root and
-three `aria-hidden` canvases. It does not paint pixels on the server. The client
-adopts those elements, paints after mount, and attaches the same focus,
-keyboard, tooltip, and selection host.
+five `aria-hidden` canvases: one hidden stable base bitmap and four live paint
+layers. It does not paint pixels on the server. The client adopts those
+elements, paints after mount, and attaches the same focus, keyboard, tooltip,
+and selection host.
+
+A default chart with selected Canvas marks emits one mixed root containing
+ordered SVG markup and Canvas shells. SVG marks are visible in the server
+response, Canvas pixels appear after mount, and the client adopts every child
+surface.
 
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`
@@ -97,9 +105,9 @@ stable through hydration.
 `tabIndex` defaults to `0` on both server and client. `keyboard: false` forces
 it to `-1`.
 
-For resource-aware gradients or clipping, pass the same renderer on both
-server and client. See
-[Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both server and
+client. Custom serializers must preserve the same resources. See
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 
@@ -108,7 +116,7 @@ The adapter renders two nested containers:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart | div.ts-chart-canvas
+    svg.ts-chart | div.ts-chart-canvas | div.ts-chart-layers
 ```
 
 The outer host has `position: relative`.
@@ -156,8 +164,8 @@ The React adapter's `className` intentionally owns the outer element instead.
 
 ## Tooltip body composition
 
-The components from `@tanstack/react-charts/tooltip` accept
-`renderTooltipBody`, which mounts React content into the native tooltip
+The components from `@tanstack/charts/react/tooltip` accept
+`renderTooltipBody`, which mounts React content into the built-in tooltip
 surface. Its context provides `points`, `content`, `defaultBody`, `pinned`,
 and `dismiss`. Composing `defaultBody` keeps the core title, rows, formatting,
 and swatches; arbitrary React content can sit beside it.
@@ -170,6 +178,9 @@ render only while `pinned` is true. Adding the `portal` extension to the
 tooltip options promotes the whole surface above clipped ancestors without
 changing this React API.
 
+For pin-only detail, set `visibility: 'pinned'` in the definition. The shared
+host then mounts the native surface and React body only after activation.
+
 ## Definition identity
 
 Define a fixed chart outside component render:
@@ -179,6 +190,10 @@ import { defineChart } from '@tanstack/charts'
 
 const definition = defineChart({
   marks: [],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 
@@ -197,10 +212,10 @@ Callback types are inferred from the definition's marks.
 The adapter does not redefine:
 
 - marks or chart specs
-- D3 scale and transform ownership
+- scale selection and data-preparation ownership
 - tooltip and focus semantics
 - animation and reconciliation
 - custom marks or renderers
 
-Use [Scales and D3](../../concepts/scales-and-d3.md) for the injected primitive
+Use [Scales](../../concepts/scales-and-d3.md) for the injected primitive
 boundary and the [core reference](../../reference/index.md) for those APIs.

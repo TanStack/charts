@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { cars } from '@charts-poc/demo-data/cars'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { cars } from '@tanstack/charts-data/cars'
+import { downloads } from '@tanstack/charts-data/downloads'
 import {
   carRankingData,
   downloadData,

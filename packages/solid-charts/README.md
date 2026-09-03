@@ -18,16 +18,17 @@
 
 # `@tanstack/solid-charts`
 
-Solid lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Solid adapter from `@tanstack/charts/solid`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
+pnpm add @tanstack/charts solid-js
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/solid-charts'
+import { Chart } from '@tanstack/charts/solid'
 
 const interactiveDefinition = defineChart(definition, { tooltip })
 

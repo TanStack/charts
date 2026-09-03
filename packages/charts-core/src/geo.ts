@@ -19,6 +19,7 @@ import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
 import type {
   Channel,
+  ChannelAccessor,
   ChartBounds,
   ChartKey,
   ChartMark,
@@ -69,11 +70,10 @@ export interface GeoShapeOptions<
   strokeWidth?: number
   strokeDasharray?: string
   opacity?: number
-  anchor?: (
-    datum: TDatum,
-    index: number,
-    data: readonly TDatum[],
-  ) => readonly [longitude: number, latitude: number]
+  anchor?: ChannelAccessor<
+    TDatum,
+    readonly [longitude: number, latitude: number]
+  >
 }
 
 /**
@@ -168,7 +168,8 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
 
             const [x, y] = path.centroid(datum)
             const [longitude, latitude] =
-              options.anchor?.(datum, datumIndex, data) ?? geoCentroid(datum)
+              options.anchor?.(datum, { index: datumIndex, data }) ??
+              geoCentroid(datum)
             if (
               !Number.isFinite(x) ||
               !Number.isFinite(y) ||
@@ -211,6 +212,7 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 

@@ -12,7 +12,10 @@
     "radial scale",
     "polygon grid",
     "radial tick labels",
-    "closed radial area"
+    "closed radial area",
+    "TanStack fold",
+    "TanStack normalize",
+    "TanStack select"
   ],
   "geometry": [
     { "role": "radar", "count": 1 },
@@ -24,7 +27,7 @@
     "url": "https://recharts.github.io/en-US/examples/SimpleRadarChart/"
   },
   "ai": {
-    "create": "Create a radar chart from one raw decathlon result, visibly normalizing four differently scaled events to a fixed radial domain with polygon guides and one translucent profile.",
-    "maintain": "Update subject values while preserving subject order, radial domain, clockwise angle mapping, stable polygon identity, and label placement."
+    "create": "Create a radar chart from raw decathlon results by folding four ordered events, normalizing each event against the full population, and selecting the first athlete profile on a fixed zero-to-one radial domain.",
+    "maintain": "Change the subject or events while preserving authored metric direction, source population, event order, percentage guide values, stable event identity, and label placement."
   }
 }

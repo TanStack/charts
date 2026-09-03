@@ -9,8 +9,9 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
-    "annular arc sectors",
+    "native pie allocation",
+    "source lineage",
+    "keyed annular arc sectors",
     "inner and outer radii",
     "responsive radius"
   ],
@@ -21,7 +22,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartInGrid/"
   },
   "ai": {
-    "create": "Create a five-slice donut chart from Observable's alphabet rows using letter and frequency directly with D3 pie layout.",
-    "maintain": "Change the selected letters while preserving raw field names, the inner-radius ratio, clockwise source order, stable identities, and exact categorical fills."
+    "create": "Create a five-slice donut chart from Observable's alphabet rows using native pie value allocation with letter and frequency.",
+    "maintain": "Change the selected letters while preserving raw field names, flat source lineage, the inner-radius ratio, clockwise source order, stable identities, and exact categorical fills."
   }
 }

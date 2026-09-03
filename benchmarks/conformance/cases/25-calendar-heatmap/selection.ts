@@ -1,4 +1,4 @@
-import type { WeatherRow } from '@charts-poc/demo-data/weather'
+import type { WeatherRow } from '@tanstack/charts-data/weather'
 
 const daysPerView = 98
 

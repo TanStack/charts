@@ -18,16 +18,18 @@
 
 # `@tanstack/angular-charts`
 
-Angular standalone-component adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Angular standalone component from
+`@tanstack/charts/angular`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/angular-charts @angular/core @angular/platform-browser d3-scale
+pnpm add @tanstack/charts @angular/core @angular/platform-browser
 ```
 
 ```ts
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/angular-charts'
+import { Chart } from '@tanstack/charts/angular'
 
 @Component({
   imports: [Chart],

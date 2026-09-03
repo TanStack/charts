@@ -1,5 +1,52 @@
 # @tanstack/charts-scales
 
+## 0.16.0
+
+## 0.15.0
+
+## 0.14.0
+
+## 0.13.0
+
+## 0.12.0
+
+## 0.11.2
+
+## 0.11.1
+
+## 0.11.0
+
+## 0.10.0
+
+## 0.9.0
+
+### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+## 0.8.0
+
+### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+## 0.7.2
+
+## 0.7.1
+
+## 0.7.0
+
+## 0.6.5
+
 ## 0.6.4
 
 ## 0.6.3

@@ -1,4 +1,4 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { describe, expect, it } from 'vitest'
 import { countPenguinsBySpecies, divergeMaleCounts } from './transform'
 

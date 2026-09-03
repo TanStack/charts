@@ -1,6 +1,7 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { describe, expect, it } from 'vitest'
-import { isPenguinMass, violinDensity, violinMedians } from './transform'
+import { isPenguinMass } from './selection'
+import { violinDensity, violinMedians } from './transform'
 
 describe('violin transforms', () => {
   it('bins the observed body masses into symmetric widths and computes medians', () => {

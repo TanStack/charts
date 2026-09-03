@@ -1,9 +1,9 @@
-import { demoDatasetForSpecifier } from '@charts-poc/demo-data/metadata'
+import { demoDatasetForSpecifier } from '@tanstack/charts-data/metadata'
 import type {
   ConformanceImplementationModule,
   ConformanceRenderer,
 } from './types'
-import type { DemoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import type { DemoDatasetMetadata } from '@tanstack/charts-data/metadata'
 
 export type CatalogModuleLoader = () => Promise<unknown>
 export type CatalogModuleRegistry = Record<string, CatalogModuleLoader>
@@ -237,6 +237,9 @@ function catalogSourceKind(
   }
   if (path.startsWith('./shared/transforms/')) {
     return 'support'
+  }
+  if (path.startsWith('./shared/shadcn-')) {
+    return path.endsWith('-data.ts') ? 'fixture' : 'support'
   }
   if (path === './shared/data.ts' || path.startsWith('./shared/fixtures/')) {
     return 'fixture'

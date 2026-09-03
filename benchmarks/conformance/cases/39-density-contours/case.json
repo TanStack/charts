@@ -5,13 +5,12 @@
   "title": "Point density contours",
   "family": "distribution",
   "intent": "Reveal the shape and overlap of Palmer Penguins bill measurements with a two-dimensional kernel density estimate.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "density mark",
+    "density contour mark",
     "kernel density estimate",
-    "d3-contour",
-    "custom mark",
-    "responsive scales"
+    "structured multipolygon geometry",
+    "resolved-layout pixel-space estimation"
   ],
   "geometry": [{ "role": "density", "count": 6 }],
   "source": {
@@ -19,7 +18,7 @@
     "url": "https://observablehq.com/plot/marks/density"
   },
   "ai": {
-    "create": "Create six filled density contours over Palmer Penguins bill measurements. Plot should use density; TanStack should map the original measurement fields with the supplied scales and inject d3-contour's contourDensity through a local custom mark.",
-    "maintain": "Preserve the pixel bandwidth, threshold count, scale domains, and responsive estimator size. Do not replace the battle-tested density estimator with custom kernel math."
+    "create": "Create six filled density contours over Palmer Penguins bill measurements. Use each library's semantic density mark with an 18-pixel bandwidth and the supplied measurement scales.",
+    "maintain": "Preserve D3-native density thresholds, pixel bandwidth, scale domains, structured multipolygon output, and responsive final-screen estimation."
   }
 }

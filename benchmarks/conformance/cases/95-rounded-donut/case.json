@@ -9,8 +9,10 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
-    "angular padding",
+    "native pie allocation",
+    "source lineage",
+    "keyed annular arc sectors",
+    "explicit angular gaps",
     "rounded arc corners",
     "responsive annular radii"
   ],
@@ -21,7 +23,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithPaddingAngle/"
   },
   "ai": {
-    "create": "Create a five-slice donut from Observable's alphabet rows with three-degree gaps, eight-pixel corners, and stable letter fills.",
-    "maintain": "Change the selected letters while preserving raw letter and frequency fields, explicit gap size, responsive radii, rounded corners, source order, and stable arc identity."
+    "create": "Create a five-slice donut from Observable's alphabet rows using native pie allocation, with three-degree gaps, eight-pixel corners, and stable letter fills.",
+    "maintain": "Change the selected letters while preserving flat source lineage, raw letter and frequency fields, explicit gap size, responsive radii, rounded corners, source order, and semantic arc identity."
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { reconcileChartSvg } from './reconcile'
+import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 
 describe('keyed SVG reconciliation', () => {
   it('retains keyed elements while updating geometry', () => {
@@ -20,6 +20,30 @@ describe('keyed SVG reconciliation', () => {
     expect(container.querySelector('[data-ts-key="a"]')).toBe(rectangle)
     expect(rectangle?.getAttribute('x')).toBe('20')
     expect(container.querySelector('[data-ts-key="b"]')).not.toBeNull()
+  })
+
+  it('reconciles one SVG fragment without touching sibling chart geometry', () => {
+    const container = document.createElement('div')
+    container.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg"><g data-ts-key="marks"><path data-ts-key="series" d="M0,0L10,10"/></g><g data-ts-key="focus"><line data-ts-key="crosshair:x" x1="4" x2="4" y1="0" y2="10"/></g></svg>'
+    const marks = container.querySelector<SVGGElement>('[data-ts-key="marks"]')
+    const series = container.querySelector('[data-ts-key="series"]')
+    const focus = container.querySelector<SVGGElement>('[data-ts-key="focus"]')
+    const line = container.querySelector('[data-ts-key="crosshair:x"]')
+    if (!focus) throw new Error('Expected an SVG focus fragment')
+
+    reconcileChartSvgFragment(
+      focus,
+      '<g data-ts-key="focus"><line data-ts-key="crosshair:x" x1="8" x2="8" y1="0" y2="10"/><circle data-ts-key="crosshair:marker" cx="8" cy="6" r="3"/></g>',
+    )
+
+    expect(container.querySelector('[data-ts-key="marks"]')).toBe(marks)
+    expect(container.querySelector('[data-ts-key="series"]')).toBe(series)
+    expect(container.querySelector('[data-ts-key="crosshair:x"]')).toBe(line)
+    expect(line?.getAttribute('x1')).toBe('8')
+    expect(
+      container.querySelector('[data-ts-key="crosshair:marker"]'),
+    ).not.toBeNull()
   })
 
   it('interpolates retained geometry without hiding it', () => {
@@ -54,6 +78,112 @@ describe('keyed SVG reconciliation', () => {
     callbacks.shift()?.(100)
     expect(rectangle?.getAttribute('x')).toBe('100')
     expect(rectangle?.getAttribute('height')).toBe('30')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('keeps SVG arc flags discrete while interpolating path geometry', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 0 0 A 40 40 0 0 0 80 0"/></svg>',
+    )
+    const arc = container.querySelector('path')
+
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 10 0 A 50 50 0 1 1 100 0"/></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(arc?.getAttribute('d')).toBe('M 5 0 A 45 45 0 1 1 90 0')
+    callbacks.shift()?.(100)
+    expect(arc?.getAttribute('d')).toBe('M 10 0 A 50 50 0 1 1 100 0')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('parses adjacent SVG arc flags as separate values', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 0 0 A 40 40 0 00 80 0"/></svg>',
+    )
+    const arc = container.querySelector('path')
+
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 10 0 A 50 50 0 01 100 0"/></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(arc?.getAttribute('d')).toBe('M 5 0 A 45 45 0 01 90 0')
+    callbacks.shift()?.(100)
+    expect(arc?.getAttribute('d')).toBe('M 10 0 A 50 50 0 01 100 0')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('interpolates numeric label typography and snaps categorical anchors', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><text data-ts-key="label" font-size="10" font-weight="400" text-anchor="middle">A</text></svg>',
+    )
+    const label = container.querySelector('text')
+
+    reconcileChartSvg(
+      container,
+      '<svg><text data-ts-key="label" font-size="20" font-weight="700" text-anchor="start">A</text></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    expect(label?.getAttribute('text-anchor')).toBe('start')
+    expect(label?.getAttribute('font-size')).toBe('10')
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(Number(label?.getAttribute('font-size'))).toBeCloseTo(15)
+    expect(Number(label?.getAttribute('font-weight'))).toBeCloseTo(550)
+    callbacks.shift()?.(100)
+    expect(label?.getAttribute('font-size')).toBe('20')
+    expect(label?.getAttribute('font-weight')).toBe('700')
 
     requestFrame.mockRestore()
     cancelFrame.mockRestore()

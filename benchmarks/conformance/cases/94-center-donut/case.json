@@ -9,9 +9,11 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
-    "annular arc sectors",
-    "center label",
+    "native pie allocation",
+    "source lineage",
+    "keyed annular arc sectors",
+    "selected-frequency aggregate",
+    "center radial text",
     "responsive radius"
   ],
   "geometry": [
@@ -24,7 +26,7 @@
     "url": "https://recharts.github.io/en-US/api/Pie/"
   },
   "ai": {
-    "create": "Create a three-slice donut from Observable's alphabet rows with their derived frequency total centered in the inner ring.",
-    "maintain": "Change the selected letters and recompute arcs and center total from the same raw frequency field while preserving letter identity and the inner-radius ratio."
+    "create": "Create a three-slice donut from Observable's alphabet rows using native pie allocation, with their selected-frequency total centered in the inner ring.",
+    "maintain": "Change the selected letters while preserving flat source lineage, semantic letter identities, the responsive inner-radius ratio, and a center total recomputed from the same selected rows."
   }
 }

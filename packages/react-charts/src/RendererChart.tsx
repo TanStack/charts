@@ -10,7 +10,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipBodyTarget,
   ChartValue,
-  ChartDefinition,
+  DomChartDefinition,
 } from '@tanstack/charts'
 
 interface ChartSurfaceProps {
@@ -66,7 +66,7 @@ export type RendererChartProps<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = RendererChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type RendererChartImplementationProps<
@@ -121,6 +121,8 @@ export function RendererChartImplementation<
     aspectRatio > 0
       ? aspectRatio
       : undefined
+  const cssAspectRatio =
+    resolvedAspectRatio === undefined ? undefined : String(resolvedAspectRatio)
   const containerRef = React.useRef<HTMLDivElement>(null)
   const adapterRef = React.useRef<ChartAdapter<
     ChartRendererHostOptions<TDatum, TXValue, TYValue>,
@@ -177,7 +179,7 @@ export function RendererChartImplementation<
         position: 'relative',
         width: width === undefined ? '100%' : width,
         height: height ?? (resolvedAspectRatio ? undefined : 320),
-        aspectRatio: height === undefined ? resolvedAspectRatio : undefined,
+        aspectRatio: height === undefined ? cssAspectRatio : undefined,
         ...style,
       }}
     >

@@ -17,7 +17,9 @@ import {
 } from './charts'
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart, type ChartPoint } from '@tanstack/react-charts'
+import { Chart, type ChartPoint } from '@tanstack/charts/react'
+import { LiveCharts } from './LiveCharts'
+import { PagedHistoryChart } from './PagedHistoryChart'
 
 const interactiveDownloadsChart = defineChart(downloadsChart, {
   tooltip: {
@@ -67,7 +69,7 @@ export function App() {
       defineChart(
         createRankingChart(rankingMetric, 'var(--ts-chart-4, #8b5cf6)'),
         {
-          animate: { duration: 420, easing: 'ease-in-out' },
+          svgAnimation: { duration: 420, easing: 'ease-in-out' },
           tooltip: {
             use: tooltip,
             format: (point) =>
@@ -82,7 +84,7 @@ export function App() {
       defineChart(
         createIndustryHistoryChart(historyMode, industryWindow, historyZoomed),
         {
-          animate: { duration: 500, easing: 'ease-out' },
+          svgAnimation: { duration: 500, easing: 'ease-out' },
           focus: 'group-x',
           tooltip: { use: tooltip, formatGroup: formatIndustryGroup },
         },
@@ -92,7 +94,7 @@ export function App() {
   const penguinDefinition = React.useMemo(
     () =>
       defineChart(createPenguinChart(barOrientation, barsStacked), {
-        animate: { duration: 500, easing: 'ease-out' },
+        svgAnimation: { duration: 500, easing: 'ease-out' },
         focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
         tooltip: { use: tooltip, format: formatPenguinPoint },
       }),
@@ -121,6 +123,10 @@ export function App() {
       </header>
 
       <div className="demo__grid">
+        <LiveCharts />
+
+        <PagedHistoryChart />
+
         <section className="chart-card chart-card--feature">
           <div className="chart-card__header">
             <div>

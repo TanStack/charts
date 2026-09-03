@@ -5,16 +5,16 @@
   "title": "Delaunay spatial network",
   "family": "spatial",
   "intent": "Expose local adjacency among real automobile weight and fuel-economy observations by connecting every edge of a Delaunay triangulation.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "Delaunay triangulation",
+    "native Delaunay link mark",
+    "resolved screen-space triangulation",
     "spatial adjacency",
-    "prepared link endpoints",
-    "d3-delaunay",
+    "source-linked edges",
     "scatterplot"
   ],
   "geometry": [
-    { "role": "delaunay", "count": 60 },
+    { "role": "delaunay", "count": 63 },
     { "role": "dot", "count": 24 }
   ],
   "source": {
@@ -22,7 +22,7 @@
     "url": "https://observablehq.com/plot/marks/delaunay"
   },
   "ai": {
-    "create": "Create a quantitative point diagram from automobile weight and fuel economy that connects all unique Delaunay edges. Plot should use its native delaunayLink mark; TanStack should convert granular d3-delaunay halfedges and hull indexes into typed link endpoints before rendering.",
-    "maintain": "Change the selected cars while keeping each undirected edge unique, closing the convex hull, preserving the source fields and stable car identity, and avoiding an umbrella D3 import or consumer casts."
+    "create": "Create a quantitative point diagram from automobile weight and fuel economy that connects all unique final-screen Delaunay neighbors using each library's native Delaunay link mark.",
+    "maintain": "Change the selected cars while preserving final-screen topology, both endpoint records, stable point-derived edge keys, and cast-free source channels."
   }
 }

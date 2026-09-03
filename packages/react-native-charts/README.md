@@ -18,14 +18,14 @@
 
 # TanStack React Native Charts
 
-Experimental React Native SVG host for `@tanstack/charts` definitions and
-scene graphs.
+This compatibility package remains supported for existing applications. New
+applications use the experimental React Native SVG host from
+`@tanstack/charts/react-native`.
 
 ## Install
 
 ```sh
-npm install @tanstack/react-native-charts @tanstack/charts d3-scale
-npm install --save-dev @types/d3-scale
+npm install @tanstack/charts
 ```
 
 Expo applications also need the SDK-compatible SVG renderer:
@@ -46,15 +46,18 @@ application.
 ## Usage
 
 ```tsx
-import { scaleLinear } from 'd3-scale'
-import { defineChart, lineY } from '@tanstack/charts/universal'
-import { Chart } from '@tanstack/react-native-charts'
-import { tooltip } from '@tanstack/react-native-charts/tooltip'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { lineY } from '@tanstack/charts/line'
+import { defineChart } from '@tanstack/charts/scene'
+import { Chart } from '@tanstack/charts/react-native'
+import { tooltip } from '@tanstack/charts/react-native/tooltip'
 
 const definition = defineChart({
   marks: [lineY([4, 9, 7])],
-  x: { scale: scaleLinear().domain([0, 2]) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 2]) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
   tooltip: { use: tooltip, sticky: true },
 })
 
@@ -68,6 +71,19 @@ export function RevenueChart() {
   )
 }
 ```
+
+## Typography
+
+`fontFamily`, `fontStyle`, `fontStretch`, `letterSpacing`, `direction`,
+`locale`, and `fontScale` are passed to the synchronous `measureText` contract.
+The SVG painter applies the corresponding family, style, stretch, spacing, and
+font scale. If native font metrics become available asynchronously, keep them
+in application state and render the chart again with an updated `measureText`
+function or typography prop.
+
+Exact core subpaths keep Metro from retaining unrelated universal-entry
+exports. The `/universal` barrel remains valid when portability matters more
+than the native bundle floor.
 
 The bare fixture uses React Native 0.86.2 with `react-native-svg` 15.15.5. The
 Expo 57 fixture uses `react-native-svg` 15.15.4 and renders in Expo Go on an iOS

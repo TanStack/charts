@@ -19,7 +19,7 @@ model is the closest API inspiration for TanStack Charts.
 
 TanStack Charts is an independent implementation, not a Plot fork or
 compatibility layer. It applies those ideas to typed application
-infrastructure with explicit D3 primitives, responsive scene compilation,
+infrastructure with D3-compatible primitives, responsive scene compilation,
 framework adapters, SVG SSR and hydration, keyed updates, accessibility,
 animation, export, and capability-level bundle boundaries.
 
@@ -36,9 +36,12 @@ reviewed the work that entered the repository.
 
 ## D3
 
-[D3](https://d3js.org/) is the authoritative algorithm layer. TanStack Charts
-uses its published packages for scales, arrays, shapes, and other focused
-capabilities instead of reimplementing that work.
+[D3](https://d3js.org/) provides foundational visualization algorithms and a
+model of small, composable modules. TanStack Charts accepts native D3 callables
+and data directly where their contracts fit, and uses granular D3 packages for
+several optional capabilities. It also provides compact, independently
+importable primitives for common application paths; those remain interoperable
+with direct D3 use rather than replacing it.
 
 ## Reference implementations
 

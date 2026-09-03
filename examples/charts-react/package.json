@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:live": "vite build --config vite.live.config.ts",
+    "build:paged": "vite build --config vite.paged.config.ts",
     "dev": "vite --host --port 5191 --strictPort"
   },
   "dependencies": {
-    "@charts-poc/demo-data": "workspace:*",
+    "@tanstack/charts-data": "workspace:*",
     "@tanstack/charts": "workspace:*",
-    "@tanstack/react-charts": "workspace:*",
     "d3-array": "3.2.4",
     "d3-scale": "4.0.2",
     "d3-shape": "3.2.0",

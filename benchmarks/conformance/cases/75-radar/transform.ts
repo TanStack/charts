@@ -1,14 +1,7 @@
 import { extent } from 'd3-array'
-import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
-
-export const radarEvents = [
-  '100 Meters',
-  'Long Jump',
-  'High Jump',
-  '100 Meter Hurdles',
-] as const
-
-export type RadarEvent = (typeof radarEvents)[number]
+import type { DecathlonRow } from '@tanstack/charts-data/decathlon'
+import { radarEvents, timedEvents } from './selection'
+import type { RadarEvent } from './selection'
 
 export interface RadarPoint {
   readonly Country: string
@@ -16,7 +9,6 @@ export interface RadarPoint {
   readonly relativePerformance: number
 }
 
-const timedEvents = new Set<RadarEvent>(['100 Meters', '100 Meter Hurdles'])
 export function radarProfile(
   sourceRows: readonly DecathlonRow[],
   row: DecathlonRow,

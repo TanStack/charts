@@ -18,29 +18,50 @@ const fixedText: ChartTextMeasurer = (_text, options) => ({
   height: 10,
 })
 
+const typography = {
+  fontFamily: 'sans-serif',
+  fontStyle: 'normal',
+  fontStretch: 'normal',
+  letterSpacing: 0,
+  direction: 'inherit' as const,
+  fontScale: 1,
+}
+
 describe('guide layout', () => {
   it('estimates text deterministically from its typography', () => {
     const regular = estimateSceneText('Margin 100', {
+      ...typography,
       fontSize: 10,
       fontWeight: 400,
       anchor: 'start',
       baseline: 'auto',
     })
     const repeated = estimateSceneText('Margin 100', {
+      ...typography,
       fontSize: 10,
       fontWeight: 400,
       anchor: 'start',
       baseline: 'auto',
     })
     const large = estimateSceneText('Margin 100', {
+      ...typography,
       fontSize: 20,
       fontWeight: 400,
       anchor: 'start',
       baseline: 'auto',
     })
     const bold = estimateSceneText('Margin 100', {
+      ...typography,
       fontSize: 10,
       fontWeight: 700,
+      anchor: 'start',
+      baseline: 'auto',
+    })
+    const scaled = estimateSceneText('Margin 100', {
+      ...typography,
+      fontScale: 2,
+      fontSize: 10,
+      fontWeight: 400,
       anchor: 'start',
       baseline: 'auto',
     })
@@ -49,6 +70,7 @@ describe('guide layout', () => {
     expect(large.width).toBeCloseTo(regular.width * 2)
     expect(large.height).toBe(regular.height * 2)
     expect(bold.width).toBeGreaterThan(regular.width)
+    expect(scaled).toEqual(large)
   })
 
   it('accounts for anchors and dominant baselines', () => {
@@ -159,6 +181,7 @@ describe('guide layout', () => {
     expect(measureText).toHaveBeenCalledWith('label', {
       fontSize: 11,
       fontWeight: 600,
+      ...typography,
       anchor: 'end',
       baseline: 'middle',
     })

@@ -3,6 +3,11 @@ import { editableDomain, editableEventStart } from './scenario'
 
 const day = 86_400_000
 
+export const editableEventEndValues = utcDay.range(
+  utcDay.offset(editableEventStart, 1),
+  utcDay.offset(editableDomain[1], 1),
+)
+
 export function editableDateKey(date: Date) {
   return date.toISOString().slice(0, 10)
 }

@@ -11,7 +11,10 @@
     "multi-series line",
     "ordinal x scale",
     "quantitative y scale",
-    "categorical color"
+    "categorical color",
+    "TanStack fold",
+    "TanStack normalize",
+    "TanStack select"
   ],
   "geometry": [
     { "role": "line", "count": 7 },
@@ -22,7 +25,7 @@
     "url": "https://observablehq.com/plot/marks/line"
   },
   "ai": {
-    "create": "Create a parallel-coordinates chart from raw decathlon results, selecting one row per country and visibly normalizing four differently scaled events before drawing one colored line per country.",
-    "maintain": "Add or reorder metrics while preserving series grouping, normalized quantitative domains, stable model colors, and inferred channel types."
+    "create": "Create a parallel-coordinates chart from raw decathlon results by folding four ordered events, normalizing each event against the full population, and selecting the final row per country and event before drawing one colored line per country.",
+    "maintain": "Add or reorder metrics while preserving authored metric direction, last-row country selection, normalized quantitative domains, and stable country-event identity."
   }
 }

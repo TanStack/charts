@@ -6,16 +6,18 @@
   "title": "Synchronized cursors across views",
   "family": "interaction",
   "intent": "Track one semantic date across current and previous U.S. airport traveler views with independent quantitative domains.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "synchronized cursors",
-    "linked views",
+    "definition-owned synchronized cursors",
+    "coordinated view grid",
+    "shared x scale",
     "semantic date state",
     "independent y domains",
-    "external overlays",
+    "native focus guides",
+    "decorative line layers",
     "shared value summary",
     "keyboard cursor navigation",
-    "tap-to-pin cursor"
+    "native tap-to-pin cursor"
   ],
   "geometry": [
     {
@@ -247,6 +249,6 @@
   },
   "ai": {
     "create": "Create two vertically aligned current and previous traveler-count views with distinct y domains and a cursor linked by exact semantic date rather than shared pixel coordinates.",
-    "maintain": "Keep source dates as row identity, external overlay ownership, and semantic cursor state stable across resize and source-window revision without programmatically mutating native chart focus."
+    "maintain": "Keep source dates as row identity, group points by view, and let one view-grid definition own linked focus guides and pinning while the semantic summary only observes native focus changes."
   }
 }

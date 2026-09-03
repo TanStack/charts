@@ -317,8 +317,10 @@ describe('continuous color', () => {
     const node = legend.render({
       colors,
       chart: { x: 40, y: 60, width: 400, height: 200 },
+      bounds: { x: 40, y: 0, width: 400, height: 55 },
       theme: defaultChartTheme,
       width: 480,
+      height: 320,
     })
 
     expect(node.kind).toBe('group')
@@ -405,8 +407,10 @@ function renderLegend(
   const node = legend.render({
     colors,
     chart: { x: 40, y: 60, width: 400, height: 200 },
+    bounds: { x: 40, y: 0, width: 400, height: 55 },
     theme: defaultChartTheme,
     width: 480,
+    height: 320,
   })
   if (node.kind !== 'group') throw new Error('Expected a legend group')
   return node

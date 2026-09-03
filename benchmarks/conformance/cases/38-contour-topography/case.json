@@ -5,13 +5,13 @@
   "title": "Filled wind-speed contours",
   "family": "spatial",
   "intent": "Show nested wind-speed level sets from Observable Plot's real gridded u and v observations.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "contour mark",
     "regular scalar grid",
     "explicit thresholds",
-    "d3-contour",
-    "custom mark"
+    "structured multipolygons",
+    "native contour mark"
   ],
   "geometry": [{ "role": "contour", "count": 5 }],
   "source": {
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/contour"
   },
   "ai": {
-    "create": "Create five filled contours from the magnitude of Observable Plot's gridded u and v wind observations. Plot should use contour; TanStack should inject d3-contour and render the returned GeoJSON paths through a local custom mark.",
+    "create": "Create five filled contours from the magnitude of Observable Plot's gridded u and v wind observations. Both definitions should pass the raw grid, magnitude accessor, dimensions, and thresholds to their native contour marks.",
     "maintain": "Change the selected longitude window while keeping the threshold sequence, source grid dimensions, vertical orientation, and literal contour palette aligned across both implementations."
   }
 }

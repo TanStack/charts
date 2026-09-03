@@ -29,14 +29,7 @@ for render order and stable layer identity.
 A slopegraph gives both periods a shared quantitative scale, connects each
 category's endpoints, and labels the values directly.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/30-slopegraph/?theme=system&height=480"
-  title="Two-period slopegraph with direct endpoint labels built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=30-slopegraph height=480 -->
 
 Preserve category identity for the links and endpoints; supply `key` only when
 the mark cannot infer it. Direct labels remove a legend lookup, but they need
@@ -52,14 +45,7 @@ quantitative scale.
 A change arrow connects one quantitative state to another. Position carries
 the start and end values; the arrowhead carries direction.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/32-change-arrows/?theme=system&height=480"
-  title="Two-dimensional directed change arrows built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=32-change-arrows height=480 -->
 
 Keep both endpoints in the prepared row. Do not infer direction from color or
 row order inside the renderer. Label the compared states and retain original
@@ -91,12 +77,14 @@ meaning.
 
 ## Select annotations in data preparation
 
-Prepare a small annotation dataset:
+Prepare or select a small annotation dataset:
 
 1. Select observations by a documented rule such as minimum, maximum, first
    threshold crossing, or named event.
-2. Retain the original datum and stable ID.
-3. Add label text and any intentional x/y offset.
+2. Keep the original datum and stable ID when the source row already carries
+   the annotation's semantic coordinates.
+3. Put presentation-only label formatting, anchors, and x/y offsets on the
+   text mark. Add fields only when they are reusable annotation data.
 4. Render dots, rules, links, and text as independent marks.
 
 This makes the selection auditable. The chart renderer should not decide which

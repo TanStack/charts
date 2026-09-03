@@ -163,27 +163,30 @@ export const createStatsHistoryChart = (input: StatsHistoryInput) =>
               curve: d3Curve(curveMonotoneX),
             }),
           ],
-      x: {
-        scale: xScale,
-        axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Date' },
-      },
-      y: {
-        scale: scaleLinear,
-        nice: 5,
-        grid: true,
-        axis: {
-          ticks: {
-            count: 5,
-            format: input.mode === 'share' ? formatPercent : formatCompact,
+      scales: {
+        x: {
+          scale: xScale,
+          axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Date' },
+        },
+        y: {
+          scale: scaleLinear,
+          nice: 5,
+          grid: true,
+          axis: {
+            ticks: {
+              count: 5,
+              format: input.mode === 'share' ? formatPercent : formatCompact,
+            },
+            label:
+              input.mode === 'share'
+                ? 'Download Share'
+                : input.mode === 'stream'
+                  ? 'Downloads (stream)'
+                  : 'Downloads',
           },
-          label:
-            input.mode === 'share'
-              ? 'Download Share'
-              : input.mode === 'stream'
-                ? 'Downloads (stream)'
-                : 'Downloads',
         },
       },
+
       color: {
         scale: scaleOrdinal<string, string>()
           .domain(series.map((entry) => entry.name))
@@ -269,35 +272,38 @@ export const createStatsLatestChart = (input: StatsLatestInput) =>
 
     return {
       marks,
-      x: vertical
-        ? {
-            scale: categoricalScale,
-            grid: false,
-            axis: { tickLabels: { rotate: width < 680 ? -28 : 0 } },
-          }
-        : {
-            scale: scaleLinear,
-            nice: 7,
-            grid: true,
-            axis: {
-              ticks: { format: formatCompact },
-              label: 'Downloads',
+      scales: {
+        x: vertical
+          ? {
+              scale: categoricalScale,
+              grid: false,
+              axis: { tickLabels: { rotate: width < 680 ? -28 : 0 } },
+            }
+          : {
+              scale: scaleLinear,
+              nice: 7,
+              grid: true,
+              axis: {
+                ticks: { format: formatCompact },
+                label: 'Downloads',
+              },
             },
-          },
-      y: vertical
-        ? {
-            scale: scaleLinear,
-            nice: 7,
-            grid: true,
-            axis: {
-              ticks: { format: formatCompact },
-              label: 'Downloads',
+        y: vertical
+          ? {
+              scale: scaleLinear,
+              nice: 7,
+              grid: true,
+              axis: {
+                ticks: { format: formatCompact },
+                label: 'Downloads',
+              },
+            }
+          : {
+              scale: categoricalScale,
+              grid: false,
             },
-          }
-        : {
-            scale: categoricalScale,
-            grid: false,
-          },
+      },
+
       color: {
         scale: scaleOrdinal<string, string>()
           .domain(colorDomain)

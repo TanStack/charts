@@ -20,7 +20,9 @@ Use `createChartScene` for one static compilation.
 ```ts
 import { createChartRuntime } from '@tanstack/charts/runtime'
 
-const runtime = createChartRuntime<Row, Date, number>()
+const runtime = createChartRuntime<Row, Date, number>({
+  defaultTheme: platformTheme,
+})
 const scene = runtime.render(definition, {
   width: 800,
   height: 400,
@@ -34,7 +36,7 @@ function createChartRuntime<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(): ChartRuntime<TDatum, TXValue, TYValue>
+>(options?: ChartRuntimeOptions): ChartRuntime<TDatum, TXValue, TYValue>
 ```
 
 `ChartRuntime.render` accepts a definition, size, and optional layout:
@@ -44,7 +46,10 @@ interface RuntimeRenderSignature {
   render(
     definition,
     size: { width: number; height: number },
-    layout?: { measureText?: ChartTextMeasurer },
+    layout?: {
+      measureText?: ChartTextMeasurer
+      typography?: ChartTextTypography
+    },
   ): ChartScene
 }
 ```
@@ -56,8 +61,10 @@ framework adapter hosts infer them from the definition.
 ### Runtime behavior
 
 The runtime does not cache application data. A responsive builder receives the
-current surface size on every direct render. Framework adapters and application
-code own definition memoization and asynchronous cleanup.
+current surface size and the runtime's platform `defaultTheme` on every direct
+render. The same default theme is applied before the authored definition theme
+during final scene compilation. Framework adapters and application code own
+definition memoization and asynchronous cleanup.
 
 ## `createChartScene`
 
@@ -67,7 +74,7 @@ import { createChartScene } from '@tanstack/charts/scene'
 const scene = createChartScene(
   staticDefinition,
   { width: 800, height: 400 },
-  { measureText },
+  { measureText, typography },
 )
 ```
 
@@ -127,10 +134,13 @@ function findNearestPoint<
   x: number,
   y: number,
   maxDistance?: number,
+  points?: readonly ChartPoint<TDatum, TXValue, TYValue>[],
 ): ChartPoint<TDatum, TXValue, TYValue> | null
 ```
 
 Coordinates are in scene pixels. `maxDistance` defaults to `Infinity`.
+`points` defaults to `scene.points`. Supplying a candidate list restricts both
+primitive-attached and anchor-only resolution to those exact point objects.
 The function caches a paint-ordered interaction target list for the scene,
 checks primitive containment first, and then applies each target's natural
 axis or geometric affinity. Scene traversal accumulates group translation and
@@ -138,6 +148,36 @@ clipping, so the resolver and renderer consume the same post-layout tree.
 Semantic points not attached to primitives retain legacy anchor distance. For
 a large point set, supply a spatial index to the DOM or framework host; see
 [Focus and interaction](./focus-and-interaction.md#spatial-indexes).
+
+## `viewportInteractionPoints`
+
+```ts
+import {
+  findNearestPoint,
+  viewportInteractionPoints,
+} from '@tanstack/charts/scene'
+
+const candidates = viewportInteractionPoints(scene, presentationPoints)
+const point = findNearestPoint(scene, x, y, 48, candidates)
+```
+
+```ts
+function viewportInteractionPoints<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  points?: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+): readonly ChartPoint<TDatum, TXValue, TYValue>[]
+```
+
+`points` defaults to `scene.points`. With no active axis viewport, the helper
+returns that list unchanged. Otherwise it removes off-window points only from
+marks painted inside a viewport clip. Points from marks with fixed viewport
+ownership remain available outside `scene.chart`. Pass a renderer's current
+presentation points during motion so visibility and nearest-point resolution
+use the same painted coordinates.
 
 ## `ChartScene`
 
@@ -157,20 +197,31 @@ interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  focusGuides?: readonly SceneFocusGuide[]
 }
 ```
 
-| Property          | Meaning                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `width`, `height` | Full scene dimensions                                     |
-| `margin`          | Resolved outer margins after guide and legend measurement |
-| `chart`           | Inner plot bounds with `x`, `y`, `width`, and `height`    |
-| `nodes`           | Ordered renderer-neutral display tree                     |
-| `points`          | Interaction targets emitted by marks                      |
-| `scales`          | Resolved positional scales, normally under `x` and `y`    |
-| `colors`          | Resolved chart color scale                                |
-| `gradients`       | Declared linear-gradient resources                        |
-| `theme`           | Fully resolved theme                                      |
+| Property          | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| `width`, `height` | Full scene dimensions                                            |
+| `margin`          | Resolved outer margins after guide and legend measurement        |
+| `chart`           | Inner plot bounds with `x`, `y`, `width`, and `height`           |
+| `nodes`           | Ordered renderer-neutral display tree                            |
+| `points`          | Complete interaction set, including viewport-clipped points      |
+| `scales`          | Resolved positional scales, normally under `x` and `y`           |
+| `colors`          | Resolved chart color scale                                       |
+| `gradients`       | Declared linear-gradient resources                               |
+| `theme`           | Fully resolved theme                                             |
+| `focusGuides`     | Optional data-less guide descriptors resolved from current focus |
+
+`focusGuides` do not add nodes or points to the base scene. Every guide carries
+a required resolver that receives its local focus, pointer, and cursor context
+and returns one transient scene node or `undefined`. Surfaces pass the current
+interaction state to `resolveFocusPresentation`, which calls those resolvers
+and separates their nodes into underlays and overlays. A mark emits
+`MarkFocusGuide`, whose optional placement defaults from mark order. The scene
+compiler produces the final `SceneFocusGuide` values shown here with placement
+resolved; renderers do not call guide resolvers or infer placement themselves.
 
 ## Scene nodes
 
@@ -178,23 +229,31 @@ Every scene node has a stable `key`, optional `className`, optional
 `SceneStyle`, and optional `ariaHidden`. Geometric primitives may also attach
 a `SceneInteraction`; groups and labels cannot.
 
-| `kind`     | Geometry                                                   |
-| ---------- | ---------------------------------------------------------- |
-| `group`    | `children`, optional translation and clip bounds           |
-| `rule`     | `x1`, `y1`, `x2`, `y2`                                     |
-| `polyline` | point pairs and optional precomputed path data             |
-| `area`     | closed point pairs and optional precomputed path data      |
-| `dot`      | center and radius                                          |
-| `rect`     | origin, dimensions, and optional radius                    |
-| `label`    | origin, text, anchor, baseline, rotation, size, and weight |
+| `kind`     | Geometry                                                            |
+| ---------- | ------------------------------------------------------------------- |
+| `group`    | `children`, optional translation and clip bounds                    |
+| `rule`     | `x1`, `y1`, `x2`, `y2`                                              |
+| `polyline` | point pairs and optional precomputed path data                      |
+| `area`     | closed points, structured polygons and holes, or optional path data |
+| `dot`      | center and radius                                                   |
+| `rect`     | origin, dimensions, and optional radius                             |
+| `label`    | origin, text, anchor, baseline, rotation, size, and weight          |
 
 `SceneStyle` supports fill, fill opacity, stroke, stroke opacity, stroke width,
 overall opacity, line cap, line join, and dash array.
 
+`SceneArea.polygons` is authoritative when present. Each polygon contains an
+exterior ring followed by zero or more hole rings; one area can contain several
+disconnected polygons. SVG and React Native serialize the rings with even-odd
+fill, while Canvas paints them directly without `Path2D`. Bounds and exact
+geometry containment use every ring.
+
 `SceneRect.inset` retains the resolved inset for absolute inline-state
 overrides. Its optional `insetAxis` is `x`, `y`, or `xy`; vertical and
 horizontal bars use only their categorical axis, while ordinary rectangles use
-both axes. Renderers consume the already-resolved rectangle geometry.
+both axes. `SceneRect.maxThickness` retains a bar's categorical size ceiling so
+an inline-state inset cannot widen its resolved geometry past that ceiling.
+Renderers consume the already-resolved rectangle geometry.
 
 ```ts
 type SceneInteraction =

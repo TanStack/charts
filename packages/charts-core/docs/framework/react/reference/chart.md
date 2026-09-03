@@ -1,10 +1,10 @@
 ---
 title: React Chart
-description: Complete prop and type reference for the @tanstack/react-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/react Chart component.
 ---
 
 ```tsx
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 ```
 
 The supplied definition infers the datum, semantic x/y values, and callbacks.
@@ -23,8 +23,8 @@ The default entry uses SVG. The optional entries keep other renderer code
 explicit:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/react-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/react/core'
 
 const canvasChart = (
   <CanvasChart definition={definition} ariaLabel="Weekly revenue" />
@@ -44,7 +44,7 @@ The Canvas `Chart` accepts the same adapter props except `renderSvg`. Its
 surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
 `ChartDefinition`, and `ChartPoint`.
 
-These base entries render the native tooltip without React tooltip-body
+These base entries render the built-in tooltip without React tooltip-body
 composition.
 
 ## Definition props
@@ -55,8 +55,9 @@ composition.
 
 See [Chart Definition API](../../../reference/chart-definitions.md).
 
-The definition owns `focus`, `maxFocusDistance`, `spatialIndex`, `animate`,
-`keyboard`, and `tooltip`. Adapters do not override them.
+The definition owns `focus`, `focusRing`, `cursor`, `maxFocusDistance`,
+`spatialIndex`, `svgAnimation`, `keyboard`, and `tooltip`. Adapters do not override
+them.
 
 Add the `portal` extension to the definition's tooltip options to escape
 clipping and local stacking contexts. The adapter still receives no portal
@@ -80,12 +81,12 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 
 ## Callbacks
 
-| Prop                 | Type                                      | Default | Meaning                                                 |
-| -------------------- | ----------------------------------------- | ------- | ------------------------------------------------------- |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner surface, live SVG, and scene after reconciliation |
+| Prop                 | Type                                      | Default | Meaning                                                              |
+| -------------------- | ----------------------------------------- | ------- | -------------------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                               |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                               |
+| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                               |
+| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner host, default SVG, complete surface, and scene after rendering |
 
 See [Focus and interaction](../../../reference/focus-and-interaction.md) for
 the behavior and complete callback values.
@@ -100,7 +101,7 @@ import {
   Chart,
   CanvasChart,
   RendererChart,
-} from '@tanstack/react-charts/tooltip'
+} from '@tanstack/charts/react/tooltip'
 ```
 
 | Prop                | Type                                                    | Default | Meaning                                          |
@@ -127,8 +128,12 @@ interactive content only when `pinned` is true; transient tooltips do not
 accept pointer input. `dismiss()` clears the tooltip and restores chart focus
 when focus was inside its body.
 
+Set `tooltip.visibility: 'pinned'` on the definition when the React body itself
+should mount only after activation. Returning `null` is not needed to suppress
+a transient native shell.
+
 Existing users of this prop should move `Chart` from
-`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. Replace
+`@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. Replace
 `Chart as CanvasChart` from `/canvas` or `Chart as RendererChart` from `/core`
 with the corresponding named component from `/tooltip`. Ordering, anchoring,
 placement, portaling, and sticky behavior remain in the chart definition.

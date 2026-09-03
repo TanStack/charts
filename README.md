@@ -32,7 +32,7 @@
 
 <div align="center">
   <a href="#status">
-    <img alt="Status - PRE-ALPHA" src="https://img.shields.io/badge/status-pre--alpha-orange" />
+    <img alt="Status - ALPHA" src="https://img.shields.io/badge/status-alpha-yellow" />
   </a>
   <a href="https://twitter.com/tan_stack">
     <img alt="Follow @TanStack" src="https://img.shields.io/twitter/follow/tan_stack.svg?style=social" />
@@ -53,8 +53,12 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts `0.6.4` is pre-alpha. Its API may change between releases,
-> and it is not ready for production use.
+> This README follows unreleased `main`, the official Alpha line. The latest
+> published release is TanStack Charts `0.16.0`; use its
+> [release-source documentation](https://github.com/TanStack/charts/tree/v0.16.0/docs).
+> Alpha releases use regular `0.x` versions and may contain breaking changes
+> between minor releases. Pin an exact version for production use and read the
+> [Alpha stability policy](./docs/stability.md) before upgrading.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar
@@ -63,16 +67,17 @@ or dropping down to a separate API.
 
 - **Keep your data as it is.** Marks consume arrays, objects, tuples, and
   iterables directly. Different layers can use different datum types.
-- **Bring native D3 primitives.** Use D3 scales, curves, transforms, and layout
-  output instead of relearning a parallel math API.
+- **Compose the primitives that fit.** Use compact scales and row transforms for
+  common work, and pass native D3 callables directly when their fuller semantics
+  are useful.
 - **Build from common to custom.** Layer built-in marks or implement a custom
   mark against the same public scene protocol.
 - **Get the application runtime too.** Responsive layout, automatic guide
   margins, themes, interaction, animation, accessibility, SVG SSR, opt-in
   Canvas painting, hydration, and export are part of the system.
-- **Pay for what you import.** Marks, renderers, and chart-owned interactions
-  have independent TanStack subpaths; specialized algorithms come directly
-  from granular, tree-shakeable `d3-*` packages.
+- **Pay for what you import.** Marks, transforms, layouts, renderers, and
+  chart-owned interactions have independent subpaths. Optional D3-backed
+  capabilities and direct D3 imports remain granular and tree-shakeable.
 
 ### <a href="https://tanstack.com/charts">Read the docs →</a>
 
@@ -81,10 +86,11 @@ or dropping down to a separate API.
 <!-- docs-example: root-readme-quick-look typecheck -->
 
 ```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 const revenue = [
   { month: 'Jan', value: 42 },
@@ -100,15 +106,18 @@ const revenueChart = defineChart({
       y: 'value',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.2),
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.2),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Revenue' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Revenue' },
-  },
+
   tooltip,
 })
 
@@ -120,10 +129,11 @@ export function RevenueChart() {
 ```
 
 Marks consume the original rows, channels describe their visual encodings, and
-D3 scale factories infer domains from those channels. A configured scale
+compact scale factories infer domains from those channels. A configured scale
 instance keeps its authored domain. TanStack assigns responsive pixel ranges,
 compiles a renderer-neutral keyed scene, and hands that scene to the selected
-host.
+host. Replace only the scale that needs fuller semantics with its direct
+`d3-scale` counterpart.
 
 Definitions are framework-independent. The same `revenueChart` can render
 through React, Preact, Vue, Solid, Svelte, Angular, Lit, Alpine, Octane, the
@@ -133,7 +143,7 @@ When SVG element count becomes the bottleneck, switch the adapter import and
 keep the definition and host callbacks:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/canvas'
+import { Chart } from '@tanstack/charts/react/canvas'
 ```
 
 Canvas stays outside the default bundles. React and Octane also expose a
@@ -142,21 +152,22 @@ removes per-mark DOM cost, not scene memory or dense nearest-point work, so
 large interactive charts should still use a measured spatial index or a
 bounded representation.
 
-## Packages
+## Package
 
-| Package                                                           | Role                                  |
-| ----------------------------------------------------------------- | ------------------------------------- |
-| [`@tanstack/charts`](./packages/charts-core)                      | Framework-neutral grammar and runtime |
-| [`@tanstack/react-charts`](./packages/react-charts)               | React adapter                         |
-| [`@tanstack/react-native-charts`](./packages/react-native-charts) | Experimental React Native SVG adapter |
-| [`@tanstack/preact-charts`](./packages/preact-charts)             | Preact adapter                        |
-| [`@tanstack/vue-charts`](./packages/vue-charts)                   | Vue adapter                           |
-| [`@tanstack/solid-charts`](./packages/solid-charts)               | Solid adapter                         |
-| [`@tanstack/svelte-charts`](./packages/svelte-charts)             | Svelte adapter                        |
-| [`@tanstack/angular-charts`](./packages/angular-charts)           | Angular standalone-component adapter  |
-| [`@tanstack/lit-charts`](./packages/lit-charts)                   | Lit custom-element adapter            |
-| [`@tanstack/alpine-charts`](./packages/alpine-charts)             | Alpine directive adapter              |
-| [`@tanstack/octane-charts`](./packages/octane-charts)             | Octane adapter                        |
+Install `@tanstack/charts` once. Its exact subpaths expose compact scales,
+framework adapters, renderers, and optional capabilities without pulling
+unrelated code into application bundles:
+
+```ts
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { Chart } from '@tanstack/charts/react'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+```
+
+The source remains split into focused workspace packages for development and
+verification. Those internal boundaries are assembled into the published
+`@tanstack/charts` package. Existing package names remain published for
+compatibility, but new applications do not need them.
 
 The earlier host experiment remains under `@plot-poc/*` for migration evidence
 and benchmark comparison. The private
@@ -167,11 +178,13 @@ superseded backend experiment.
 
 TanStack Charts deliberately splits ownership:
 
-| D3 owns                                                      | TanStack Charts owns                                                                          |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Scales, shapes, transforms, color, spatial math, and layouts | Marks, channels, responsive ranges, guide layout, scene compilation, rendering, and lifecycle |
+| Layer                   | Owns                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| TanStack compact scales | Common numeric linear, categorical band and point, and categorical ordinal mappings           |
+| Granular D3 modules     | Temporal, nonlinear, piecewise, spatial, layout, and other specialized algorithms             |
+| TanStack Charts         | Marks, channels, responsive ranges, guide layout, scene compilation, rendering, and lifecycle |
 
-This boundary keeps D3 visible and replaceable at the algorithm level while
+This boundary keeps specialized algorithms visible and replaceable while
 giving applications a consistent runtime. There is no global registry,
 library-owned dataframe, or chart-type configuration model.
 
@@ -205,7 +218,7 @@ pattern.
 | [`docs/comparison.md`](./docs/comparison.md)                                     | Pinned capability and bundle comparison                  |
 | [`docs/quick-start.md`](./docs/quick-start.md)                                   | First complete framework-agnostic chart                  |
 | [`docs/concepts/grammar-of-graphics.md`](./docs/concepts/grammar-of-graphics.md) | Marks, channels, scales, and composition                 |
-| [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | The D3 dependency and ownership boundary                 |
+| [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | Compact scale path and D3 upgrade boundary               |
 | [`docs/examples/index.md`](./docs/examples/index.md)                             | Curated chart-family and interaction examples            |
 | [`docs/guides/ai-authoring.md`](./docs/guides/ai-authoring.md)                   | Deterministic authoring and validation for coding agents |
 | [`docs/reference/index.md`](./docs/reference/index.md)                           | Complete public API map                                  |

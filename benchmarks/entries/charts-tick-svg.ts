@@ -13,8 +13,10 @@ const definition = defineChart({
     tickY(data, { x: 'category', y: 'high' }),
     tickX(data, { x: 'category', y: 'value' }),
   ],
-  x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.2) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.2) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
 })
 
 export function render(width: number, height: number) {

@@ -9,8 +9,9 @@
   "support": "native",
   "features": [
     "horizontal bars",
-    "signed values",
-    "diverging baseline",
+    "declarative grouped counts",
+    "signed value accessor",
+    "native diverging stack",
     "absolute count formatting",
     "grouped observations"
   ],
@@ -20,7 +21,7 @@
     "url": "https://recharts.github.io/en-US/examples/PopulationPyramid/"
   },
   "ai": {
-    "create": "Group Palmer penguin observations by species and sex, then create a diverging bar chart with negative male counts, positive female counts, and absolute count tick labels.",
-    "maintain": "Select a different observation window while preserving the visible grouping and signed transform, symmetric domain, species order, and distinct sex colors."
+    "create": "Group Palmer penguin observations by species and sex with groupBy, then use one native diverging bar stack whose signed value accessor places male and female counts around zero.",
+    "maintain": "Select a different observation window while preserving grouped-count lineage, the signed channel, explicit stack and color order, symmetric domain, species order, and absolute count tick labels."
   }
 }

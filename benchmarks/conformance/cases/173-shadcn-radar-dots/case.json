@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1740,
+  "id": "173-shadcn-radar-dots",
+  "title": "shadcn Radar Chart - Dots",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-dots example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "dots", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-dots",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-dots"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-dots card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar dots treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -7,5 +7,5 @@ const result = await assertDocsContract(repositoryRoot)
 await assertPackageDocsSynced(repositoryRoot)
 
 console.log(
-  `Documentation contract passed for ${result.markdownFiles.length} pages, ${result.embeddedCases.length} catalog embeds, and ${result.standaloneExamples.length} executable examples.`,
+  `Documentation contract passed for ${result.markdownFiles.length} pages, ${result.catalogExamples.length} catalog examples, ${result.exampleGroups.length} runnable groups, and ${result.standaloneExamples.length} standalone examples.`,
 )

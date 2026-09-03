@@ -16,11 +16,13 @@ import {
   createCatalogSourceModules,
 } from './catalog-source-files.mjs'
 import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
+import { estimateConformanceCaseWeight } from './benchmark/conformance-sharding.mjs'
+import { assertKnownFilterValues, parseShard } from './benchmark/filters.mjs'
 import {
-  assertKnownFilterValues,
-  parseShard,
-  selectShard,
-} from './benchmark/filters.mjs'
+  normalizeTypeDiagnosticPath,
+  selectCatalogCases,
+} from './compare-plot-catalog-helpers.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const conformanceDirectory = resolve(root, 'benchmarks/conformance')
@@ -131,16 +133,13 @@ assertKnownFilterValues(
   allCases.map((entry) => entry.id),
   'case',
 )
-const selectedCases = selectShard(
-  allCases.filter((entry) => !caseFilter || caseFilter.has(entry.id)),
-  shard,
+const selectedCases = selectCatalogCases(allCases, caseFilter, shard, (entry) =>
+  estimateConformanceCaseWeight(entry, profile),
 )
-if (!selectedCases.length) {
-  throw new Error('The case filter did not match a conformance case.')
-}
 
-const typeAudit = await auditTypes(selectedCases)
-const typeProtection = await auditTypeProtection()
+const typeDiagnostics = await createTypeDiagnostics()
+const typeAudit = await auditTypes(selectedCases, typeDiagnostics.byFile)
+const typeProtection = auditTypeProtection(typeDiagnostics)
 const bundles = await buildImplementations(selectedCases, typeAudit)
 let measurements = []
 let visualChecks = []
@@ -611,7 +610,7 @@ function isValidStateAssertion(assertion) {
   )
 }
 
-async function auditTypes(cases) {
+async function createTypeDiagnostics() {
   const configPath = resolve(root, 'tsconfig.json')
   const config = ts.readConfigFile(configPath, ts.sys.readFile)
   if (config.error) {
@@ -626,8 +625,54 @@ async function auditTypes(cases) {
     undefined,
     configPath,
   )
-  const program = ts.createProgram(parsed.fileNames, parsed.options)
-  const diagnostics = ts.getPreEmitDiagnostics(program)
+  const probes = typeProtectionProbes()
+  const baselineEntries = Object.entries(typeProtectionBaselines()).map(
+    ([renderer, source]) => ({
+      renderer,
+      source,
+      sourcePath: resolve(typeProbeDirectory, `valid-baseline-${renderer}.ts`),
+    }),
+  )
+  const probeEntries = probes.flatMap((probe) =>
+    ['observable-plot', 'recharts', 'tanstack'].map((renderer) => ({
+      probe,
+      renderer,
+      source: probe.sources[renderer],
+      sourcePath: resolve(typeProbeDirectory, `${probe.id}-${renderer}.ts`),
+    })),
+  )
+  const generatedEntries = [...baselineEntries, ...probeEntries]
+
+  await Promise.all(
+    generatedEntries.map(({ source, sourcePath }) =>
+      writeFile(sourcePath, `${source.trim()}\n`),
+    ),
+  )
+
+  const program = ts.createProgram(
+    [
+      ...new Set([
+        ...parsed.fileNames,
+        ...generatedEntries.map(({ sourcePath }) => sourcePath),
+      ]),
+    ],
+    parsed.options,
+  )
+  const byFile = new Map()
+  for (const diagnostic of ts.getPreEmitDiagnostics(program)) {
+    const sourcePath = diagnostic.file?.fileName
+      ? normalizeTypeDiagnosticPath(diagnostic.file.fileName)
+      : undefined
+    if (!sourcePath) continue
+    const diagnostics = byFile.get(sourcePath) ?? []
+    diagnostics.push(formatTypeDiagnostic(diagnostic))
+    byFile.set(sourcePath, diagnostics)
+  }
+
+  return { baselineEntries, byFile, probeEntries, probes }
+}
+
+async function auditTypes(cases, diagnosticsByFile) {
   const relevantSources = new Map()
 
   for (const entry of cases) {
@@ -652,17 +697,8 @@ async function auditTypes(cases) {
 
   const audit = new Map()
   for (const [sourcePath, details] of relevantSources) {
-    const sourceDiagnostics = diagnostics
-      .filter((diagnostic) => diagnostic.file?.fileName === sourcePath)
-      .map((diagnostic) => ({
-        code: diagnostic.code,
-        line:
-          diagnostic.file && diagnostic.start !== undefined
-            ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
-                .line + 1
-            : undefined,
-        message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-      }))
+    const sourceDiagnostics =
+      diagnosticsByFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
     const source = details.source
     audit.set(`${details.caseId}:${details.renderer}`, {
       diagnostics: sourceDiagnostics,
@@ -689,31 +725,17 @@ async function auditTypes(cases) {
   return audit
 }
 
-async function auditTypeProtection() {
-  const configPath = resolve(root, 'tsconfig.json')
-  const config = ts.readConfigFile(configPath, ts.sys.readFile)
-  if (config.error) {
-    throw new Error(
-      ts.flattenDiagnosticMessageText(config.error.messageText, '\n'),
-    )
-  }
-  const parsed = ts.parseJsonConfigFileContent(
-    config.config,
-    ts.sys,
-    root,
-    undefined,
-    configPath,
-  )
-  const probes = typeProtectionProbes()
+function auditTypeProtection({
+  baselineEntries,
+  byFile,
+  probeEntries,
+  probes,
+}) {
   const results = []
 
-  for (const [renderer, source] of Object.entries(typeProtectionBaselines())) {
-    const sourcePath = resolve(
-      typeProbeDirectory,
-      `valid-baseline-${renderer}.ts`,
-    )
-    await writeFile(sourcePath, `${source.trim()}\n`)
-    const diagnostics = diagnosticsForTypeSource(sourcePath, parsed.options)
+  for (const { renderer, sourcePath } of baselineEntries) {
+    const diagnostics =
+      byFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
     if (diagnostics.length) {
       throw new Error(
         `Valid ${renderer} type baseline failed: ${diagnostics
@@ -723,30 +745,24 @@ async function auditTypeProtection() {
     }
   }
 
-  for (const probe of probes) {
-    for (const renderer of ['observable-plot', 'recharts', 'tanstack']) {
-      const sourcePath = resolve(
-        typeProbeDirectory,
-        `${probe.id}-${renderer}.ts`,
+  for (const { probe, renderer, sourcePath } of probeEntries) {
+    const diagnostics =
+      byFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
+    const setupDiagnostic = diagnostics.find((diagnostic) =>
+      [2307, 6053, 7016].includes(diagnostic.code),
+    )
+    if (setupDiagnostic) {
+      throw new Error(
+        `Type probe "${probe.id}" could not load its dependencies: ${setupDiagnostic.message}`,
       )
-      await writeFile(sourcePath, `${probe.sources[renderer].trim()}\n`)
-      const diagnostics = diagnosticsForTypeSource(sourcePath, parsed.options)
-      const setupDiagnostic = diagnostics.find((diagnostic) =>
-        [2307, 6053, 7016].includes(diagnostic.code),
-      )
-      if (setupDiagnostic) {
-        throw new Error(
-          `Type probe "${probe.id}" could not load its dependencies: ${setupDiagnostic.message}`,
-        )
-      }
-      results.push({
-        id: probe.id,
-        title: probe.title,
-        renderer,
-        rejected: diagnostics.length > 0,
-        diagnostics,
-      })
     }
+    results.push({
+      id: probe.id,
+      title: probe.title,
+      renderer,
+      rejected: diagnostics.length > 0,
+      diagnostics,
+    })
   }
 
   return {
@@ -780,20 +796,16 @@ async function auditTypeProtection() {
   }
 }
 
-function diagnosticsForTypeSource(sourcePath, compilerOptions) {
-  const program = ts.createProgram([sourcePath], compilerOptions)
-  return ts
-    .getPreEmitDiagnostics(program)
-    .filter((diagnostic) => diagnostic.file?.fileName === sourcePath)
-    .map((diagnostic) => ({
-      code: diagnostic.code,
-      line:
-        diagnostic.file && diagnostic.start !== undefined
-          ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
-              .line + 1
-          : undefined,
-      message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-    }))
+function formatTypeDiagnostic(diagnostic) {
+  return {
+    code: diagnostic.code,
+    line:
+      diagnostic.file && diagnostic.start !== undefined
+        ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start).line +
+          1
+        : undefined,
+    message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+  }
 }
 
 function typeProtectionBaselines() {
@@ -822,8 +834,10 @@ function typeProtectionBaselines() {
       const rows: readonly Row[] = [{ x: 1, y: 2 }]
       defineChart({
         marks: [lineY(rows, { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear() },
-        y: { scale: scaleLinear() },
+        scales: {
+          x: { scale: scaleLinear() },
+          y: { scale: scaleLinear() },
+        },
       })
     `,
   }
@@ -986,8 +1000,10 @@ function typeProtectionProbes() {
           const rows: readonly Row[] = [{ category: 'Alpha', value: 2 }]
           defineChart({
             marks: [dot(rows, { x: 'category', y: 'value' })],
-            x: { scale: scaleLinear() },
-            y: { scale: scaleLinear() },
+            scales: {
+              x: { scale: scaleLinear() },
+              y: { scale: scaleLinear() },
+            },
           })
         `,
       },
@@ -1028,11 +1044,13 @@ function typeProtectionProbes() {
           const rows: readonly Row[] = [{ date: new Date(0), value: 2 }]
           defineChart({
             marks: [lineY(rows, { x: 'date', y: 'value' })],
-            x: {
-              scale: scaleUtc(),
-              format: (value) => value.toFixed(2),
+            scales: {
+              x: {
+                scale: scaleUtc(),
+                format: (value) => value.toFixed(2),
+              },
+              y: { scale: scaleLinear() },
             },
-            y: { scale: scaleLinear() },
           })
         `,
       },
@@ -1085,8 +1103,10 @@ function typeProtectionProbes() {
                 y2: 'high',
               }),
             ],
-            x: { scale: scaleLinear() },
-            y: { scale: scaleLinear() },
+            scales: {
+              x: { scale: scaleLinear() },
+              y: { scale: scaleLinear() },
+            },
           })
         `,
       },
@@ -1130,9 +1150,15 @@ function typeProtectionProbes() {
 }
 
 async function buildImplementations(cases, typeAudit) {
-  const bundles = []
-  for (const entry of cases) {
-    for (const renderer of pairedRenderers(entry)) {
+  const candidates = cases.flatMap((entry) =>
+    pairedRenderers(entry).map((renderer) => ({ entry, renderer })),
+  )
+  const bundles = new Array(candidates.length)
+
+  await runWithConcurrency(
+    candidates,
+    4,
+    async ({ entry, renderer }, index) => {
       const sourcePath = resolve(
         casesDirectory,
         entry.id,
@@ -1141,7 +1167,7 @@ async function buildImplementations(cases, typeAudit) {
       try {
         await access(sourcePath)
       } catch {
-        continue
+        return
       }
       const id = `${entry.id}-${renderer}`
       const outputPath = resolve(bundleDirectory, `${id}.js`)
@@ -1171,7 +1197,7 @@ async function buildImplementations(cases, typeAudit) {
         legalComments: 'none',
         logLevel: 'silent',
         write: false,
-        external: ['@charts-poc/demo-data/*'],
+        external: ['@tanstack/charts-data/*'],
       })
       const contents = measurementResult.outputFiles[0]?.contents
       if (!contents) {
@@ -1193,7 +1219,7 @@ async function buildImplementations(cases, typeAudit) {
       )
       const entryTypeAudit =
         typeAudit.get(`${entry.id}:${renderer}`) ?? missingTypeAudit()
-      bundles.push({
+      bundles[index] = {
         id,
         caseId: entry.id,
         renderer,
@@ -1217,10 +1243,11 @@ async function buildImplementations(cases, typeAudit) {
           totalSourceFiles: authoredSource.totalFiles,
           sourceRoles: authoredSource.roles,
         },
-      })
-    }
-  }
-  return bundles
+      }
+    },
+  )
+
+  return bundles.filter(Boolean)
 }
 
 async function measureImplementation(
@@ -1898,7 +1925,7 @@ async function compareVisuals(
             tick: '.ts-chart__tick line',
             vector: '.ts-chart__vector-item .ts-chart__arrow-shaft',
             voronoi: '.ts-chart__voronoi path',
-            waffle: '.ts-chart__rect rect',
+            waffle: '.ts-chart__waffle rect',
           }
           const rechartsSelectors = {
             arc: '.recharts-pie-sector path, .recharts-radial-bar-sector path, .recharts-sector',
@@ -1940,16 +1967,17 @@ async function compareVisuals(
           const style = getComputedStyle(element)
           if (element.localName === 'line') return style.stroke
           if (style.fill && style.fill !== 'none') {
-            const patternId = style.fill.match(
+            const referenceId = style.fill.match(
               /url\((?:["'])?#([^"')]+)(?:["'])?\)/,
             )?.[1]
-            const patternPaint = patternId
-              ? element.ownerDocument
-                  .getElementById(patternId)
-                  ?.querySelector('rect, path')
+            const referencedElement = referenceId
+              ? element.ownerDocument.getElementById(referenceId)
               : undefined
-            return patternPaint
-              ? getComputedStyle(patternPaint).fill
+            const patternPaint = referencedElement?.querySelector('rect, path')
+            if (patternPaint) return getComputedStyle(patternPaint).fill
+            const gradientStop = referencedElement?.querySelector('stop')
+            return gradientStop
+              ? getComputedStyle(gradientStop).getPropertyValue('stop-color')
               : style.fill
           }
           return style.stroke

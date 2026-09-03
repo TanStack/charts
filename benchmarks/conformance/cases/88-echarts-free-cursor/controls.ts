@@ -104,14 +104,20 @@ export function updateFreeCursorControls(
   const y = clamp(values.y, Number(controls.y.min), Number(controls.y.max))
   controls.x.value = String(x)
   controls.y.value = String(y)
-  controls.x.setAttribute('aria-valuetext', formatValue(controls.xLabel, x))
-  controls.y.setAttribute('aria-valuetext', formatValue(controls.yLabel, y))
+  controls.x.setAttribute(
+    'aria-valuetext',
+    formatFreeCursorValue(controls.xLabel, x),
+  )
+  controls.y.setAttribute(
+    'aria-valuetext',
+    formatFreeCursorValue(controls.yLabel, y),
+  )
   controls.root.dataset.active = 'true'
   controls.root.dataset.pinned = String(values.pinned)
-  controls.status.textContent = `${formatValue('HP', x)} · ${formatValue(
-    'MPG',
-    y,
-  )}${values.pinned ? ' · pinned' : ''}`
+  controls.status.textContent = `${formatFreeCursorValue(
+    'HP',
+    x,
+  )} · ${formatFreeCursorValue('MPG', y)}${values.pinned ? ' · pinned' : ''}`
 }
 
 function coordinateSlider(
@@ -156,12 +162,7 @@ function sliderLabel(
   return label
 }
 
-function formatValue(axis: string, value: number) {
-  return `${axis} ${value.toLocaleString(undefined, {
-    maximumFractionDigits: 1,
-  })}`
-}
-
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.max(minimum, Math.min(maximum, value))
 }
+import { formatFreeCursorValue } from './format'

@@ -5,15 +5,15 @@
   "title": "Bollinger band",
   "family": "trend",
   "intent": "Show Apple's twenty-day trailing closing-price mean with a two-standard-deviation volatility band from the original AAPL rows.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "bollinger",
-    "area",
-    "line",
-    "moving mean",
-    "standard deviation",
-    "d3-array-mean",
-    "d3-array-deviation"
+    "window transform",
+    "full trailing mean",
+    "sample-deviation reducer",
+    "channel-composed volatility interval",
+    "area mark",
+    "line mark",
+    "source lineage"
   ],
   "geometry": [
     { "role": "area", "count": 1 },
@@ -24,7 +24,7 @@
     "url": "https://observablehq.com/plot/marks/bollinger"
   },
   "ai": {
-    "create": "Create a responsive UTC Bollinger chart from the AAPL dataset's original Date and Close fields using a twenty-day strict trailing window and bands two sample deviations from the mean.",
-    "maintain": "Change the window or deviation multiplier while preserving Plot's native compound mark semantics, explicit TanStack interval rows, and the original stock fields."
+    "create": "Create a responsive UTC Bollinger chart from the AAPL dataset's original Date and Close fields using the public window transform for a full twenty-day trailing mean and sample deviation, then compose the interval directly in area channels.",
+    "maintain": "Change the authored window or deviation multiplier while preserving direct source lineage, full trailing-window semantics, and one shared transformed row set for the area and mean line."
   }
 }

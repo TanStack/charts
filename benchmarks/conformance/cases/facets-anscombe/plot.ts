@@ -1,4 +1,4 @@
-import { anscombe } from '@charts-poc/demo-data/anscombe'
+import { anscombe } from '@tanstack/charts-data/anscombe'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

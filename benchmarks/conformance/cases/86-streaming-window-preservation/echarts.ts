@@ -8,20 +8,22 @@ import type {
   GridComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
+import { clientPointBounds } from '../../shared/driver-geometry'
 import { echartsMount } from '../../shared/echarts-mount'
 import { streamingData } from './selection'
 import {
   formatStreamingDate,
-  fullStreamingViewport,
-  latestStreamingViewport,
   streamingDateKey,
-  streamingViewportDomain,
+  streamingStatus,
+  streamingViewportForMode,
+  streamingViewportLabel,
   visibleStreamingData,
 } from './model'
 import { createStreamingControls, updateStreamingControls } from './controls'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
-import type { StreamingControls, StreamingViewportMode } from './controls'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
+import type { StreamingControls } from './controls'
+import type { StreamingViewportMode } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -49,10 +51,11 @@ const color = '#2563eb'
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
+  const initialRows = streamingData(downloads, input.revision)
   const state: StreamingState = {
-    rows: streamingData(downloads, input.revision),
+    rows: initialRows,
     appended: 0,
-    viewport: streamingViewportDomain,
+    viewport: streamingViewportForMode(initialRows, 'locked'),
     viewportMode: 'locked',
     announcement: '',
   }
@@ -78,11 +81,7 @@ export const mount: ConformanceMount = (container, input) => {
         currentInput.revision,
         state.appended,
       )
-      if (state.viewportMode === 'latest') {
-        state.viewport = latestStreamingViewport(state.rows)
-      } else if (state.viewportMode === 'all') {
-        state.viewport = fullStreamingViewport(state.rows)
-      }
+      state.viewport = streamingViewportForMode(state.rows, state.viewportMode)
       const added = state.rows.at(-1)
       state.announcement = added
         ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
@@ -95,13 +94,13 @@ export const mount: ConformanceMount = (container, input) => {
     },
     follow() {
       state.viewportMode = 'latest'
-      state.viewport = latestStreamingViewport(state.rows)
+      state.viewport = streamingViewportForMode(state.rows, state.viewportMode)
       state.announcement = `Following the latest samples through ${formatStreamingDate(state.viewport[1])}.`
       render()
     },
     showAll() {
       state.viewportMode = 'all'
-      state.viewport = fullStreamingViewport(state.rows)
+      state.viewport = streamingViewportForMode(state.rows, state.viewportMode)
       state.announcement = `Viewport unlocked. Showing all ${state.rows.length} samples.`
       render()
     },
@@ -137,11 +136,8 @@ export const mount: ConformanceMount = (container, input) => {
     update(nextInput) {
       currentInput = nextInput
       state.rows = streamingData(downloads, nextInput.revision, state.appended)
-      if (state.viewportMode === 'latest') {
-        state.viewport = latestStreamingViewport(state.rows)
-      } else if (state.viewportMode === 'all') {
-        state.viewport = fullStreamingViewport(state.rows)
-      }
+      state.announcement = ''
+      state.viewport = streamingViewportForMode(state.rows, state.viewportMode)
       sizeStreamingView(view, chartFrame, nextInput)
       updateStreamingControls(controls, {
         mode: state.viewportMode,
@@ -181,12 +177,7 @@ function streamingOption(
       type: 'time',
       min: viewport[0].getTime(),
       max: viewport[1].getTime(),
-      name:
-        viewportMode === 'locked'
-          ? 'Locked viewport'
-          : viewportMode === 'latest'
-            ? 'Following latest'
-            : 'All samples',
+      name: streamingViewportLabel(viewportMode),
       nameLocation: 'middle',
       nameGap: 30,
     },
@@ -317,7 +308,7 @@ function streamingGeometry(
     }))
   }
   if (query.role === 'line') {
-    const sample = pointsBounds(points, bounds)
+    const sample = clientPointBounds(points, bounds, { paint: color })
     return sample ? [sample] : []
   }
   return []
@@ -341,33 +332,6 @@ function streamPoint(
     return null
   }
   return [point[0], point[1]]
-}
-
-function pointsBounds(
-  points: readonly (readonly [number, number])[],
-  surfaceBounds: DOMRect,
-): ConformanceGeometrySample | null {
-  if (!points.length) return null
-  const xs = points.map((point) => point[0])
-  const ys = points.map((point) => point[1])
-  const left = Math.min(...xs)
-  const right = Math.max(...xs)
-  const top = Math.min(...ys)
-  const bottom = Math.max(...ys)
-  return {
-    x: surfaceBounds.left + left,
-    y: surfaceBounds.top + top,
-    width: Math.max(1, right - left),
-    height: Math.max(1, bottom - top),
-    paint: color,
-  }
-}
-
-function streamingStatus(state: StreamingState) {
-  if (state.announcement) return state.announcement
-  return `${state.rows.length} samples · ${formatStreamingDate(
-    state.viewport[0],
-  )}–${formatStreamingDate(state.viewport[1])} · viewport locked`
 }
 
 function streamingInput(input: ConformanceInput): ConformanceInput {

@@ -5,12 +5,12 @@
   "title": "Voronoi nearest-point interaction",
   "family": "interaction",
   "intent": "Partition automobile weight and fuel-economy observations into nearest-point regions and reveal the closest car.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "Voronoi cells",
-    "two-dimensional nearest point",
+    "native Voronoi cell mark",
+    "final-screen clipped cells",
+    "native two-dimensional nearest point",
     "pointer tooltip",
-    "d3-delaunay",
     "typed formatter"
   ],
   "geometry": [
@@ -45,7 +45,7 @@
     "url": "https://observablehq.com/plot/marks/delaunay"
   },
   "ai": {
-    "create": "Create a cylinder-colored Voronoi scatterplot from automobile weight and fuel economy with native two-dimensional nearest-car tooltips. Use Plot's voronoi and pointer primitives and granular d3-delaunay at the TanStack composition boundary.",
-    "maintain": "Change the selected cars while retaining bounded cells, source car identity, matching color domains, typed tooltip rows, responsive recomputation, and keyboard focus without importing spatial code into the shared renderer."
+    "create": "Create a cylinder-colored Voronoi scatterplot from raw automobile weight and fuel economy using the native optional Voronoi mark and native two-dimensional nearest-car tooltips.",
+    "maintain": "Change the selected cars while retaining bounded structured cells, stable source identity, dot-owned nearest focus, matching color domains, typed tooltip rows, responsive clipping, and keyboard focus."
   }
 }

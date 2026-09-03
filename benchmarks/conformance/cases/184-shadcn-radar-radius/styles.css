@@ -1,0 +1,147 @@
+.sc-example {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border: oklch(0.922 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+  color: var(--foreground);
+  background: var(--background);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  text-rendering: geometricPrecision;
+}
+:root[data-theme='dark'] .sc-example {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+}
+.sc-example,
+.sc-example * {
+  box-sizing: border-box;
+}
+.sc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--card-foreground);
+  padding: 24px 0;
+}
+.sc-card-header {
+  display: grid;
+  gap: 8px;
+  padding: 0 24px;
+}
+.sc-card-heading {
+  display: grid;
+  gap: 8px;
+}
+.sc-card-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.sc-card-header p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 20px;
+}
+.sc-card-content {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  padding: 0 24px;
+}
+.sc-chart {
+  position: relative;
+  flex: none;
+}
+.sc-chart > * {
+  display: block;
+}
+.sc-card-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 24px;
+  font-size: 14px;
+  line-height: 1;
+}
+.sc-centered {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.sc-trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.sc-trend svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sc-footer-note {
+  color: var(--muted-foreground);
+}
+.sc-example .ts-chart {
+  color: var(--muted-foreground);
+}
+.sc-example .ts-chart__grid line,
+.sc-example .ts-chart__polar-grid path,
+.sc-example .ts-chart__polar-grid line {
+  stroke: var(--border);
+}
+.sc-example .ts-chart__axes text,
+.sc-example .ts-chart__polar-grid text {
+  fill: var(--muted-foreground);
+  font-size: 12px;
+}
+.sc-example .ts-chart-tooltip {
+  min-width: 128px;
+  padding: 7px 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: var(--card) !important;
+  color: var(--card-foreground) !important;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
+  font-size: 12px;
+}

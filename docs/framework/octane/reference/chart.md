@@ -1,10 +1,10 @@
 ---
 title: Octane Chart
-description: Complete prop and type reference for the @tanstack/octane-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/octane Chart component.
 ---
 
 ```tsx
-import { Chart } from '@tanstack/octane-charts'
+import { Chart } from '@tanstack/charts/octane'
 ```
 
 The supplied definition infers the datum, semantic x/y values, and callbacks:
@@ -17,8 +17,8 @@ function Chart<
 >(props: ChartProps<TDatum, TXValue, TYValue>): unknown
 ```
 
-The definition owns focus, tooltip, animation, keyboard policy, focus distance,
-and spatial indexing.
+The definition owns `focus`, `focusRing`, `cursor`, `tooltip`, `svgAnimation`,
+`keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## Renderer entry points
 
@@ -26,8 +26,8 @@ The default entry uses SVG. The optional entries keep other renderer code
 explicit:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/octane-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/octane-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/octane/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/octane/core'
 
 const canvasChart = (
   <CanvasChart definition={definition} ariaLabel="Weekly revenue" />
@@ -73,13 +73,13 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 
 ## Focus, tooltip, and callbacks
 
-| Prop                 | Type                                                     | Default | Meaning                                                 |
-| -------------------- | -------------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`                    | None    | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                | None    | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`                    | None    | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`                  | None    | Inner surface, live SVG, and scene after reconciliation |
-| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => OctaneNode` | None    | Composes Octane content inside the native tooltip body  |
+| Prop                 | Type                                                     | Default | Meaning                                                              |
+| -------------------- | -------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`                    | None    | Primary focus callback                                               |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                | None    | Grouped focus callback                                               |
+| `onSelect`           | `(point: ChartPoint \| null) => void`                    | None    | Click and keyboard activation callback                               |
+| `onRender`           | `(context: ChartRenderContext) => void`                  | None    | Inner host, default SVG, complete surface, and scene after rendering |
+| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => OctaneNode` | None    | Composes Octane content inside the built-in tooltip body             |
 
 ```tsx
 <Chart

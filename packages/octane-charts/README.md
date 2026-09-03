@@ -18,26 +18,25 @@
 
 # `@tanstack/octane-charts`
 
-Native TSRX lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the native TSRX adapter from `@tanstack/charts/octane`.
 
-Declare the adapter, core grammar, framework peer, and each D3 module used by
-your chart directly:
+Install Charts and the Octane peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/octane-charts octane d3-scale
-pnpm add -D @types/d3-scale
+pnpm add @tanstack/charts octane
 ```
 
-Add or omit granular `d3-*` modules and their matching type packages with the
-chart's actual imports.
+Add granular `d3-*` modules and their matching type packages only when the
+chart needs scale or algorithm semantics outside the compact set.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/octane-charts'
+import { Chart } from '@tanstack/charts/octane'
 
 const interactiveDefinition = defineChart(definition, {
-  animate: true,
+  svgAnimation: true,
   tooltip,
 })
 
@@ -53,11 +52,11 @@ const interactiveDefinition = defineChart(definition, {
 Switch only the import to opt into Canvas:
 
 ```tsx
-import { Chart } from '@tanstack/octane-charts/canvas'
+import { Chart } from '@tanstack/charts/octane/canvas'
 ```
 
 The default entry remains SVG-based.
-`@tanstack/octane-charts/core` accepts an explicit `renderer` for
+`@tanstack/charts/octane/core` accepts an explicit `renderer` for
 application-owned surfaces, and neither optional path pulls Canvas into the
 default bundle.
 

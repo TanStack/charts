@@ -1,5 +1,350 @@
 # @tanstack/charts
 
+## 0.16.0
+
+### Minor Changes
+
+- [#115](https://github.com/TanStack/charts/pull/115) [`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a) - Move TanStack Charts into official Alpha on the regular `0.x` release line.
+
+  Chart definitions now require Cartesian scales under `scales.x` and `scales.y`.
+  Polar definitions require `scales.angle` and `scales.radius`. The temporary
+  pre-Alpha root properties, runtime adapters, and development warnings have been
+  removed. Custom mark types should replace `ChartMarkX` and `ChartMarkY` with
+  `ChartMarkPointX` and `ChartMarkPointY`, imported from
+  `@tanstack/charts/mark/scale-values`. Polar layout callbacks should read the
+  reserved mappings from `layout.scales`.
+
+  Reserved scale entries are checked against the marks that use them at the
+  precise authored type boundary. A materialized dimension requires a configured
+  scale, while an unused dimension requires an explicit `null` entry. Runtime
+  validation still checks required reserved entries and channels that actually
+  materialize, but type-only scale ownership cannot be recovered after a custom
+  mark or stored definition has been erased.
+
+  Fresh built-in mark option literals now reject unsupported properties while
+  preserving typed channels, named scale IDs, and generic mark wrappers.
+
+  Exact-zero cells in diverging stacks now stay on their running positive or
+  negative baseline instead of drawing false spikes through lower area layers.
+  Pinned tooltips now dismiss when the pointer is pressed outside the chart and
+  tooltip, so pointer inspection resumes after focus leaves the chart.
+
+## 0.15.0
+
+### Minor Changes
+
+- [#112](https://github.com/TanStack/charts/pull/112) [`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3) - Add named Cartesian and polar scale registries with multiple axes, guided
+  legacy scale migration, and opt-in per-mark Canvas rendering that composes with
+  the default renderer across DOM framework adapters, SSR, focus, and image
+  export.
+
+## 0.14.0
+
+### Minor Changes
+
+- [#102](https://github.com/TanStack/charts/pull/102) [`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918) - Improve definition-driven inference for optional motion renderers, raw chart specs with separate behaviors, responsive chart factories, and decorative marks.
+
+### Patch Changes
+
+- [#104](https://github.com/TanStack/charts/pull/104) [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e) - Inject tooltip motion through a structural renderer capability so motion works across separately bundled package entrypoints.
+
+## 0.13.0
+
+### Minor Changes
+
+- [#96](https://github.com/TanStack/charts/pull/96) [`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438) - Add ShadCN-compatible chart catalog support with renderer-owned tooltip and
+  entrance motion, composable stagger timing, motion cascade opt-outs, and
+  expanded polar presentation controls.
+
+## 0.12.0
+
+### Minor Changes
+
+- [#90](https://github.com/TanStack/charts/pull/90) [`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140) - Add angular grouped focus for radial charts and geometry-backed arc tooltips.
+
+## 0.11.2
+
+### Patch Changes
+
+- [#88](https://github.com/TanStack/charts/pull/88) [`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a) - Ship scenario-driven TanStack Charts skills for visualization design, responsive behavior, migration, interaction, accessibility, debugging, extension, and coordination with the TanStack data and application ecosystem.
+
+## 0.11.1
+
+### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+
+## 0.11.0
+
+### Minor Changes
+
+- [#81](https://github.com/TanStack/charts/pull/81) [`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8) - Add controlled sunburst drill-down roots, bounded visible depth, and hierarchy-aware polar motion that keeps animated sectors centered. Add funnel and drillable sunburst catalog examples.
+
+## 0.10.0
+
+### Minor Changes
+
+- [#79](https://github.com/TanStack/charts/pull/79) [`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e) - Let chart containers theme the built-in DOM tooltip surface through inherited
+  `--ts-chart-tooltip-*` CSS variables while preserving the existing defaults.
+
+## 0.9.0
+
+### Minor Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+## 0.8.0
+
+### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+## 0.7.2
+
+## 0.7.1
+
+### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Pin packaged documentation and comparison protocol links to the immutable tag
+  for the same package version. Release automation now advances those tag links
+  together with every visible release-version reference.
+
+## 0.7.0
+
+### Minor Changes
+
+- [#60](https://github.com/TanStack/charts/pull/60) [`38cddc8`](https://github.com/TanStack/charts/commit/38cddc846c8f342aedcd237956a0057155022ae9) - Expose pinned state to tooltip content and item callbacks so built-in and
+  framework-rendered tooltips can expand with additional detail when pinned.
+  Keep dismissing clicks owned by the tooltip when a framework body unmounts
+  during event propagation.
+
+  Standardize public callback parameters as primary data plus a context bag.
+  Tooltip `format` and `formatGroup` now receive the same content context as
+  `content`; channel accessors use `(datum, { index, data })`; facet, focus,
+  legend, and spatial-index extension callbacks move their supporting values
+  into named context objects. Controlled signals now receive change reasons in
+  `{ reason }`; keyed-selection keys and focus-guide label formatters receive
+  their point in `{ point }`; interactive legend item labels receive
+  `{ visible }`.
+
+  `ruleX` and `ruleY` now expose axis-specific presentation-only focus anchors, so
+  `whenFocused(..., { match: 'x' })` and `whenFocused(..., { match: 'y' })` can
+  reveal focused guide rules without making them interaction or tooltip targets.
+
+  Update the published pinned-tooltip catalog case to show the energy overview,
+  compact hover summary, and animated pinned detail.
+
+  Preserve distinct source rows in the linear-regression, framed-scatter, and
+  many-point-scatter catalog examples when car names and years repeat.
+
+  Keep React Native chart-host focusability aligned with the shared definition
+  contract and toggle sticky activation exactly once per accessibility action.
+
+- [#55](https://github.com/TanStack/charts/pull/55) [`a5f9702`](https://github.com/TanStack/charts/commit/a5f97022f90043254e0e0dde174cdf2a63b6a198) - Add renderer-native crosshair rules, categorical cursor bands, labels, and optional intersection markers plus shared focus/free cursor controllers across SVG, Canvas, motion, and React Native rendering. Focus-filtered rule marks now use non-interactive semantic anchors, built-in axis focus modes select the painted mark under the pointer before grouping or snapping, and keyed motion guides remain active through scene updates.
+
+- [`6fd52a8`](https://github.com/TanStack/charts/commit/6fd52a8910c9f933609dce14bffab5277f6325b2) - Add native waffle, optional spatial hexbin, Delaunay link, Voronoi,
+  scalar-grid contour, density contour, responsive treemap and sunburst marks,
+  responsive Sankey composition, dot dodge layouts, typed wide-to-long fold and
+  polar pie transforms, and optional static force-layout and tidy-tree
+  transforms. Polar charts add radius- and angle-extending bar marks, responsive
+  radius scale ranges, post-scale text and rule offsets, and automatic outside
+  text anchors. These marks, layouts, and transforms own their data- or
+  plot-space geometry, so examples no longer need to copy scales, author D3
+  paths, flip hierarchy coordinates, manually pivot metric fields, calculate
+  responsive label radii or bar rings, or hide hierarchy and settled network
+  coordinates in case utilities. The exact Sankey entry accepts semantic graph
+  rows and composes ordinary child marks over immutable final-pixel node and link
+  values without exposing D3 mutation cleanup.
+
+  Resolved dot placement is also extensible through `createDotLayout`, which
+  receives final plot bounds, measured coordinates, and radii while Charts keeps
+  row identity, interaction, state, and motion ownership. Treemap tiling, Sankey
+  alignment, and named static-force factories accept D3-compatible callables in
+  addition to the built-in shorthands; all operate over private layout copies and
+  retain validation, immutability, and source lineage.
+
+  Cartesian bars add an orientation-neutral `maxThickness` constraint that caps
+  their final painted categorical size after grouping and inset, without asking
+  definitions to estimate responsive chart bounds. Absolute inline-state inset
+  overrides retain their existing semantics without escaping the cap.
+
+  Add eager `boxRows` preparation plus raw-row `boxX` and `boxY` marks with Tukey
+  quartiles, observed whiskers, outlier lineage, transposed orientation, and one
+  summary interaction target per category. The marks reuse the public semantic
+  rows without exposing presentation keys. Add `compositeMark` for namespaced
+  composition of ordinary child marks with preserved datum, channel,
+  interaction, and motion ownership.
+
+  Stack layouts add inside-out series order and a zero-origin wiggle policy.
+  Areas, bars, and row transforms now share D3 inside-out ordering, dense sparse
+  cell handling, and a single global baseline translation, so streamgraphs can
+  consume tidy source rows without case-owned pivoting or interval generation.
+  Anchored stacks additionally translate ordered nonnegative series around a
+  named series fraction, so diverging Likert charts can keep counts in ordinary
+  bar definitions without manually materializing signed endpoints.
+
+  Add an eager `waterfall` transform for ordered signed contributions, cumulative
+  start/end intervals, increase/decrease classification, optional grouped net
+  totals, and direct source lineage.
+
+  Add eager `mosaicY` and `mosaicX` transforms for two-dimensional proportional
+  intervals over explicitly aggregated category pairs. They preserve semantic
+  categories, both normalization totals, stable source order, and direct lineage
+  for ordinary rectangle and text marks. Mosaic and pie share an overflow-safe
+  proportional interval allocator; waffle keeps its distinct rounded unit-fragment
+  and resolved packing policy.
+
+  Add `lineX` as the strict transposed counterpart to `lineY`, sharing grouping,
+  keys, gaps, styling, interaction, motion, and renderer-neutral path output.
+
+  Add eager `linearRegressionRowsY` and `linearRegressionRowsX` preparation plus
+  `linearRegressionY` and `linearRegressionX` composite marks with centered
+  least-squares fits, optional grouped Student-t confidence bands, semantic-domain
+  sampling, aggregate lineage, transposed geometry, and one interactive fitted
+  line per group. The marks reuse the public semantic rows without exposing
+  presentation keys.
+
+  Add `differenceY` and `differenceX` composite marks that split two source-row
+  series at exact interpolated crossings, paint stable positive and negative
+  lobes, preserve derived lineage, and keep both raw boundary lines interactive.
+
+  Add semantic `ridgelineY` / `ridgelineX` and `violinY` / `violinX` marks for
+  prepared normalized profiles. Both derive responsive displacement from complete
+  point or band category domains without numeric category surrogates. Ridgelines
+  own one-sided overlap and optional outlines; violins own mirrored envelopes
+  while binning, normalization, density estimation, and summaries remain explicit
+  definition concerns. Tick marks add an optional category-step-relative `span`
+  for responsive summary bars without authored endpoint coordinates.
+
+  Add exact-subpath focus guide marks with renderer-neutral rules, markers,
+  measured labels, raw datum identity, and stable retargeting keys. Retargetable
+  `whenFocused` marks now enter at the active geometry, update through ordinary
+  mark motion, preserve interrupted spring velocity, and exit on focus clear
+  across SVG, Canvas, and React Native surfaces. Candidate ownership is
+  collision-safe for delimiter-containing keys, primitive rows match by value
+  and source position, and mark-state transitions no longer override another
+  mark's focus motion.
+
+  Add an exact-subpath controlled signal and a controlled interactive categorical
+  legend. Applications retain the visible-series snapshot while Charts owns
+  domain-ordered toggling, post-domain geometry and focus filtering, responsive
+  top or bottom layout, stable native browser buttons, and static SVG fallback.
+  Static color and gradient legends also support top or bottom placement.
+
+  Add exact-subpath controlled keyed selection with `keyedSelection` and
+  `whenSelected`. Host activation maps ordinary chart points to application keys
+  through a controlled signal. Selected marks keep their complete domain
+  contribution, then paint only matching point-owned geometry as a decorative
+  overlay without duplicate focus or activation targets.
+
+  Add exact-subpath `decorative(mark)` composition. It keeps an ordinary or
+  resolved-layout mark's scale contribution, layout measurement, motion,
+  post-domain work, and painted geometry while removing interaction ownership and
+  exposing `never` point types. This lets one layer in a line-plus-dot composition
+  own focus, tooltips, and activation without changing pointer affinity.
+
+  Add exact-subpath `brushX` as a controlled chart behavior. It resolves against
+  the final x scale and plot bounds, owns D3 pointer/touch lifecycle, semantic
+  snapping, reverse normalization, cancellation, keyboard slider handles, host
+  teardown, and a renderer-neutral static fallback. Applications retain the
+  accepted range, fixed-window policy, linked-view layout, and persistence.
+
+  Add exact-subpath `continuousCursor` as a controlled chart behavior for an
+  unsnapped numeric or temporal x/y position. It resolves both final scales and
+  plot bounds, paints rules, a marker, and optional axis labels, owns transient
+  pointer/touch previews, click or tap pinning, leave/cancel cleanup, Escape and
+  toggle clearing, host teardown, and a renderer-neutral static fallback.
+  Applications retain semantic sliders, status text, formatting policy, and
+  persistence.
+
+  Add exact-subpath `zoomX` as a controlled continuous horizontal-window
+  behavior. It owns focus-gated pointer-anchored wheel zoom, horizontal-wheel and
+  drag pan, touch and pinch gestures, keyboard zoom/pan/reset, final-scale
+  inversion, clamping, cancellation, accessibility, and host teardown while D3
+  Zoom remains private to the optional subpath. Applications retain the accepted
+  semantic window, visible-row and y-domain policy, status, reset controls, and
+  persistence.
+
+  Add exact-subpath `handleX` as a controlled, candidate-bound horizontal scale
+  handle. It owns final-scale track, rule and handle painting, nearest-candidate
+  snapping, pointer and touch capture, preview, commit and cancellation, keyboard
+  slider semantics, resize synchronization, and host teardown without a D3
+  runtime. Applications retain playback or editing state, controls, validation,
+  status, and persistence.
+
+  Tooltip definitions add `visibility: 'pinned'` for focusable charts whose rich
+  detail should mount only after activation. Pointer pinning now repaints inline
+  pinned mark states, and SVG and Canvas restore base paint when tooltip
+  dismissal clears focus completely.
+
+  Facet definitions now preserve the datum type and identity emitted by their
+  child marks, type group rows as nonempty, and apply motion to the child datum.
+  Facets and the new exact-subpath `viewGrid` definition factory share one
+  full-chart scene adoption kernel with stable point and mark namespaces.
+  `viewGrid` arranges normal child definitions in named fixed/flexible tracks and
+  can align or strictly share resolved plot ranges without reserved-domain
+  coordinates or manual scene plotting.
+
+  Add exact-subpath `composeViews` for heterogeneous complete chart definitions.
+  Opaque `fill`, `grid`, `layer`, and anchored `inset` utilities compose responsive
+  frames, while `shareX`, `shareY`, `alignX`, and `alignY` keep scale coordination
+  separate from layout. `viewGrid` remains as concise grid syntax over the same
+  composition engine. Child pointer and cursor settings now fail explicitly
+  instead of disappearing at the adoption boundary; the outer definition owns
+  that lifecycle.
+
+  Controlled brush, cursor, and handle behaviors repaint the application-accepted
+  snapshot after a rejected terminal proposal. Continuous cursor axes invert the
+  resolved scale by default while retaining explicit value mapping and
+  coordinate-only overrides. Keyboard-disabled zoom no longer advertises or
+  enters focus for keyboard semantics it does not implement.
+
+  Interrupted motion removes exact stale exit nodes and presentation state while
+  preserving live replacements. Composite motion inheritance retains authored
+  path timing, including rolling-path policy.
+
+  Axis tick labels now accept per-candidate font size, font weight, opacity,
+  anchor, and x/y offset values. Accessors receive the semantic tick value,
+  stable pre-thinning index, resolved position, and bandwidth; resolved
+  presentation participates in thinning, automatic margins, facets, and motion.
+
+### Patch Changes
+
+- [#58](https://github.com/TanStack/charts/pull/58) [`4134429`](https://github.com/TanStack/charts/commit/4134429b49973cf64df1f36123ba8392571562eb) - Add validated rolling path transforms with dynamic y-domain reprojection,
+  continuous translated viewports with stationary guides, and a controlled focus
+  controller that follows presentation geometry. Default SVG rendering now
+  honors scene clips and gradients.
+
+## 0.6.5
+
+### Patch Changes
+
+- [#59](https://github.com/TanStack/charts/pull/59) [`11ba458`](https://github.com/TanStack/charts/commit/11ba4584e6aee639a58e353b5c828b2f3d207f62) - Publish the complete 109-case conformance catalog as per-case React components
+  that render their complete SVG during SSR. Catalog data parsing is compatible
+  with runtimes that prohibit string code generation, case-local D3 imports are
+  declared runtime dependencies, and bundled datasets include source and license
+  notices.
+
+  Add `focus: false` for charts that should omit generated focus geometry and
+  native focus work. Responsive definitions now retain outer definition options,
+  and catalog descriptors and custom views respond to measured width changes
+  after SSR. `d3-scale` is declared as a core runtime dependency.
+
+  Catalog components accept the same responsive `aspectRatio` sizing contract as
+  React Charts while retaining deterministic initial dimensions for SSR.
+  React chart hosts serialize proportional CSS sizing as a unitless value.
+  Legend-heavy preview definitions now dedicate their compact layout to the plot.
+
 ## 0.6.4
 
 ### Patch Changes

@@ -154,6 +154,157 @@ button {
   font-weight: 700;
 }
 
+.live-showcase {
+  overflow: hidden;
+}
+
+.live-showcase__header {
+  margin-bottom: 10px;
+}
+
+.live-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.live-metric {
+  min-width: 0;
+  padding: 14px 14px 4px;
+  border: 1px solid color-mix(in srgb, var(--live-color) 20%, #e4e4e7);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--live-color) 3%, #fff);
+}
+
+.live-metric__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.live-metric h3 {
+  margin: 0;
+  color: #52525b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.live-metric__reading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--live-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.live-metric__reading strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.live-metric__reading span {
+  width: 18px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.live-metric__reading span[data-trend='down'] {
+  color: #ef4444;
+}
+
+.live-metric__reading span[data-trend='flat'] {
+  color: #71717a;
+}
+
+.ios-history {
+  overflow: hidden;
+}
+
+.ios-history__header {
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ios-history__reading {
+  display: grid;
+  justify-items: end;
+  color: #18181b;
+  font-variant-numeric: tabular-nums;
+}
+
+.ios-history__reading strong {
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
+.ios-history__reading span {
+  margin-top: 2px;
+  color: #71717a;
+  font-size: 11px;
+}
+
+.ios-history__viewport {
+  position: relative;
+  overflow: hidden;
+  margin-inline: -10px;
+  border-radius: 12px;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.ios-history__viewport[data-dragging='true'] {
+  cursor: grabbing;
+}
+
+.ios-history__tooltip {
+  min-width: 112px;
+  border-color: rgb(255 255 255 / 28%) !important;
+  background: rgb(24 24 27 / 92%) !important;
+  color: #fff !important;
+  backdrop-filter: blur(12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.ios-history__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+  color: #71717a;
+  font-size: 12px;
+}
+
+.ios-history__pager {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #52525b;
+  font-variant-numeric: tabular-nums;
+}
+
+.ios-history__pager button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d4d4d8;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ios-history__pager button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
 [data-theme='dark'] .demo__lede,
 [data-theme='dark'] .chart-card__meta {
   color: #a1a1aa;
@@ -175,6 +326,33 @@ button {
 [data-theme='dark'] .chart-card__badge {
   color: #ddd6fe;
   background: #4c1d95;
+}
+
+[data-theme='dark'] .live-metric {
+  border-color: color-mix(in srgb, var(--live-color) 28%, #27272a);
+  background: color-mix(in srgb, var(--live-color) 5%, #18181b);
+}
+
+[data-theme='dark'] .live-metric h3 {
+  color: #d4d4d8;
+}
+
+[data-theme='dark'] .ios-history__reading {
+  color: #fafafa;
+}
+
+[data-theme='dark'] .ios-history__reading span,
+[data-theme='dark'] .ios-history__footer {
+  color: #a1a1aa;
+}
+
+[data-theme='dark'] .ios-history__pager {
+  color: #d4d4d8;
+}
+
+[data-theme='dark'] .ios-history__pager button {
+  border-color: #3f3f46;
+  background: #18181b;
 }
 
 [data-theme='dark'] .chart-control[data-active='true'] {
@@ -205,5 +383,24 @@ button {
     flex-direction: column;
     align-items: flex-start;
     padding: 0 4px;
+  }
+
+  .live-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .live-metric {
+    padding-inline: 8px;
+  }
+
+  .ios-history__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .live-metrics {
+    grid-template-columns: 1fr;
   }
 }

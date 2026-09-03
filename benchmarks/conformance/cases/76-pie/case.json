@@ -9,7 +9,8 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
+    "native pie allocation",
+    "source lineage",
     "keyed arc sectors",
     "categorical fills",
     "responsive radius"
@@ -21,7 +22,7 @@
     "url": "https://recharts.github.io/en-US/examples/StraightAnglePieChart/"
   },
   "ai": {
-    "create": "Create a four-slice pie chart from Observable's alphabet rows using letter and frequency directly with D3 pie layout.",
+    "create": "Create a four-slice pie chart from Observable's alphabet rows using the native pie value allocation with letter and frequency.",
     "maintain": "Change the selected letters while preserving raw field names, source order, full-circle orientation, responsive radius, stable identities, and exact categorical fills."
   }
 }

@@ -64,18 +64,43 @@ required by:
 - legends;
 - inherited font metrics in a DOM host.
 
-```ts
-const definition = defineChart({
-  marks: [barX(rows, { x: 'value', y: 'label' })],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    axis: { label: 'Weekly downloads' },
-  },
-  y: {
-    scale: () => scaleBand<string>().padding(0.1),
+```ts group=responsive-long-labels env=charts file=/src/chart.ts entry
+import { barX, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { rows } from './data'
+
+export default defineChart({
+  marks: [
+    barX(rows, {
+      x: 'weeklyRequests',
+      y: 'feature',
+      fill: '#7c3aed',
+      inset: 1,
+    }),
+  ],
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Weekly requests' },
+    },
+    y: {
+      scale: () => scaleBand<string>().padding(0.1),
+    },
   },
 })
+```
+
+```ts group=responsive-long-labels file=/src/data.ts collapsed
+export const rows = [
+  { feature: 'Self-service account recovery', weeklyRequests: 128 },
+  { feature: 'Saved searches and alerting', weeklyRequests: 95 },
+  { feature: 'Audit log export', weeklyRequests: 72 },
+  { feature: 'Custom retention policies', weeklyRequests: 44 },
+  { feature: 'Role-based access controls', weeklyRequests: 31 },
+]
 ```
 
 An explicit side locks only that side:
@@ -91,12 +116,7 @@ Axis labels thin automatically after candidate generation and optional
 rotation. Use `axis.ticks.spacing`, `axis.tickLabels.rotate`, hard-kept labels,
 or a different representation when labels compete for the same axis space.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/44-framed-scatter/?theme=system&height=480"
-  title="Responsive guide-free framed scatterplot"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+[Open the full horizontal-ranking catalog case](https://tanstack.com/charts/catalog/bar-horizontal-ranking/).
 
 ## Text measurement
 
@@ -105,8 +125,12 @@ measure painted text with the inherited container font and relayout after web
 fonts finish loading.
 
 Use `measureText` only when another renderer or layout system owns text
-measurement. It receives the text, font size, weight, anchor, and baseline and
-returns the painted box relative to the requested origin.
+measurement. It runs synchronously during scene compilation and receives the
+text plus the resolved font family, style, stretch, size, weight, letter
+spacing, direction, locale, font scale, anchor, and baseline. It returns the
+painted box relative to the requested origin. A host that loads fonts or
+measures them asynchronously owns that readiness lifecycle and renders the
+scene again when its synchronous metrics change.
 
 The resolved geometry is available after every render:
 
@@ -174,7 +198,7 @@ plot can coincide. Do not assume that equivalence for ordinary automatic
 layout.
 
 Responsive relayout commits immediately even when animation is enabled for
-data updates. Set `animate: { resize: true }` only when size interpolation is
+data updates. Set `svgAnimation: { resize: true }` only when size interpolation is
 intentional.
 
 The [Dynamic Data and Animation](./dynamic-data-and-animation.md) guide explains

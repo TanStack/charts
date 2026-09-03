@@ -18,26 +18,26 @@
 
 # `@tanstack/react-charts`
 
-React lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the React adapter from `@tanstack/charts/react`.
 
-Declare the adapter, core grammar, framework peers, and each D3 module used by
-your chart directly:
+Install Charts and the React peers:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
-pnpm add -D @types/d3-scale @types/react @types/react-dom
+pnpm add @tanstack/charts react react-dom
+pnpm add -D @types/react @types/react-dom
 ```
 
-Add or omit granular `d3-*` modules and their matching type packages with the
-chart's actual imports.
+Add granular `d3-*` modules and their matching type packages only when the
+chart needs scale or algorithm semantics outside the compact set.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 const interactiveDefinition = defineChart(definition, {
-  animate: true,
+  svgAnimation: true,
   tooltip,
 })
 
@@ -57,7 +57,7 @@ tooltip-body composition. Import the drop-in component from `/tooltip` only
 when passing `renderTooltipBody`:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/tooltip'
+import { Chart } from '@tanstack/charts/react/tooltip'
 
 ;<Chart
   definition={interactiveDefinition}
@@ -72,17 +72,17 @@ import { Chart } from '@tanstack/react-charts/tooltip'
 ```
 
 Existing `renderTooltipBody` users should move their component import from
-`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. That entry also
+`@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. That entry also
 exports `CanvasChart` and `RendererChart` for the same opt-in with those
 renderers.
 
 Switch only the import to opt into Canvas:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/canvas'
+import { Chart } from '@tanstack/charts/react/canvas'
 ```
 
-The default entry remains SVG-based. `@tanstack/react-charts/core` accepts an
+The default entry remains SVG-based. `@tanstack/charts/react/core` accepts an
 explicit `renderer` for application-owned surfaces, and neither optional path
 pulls Canvas into the default bundle.
 

@@ -77,9 +77,19 @@ const coreArtifact = artifacts.find(
   (artifact) => artifact.name === '@tanstack/charts',
 )
 assert.ok(coreArtifact, 'Release artifacts must include @tanstack/charts')
+const reactArtifact = artifacts.find(
+  (artifact) => artifact.name === '@tanstack/react-charts',
+)
+assert.ok(
+  reactArtifact,
+  'Release artifacts must include @tanstack/react-charts',
+)
 await publishArtifact(coreArtifact)
+await publishArtifact(reactArtifact)
 await runWithConcurrency(
-  artifacts.filter((artifact) => artifact !== coreArtifact),
+  artifacts.filter(
+    (artifact) => artifact !== coreArtifact && artifact !== reactArtifact,
+  ),
   3,
   publishArtifact,
 )

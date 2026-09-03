@@ -233,7 +233,7 @@ function adaptOnRender<
   return (
     context: ChartRendererRenderContext<TDatum, TXValue, TYValue>,
   ): void => {
-    const svg = context.surface.element
+    const svg = context.surface.defaultElement ?? context.surface.element
     const SvgElement =
       context.container.ownerDocument.defaultView?.SVGSVGElement
     if (!SvgElement || !(svg instanceof SvgElement)) {
@@ -242,7 +242,9 @@ function adaptOnRender<
     onRender({
       container: context.container,
       scene: context.scene,
+      surface: context.surface,
       svg,
+      interaction: context.interaction,
     })
   }
 }

@@ -5,7 +5,7 @@
   "title": "Annotated AAPL extrema",
   "family": "trend",
   "intent": "Show Apple closing prices while calling out the exact minimum and maximum observations.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "time-series line",
     "minimum selection",

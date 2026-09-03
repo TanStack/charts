@@ -1,3 +1,4 @@
+import { chartTableSelectionDefinition } from './example'
 import {
   forwardRef,
   useImperativeHandle,
@@ -5,10 +6,9 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, dot } from '@tanstack/charts'
-import { Chart } from '@tanstack/react-charts'
-import { penguins } from '@charts-poc/demo-data/penguins'
-import { scaleLinear } from 'd3-scale'
+import { Chart } from '@tanstack/charts/react'
+import { penguins } from '@tanstack/charts-data/penguins'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   isSelectionId,
@@ -21,17 +21,21 @@ import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { CompletePenguin, SelectionId } from './model'
 
+const catalogPreviewSelectionId = 'adelie-biscoe-female' satisfies SelectionId
+
 const ChartTableExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function ChartTableExample({ input }, ref) {
+>(function ChartTableExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const chartSurfaceRef = useRef<HTMLDivElement>(null)
   const renderedChartRef = useRef<{
     scene: ChartScene<CompletePenguin, number, number>
     svg: SVGSVGElement
   } | null>(null)
-  const [selectedId, setSelectedId] = useState<SelectionId | null>(null)
+  const [selectedId, setSelectedId] = useState<SelectionId | null>(
+    input.preview ? catalogPreviewSelectionId : null,
+  )
   const rows = useMemo(
     () => selectionRows(penguins, input.revision),
     [input.revision],
@@ -41,45 +45,11 @@ const ChartTableExample = forwardRef<
   )
   const chartHeight = Math.max(96, input.height - 204)
   const tableHeight = Math.max(44, input.height - chartHeight - 52)
-  const definition = useMemo(() => {
-    const selectedRows = rows.filter(
-      (row) => penguinSelectionId(row) === selectedId,
-    )
-    return defineChart(
-      defineChart({
-        marks: [
-          dot(rows, {
-            id: 'observations',
-            x: 'flipper_length_mm',
-            y: 'body_mass_g',
-            r: 4.5,
-            fill: '#2563eb',
-          }),
-          ...(selectedRows.length
-            ? [
-                dot(selectedRows, {
-                  id: 'selected-observation',
-                  x: 'flipper_length_mm',
-                  y: 'body_mass_g',
-                  r: 7,
-                  fill: '#f97316',
-                  stroke: '#ffffff',
-                  strokeWidth: 2,
-                }),
-              ]
-            : []),
-        ],
-        x: { scale: scaleLinear, axis: { label: 'Flipper length (mm)' } },
-        y: {
-          scale: scaleLinear,
-          grid: true,
-          axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
-        },
-        margin: { top: 16, right: 24, bottom: 42, left: 62 },
-      }),
-      { animate: false, keyboard: true, maxFocusDistance: 40 },
-    )
-  }, [rows, selectedId])
+  const definition = useMemo(
+    () =>
+      chartTableSelectionDefinition(input.revision, selectedId, setSelectedId),
+    [input.revision, selectedId],
+  )
   const announcement = selectedDatum
     ? `Selected ${penguinSelectionLabel(selectedDatum)}: ${selectedDatum.body_mass_g.toLocaleString()} g`
     : 'No observation selected'
@@ -133,6 +103,19 @@ const ChartTableExample = forwardRef<
     [announcement, selectedDatum, selectedId],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={catalogPreviewDefinition(definition)}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Selectable observations chart"
+        ariaDescription="Use arrow keys to move between observations and Enter or Space to select one. The table below offers the same selections."
+      />
+    )
+  }
+
   return (
     <div
       ref={viewRef}
@@ -148,14 +131,12 @@ const ChartTableExample = forwardRef<
     >
       <div ref={chartSurfaceRef}>
         <Chart
+          idPrefix={idPrefix}
           definition={definition}
           width={input.width}
           height={chartHeight}
           ariaLabel="Selectable observations chart"
           ariaDescription="Use arrow keys to move between observations and Enter or Space to select one. The table below offers the same selections."
-          onSelect={(point) =>
-            setSelectedId(point ? penguinSelectionId(point.datum) : null)
-          }
           onRender={({ scene, svg }) => {
             renderedChartRef.current = { scene, svg }
           }}
@@ -284,6 +265,7 @@ const ChartTableExample = forwardRef<
   )
 })
 
+export const catalogComponent = ChartTableExample
 export const mount = reactMount(ChartTableExample)
 
 function selectionFromTarget(target: ConformanceTarget) {

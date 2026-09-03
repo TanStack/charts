@@ -6,14 +6,15 @@
   "title": "AAPL close playback scrubber",
   "family": "interaction",
   "intent": "Scrub a semantic playhead through stable time frames with a direct drag while keeping the chart data controlled.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "timeline playback",
     "semantic playhead",
     "real pointer drag",
     "snapped time frames",
-    "controlled application overlay",
-    "native semantic range input",
+    "controlled semantic frame",
+    "first-party scale handle",
+    "resolved-scale candidate snapping",
     "keyboard scrubbing",
     "44 pixel hit target",
     "play and pause control",
@@ -141,24 +142,26 @@
               "atLeast": 44
             },
             {
-              "target": { "selector": ".ts-conformance-playback-track" },
+              "target": { "selector": "[data-chart-handle-track]" },
               "property": "height",
               "equals": 4
             },
             {
-              "target": { "selector": ".ts-conformance-playback-track" },
+              "target": { "selector": "[data-chart-handle-track]" },
               "property": "width",
               "atLeast": 100
             },
             {
-              "target": { "selector": ".ts-conformance-playback-handle" },
+              "target": { "selector": "[data-chart-handle]" },
               "property": "width",
-              "equals": 20
+              "approx": 20,
+              "tolerance": 0.01
             },
             {
-              "target": { "selector": ".ts-conformance-playback-handle" },
+              "target": { "selector": "[data-chart-handle]" },
               "property": "height",
-              "equals": 20
+              "approx": 20,
+              "tolerance": 0.01
             },
             {
               "target": { "selector": ".ts-conformance-playback-toolbar" },
@@ -390,7 +393,7 @@
     "url": "https://echarts.apache.org/examples/en/editor.html?c=dynamic-data2"
   },
   "ai": {
-    "create": "Create a controlled UTC chart of observed AAPL closes with a native range input for the playback index, a visible playhead, play and pause control, keyboard support, and live frame status.",
-    "maintain": "Keep frame identity and playback state outside the renderer, map pointer scrubbing to irregular observed dates, cancel transient edits without committing them, and preserve the index across catalog updates and resizes."
+    "create": "Create a controlled UTC chart of observed AAPL closes with the first-party handleX behavior bound to observed dates, a visible playhead, play and pause control, keyboard support, and live frame status.",
+    "maintain": "Keep the playback clock and transport controls in the application, let handleX own final-scale placement, irregular-date snapping, direct manipulation, cancellation, and slider semantics, and preserve the semantic frame across catalog updates and resizes."
   }
 }

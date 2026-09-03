@@ -3,7 +3,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createChartScene, findNearestPoint } from '@tanstack/charts'
 import type { SceneNode } from '@tanstack/charts'
-import { focusX, focusY } from '@tanstack/charts/focus'
+import { focusGroupX, focusGroupY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
   facetFocusDefinitions,
@@ -115,8 +115,12 @@ describe('intentional interaction contracts', () => {
       expect(probe).not.toBeNull()
       if (!probe) continue
 
-      const strategy = proof.grouped.axis === 'x' ? focusX : focusY
-      const points = strategy.resolve(scene.points, probe.x, probe.y, 48)
+      const strategy = proof.grouped.axis === 'x' ? focusGroupX : focusGroupY
+      const points = strategy.resolve(scene.points, {
+        x: probe.x,
+        y: probe.y,
+        maxDistance: 48,
+      })
 
       expect(proof.grouped.definition.focus).toBe(
         proof.grouped.axis === 'x' ? 'group-x' : 'group-y',
@@ -197,12 +201,11 @@ describe('interaction geometry proof gallery', () => {
       expect(probe).not.toBeNull()
       if (!probe) return
 
-      const before = legacyPointFocus.resolve(
-        scene.points,
-        probe.x,
-        probe.y,
-        48,
-      )[0]
+      const before = legacyPointFocus.resolve(scene.points, {
+        x: probe.x,
+        y: probe.y,
+        maxDistance: 48,
+      })[0]
       const after = findNearestPoint(scene, probe.x, probe.y, 48)
 
       expect(before?.datum.label ?? 'Nothing focused yet').toBe(

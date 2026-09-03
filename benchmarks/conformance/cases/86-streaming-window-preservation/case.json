@@ -15,7 +15,10 @@
     "follow-latest control",
     "unlock viewport control",
     "explicit offscreen update announcement",
-    "dynamic chart definition"
+    "dynamic chart definition",
+    "visible-window scale inference",
+    "decorative line layer",
+    "single interaction target per observation"
   ],
   "geometry": [
     { "view": "main", "role": "line", "count": 1 },

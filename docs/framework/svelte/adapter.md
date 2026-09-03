@@ -4,14 +4,14 @@ description: Render and hydrate TanStack Charts with Svelte 5.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
+pnpm add @tanstack/charts svelte
 ```
 
 ```svelte
 <script lang="ts">
   import { defineChart } from '@tanstack/charts'
   import { tooltip } from '@tanstack/charts/tooltip'
-  import { Chart } from '@tanstack/svelte-charts'
+  import { Chart } from '@tanstack/charts/svelte'
 
   const definition = $derived(
     defineChart(createRevenueChart(rows), { tooltip }),
@@ -46,10 +46,10 @@ dimensions deterministic.
 ## Presentation and rendering
 
 `class` and the string `style` prop apply to the outer host. `className`
-applies to the rendered SVG surface. Interaction hooks such as
+applies to the rendered chart surface. Interaction hooks such as
 `onFocusChange` are callback props, not dispatched Svelte events. The package
-exposes the SVG component only; use `renderSvg` to replace SVG serialization
-without replacing the shared host.
+starts with SVG and can compose marks that use `canvasChartRenderer`. Use
+`renderSvg` to replace SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodySnippetContext`, `ChartDefinition`, and `ChartPoint`.

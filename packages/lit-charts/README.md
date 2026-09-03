@@ -18,16 +18,17 @@
 
 # `@tanstack/lit-charts`
 
-Lit custom-element adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Lit custom-element adapter from `@tanstack/charts/lit`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
+pnpm add @tanstack/charts lit
 ```
 
 ```ts
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { defineChartElement } from '@tanstack/lit-charts'
+import { defineChartElement } from '@tanstack/charts/lit'
 
 defineChartElement()
 ```

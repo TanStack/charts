@@ -5,14 +5,14 @@
   "title": "Tidy hierarchy tree",
   "family": "hierarchy",
   "intent": "Show part of the Flare analytics hierarchy with a tidy node-link layout and direct class labels.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "hierarchy",
-    "tree layout",
+    "eager tree layout transform",
+    "static data-space layout",
     "node-link diagram",
     "direct labels",
-    "d3-hierarchy stratify",
-    "d3-hierarchy tree"
+    "source lineage"
   ],
   "geometry": [
     { "role": "link", "count": 9 },
@@ -24,7 +24,7 @@
     "url": "https://observablehq.com/plot/marks/tree"
   },
   "ai": {
-    "create": "Create a left-to-right tidy hierarchy from Observable's flat Flare name paths with one link per parent-child relationship, one dot per node, and direct class labels.",
-    "maintain": "Change the selected Flare rows while preserving the raw name field, stable path identity, mirrored branch and leaf labels, granular d3-hierarchy imports, and cast-free channels."
+    "create": "Create a left-to-right tidy hierarchy from Observable's flat Flare name paths. Use each library's semantic tree transform, with one link per parent-child relationship, one dot per node, and direct class labels.",
+    "maintain": "Change the selected Flare rows while preserving raw-row lineage, stable path and link identities, deterministic static coordinates, and mirrored branch and leaf labels."
   }
 }

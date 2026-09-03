@@ -2,7 +2,7 @@ import { renderToString } from 'octane/server';
 import { describe, expect, it } from 'vitest';
 import { areaY, defineChart, lineY } from '@tanstack/charts';
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources';
-import { Chart } from '@tanstack/octane-charts';
+import { Chart } from '@tanstack/charts/octane';
 import { scaleLinear } from 'd3-scale';
 
 const data = [
@@ -18,8 +18,10 @@ const definition = defineChart({
 			key: 'id',
 		}),
 	],
-	x: { scale: scaleLinear().domain([1, 2]) },
-	y: { scale: scaleLinear().domain([8, 12]) },
+	scales: {
+		x: { scale: scaleLinear().domain([1, 2]) },
+		y: { scale: scaleLinear().domain([8, 12]) },
+	},
 });
 
 describe('Octane Chart adapter', () => {
@@ -81,8 +83,10 @@ describe('Octane Chart adapter', () => {
 	it('server-renders scoped SVG resource IDs', () => {
 		const gradientDefinition = defineChart({
 			marks: [areaY([1, 3, 2], { fill: 'url(#fill)' })],
-			x: { scale: scaleLinear().domain([0, 2]) },
-			y: { scale: scaleLinear().domain([0, 3]) },
+			scales: {
+				x: { scale: scaleLinear().domain([0, 2]) },
+				y: { scale: scaleLinear().domain([0, 3]) },
+			},
 			gradients: [{
 				id: 'fill',
 				stops: [

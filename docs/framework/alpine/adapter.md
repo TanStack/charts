@@ -4,12 +4,12 @@ description: Mount TanStack Charts with an Alpine directive.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/alpine-charts alpinejs d3-scale
+pnpm add @tanstack/charts alpinejs
 ```
 
 ```ts
 import Alpine from 'alpinejs'
-import { charts } from '@tanstack/alpine-charts'
+import { charts } from '@tanstack/charts/alpine'
 
 Alpine.plugin(charts)
 Alpine.start()
@@ -39,8 +39,9 @@ registering `Alpine.plugin(charts)`.
 
 The directive element itself becomes `.ts-chart-host`; normal HTML class and
 style attributes own its presentation. The `className` chart option applies
-to the rendered SVG surface. The package exposes the SVG directive only; use
-`renderSvg` to replace SVG serialization without replacing the shared host.
+to the rendered chart surface. The directive starts with SVG and can compose
+marks that use `canvasChartRenderer`. Use `renderSvg` to replace SVG
+serialization without replacing the shared host.
 
 Exports: `charts`, `ChartOptions`, `ChartTooltipBodyRenderContext`,
 `AlpineChartTooltipBody`, `ChartDefinition`, and `ChartPoint`.

@@ -1,4 +1,9 @@
 import { placeTooltip } from './tooltip-position'
+import {
+  createChartTooltipContent,
+  orderChartTooltipPoints,
+  resolveChartTooltipAnchor,
+} from './tooltip-model'
 import type {
   ChartTooltipExtension,
   ChartTooltipExtensionContext,
@@ -22,6 +27,8 @@ import type {
 
 export const tooltip: ChartTooltipExtension = {
   id: 'tooltip',
+  __chartExtensionType: 'tooltip',
+  __chartTooltipHost: 'dom',
   create: createTooltipExtension,
 }
 
@@ -76,6 +83,7 @@ function createTooltipExtension<
   let portalInstance: ChartTooltipPortalExtensionInstance | undefined
   const { container } = extensionContext
   const view = container.ownerDocument.defaultView
+  const tooltipMotion = extensionContext.motion
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
     if (options !== nextOptions) bodyDirty = true
@@ -87,29 +95,30 @@ function createTooltipExtension<
     nextContext: ChartTooltipPaintContext<TDatum, TXValue, TYValue>,
   ) {
     paintContext = nextContext
+    if (options.visibility === 'pinned' && !nextContext.pinned) {
+      hide()
+      return
+    }
     const tooltipElement = ensureElement()
     syncPortal()
+    const motionSnapshot = tooltipMotion?.beforePaint(tooltipElement)
+    tooltipElement.style.visibility = 'hidden'
+    tooltipElement.removeAttribute('hidden')
     tooltipElement.className = options.className
       ? `ts-chart-tooltip ${options.className}`
       : 'ts-chart-tooltip'
-    const points = orderTooltipPoints(
+    const points = orderChartTooltipPoints(
       nextContext.points,
       nextContext.scene,
       options.sort,
     )
-    const contentContext = createTooltipContentContext(
+    const resolvedContent = createChartTooltipContent(
+      points,
       nextContext.scene,
+      nextContext.pinned,
       options,
+      nextContext.point,
     )
-    const content = options.content?.(points, contentContext)
-    const text =
-      content === undefined
-        ? (options.formatGroup?.(points) ?? options.format?.(nextContext.point))
-        : undefined
-    const resolvedContent =
-      content ??
-      text ??
-      defaultTooltipContent(points, nextContext.scene, options)
     const custom = renderTooltipBody(
       tooltipElement,
       points,
@@ -132,9 +141,7 @@ function createTooltipExtension<
     tooltipElement.style.pointerEvents = nextContext.pinned ? 'auto' : 'none'
     tooltipElement.style.userSelect = nextContext.pinned ? 'text' : 'none'
     tooltipElement.dataset.sticky = String(nextContext.pinned)
-    tooltipElement.style.visibility = 'hidden'
-    tooltipElement.removeAttribute('hidden')
-    anchor = resolveTooltipAnchor(
+    anchor = resolveChartTooltipAnchor(
       nextContext.point,
       points,
       nextContext.scene,
@@ -144,6 +151,9 @@ function createTooltipExtension<
     )
     position()
     tooltipElement.style.removeProperty('visibility')
+    if (motionSnapshot) {
+      tooltipMotion?.afterPaint(tooltipElement, motionSnapshot, options.motion)
+    }
   }
 
   function ensureElement() {
@@ -312,9 +322,19 @@ function createTooltipExtension<
   function hide() {
     paintContext = undefined
     anchor = null
-    portalInstance?.hide()
-    element?.setAttribute('hidden', '')
-    hideTooltipBody()
+    const currentElement = element
+    if (!currentElement || currentElement.hidden) {
+      portalInstance?.hide()
+      hideTooltipBody()
+      return
+    }
+    const complete = () => {
+      portalInstance?.hide()
+      currentElement.setAttribute('hidden', '')
+      hideTooltipBody()
+    }
+    if (tooltipMotion?.hide(currentElement, options.motion, complete)) return
+    complete()
   }
 
   function destroy() {
@@ -327,6 +347,7 @@ function createTooltipExtension<
       view?.cancelAnimationFrame?.(positionFrame)
       positionFrame = undefined
     }
+    tooltipMotion?.destroy(element)
     resizeObserver?.disconnect()
     resizeObserver = undefined
     element?.remove()
@@ -365,14 +386,15 @@ function createTooltip(document: Document) {
   Object.assign(tooltipElement.style, {
     position: 'absolute',
     zIndex: '1',
-    maxWidth: 'min(24rem, 80%)',
-    padding: '0.4rem 0.55rem',
-    border: '1px solid color-mix(in srgb, CanvasText 18%, transparent)',
-    borderRadius: '0.45rem',
-    background: 'Canvas',
-    color: 'CanvasText',
-    boxShadow: '0 6px 24px rgb(0 0 0 / 0.14)',
-    font: '500 0.75rem/1.3 system-ui, sans-serif',
+    maxWidth: 'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    padding: 'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    border:
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    borderRadius: 'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    background: 'var(--ts-chart-tooltip-background, Canvas)',
+    color: 'var(--ts-chart-tooltip-color, CanvasText)',
+    boxShadow: 'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    font: 'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
     pointerEvents: 'none',
     overflowWrap: 'anywhere',
   })
@@ -382,11 +404,13 @@ function createTooltip(document: Document) {
 
 function createTooltipContentContext(
   scene: ChartScene,
+  pinned: boolean,
   options?: ChartTooltipOptions<any, any, any>,
 ): ChartTooltipContentContext {
   const x = findTooltipChannelItem(options?.items, 'x')
   const y = findTooltipChannelItem(options?.items, 'y')
   return {
+    pinned,
     xLabel: x?.label ?? findSceneLabel(scene, 'x-label') ?? 'x',
     yLabel: y?.label ?? findSceneLabel(scene, 'y-label') ?? 'y',
     formatX: formatValue,
@@ -397,11 +421,11 @@ function createTooltipContentContext(
 function defaultTooltipContent(
   points: readonly ChartPoint[],
   scene: ChartScene,
-  options?: ChartTooltipOptions<any, any, any>,
+  options: ChartTooltipOptions<any, any, any> | undefined,
+  context: ChartTooltipContentContext,
 ): ChartTooltipContent {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene, options)
   const x = findTooltipChannelItem(options?.items, 'x')
   const y = findTooltipChannelItem(options?.items, 'y')
   const group = findTooltipChannelItem(options?.items, 'group')
@@ -822,7 +846,8 @@ function resolveTooltipCoordinate(
   if (source === 'pointer') return pointer?.[axis] ?? fallback
   if (source === 'value') {
     const value = axis === 'x' ? point.xValue : point.yValue
-    const position = scene.scales[axis]?.map(value)
+    const scale = scene.scales[axis]
+    const position = (scale?.viewport?.map ?? scale?.map)?.(value)
     return position !== undefined && Number.isFinite(position)
       ? position
       : fallback

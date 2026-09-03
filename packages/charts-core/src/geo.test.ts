@@ -103,10 +103,14 @@ describe('geoShape', () => {
           strokeWidth: 1,
           strokeDasharray: '3 2',
           opacity: 0.9,
-          anchor: (region) =>
-            region.properties.id === 'west' ? [20, 20] : [75, 20],
+          anchor: (region, { index, data }) => {
+            expect(data).toBe(regions)
+            expect(data[index]).toBe(region)
+            return region.properties.id === 'west' ? [20, 20] : [75, 20]
+          },
         }),
       ],
+      scales: { x: null, y: null },
       margin: 10,
       color: {
         scale: scaleOrdinal<'west' | 'east', string>()
@@ -158,6 +162,7 @@ describe('geoShape', () => {
           fill: (region) => region.properties.fill,
         }),
       ],
+      scales: { x: null, y: null },
     })
 
     const scene = createChartScene(definition, { width: 200, height: 100 })
@@ -179,6 +184,7 @@ describe('geoShape', () => {
           fill: '#0ea5e9',
         }),
       ],
+      scales: { x: null, y: null },
     })
     const constantDefinition = defineChart({
       marks: [
@@ -188,6 +194,7 @@ describe('geoShape', () => {
           fill: '#0ea5e9',
         }),
       ],
+      scales: { x: null, y: null },
     })
     const variableScene = createChartScene(variableDefinition, {
       width: 100,
@@ -231,6 +238,7 @@ describe('geoShape', () => {
           projection: { type: geoIdentity, fit: 'data' },
         }),
       ],
+      scales: { x: null, y: null },
       color: { domain: ['route'], range: ['#0ea5e9'] },
     })
 
@@ -263,6 +271,7 @@ describe('geoShape', () => {
           projection: () => null,
         }),
       ],
+      scales: { x: null, y: null },
       color: { domain: ['mixed'], range: ['#0ea5e9'] },
     })
 
@@ -293,6 +302,7 @@ describe('geoShape', () => {
             },
           ),
         ],
+        scales: { x: null, y: null },
         color: {
           scale: scaleLinear<string>,
           domain: [0, 100],
@@ -360,6 +370,7 @@ describe('geoShape', () => {
           fill: 'none',
         }),
       ],
+      scales: { x: null, y: null },
     })
 
     createChartScene(definition, { width: 240, height: 140 })

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { assertKnownFilterValues, parseShard, selectShard } from './filters.mjs'
+import {
+  assertKnownFilterValues,
+  parseShard,
+  selectShard,
+  selectWeightedShard,
+} from './filters.mjs'
 
 describe('assertKnownFilterValues', () => {
   it('accepts an absent or completely known filter', () => {
@@ -45,4 +50,55 @@ describe('benchmark shards', () => {
       expect(() => parseShard(value)).toThrow(/Invalid shard/)
     },
   )
+
+  it('balances weighted values deterministically and preserves source order', () => {
+    const values = [
+      { id: 'a', weight: 9 },
+      { id: 'b', weight: 8 },
+      { id: 'c', weight: 7 },
+      { id: 'd', weight: 6 },
+      { id: 'e', weight: 5 },
+      { id: 'f', weight: 4 },
+    ]
+    const shards = [1, 2, 3].map((index) =>
+      selectWeightedShard(values, { index, total: 3 }, (value) => value.weight),
+    )
+
+    expect(shards.map((entries) => entries.map((entry) => entry.id))).toEqual([
+      ['a', 'f'],
+      ['b', 'e'],
+      ['c', 'd'],
+    ])
+    expect(
+      shards.map((entries) =>
+        entries.reduce((total, entry) => total + entry.weight, 0),
+      ),
+    ).toEqual([13, 13, 13])
+    expect(
+      shards
+        .flat()
+        .map((entry) => entry.id)
+        .sort(),
+    ).toEqual(values.map((entry) => entry.id).sort())
+  })
+
+  it('does not allocate empty weighted shards for a huge shard total', () => {
+    const values = ['a', 'b']
+    const total = Number.MAX_SAFE_INTEGER
+
+    expect(selectWeightedShard(values, { index: 1, total }, () => 1)).toEqual([
+      'a',
+    ])
+    expect(
+      selectWeightedShard(values, { index: total, total }, () => 1),
+    ).toEqual([])
+  })
+
+  it('rejects invalid weights before assigning a partial shard', () => {
+    expect(() =>
+      selectWeightedShard([1, 2], { index: 1, total: 2 }, (value) =>
+        value === 2 ? Number.NaN : value,
+      ),
+    ).toThrow('Shard weight at index 1')
+  })
 })

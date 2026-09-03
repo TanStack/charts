@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { act } from 'react'
 import { calendarChartHeight } from './layout'
 import { withTokenActivityShell } from './shell'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 
 describe('token activity shell', () => {
-  it('keeps the gallery interactive and aligns only the first month label', () => {
+  it('keeps sizing and tooltip presentation application-owned without mutating guides', () => {
     const inputs: ConformanceInput[] = []
     const mountChart: ConformanceMount = (container, input) => {
       inputs.push(input)
@@ -28,11 +29,14 @@ describe('token activity shell', () => {
     const container = document.createElement('div')
     container.style.minHeight = '480px'
     const mount = withTokenActivityShell(mountChart)
-    const handle = mount(container, {
-      width: 320,
-      height: 180,
-      revision: 0,
-      interactive: true,
+    let handle!: ReturnType<typeof mount>
+    act(() => {
+      handle = mount(container, {
+        width: 320,
+        height: 180,
+        revision: 0,
+        interactive: true,
+      })
     })
     const labels = container.querySelectorAll('text')
     const shell = container.querySelector<HTMLElement>('.token-activity-shell')
@@ -42,25 +46,32 @@ describe('token activity shell', () => {
     expect(inputs[0]?.height).toBe(calendarChartHeight(320))
     expect(shell?.style.width).toBe('100%')
     expect(shell?.style.height).toBe(`${calendarChartHeight(320)}px`)
-    expect(container.style.minHeight).toBe(`${calendarChartHeight(320)}px`)
-    expect(labels[0]?.getAttribute('x')).toBe('10')
-    expect(labels[0]?.getAttribute('text-anchor')).toBe('start')
+    expect(container.style.minHeight).toBe('480px')
+    expect(labels[0]?.getAttribute('x')).toBe('14')
+    expect(labels[0]?.getAttribute('text-anchor')).toBe('middle')
     expect(labels[1]?.getAttribute('x')).toBe('92')
     expect(labels[1]?.getAttribute('text-anchor')).toBe('middle')
+    expect(container.querySelector('style')?.textContent).not.toContain(
+      '.ts-chart__axes',
+    )
 
-    handle.update({
-      width: 960,
-      height: 240,
-      revision: 1,
-      interactive: true,
+    act(() => {
+      handle.update({
+        width: 960,
+        height: 240,
+        revision: 1,
+        interactive: true,
+      })
     })
     expect(inputs[1]?.interactive).toBe(true)
     expect(inputs[1]?.width).toBe(960)
     expect(inputs[1]?.height).toBe(calendarChartHeight(960))
     expect(shell?.style.height).toBe(`${calendarChartHeight(960)}px`)
-    expect(container.style.minHeight).toBe(`${calendarChartHeight(960)}px`)
+    expect(container.style.minHeight).toBe('480px')
 
-    handle.destroy()
+    act(() => {
+      handle.destroy()
+    })
     expect(container.style.minHeight).toBe('480px')
   })
 })

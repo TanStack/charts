@@ -6,7 +6,7 @@
     "format-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "prettier --check ."
+        "command": "prettier --check . --cache --cache-strategy content --cache-location .nx/prettier-cache"
       }
     },
     "docs-check": {
@@ -15,16 +15,23 @@
         "command": "node scripts/check-docs.mjs"
       }
     },
+    "docs-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run benchmarks/conformance/api-friction.test.ts scripts/sync-release-version.test.mjs"
+      }
+    },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit -p tsconfig.json"
-      }
+        "command": "tsc --noEmit --incremental --tsBuildInfoFile .nx/typescript/tsconfig.tsbuildinfo -p tsconfig.json"
+      },
+      "outputs": ["{workspaceRoot}/.nx/typescript/tsconfig.tsbuildinfo"]
     },
     "test-dom": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "vitest run --config vitest.config.ts"
+        "command": "vitest run --config vitest.config.ts --pool=threads"
       }
     },
     "test-solid": {
@@ -85,10 +92,16 @@
         "command": "node scripts/check-framework-adapters.mjs"
       }
     },
+    "react-native-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-react-native-types.mjs"
+      }
+    },
     "package-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node scripts/check-packed-consumers.mjs && node scripts/check-framework-adapters.mjs"
+        "command": "node scripts/check-release-packages.mjs"
       }
     },
     "bundle": {
@@ -109,23 +122,28 @@
         "command": "node scripts/compare-chart-libraries.mjs --check"
       }
     },
-    "catalog-check": {
+    "catalog-index-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
+        "command": "node scripts/catalog-index.mjs --check"
       }
     },
-    "catalog-build": {
+    "catalog-example-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "CATALOG_BASE_PATH=/charts/catalog/ pnpm --filter @charts-poc/conformance-example build"
+        "command": "node scripts/check-catalog-examples.mjs"
       }
     },
-    "catalog-loading-check": {
+    "catalog-preview-check": {
       "executor": "nx:run-commands",
-      "dependsOn": ["catalog-build"],
       "options": {
-        "command": "node scripts/check-catalog-loading.mjs"
+        "command": "node scripts/catalog-preview.mjs --check"
+      }
+    },
+    "conformance-app-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --filter @charts-poc/conformance-example build"
       }
     },
     "workspace-diff-check": {
@@ -154,16 +172,45 @@
         "test-svelte-ssr",
         "test-octane",
         "test-octane-client",
+        "react-native-types",
         "package-check",
         "bundle-check",
-        "catalog-check",
-        "catalog-loading-check",
-        "workspace-diff-check"
+        "benchmark-check",
+        "catalog-example-check",
+        "catalog-index-check",
+        "catalog-preview-check",
+        "conformance-app-build"
       ],
       "options": {
         "command": "node -e \"console.log('CI targets passed.')\""
       },
-      "cache": false
+      "cache": true
+    },
+    "ci-distributed": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "format-check",
+        "docs-check",
+        "typecheck",
+        "test-dom",
+        "test-solid",
+        "test-solid-ssr",
+        "test-svelte",
+        "test-svelte-ssr",
+        "test-octane",
+        "test-octane-client",
+        "react-native-types",
+        "bundle-check",
+        "benchmark-check",
+        "catalog-example-check",
+        "catalog-index-check",
+        "catalog-preview-check",
+        "conformance-app-build"
+      ],
+      "options": {
+        "command": "node -e \"console.log('Distributed CI targets passed.')\""
+      },
+      "cache": true
     }
   }
 }

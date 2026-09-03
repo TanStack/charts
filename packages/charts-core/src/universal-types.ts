@@ -3,17 +3,75 @@ export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
 export type { BarXOptions, BarYOptions } from './bar'
 export type { BandXOptions, BandYOptions } from './band'
+export type {
+  BoxDatum,
+  BoxOutlierDatum,
+  BoxRowsOptions,
+  BoxSummaryDatum,
+  BoxXDatum,
+  BoxXOptions,
+  BoxYDatum,
+  BoxYOptions,
+} from './box'
+export type {
+  CreateDotLayoutOptions,
+  DotLayout,
+  DotLayoutResolveContext,
+  DodgeOptions,
+  DodgeXAnchor,
+  DodgeXLayout,
+  DodgeXOptions,
+  DodgeYAnchor,
+  DodgeYLayout,
+  DodgeYOptions,
+} from './dodge'
+export type {
+  DifferenceAreaDatum,
+  DifferenceDatum,
+  DifferenceIndependent,
+  DifferenceSign,
+  DifferenceXOptions,
+  DifferenceYOptions,
+} from './difference'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export type { DotOptions } from './dot'
-export type { FacetAxes, FacetOptions } from './facet'
+export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export type { FrameOptions } from './frame'
 export type { GroupLayout, GroupOptions } from './group'
 export type { HexagonOptions } from './hexagon'
-export type { LineYOptions } from './line'
+export type { LineXOptions, LineYOptions } from './line'
+export type {
+  LinearRegressionRowsXOptions,
+  LinearRegressionRowsYOptions,
+  LinearRegressionXDatum,
+  LinearRegressionXOptions,
+  LinearRegressionYDatum,
+  LinearRegressionYOptions,
+} from './regression'
+export type {
+  RidgelineCurve,
+  RidgelinePosition,
+  RidgelineStateStyle,
+  RidgelineXOptions,
+  RidgelineYOptions,
+} from './ridgeline'
 export type { LinkOptions } from './link'
-export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
+export type {
+  ColorGradientLegendOptions,
+  ColorLegendOptions,
+} from './legend-static'
+export type { CompositeMarkOptions } from './mark-composite'
 export type { CellOptions, RectOptions } from './rect'
 export type { RuleXOptions, RuleYOptions } from './rule'
 export type {
+  StackAnchor,
   StackLayout,
   StackOffset,
   StackOptions,
@@ -22,6 +80,13 @@ export type {
 export type { TextAnchor, TextOptions } from './text'
 export type { TickXOptions, TickYOptions } from './tick'
 export type { VectorAnchor, VectorOptions } from './vector'
+export type {
+  ViolinPosition,
+  ViolinXCurve,
+  ViolinXOptions,
+  ViolinYCurve,
+  ViolinYOptions,
+} from './violin'
 export type {
   TransformAccessor,
   TransformAccessorContext,
@@ -43,7 +108,18 @@ export type {
   TimeIntervalLike,
 } from './transform-bin-time'
 export type { CumulativeDatum, CumulativeOptions } from './transform-cumulative'
+export type {
+  FoldDatum,
+  FoldField,
+  FoldOptions,
+  FoldOutputNames,
+} from './transform-fold'
 export type { GroupByDatum, GroupByOptions } from './transform-group'
+export type {
+  MosaicOptions,
+  MosaicXDatum,
+  MosaicYDatum,
+} from './transform-mosaic'
 export type {
   NormalizeBasis,
   NormalizeContext,
@@ -71,29 +147,51 @@ export type {
   StackRowsYOptions,
 } from './transform-stack'
 export type {
-  WindowAnchor,
-  WindowDatum,
-  WindowOptions,
-} from './transform-window'
+  WaterfallDatum,
+  WaterfallKind,
+  WaterfallOptions,
+  WaterfallStepDatum,
+  WaterfallTotalDatum,
+} from './transform-waterfall'
+export type {
+  RollingWindowAnchor,
+  RollingWindowDatum,
+  RollingWindowOptions,
+} from './transform-rolling-window'
 export type {
   Channel,
   ChannelAccessor,
+  ChannelAccessorContext,
   ChannelField,
   ChannelOutput,
-  DynamicChartDefinition,
+  ResponsiveChartDefinition,
   InitializedMark,
+  MarkInitialization,
   MarkInitializeContext,
   MarkRenderContext,
+  MarkResolvedLayoutContext,
   MarkScene,
+  MarkFocusGuide,
   MaterializedChannel,
+  ResolvedLayoutMarkInitialization,
+  ResolvedMarkLayout,
+  CartesianChartMark,
+  CartesianScaleBindings,
+  ChartAxisSide,
   ChartAxisOptions,
   ChartAxisLabelOptions,
   ChartAxisPresentationOptions,
+  ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelThinOptions,
+  ChartAxisTickLabelValue,
   ChartAxisTickOptions,
+  ChartAxisViewportOptions,
   ChartAxisValue,
   ChartAnimationOptions,
+  ChartControl,
+  ChartControlContext,
+  ChartControlScene,
   ChartBounds,
   ChartBuildContext,
   ChartColorOptions,
@@ -103,20 +201,42 @@ export type {
   ChartColorScaleContext,
   ResolvedColorScaleKind,
   InferableColorScaleLike,
+  ChartCursorAxisContext,
+  ChartCursorAxisOptions,
+  ChartCursorAxisPresentation,
+  ChartCursorBinding,
+  ChartCursorController,
+  ChartCursorCoordinates,
+  ChartCursorExtensionToken,
+  ChartCursorPointIdentity,
+  ChartCursorPresentation,
+  ChartCursorState,
+  ChartCursorStateUpdater,
+  ChartCursorValues,
   ChartColorLegend,
   ChartColorLegendContext,
+  ChartContinuousValue,
+  ChartContinuousDomain,
   ChartCurve,
   ChartDefinition,
+  ChartDefinitionForTooltipHost,
   ChartDefinitionOptions,
+  DomChartDefinition,
+  ChartFocusAnchor,
+  ChartFocusCursorBinding,
+  ChartFocusPresentation,
   ChartFocusFilter,
   ChartFocusAffinity,
+  ChartFocusGroupContext,
   ChartFocusMatch,
   ChartExtensionInput,
   ChartFocusMode,
   ChartFocusPreset,
+  ChartFocusResolveContext,
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
+  ChartFreeCursorBinding,
   ChartGradientStop,
   ChartKey,
   ChartLayoutOptions,
@@ -124,7 +244,11 @@ export type {
   ChartNumericScale,
   ChartNumericScaleOptions,
   ChartLinearGradient,
+  ChartSelectionController,
+  ChartSelectionSource,
   ChartMark,
+  ChartMarkOptions,
+  ChartMarkRenderer,
   ChartMarkMotionOptions,
   ChartMarkDatum,
   ChartMarkState,
@@ -139,18 +263,21 @@ export type {
   ChartLineStateStyle,
   ChartRectStateStyle,
   ChartTextStateStyle,
-  ChartMarkX,
-  ChartMarkY,
   ChartMotionContext,
   ChartMotionDefinition,
   ChartMotionPhase,
+  ChartMotionPath,
+  ChartRollingPathMotion,
   ChartMotionRole,
   ChartMotionSpringTransition,
   ChartMotionTiming,
   ChartMotionTransition,
   ChartMotionTweenTransition,
   ChartPoint,
+  ChartPositionChannel,
+  ChartPositionScaleOptions,
   ChartRuntime,
+  ChartRuntimeOptions,
   ChartScene,
   ChartScale,
   ChartScaleFactory,
@@ -160,18 +287,22 @@ export type {
   ConfiguredScaleLike,
   InferableScaleLike,
   OptionChannelOutput,
+  OptionScaleId,
   ChartSize,
   ChartSpatialIndex,
   ChartSpatialIndexFactory,
+  ChartSpatialIndexFactoryContext,
   ChartSpecDatum,
   ChartSpecXValue,
   ChartSpecYValue,
   ChartSpec,
+  ChartScales,
   ChartSvgRenderer,
   ChartTheme,
   ChartTextMeasurer,
   ChartTextMeasureOptions,
   ChartTextMetrics,
+  ChartTextTypography,
   ChartTick,
   ChartTooltipBodyContext,
   ChartTooltipContent,
@@ -197,19 +328,29 @@ export type {
   ChartTooltipRow,
   ChartTooltipSort,
   ChartValue,
-  DynamicChartConfig,
+  ResponsiveChartConfig,
   VisualChannel,
   WidenChartValue,
   RenderChartSvgOptions,
   RenderChartOptions,
   ResolvedScale,
+  ResolvedScaleViewport,
   ResolvedColorScale,
   SceneDot,
   SceneArea,
+  SceneFocusGuide,
+  SceneFocusGuideAxis,
+  SceneFocusGuideBand,
+  SceneFocusGuideLabel,
+  SceneFocusGuideMarker,
+  SceneFocusGuideResolveContext,
+  SceneFocusGuideResolver,
   SceneInteraction,
   SceneGroup,
   SceneLabel,
   SceneNode,
+  ScenePolygon,
+  ScenePolygonRing,
   ScenePolyline,
   SceneRect,
   SceneRule,

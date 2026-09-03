@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1800,
+  "id": "179-shadcn-radar-grid-none",
+  "title": "shadcn Radar Chart - Grid None",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-grid-none example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "grid none", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-grid-none",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-none"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-grid-none card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar grid none treatment, card dimensions, and light and dark tokens."
+  }
+}

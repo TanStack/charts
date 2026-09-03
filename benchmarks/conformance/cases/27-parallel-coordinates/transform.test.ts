@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { selectRepresentativeDecathletes } from './selection'
 import { normalizeDecathlonResults } from './transform'
 

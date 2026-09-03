@@ -1,13 +1,17 @@
-import { beagle } from '@charts-poc/demo-data/beagle'
-import { learningPoverty } from '@charts-poc/demo-data/learning-poverty'
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { beagle } from '@tanstack/charts-data/beagle'
+import { learningPoverty } from '@tanstack/charts-data/learning-poverty'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import { describe, expect, it } from 'vitest'
 import { beagleRoute } from '../../cases/105-route-map/transform'
 import {
   projectedUnemploymentCounties,
   unemploymentCounties,
 } from '../../cases/109-us-state-choropleth/transform'
-import { detailedWorldLand, worldCountries, worldLand } from './country-atlas'
+import {
+  detailedWorldLand,
+  worldCountries,
+  worldLand,
+} from '@tanstack/charts-data/country-atlas'
 import {
   learningPovertyCountries,
   learningPovertyPointsByPopulation,

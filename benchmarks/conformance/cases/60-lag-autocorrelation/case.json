@@ -12,7 +12,7 @@
     "map transform",
     "shifted channel",
     "identity reference",
-    "d3-array pairs"
+    "TanStack window"
   ],
   "geometry": [
     { "role": "line", "count": 1 },

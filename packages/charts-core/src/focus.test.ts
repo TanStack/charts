@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import { focusDisabled } from './focus-disabled'
 import type { ChartPoint } from './types'
 
@@ -12,26 +12,38 @@ const points: ChartPoint[] = [
 
 describe('axis focus strategies', () => {
   it('selects one nearest point while prioritizing x distance', () => {
-    const focused = focusNearestX.resolve(points, 12, 70, 100)
+    const focused = focusNearestX.resolve(points, {
+      x: 12,
+      y: 70,
+      maxDistance: 100,
+    })
 
     expect(focused.map((candidate) => candidate.key)).toEqual(['b'])
-    expect(focusNearestX.group(points, focused[0]!)).toEqual(focused)
+    expect(focusNearestX.group(points, { point: focused[0]! })).toEqual(focused)
     expect(focusNearestX.navigation(points)).toEqual(points)
   })
 
   it('selects one nearest point while prioritizing y distance', () => {
-    const focused = focusNearestY.resolve(points, 55, 23, 100)
+    const focused = focusNearestY.resolve(points, {
+      x: 55,
+      y: 23,
+      maxDistance: 100,
+    })
 
     expect(focused.map((candidate) => candidate.key)).toEqual(['c'])
-    expect(focusNearestY.group(points, focused[0]!)).toEqual(focused)
+    expect(focusNearestY.group(points, { point: focused[0]! })).toEqual(focused)
   })
 
   it('retains grouped x and y focus as separate modes', () => {
     expect(
-      focusX.resolve(points, 12, 70, 100).map((candidate) => candidate.key),
+      focusGroupX
+        .resolve(points, { x: 12, y: 70, maxDistance: 100 })
+        .map((candidate) => candidate.key),
     ).toEqual(['b', 'a'])
     expect(
-      focusY.resolve(points, 55, 23, 100).map((candidate) => candidate.key),
+      focusGroupY
+        .resolve(points, { x: 55, y: 23, maxDistance: 100 })
+        .map((candidate) => candidate.key),
     ).toEqual(['c', 'a'])
   })
 
@@ -43,15 +55,34 @@ describe('axis focus strategies', () => {
     ]
 
     expect(
-      focusX
-        .group(groupedPoints, groupedPoints[1]!)
+      focusGroupX
+        .group(groupedPoints, { point: groupedPoints[1]! })
         .map((candidate) => candidate.key),
     ).toEqual(['a-focused', 'b'])
   })
 
+  it('groups axis focus by mapped pixels across named scales', () => {
+    const mappedPoints = [
+      point('primary', 10, 20, 'A', 1),
+      point('different-pixel', 30, 40, 'B', 1),
+      point('same-pixel', 10, 60, 'C', 99),
+    ]
+
+    expect(
+      focusGroupX
+        .group(mappedPoints, { point: mappedPoints[0]! })
+        .map((candidate) => candidate.key),
+    ).toEqual(['primary', 'same-pixel'])
+    expect(
+      focusGroupX.navigation(mappedPoints).map((candidate) => candidate.key),
+    ).toEqual(['primary', 'different-pixel'])
+  })
+
   it('can disable native datum focus without a case-local strategy', () => {
-    expect(focusDisabled.resolve(points, 10, 20, 100)).toEqual([])
-    expect(focusDisabled.group(points, points[0]!)).toEqual([])
+    expect(
+      focusDisabled.resolve(points, { x: 10, y: 20, maxDistance: 100 }),
+    ).toEqual([])
+    expect(focusDisabled.group(points, { point: points[0]! })).toEqual([])
     expect(focusDisabled.navigation(points)).toEqual([])
   })
 })

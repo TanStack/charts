@@ -4,7 +4,7 @@ description: Render and hydrate TanStack Charts with Vue 3.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
+pnpm add @tanstack/charts vue
 ```
 
 ```vue
@@ -12,7 +12,7 @@ pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { computed } from 'vue'
-import { Chart } from '@tanstack/vue-charts'
+import { Chart } from '@tanstack/charts/vue'
 
 const definition = computed(() =>
   defineChart(createRevenueChart(rows.value), { tooltip }),
@@ -50,10 +50,10 @@ deterministic.
 ## Presentation and rendering
 
 `class` and `style: StyleValue` apply to the outer host. `className` applies to
-the rendered SVG surface. The component disables general attribute
-inheritance; unrelated attributes are not forwarded. The package exposes the
-SVG component only; use `renderSvg` to replace SVG serialization without
-replacing the shared host.
+the rendered chart surface. The component disables general attribute
+inheritance; unrelated attributes are not forwarded. It starts with SVG and
+can compose marks that use `canvasChartRenderer`. Use `renderSvg` to replace
+SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodySlotContext`, `ChartDefinition`, and `ChartPoint`.

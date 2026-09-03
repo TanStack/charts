@@ -26,7 +26,7 @@ default and control:
 | Timeline zoom window                    | Explicit scale domain plus mark clipping                          |
 | Responsive axes                         | Definition logic based on measured container width                |
 | Gradient fills                          | Opt-in resource-aware SVG renderer                                |
-| Series pointer tooltip                  | Opt-in `focusX` or `focusY` grouping                              |
+| Series pointer tooltip                  | Opt-in `focusGroupX` or `focusGroupY` grouping                    |
 | Dynamic ranking updates                 | Keyed geometry interpolation with enter/update/exit               |
 | Light and dark mode                     | Inherited color scheme and CSS chart tokens                       |
 
@@ -69,15 +69,15 @@ further.
 Stats uses two capabilities that stay out of a basic line-chart bundle:
 
 ```tsx
-import { focusX, focusY } from '@tanstack/charts/focus'
+import { focusGroupX, focusGroupY } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 ;<Chart
   definition={historyChart}
   input={historyInput}
   ariaLabel="Package downloads"
-  focus={focusX}
+  focus={focusGroupX}
   renderSvg={renderChartSvgWithResources}
   tooltip={{
     formatGroup: (points) => formatStatsTooltip(points),
@@ -86,7 +86,7 @@ import { Chart } from '@tanstack/react-charts'
 />
 ```
 
-Use `focusX` for time-series and vertical bars, and `focusY` for horizontal
+Use `focusGroupX` for time-series and vertical bars, and `focusGroupY` for horizontal
 bars. React and Octane automatically scope gradient and clip IDs per chart.
 Vanilla hosts rendering multiple resource-aware charts must provide a unique
 `idPrefix`.

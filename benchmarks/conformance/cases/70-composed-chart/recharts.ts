@@ -1,4 +1,4 @@
-import { weather } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
 import { createElement } from 'react'
 import {
   Area,
@@ -32,7 +32,7 @@ function chart(input: ConformanceInput) {
       margin: { top: 20, right: 20, bottom: 20, left: 20 },
       accessibilityLayer: true,
       role: 'img',
-      title: 'Layered Seattle weather',
+      title: 'Seattle weather with three y axes',
     },
     [
       createElement(CartesianGrid, {
@@ -47,14 +47,45 @@ function chart(input: ConformanceInput) {
           value instanceof Date ? dateFormat.format(value) : String(value),
       }),
       createElement(YAxis, {
-        key: 'y',
+        key: 'temperature-axis',
+        yAxisId: 'temperature',
         tickCount: 5,
         width: 60,
+        label: {
+          value: 'Temperature (°C)',
+          angle: -90,
+          position: 'insideLeft',
+        },
+      }),
+      createElement(YAxis, {
+        key: 'precipitation-axis',
+        yAxisId: 'precipitation',
+        orientation: 'right',
+        tickCount: 5,
+        width: 72,
+        label: {
+          value: 'Precipitation (mm)',
+          angle: 90,
+          position: 'insideRight',
+        },
+      }),
+      createElement(YAxis, {
+        key: 'wind-axis',
+        yAxisId: 'wind',
+        orientation: 'right',
+        tickCount: 5,
+        width: 60,
+        label: {
+          value: 'Wind (m/s)',
+          angle: 90,
+          position: 'insideRight',
+        },
       }),
       createElement(Area, {
         key: 'area',
         type: 'monotone',
         dataKey: 'temp_max',
+        yAxisId: 'temperature',
         fill: '#8884d8',
         fillOpacity: 0.2,
         stroke: '#8884d8',
@@ -63,6 +94,7 @@ function chart(input: ConformanceInput) {
       createElement(Bar, {
         key: 'bar',
         dataKey: 'precipitation',
+        yAxisId: 'precipitation',
         barSize: 20,
         fill: '#413ea0',
         isAnimationActive: false,
@@ -71,6 +103,7 @@ function chart(input: ConformanceInput) {
         key: 'line',
         type: 'monotone',
         dataKey: 'temp_min',
+        yAxisId: 'temperature',
         stroke: '#ff7300',
         strokeWidth: 2,
         dot: false,
@@ -79,6 +112,7 @@ function chart(input: ConformanceInput) {
       createElement(Scatter, {
         key: 'scatter',
         dataKey: 'wind',
+        yAxisId: 'wind',
         fill: '#ef4444',
         isAnimationActive: false,
       }),
@@ -86,4 +120,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Layered Seattle weather')
+export const mount = rechartsMount(chart, 'Seattle weather with three y axes')
