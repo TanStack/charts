@@ -31,6 +31,7 @@ describe('waffle marks', () => {
             radius: 2,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         color: {
@@ -91,6 +92,7 @@ describe('waffle marks', () => {
             radius: 8,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
       }),
@@ -123,6 +125,7 @@ describe('waffle marks', () => {
           gap: 2,
         }),
       ],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
       color: {
@@ -169,6 +172,7 @@ describe('waffle marks', () => {
             gap: 0,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
       }),
@@ -209,6 +213,7 @@ describe('waffle marks', () => {
             ],
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
       }),
@@ -258,6 +263,7 @@ describe('waffle marks', () => {
           },
         }),
       ],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
     })
@@ -298,6 +304,7 @@ describe('waffle marks', () => {
               gap: 0,
             }),
           ],
+          scales: { x: null, y: null },
           guides: false,
           focusRing: false,
         }),
@@ -331,6 +338,7 @@ describe('waffle marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [waffleY(rows, { y: 'value', key: 'id' })],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
       }),
@@ -361,6 +369,7 @@ describe('waffle marks', () => {
       createChartScene(
         defineChart({
           marks: [waffleY([{ value: -1 }], { y: 'value' })],
+          scales: { x: null, y: null },
           guides: false,
         }),
         { width: 100, height: 100 },
@@ -370,6 +379,7 @@ describe('waffle marks', () => {
       createChartScene(
         defineChart({
           marks: [waffleY(rows, { y: 'value', unit: Number.MIN_VALUE })],
+          scales: { x: null, y: null },
           guides: false,
         }),
         { width: 100, height: 100 },

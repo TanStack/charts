@@ -202,22 +202,25 @@ function synchronizedCursorViewDefinition(
         },
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      axis: preview
-        ? false
-        : { ticks: { format: (value) => month.format(value) } },
+    scales: {
+      x: {
+        scale: scaleUtc,
+        axis: preview
+          ? false
+          : { ticks: { format: (value) => month.format(value) } },
+      },
+      y: {
+        scale: scaleLinear().domain(synchronizedCursorYDomains[view]),
+        grid: !preview,
+        axis: preview
+          ? false
+          : {
+              ticks: { count: 4, format: travelerCountFormat.format },
+              label: view === 'current' ? '2020 travelers' : '2019 travelers',
+            },
+      },
     },
-    y: {
-      scale: scaleLinear().domain(synchronizedCursorYDomains[view]),
-      grid: !preview,
-      axis: preview
-        ? false
-        : {
-            ticks: { count: 4, format: travelerCountFormat.format },
-            label: view === 'current' ? '2020 travelers' : '2019 travelers',
-          },
-    },
+
     margin: preview ? 0 : viewMargin,
   })
 }

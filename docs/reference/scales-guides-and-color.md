@@ -9,6 +9,16 @@ Charts copies the resolved scale, assigns its responsive pixel range, and uses
 that copy for marks, ticks, and interaction. A supplied instance is never
 mutated.
 
+Put positional mappings in the chart's `scales` registry. The reserved `x`
+and `y` entries are the default bindings for Cartesian marks:
+
+```ts
+const scales = {
+  x: { scale: scaleBand, axis: { label: 'Product' } },
+  y: { scale: scaleLinear, grid: true, axis: { label: 'Revenue' } },
+}
+```
+
 Start with the exact compact scale entry for numeric linear, band, point, or
 ordinal mappings. Upgrade one mapping to D3 only when it needs temporal,
 nonlinear, radial, interpolated, or statistical scale semantics. The
@@ -147,6 +157,13 @@ Scale copies make one configured scale safe to reuse across responsive scenes.
 ## Axis options
 
 ```ts
+interface ChartPositionScaleOptions<
+  TValue extends ChartValue,
+> extends ChartAxisOptions<TValue> {
+  channel?: 'x' | 'y'
+  side?: 'top' | 'right' | 'bottom' | 'left'
+}
+
 interface ChartAxisOptions<TValue extends ChartValue> {
   scale: ChartScale | ChartScaleInput<TValue>
   nice?: boolean | number
@@ -216,14 +233,16 @@ interface ChartAxisOptions<TValue extends ChartValue> {
 }
 ```
 
-| Option     | Default                     | Meaning                                                                  |
-| ---------- | --------------------------- | ------------------------------------------------------------------------ |
-| `scale`    | Required                    | Compact or D3 factory, configured instance, or custom `ChartScale`.      |
-| `nice`     | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
-| `reverse`  | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
-| `viewport` | None                        | Commits a continuous semantic window and optional transient translation. |
-| `grid`     | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
-| `axis`     | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+| Option     | Default                      | Meaning                                                                  |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------ |
+| `scale`    | Required                     | Compact or D3 factory, configured instance, or custom `ChartScale`.      |
+| `nice`     | `false`                      | Nice the resolved domain using the responsive or supplied tick count.    |
+| `reverse`  | `false`                      | Reverses the responsive pixel range without changing the caller's scale. |
+| `viewport` | None                         | Commits a continuous semantic window and optional transient translation. |
+| `grid`     | `false` for x; `true` for y  | Draws grid rules from semantic tick candidates.                          |
+| `axis`     | Inferred axis                | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+| `channel`  | Inferred for `x` and `y`     | Required on named scales; selects the Cartesian channel and range.       |
+| `side`     | `bottom` for x; `left` for y | Places an x axis on top/bottom or a y axis on left/right.                |
 
 ```ts
 type ChartContinuousValue = number | Date
@@ -257,9 +276,9 @@ domain order or `reverse`. Guides remain fixed. Viewport-dependent marks are
 clipped and translated per mark and per owned axis; see
 [Continuous viewports](../concepts/layout-axes-and-coordinates.md#continuous-viewports).
 
-Set an axis to `null` only when no mark uses that positional scale. To keep the
-scale while hiding its axis, use `axis: false`. Grid visibility remains
-independent.
+Set `scales.x` or `scales.y` to `null` only when no mark uses that positional
+scale. To keep the scale while hiding its axis, use `axis: false`. Grid
+visibility remains independent.
 
 Without an explicit `axis.ticks` policy, the responsive target is
 `clamp(2, floor(chart.width / 92), 8)` for x and
@@ -329,6 +348,53 @@ const x = {
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
 anchor changes snap.
+
+## Named scales and multiple axes
+
+The reserved `x` and `y` entries are the default bindings for Cartesian marks.
+Add another entry when a mark needs an independent mapping, then bind that mark
+with `xScale` or `yScale`:
+
+```ts
+const chart = defineChart({
+  marks: [
+    lineY(revenue, { x: 'date', y: 'value' }),
+    lineY(conversion, {
+      x: 'date',
+      y: 'rate',
+      yScale: 'conversion',
+    }),
+  ],
+  scales: {
+    x: { scale: scaleUtc },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Revenue' },
+    },
+    conversion: {
+      channel: 'y',
+      scale: scaleLinear,
+      side: 'right',
+      axis: {
+        label: 'Conversion',
+        ticks: { format: (value: number) => `${Math.round(value * 100)}%` },
+      },
+    },
+  },
+})
+```
+
+<!-- ::chart-example id=70-composed-chart height=480 -->
+
+A named scale must declare `channel: 'x'` or `channel: 'y'`. Its mark binding
+must use the same channel. The ID `color` is reserved for the shared visual
+color scale and cannot name a Cartesian position scale.
+
+Every non-null scale renders an axis by default. Set `axis: false` when a
+mapping should not draw another axis. X scales can use the top or bottom side,
+and y scales can use the left or right side. Axes on the same side stack
+outward and contribute their measured size to the automatic margin.
 
 ## Automatic guide layout
 

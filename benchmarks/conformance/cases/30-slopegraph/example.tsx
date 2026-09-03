@@ -77,14 +77,17 @@ export const createExampleChart = (input: ChartOptions) => {
           fontSize: input.preview === true ? 9 : 12,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.08),
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.08),
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: '90th/10th percentile wage ratio' },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: '90th/10th percentile wage ratio' },
-      },
+
       color: {
         range: colors,
       },

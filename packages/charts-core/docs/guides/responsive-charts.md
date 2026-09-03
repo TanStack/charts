@@ -79,14 +79,16 @@ export default defineChart({
       inset: 1,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { ticks: { count: 5 }, label: 'Weekly requests' },
-  },
-  y: {
-    scale: () => scaleBand<string>().padding(0.1),
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Weekly requests' },
+    },
+    y: {
+      scale: () => scaleBand<string>().padding(0.1),
+    },
   },
 })
 ```

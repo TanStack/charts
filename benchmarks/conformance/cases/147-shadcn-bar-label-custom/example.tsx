@@ -37,11 +37,15 @@ export function createExampleChart() {
           fontSize: 12,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: false },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
-        axis: false,
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: false },
+        y: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
+          axis: false,
+        },
       },
+
       margin: { top: 5, right: 36, bottom: 5, left: 0 },
       theme: shadcnTheme(),
     },

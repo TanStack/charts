@@ -29,15 +29,17 @@ export const createExampleChart = () => {
           r: 4,
         }),
       ],
-      x: {
-        scale: () => scaleBand<string>().padding(0.3),
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: {
-          ticks: { format: (value) => percent.format(value) },
-          label: 'Frequency',
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().padding(0.3),
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: {
+            ticks: { format: (value) => percent.format(value) },
+            label: 'Frequency',
+          },
         },
       },
     },

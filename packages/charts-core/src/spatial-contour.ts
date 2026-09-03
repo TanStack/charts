@@ -128,68 +128,72 @@ export function contour<TDatum>(
     (datum) => datum.value,
   )
 
-  return createMark<never, never, never>(({ markIndex }) => {
-    const id = options.id ?? `contour-${markIndex}`
-    return {
-      id,
-      channels: {
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ chart, color: resolveColor }) => ({
-        nodes: [
-          {
-            kind: 'group',
-            key: id,
-            className: 'ts-chart__area ts-chart__contour',
-            ariaHidden: true,
-            translateX: chart.x,
-            translateY: chart.y,
-            clip: { x: 0, y: 0, width: chart.width, height: chart.height },
-            children: prepared.map(({ datum, geometry, identity }, index) => {
-              const colorValue = colorValues[index]
-              const fallback = resolveColor(
-                isChartKey(colorValue) ? colorValue : null,
-              )
-              return {
-                kind: 'area',
-                key: JSON.stringify([id, identity]),
-                points: [],
-                polygons: mapContourPolygons(geometry.coordinates, (x, y) => [
-                  (x / width) * chart.width,
-                  chart.height - (y / height) * chart.height,
-                ]),
-                style: {
-                  fill: visualValue(
-                    options.fill,
-                    datum,
-                    index,
-                    derivedData,
-                    fallback,
-                  ),
-                  fillOpacity: options.fillOpacity,
-                  stroke:
-                    options.stroke === undefined
-                      ? undefined
-                      : visualValue(
-                          options.stroke,
-                          datum,
-                          index,
-                          derivedData,
-                          fallback,
-                        ),
-                  strokeOpacity: options.strokeOpacity,
-                  strokeWidth: options.strokeWidth,
-                  strokeDasharray: options.strokeDasharray,
-                  opacity: options.opacity,
-                },
-              } satisfies SceneNode
-            }),
+  return createMark<never, never, never>(
+    ({ markIndex }) => {
+      const id = options.id ?? `contour-${markIndex}`
+      return {
+        id,
+        channels: {
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
           },
-        ],
-      }),
-    }
-  }, options.motion)
+        },
+        render: ({ chart, color: resolveColor }) => ({
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__area ts-chart__contour',
+              ariaHidden: true,
+              translateX: chart.x,
+              translateY: chart.y,
+              clip: { x: 0, y: 0, width: chart.width, height: chart.height },
+              children: prepared.map(({ datum, geometry, identity }, index) => {
+                const colorValue = colorValues[index]
+                const fallback = resolveColor(
+                  isChartKey(colorValue) ? colorValue : null,
+                )
+                return {
+                  kind: 'area',
+                  key: JSON.stringify([id, identity]),
+                  points: [],
+                  polygons: mapContourPolygons(geometry.coordinates, (x, y) => [
+                    (x / width) * chart.width,
+                    chart.height - (y / height) * chart.height,
+                  ]),
+                  style: {
+                    fill: visualValue(
+                      options.fill,
+                      datum,
+                      index,
+                      derivedData,
+                      fallback,
+                    ),
+                    fillOpacity: options.fillOpacity,
+                    stroke:
+                      options.stroke === undefined
+                        ? undefined
+                        : visualValue(
+                            options.stroke,
+                            datum,
+                            index,
+                            derivedData,
+                            fallback,
+                          ),
+                    strokeOpacity: options.strokeOpacity,
+                    strokeWidth: options.strokeWidth,
+                    strokeDasharray: options.strokeDasharray,
+                    opacity: options.opacity,
+                  },
+                } satisfies SceneNode
+              }),
+            },
+          ],
+        }),
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }

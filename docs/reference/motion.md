@@ -81,13 +81,19 @@ const host = mountChartRenderer(container, {
 ```
 
 React and Octane applications use their `/core` component entry and pass the
-same renderer. Other adapters currently expose their default SVG surface.
+same renderer. Other adapters start with their default SVG renderer, and a
+definition may still select Canvas for individual marks.
 
 ## Definition-local motion
 
 `motion` on a definition, mark, axis, tick collection, tick-label collection,
 or axis label is inert policy. The optional renderer consumes it. Definitions
 remain valid for static SVG and Canvas, which paint the final state.
+
+This stays true in a mixed chart. A mark that selects `canvasChartRenderer`
+keeps its authored motion option, but the Canvas layer paints the final scene
+instead of running the tween or spring policy. The optional `motion()` renderer
+still animates the default-renderer layers it owns.
 
 ```ts
 import { scaleBand } from '@tanstack/charts/scales/band'
@@ -116,14 +122,16 @@ const definition = defineChart({
       },
     }),
   ],
-  x: {
-    scale: scaleBand,
-    axis: {
-      ticks: { motion: { transition: { type: 'tween', duration: 180 } } },
-      tickLabels: { motion: { delay: 40 } },
+  scales: {
+    x: {
+      scale: scaleBand,
+      axis: {
+        ticks: { motion: { transition: { type: 'tween', duration: 180 } } },
+        tickLabels: { motion: { delay: 40 } },
+      },
     },
+    y: { scale: scaleLinear },
   },
-  y: { scale: scaleLinear },
 })
 ```
 
@@ -169,6 +177,10 @@ const definition = defineChart({
     ...stagger({ each: 35, by: 'series', roles: ['arc', 'bar'] }),
   },
   marks,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 
@@ -271,8 +283,11 @@ const definition = defineChart({
     transition: { type: 'tween', duration: 800, easing: 'linear' },
   },
   marks: [lineY(rows, { x: 'time', y: 'value', key: 'id' })],
-  x: { scale: scaleUtc().domain([visibleStart, visibleEnd]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleUtc().domain([visibleStart, visibleEnd]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
+
   clip: true,
 })
 ```

@@ -23,19 +23,25 @@ export const createExampleChart = (input: ChartOptions) =>
                 fill: '#2563eb',
               }),
             ],
-            x: {
-              scale: scaleLinear().domain([3, 20]),
-              grid: input.preview !== true,
-              axis: input.preview === true ? false : { ticks: { count: 5 } },
-            },
-            y: {
-              scale: scaleLinear().domain([2, 14]),
-              grid: input.preview !== true,
-              axis: input.preview === true ? false : { ticks: { count: 4 } },
+            scales: {
+              x: {
+                scale: scaleLinear().domain([3, 20]),
+                grid: input.preview !== true,
+                axis: input.preview === true ? false : { ticks: { count: 5 } },
+              },
+              y: {
+                scale: scaleLinear().domain([2, 14]),
+                grid: input.preview !== true,
+                axis: input.preview === true ? false : { ticks: { count: 4 } },
+              },
             },
           }),
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: 0,
     },
     { keyboard: true, tooltip: exampleTooltip },

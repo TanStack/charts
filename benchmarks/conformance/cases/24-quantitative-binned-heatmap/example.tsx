@@ -40,16 +40,19 @@ export const createExampleChart = (input: ChartOptions) => {
           inset: 0.75,
         }),
       ],
-      x: {
-        scale: scaleLinear().domain([30, 62]),
-        grid: true,
-        axis: { label: 'Bill length (mm)' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([30, 62]),
+          grid: true,
+          axis: { label: 'Bill length (mm)' },
+        },
+        y: {
+          scale: scaleLinear().domain([12, 23]),
+          grid: true,
+          axis: { label: 'Bill depth (mm)' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([12, 23]),
-        grid: true,
-        axis: { label: 'Bill depth (mm)' },
-      },
+
       color: {
         scale: scaleSequential,
         range: ['#eff6ff', '#1d4ed8'],

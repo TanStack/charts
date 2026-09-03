@@ -3,7 +3,6 @@ import { focusGroupAngle, pie, polar, radialArc } from '@tanstack/charts/polar'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { motion } from '@tanstack/charts/motion'
-import { scaleLinear } from 'd3-scale'
 import { shadcnColors } from '@tanstack/charts-data/shadcn'
 import './styles.css'
 export function createExampleChart() {
@@ -31,8 +30,11 @@ export function createExampleChart() {
       marks: [
         polar({
           radiusRatio: 1,
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: null,
+            radius: null,
+          },
+
           marks: [
             radialArc(desktopArcs, {
               id: 'desktop-slices',
@@ -54,6 +56,10 @@ export function createExampleChart() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: months, range: shadcnColors },
       margin: 0,
     },

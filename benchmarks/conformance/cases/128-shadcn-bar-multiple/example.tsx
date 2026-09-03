@@ -28,8 +28,11 @@ export function createExampleChart() {
           radius: 4,
         }),
       ],
-      x: shadcnXAxis(),
-      y: { scale: scaleLinear, grid: true, axis: false },
+      scales: {
+        x: shadcnXAxis(),
+        y: { scale: scaleLinear, grid: true, axis: false },
+      },
+
       color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
       margin: { top: 5, right: 5, bottom: 35, left: 5 },
       theme: shadcnTheme(),

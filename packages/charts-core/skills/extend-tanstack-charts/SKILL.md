@@ -7,7 +7,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.16.0'
 requires:
   - compose-marks-and-views
 sources:
@@ -61,7 +61,10 @@ const threshold = createMark<ThresholdDatum, never, number>(({ markIndex }) => {
 
 export const chart = defineChart({
   marks: [threshold],
-  y: { scale: scaleLinear },
+  scales: {
+    x: null,
+    y: { scale: scaleLinear },
+  },
 })
 ```
 

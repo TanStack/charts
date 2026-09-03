@@ -129,6 +129,7 @@ describe('sankeyDiagram', () => {
       })
       const definition = defineChart({
         marks: [mark],
+        scales: { x: null, y: null },
         color: {
           domain: ['primary', 'secondary', 'source', 'middle', 'target'],
         },
@@ -215,6 +216,7 @@ describe('sankeyDiagram', () => {
           },
         }),
       ],
+      scales: { x: null, y: null },
       guides: false,
       margin: 0,
     })
@@ -297,7 +299,12 @@ describe('sankeyDiagram', () => {
       },
     })
     createChartRuntime().render(
-      defineChart({ marks: [mark], guides: false, margin: 0 }),
+      defineChart({
+        marks: [mark],
+        scales: { x: null, y: null },
+        guides: false,
+        margin: 0,
+      }),
       { width: 300, height: 180 },
     )
 
@@ -353,7 +360,12 @@ describe('sankeyDiagram', () => {
     })
 
     createChartRuntime().render(
-      defineChart({ marks: [mark], guides: false, margin: 0 }),
+      defineChart({
+        marks: [mark],
+        scales: { x: null, y: null },
+        guides: false,
+        margin: 0,
+      }),
       { width: 300, height: 180 },
     )
 
@@ -419,7 +431,12 @@ describe('sankeyDiagram', () => {
     })
     expect(() =>
       createChartRuntime().render(
-        defineChart({ marks: [invalidAlignment], guides: false, margin: 0 }),
+        defineChart({
+          marks: [invalidAlignment],
+          scales: { x: null, y: null },
+          guides: false,
+          margin: 0,
+        }),
         { width: 320, height: 200 },
       ),
     ).toThrow('align result must be an integer between 0 and 2')
@@ -427,7 +444,12 @@ describe('sankeyDiagram', () => {
     const invalidSize = sankeyDiagram({ ...base, nodeWidth: 500 })
     expect(() =>
       createChartRuntime().render(
-        defineChart({ marks: [invalidSize], guides: false, margin: 0 }),
+        defineChart({
+          marks: [invalidSize],
+          scales: { x: null, y: null },
+          guides: false,
+          margin: 0,
+        }),
         { width: 320, height: 200 },
       ),
     ).toThrow('inset leaves less horizontal space than nodeWidth')
@@ -435,7 +457,12 @@ describe('sankeyDiagram', () => {
     const zeroHeight = sankeyDiagram({ ...base, inset: { top: 100 } })
     expect(() =>
       createChartRuntime().render(
-        defineChart({ marks: [zeroHeight], guides: false, margin: 0 }),
+        defineChart({
+          marks: [zeroHeight],
+          scales: { x: null, y: null },
+          guides: false,
+          margin: 0,
+        }),
         { width: 320, height: 100 },
       ),
     ).toThrow('inset leaves no vertical layout space')
@@ -451,7 +478,12 @@ describe('sankeyDiagram', () => {
     })
     expect(() =>
       createChartRuntime().render(
-        defineChart({ marks: [cycle], guides: false, margin: 0 }),
+        defineChart({
+          marks: [cycle],
+          scales: { x: null, y: null },
+          guides: false,
+          margin: 0,
+        }),
         { width: 320, height: 200 },
       ),
     ).toThrow('circular link')

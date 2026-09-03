@@ -22,8 +22,10 @@ export const createExampleChart = () =>
           stroke: '#2563eb',
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Longitude' } },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Latitude' } },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { label: 'Longitude' } },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Latitude' } },
+      },
     },
     { keyboard: true, tooltip: exampleTooltip },
   )

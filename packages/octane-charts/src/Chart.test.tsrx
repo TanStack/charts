@@ -18,8 +18,10 @@ const definition = defineChart({
 			key: 'id',
 		}),
 	],
-	x: { scale: scaleLinear().domain([1, 2]) },
-	y: { scale: scaleLinear().domain([8, 12]) },
+	scales: {
+		x: { scale: scaleLinear().domain([1, 2]) },
+		y: { scale: scaleLinear().domain([8, 12]) },
+	},
 });
 
 describe('Octane Chart adapter', () => {
@@ -81,8 +83,10 @@ describe('Octane Chart adapter', () => {
 	it('server-renders scoped SVG resource IDs', () => {
 		const gradientDefinition = defineChart({
 			marks: [areaY([1, 3, 2], { fill: 'url(#fill)' })],
-			x: { scale: scaleLinear().domain([0, 2]) },
-			y: { scale: scaleLinear().domain([0, 3]) },
+			scales: {
+				x: { scale: scaleLinear().domain([0, 2]) },
+				y: { scale: scaleLinear().domain([0, 3]) },
+			},
 			gradients: [{
 				id: 'fill',
 				stops: [

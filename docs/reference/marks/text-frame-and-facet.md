@@ -104,8 +104,10 @@ facet(rows, {
   chart(groupRows) {
     return {
       marks: [lineY(groupRows, { x: 'date', y: 'value' })],
-      x: { scale: makeXScale(groupRows) },
-      y: { scale: makeYScale(groupRows), grid: true },
+      scales: {
+        x: { scale: makeXScale(groupRows) },
+        y: { scale: makeYScale(groupRows), grid: true },
+      },
     }
   },
 })

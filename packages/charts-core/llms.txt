@@ -4,107 +4,108 @@ TanStack Charts is a framework-agnostic, type-safe visualization grammar with th
 
 Read the canonical pages below. Each concept is documented once; guides and examples link back to its owner page.
 
-- docs/overview.md — Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
-- docs/comparison.md — Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
-- docs/installation.md — Installation: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
-- docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
-- docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
-- docs/framework/react/adapter.md — React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
-- docs/framework/preact/adapter.md — Preact Adapter: Render and hydrate TanStack Charts with Preact.
-- docs/framework/vue/adapter.md — Vue Adapter: Render and hydrate TanStack Charts with Vue 3.
-- docs/framework/solid/adapter.md — Solid Adapter: Render and hydrate TanStack Charts with Solid.
-- docs/framework/svelte/adapter.md — Svelte Adapter: Render and hydrate TanStack Charts with Svelte 5.
-- docs/framework/angular/adapter.md — Angular Adapter: Render TanStack Charts with an Angular standalone component.
-- docs/framework/lit/adapter.md — Lit Adapter: Render TanStack Charts with a light-DOM Lit custom element.
-- docs/framework/alpine/adapter.md — Alpine Adapter: Mount TanStack Charts with an Alpine directive.
-- docs/framework/octane/quick-start.md — Octane Quick Start: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
-- docs/framework/octane/adapter.md — Octane Adapter: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
-- docs/concepts/grammar-of-graphics.md — Grammar of Graphics: Understand TanStack Charts as a composition of data, marks, channels, scales, guides, and layers.
-- docs/concepts/chart-definitions.md — Chart Definitions: Capture application values in memoized definitions and use responsive builders for surface-dependent choices.
-- docs/concepts/data-and-channels.md — Data and Channels: Map typed application data to positions, grouping, color, radius, and stable chart identity.
-- docs/concepts/scales-and-d3.md — Scales: Start with compact scales, upgrade individual mappings to D3 when their semantics require it, and keep responsive range ownership clear.
-- docs/concepts/marks-and-layering.md — Marks and Layering: Choose built-in geometric marks, compose them in render order, and preserve stable layer identity.
-- docs/concepts/layout-axes-and-coordinates.md — Layout, Axes, and Coordinates: Learn how responsive ranges, automatic margins, guides, band alignment, and scene coordinates work.
-- docs/guides/choosing-a-chart.md — Choosing a Chart: Choose a visual encoding from the question, data shape, and comparison task before composing TanStack Charts marks.
-- docs/guides/responsive-charts.md — Responsive Charts: Size charts from their containers while preserving readable guides, deterministic SSR, and application-controlled height.
-- docs/guides/themes-and-styling.md — Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.
-- docs/guides/accessibility.md — Accessibility: Give charts useful names, keyboard-equivalent interaction, reduced motion, redundant encodings, and exact-value alternatives.
-- docs/guides/dynamic-data-and-animation.md — Dynamic Data and Animation: Recreate memoized definitions when application values change and animate keyed geometry safely.
-- docs/guides/transforms-and-reactivity.md — Transforms and Reactivity: Derive typed rows once and memoize them where the data is owned.
-- docs/guides/tooltips-and-focus.md — Tooltips and Focus: Configure grouped focus, crosshairs, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
-- docs/guides/interactions-and-selections.md — Interactions and Selections: Build controlled cursors, linked selections, brushes, zooming, scrolling, timelines, and editors around semantic chart state.
-- docs/guides/faceting-and-composition.md — Faceting and Composition: Layer marks, repeat a shared chart by group, and coordinate multiple views without introducing a fixed chart-type model.
-- docs/guides/legends-and-color.md — Legends and Color: Map categorical or quantitative values to color, render responsive legends, and preserve meaning across themes.
-- docs/guides/custom-marks-and-renderers.md — Custom Marks and Renderers: Extend the grammar with typed mark channels and keyed scene nodes, or replace the mounted renderer without bypassing chart semantics.
-- docs/guides/large-data.md — Large Data: Choose bounded visual representations, measure preparation separately, preserve analytical invariants, and avoid rendering more detail than pixels can communicate.
-- docs/guides/ssr-and-hydration.md — SSR and Hydration: Render deterministic chart markup on the server, preserve runtime work through hydration, and handle responsive dimensions without mismatches.
-- docs/guides/exporting.md — Exporting: Export accessible chart SVG or browser-rendered raster images while preserving dimensions, styling, and resource identity.
-- docs/guides/bundle-size-and-performance.md — Bundle Size and Performance: Keep each chart proportional to the marks, scales, host capabilities, and data representation it actually uses.
-- docs/guides/typescript.md — TypeScript: Preserve end-to-end inference from chart data and channels through scales, focus callbacks, adapters, and custom extensions.
-- docs/guides/testing-and-debugging.md — Testing and Debugging: Test chart semantics, geometry, interaction, updates, accessibility, and performance without relying on brittle screenshots alone.
-- docs/guides/ai-authoring.md — AI Authoring: Give coding agents a deterministic route from a visualization goal to typed TanStack Charts code, validation, and advanced extension.
-- docs/guides/migrating.md — Migrating: Move an existing visualization to TanStack Charts by preserving analytical semantics, interaction behavior, and measurable output before changing design.
-- docs/examples/index.md — Example Gallery: Choose a TanStack Charts example from the question your reader needs to answer, then follow the linked concepts and reference pages.
-- docs/examples/lines-and-areas.md — Lines and Areas: Choose and compose line, range-area, rolling-statistic, and annotation patterns for ordered data.
-- docs/examples/bars-and-rankings.md — Bars and Rankings: Choose bar, lollipop, dumbbell, and waterfall compositions for categorical comparison and change.
-- docs/examples/scatterplots-and-relationships.md — Scatterplots and Relationships: Choose scatterplot, regression, connected-path, lag, and nearest-point patterns for quantitative relationships.
-- docs/examples/distributions.md — Distributions: Choose histograms, boxplots, empirical cumulative distributions, and violins for shape, spread, and rank.
-- docs/examples/heatmaps-and-densities.md — Heatmaps and Densities: Choose quantitative matrix cells, contours, or hexagonal bins to show concentration across two dimensions.
-- docs/examples/intervals-and-financial.md — Intervals and Financial Charts: Compose timelines, uncertainty intervals, candlesticks, and percentile ribbons from explicit endpoints.
-- docs/examples/stacked-and-composition.md — Stacked and Composed Charts: Choose stacked, normalized, streamgraph, funnel, and mosaic compositions for part-to-whole and stage-retention comparisons.
-- docs/examples/facets-and-multiple-views.md — Facets and Multiple Views: Choose shared-scale facets, marginal views, and focus-plus-context layouts for coordinated comparisons.
-- docs/examples/networks-and-hierarchies.md — Networks and Hierarchies: Choose tidy trees, Sankey flows, spatial adjacency graphs, and force-directed networks for connected or nested data.
-- docs/examples/maps-and-spatial.md — Maps and Spatial Charts: Build choropleths, bubble maps, globes, routes, and vector fields for geographic or projected spatial questions.
-- docs/examples/polar-and-radar.md — Polar and Radar Charts: Build native pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
-- docs/examples/annotations-and-overlays.md — Annotations and Overlays: Add direct labels, thresholds, change indicators, and explanatory layers without hiding chart semantics.
-- docs/examples/interactive-charts.md — Interactive Charts: Choose chart-owned focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
-- docs/examples/themes-and-motion.md — Themes and Motion: Apply inherited palettes and optional motion while keeping chart definitions separate from card layout and controls.
-- docs/reference/index.md — API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
-- docs/reference/chart-definitions.md — Chart Definition API: Reference static and responsive chart definitions, build context, and identity-based updates.
-- docs/reference/chart-spec.md — Chart Spec: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
-- docs/reference/view-composition.md — View Composition: Compose complete chart definitions with deterministic grid, layer, fill, and inset layouts.
-- docs/reference/transforms.md — Data Transforms: Typed, eager transforms for reusable application data.
-- docs/reference/scales-guides-and-color.md — Scales, Guides, and Color: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
-- docs/reference/dom-host.md — DOM Host: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
-- docs/reference/adapter-controller.md — Adapter Controller: Build framework adapters over shared prerender, mount, update, layout, scene access, and cleanup behavior.
-- docs/reference/runtime-and-scene.md — Runtime and Scene: Compile object and responsive chart definitions into renderer-neutral scenes.
-- docs/reference/focus-and-interaction.md — Focus and Interaction: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, built-in tooltips, selection, and spatial indexes.
-- docs/reference/rendering-and-export.md — Rendering and Export: Render chart scenes through the default SVG renderer, the optional Canvas renderer, or a custom surface, then export supported output.
-- docs/reference/motion.md — Motion: Optional SVG tween and spring motion, definition-local timing, interruption behavior, reduced motion, and the standalone spring sampler.
-- docs/reference/custom-extensions.md — Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
-- docs/reference/types.md — Types: Public TypeScript types, inference rules, channels, definitions, scenes, hosts, focus, rendering, and custom extension contracts.
-- docs/framework/react/reference/chart.md — React Chart: Complete prop and type reference for the @tanstack/charts/react Chart component.
-- docs/framework/preact/reference/chart.md — Preact Chart: Complete prop and type reference for the @tanstack/charts/preact Chart component.
-- docs/framework/vue/reference/chart.md — Vue Chart: Complete prop and type reference for the @tanstack/charts/vue Chart component.
-- docs/framework/solid/reference/chart.md — Solid Chart: Complete prop and type reference for the @tanstack/charts/solid Chart component.
-- docs/framework/svelte/reference/chart.md — Svelte Chart: Complete prop and type reference for the @tanstack/charts/svelte Chart component.
-- docs/framework/angular/reference/chart.md — Angular Chart: Complete option and type reference for the @tanstack/charts/angular standalone component.
-- docs/framework/lit/reference/chart.md — Lit Chart: Complete option and type reference for the @tanstack/charts/lit custom element.
-- docs/framework/alpine/reference/chart.md — Alpine Chart: Complete option and type reference for the @tanstack/charts/alpine x-chart directive.
-- docs/framework/octane/reference/chart.md — Octane Chart: Complete prop and type reference for the @tanstack/charts/octane Chart component.
-- docs/reference/marks/line-and-area.md — Line and Area Marks: Reference for lineY, lineX, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
-- docs/reference/marks/difference.md — Difference Marks: Reference for differenceY and differenceX comparison areas, exact crossings, grouping, gaps, lineage, styling, and interaction.
-- docs/reference/marks/regression.md — Linear Regression Marks: Reference for eager linearRegressionRowsY/X data and linearRegressionY/X least-squares marks, confidence bands, grouping, sampling, lineage, and interaction.
-- docs/reference/marks/bar-and-rect.md — Bar and Rect Marks: Reference for barY, barX, rect, cell, interval endpoints, band sizing, grouped bars, color, insets, and focus anchors.
-- docs/reference/marks/box.md — Box Marks: Reference for boxRows, boxY, and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
-- docs/reference/marks/dot-and-hexagon.md — Dot and Hexagon Marks: Reference for dot and hexagon channels, pixel radius, injected radius scales, color, grouping, keys, and interaction points.
-- docs/reference/marks/dodge.md — Dodge Layouts: Reference for responsive dodgeX and dodgeY dot collision layouts, anchors, padding, radii, identity, and scale ownership.
-- docs/reference/marks/waffle.md — Waffle Marks: Reference for responsive waffleY and waffleX unit layouts, cumulative rounding, color, source identity, and interaction.
-- docs/reference/marks/ridgeline.md — Ridgeline Marks: Reference for semantic ridgelineY and ridgelineX profile geometry, categorical baselines, overlap, curves, identity, and interaction.
-- docs/reference/marks/violin.md — Violin Marks: Reference for semantic violinY and violinX mirrored profile geometry, category-relative spans, curves, identity, and interaction.
-- docs/reference/marks/focus-guide.md — Focus Guide Marks: Render datum-bound focus rules, markers, and axis labels with stable renderer-neutral motion.
-- docs/reference/marks/treemap.md — Treemap Mark: Reference for responsive hierarchy tiling, flat-row construction, node lineage, color, labels, and the optional treemap import.
-- docs/reference/marks/sunburst.md — Sunburst Mark: Reference for flat hierarchy input, responsive radial partitioning, node lineage, branch color, and the optional sunburst import.
-- docs/reference/marks/sankey.md — Sankey Diagram Mark: Reference for responsive flow layout, semantic graph input, immutable node and link rows, ordinary child marks, and the optional Sankey import.
-- docs/reference/marks/hexbin.md — Hexbin Mark: Reference for responsive screen-space hexagonal aggregation, reducer outputs, source lineage, color, and the optional spatial import.
-- docs/reference/marks/contour.md — Contour Mark: Reference for regular scalar-grid contours, thresholds, orientation, source lineage, and structured multipolygon output.
-- docs/reference/marks/density.md — Density Contour Mark: Reference for responsive point-density contours, thresholds, grouping, weights, source lineage, and structured multipolygon output.
-- docs/reference/marks/delaunay.md — Delaunay Link Mark: Reference for responsive Delaunay adjacency links, source grouping, endpoint lineage, stable keys, and the optional spatial import.
-- docs/reference/marks/voronoi.md — Voronoi Mark: Reference for responsive final-screen Voronoi cells, grouping, stable coincident ownership, presentation, and interaction separation.
-- docs/reference/marks/rules-links-arrows-vectors-and-ticks.md — Rules, Links, Arrows, Vectors, and Ticks: Reference for ruleX, ruleY, link, arrow, vector, tickX, and tickY geometry, channels, defaults, curves, and focus anchors.
-- docs/reference/marks/text-frame-and-facet.md — Text, Frame, and Facet Marks: Reference for data labels, chart frames, responsive small multiples, shared or per-cell axes, labels, and facet constraints.
-- docs/reference/marks/geo.md — Geo Shape Mark: Reference for projecting GeoJSON with an opt-in D3-backed geoShape mark.
-- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, injected scale factories, and D3-backed geometry.
+- docs/overview.md: Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
+- docs/comparison.md: Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
+- docs/installation.md: Installation: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
+- docs/stability.md: Alpha Stability: Understand what TanStack Charts Alpha versions promise, what may change, and how releases communicate breaking changes.
+- docs/quick-start.md: Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
+- docs/framework/react/quick-start.md: React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
+- docs/framework/react/adapter.md: React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
+- docs/framework/preact/adapter.md: Preact Adapter: Render and hydrate TanStack Charts with Preact.
+- docs/framework/vue/adapter.md: Vue Adapter: Render and hydrate TanStack Charts with Vue 3.
+- docs/framework/solid/adapter.md: Solid Adapter: Render and hydrate TanStack Charts with Solid.
+- docs/framework/svelte/adapter.md: Svelte Adapter: Render and hydrate TanStack Charts with Svelte 5.
+- docs/framework/angular/adapter.md: Angular Adapter: Render TanStack Charts with an Angular standalone component.
+- docs/framework/lit/adapter.md: Lit Adapter: Render TanStack Charts with a light-DOM Lit custom element.
+- docs/framework/alpine/adapter.md: Alpine Adapter: Mount TanStack Charts with an Alpine directive.
+- docs/framework/octane/quick-start.md: Octane Quick Start: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
+- docs/framework/octane/adapter.md: Octane Adapter: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
+- docs/concepts/grammar-of-graphics.md: Grammar of Graphics: Understand TanStack Charts as a composition of data, marks, channels, scales, guides, and layers.
+- docs/concepts/chart-definitions.md: Chart Definitions: Capture application values in memoized definitions and use responsive builders for surface-dependent choices.
+- docs/concepts/data-and-channels.md: Data and Channels: Map typed application data to positions, grouping, color, radius, and stable chart identity.
+- docs/concepts/scales-and-d3.md: Scales: Start with compact scales, upgrade individual mappings to D3 when their semantics require it, and keep responsive range ownership clear.
+- docs/concepts/marks-and-layering.md: Marks and Layering: Choose built-in geometric marks, compose them in render order, and preserve stable layer identity.
+- docs/concepts/layout-axes-and-coordinates.md: Layout, Axes, and Coordinates: Learn how responsive ranges, automatic margins, guides, band alignment, and scene coordinates work.
+- docs/guides/choosing-a-chart.md: Choosing a Chart: Choose a visual encoding from the question, data shape, and comparison task before composing TanStack Charts marks.
+- docs/guides/responsive-charts.md: Responsive Charts: Size charts from their containers while preserving readable guides, deterministic SSR, and application-controlled height.
+- docs/guides/themes-and-styling.md: Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.
+- docs/guides/accessibility.md: Accessibility: Give charts useful names, keyboard-equivalent interaction, reduced motion, redundant encodings, and exact-value alternatives.
+- docs/guides/dynamic-data-and-animation.md: Dynamic Data and Animation: Recreate memoized definitions when application values change and animate keyed geometry safely.
+- docs/guides/transforms-and-reactivity.md: Transforms and Reactivity: Derive typed rows once and memoize them where the data is owned.
+- docs/guides/tooltips-and-focus.md: Tooltips and Focus: Configure grouped focus, crosshairs, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
+- docs/guides/interactions-and-selections.md: Interactions and Selections: Build controlled cursors, linked selections, brushes, zooming, scrolling, timelines, and editors around semantic chart state.
+- docs/guides/faceting-and-composition.md: Faceting and Composition: Layer marks, repeat a shared chart by group, and coordinate multiple views without introducing a fixed chart-type model.
+- docs/guides/legends-and-color.md: Legends and Color: Map categorical or quantitative values to color, render responsive legends, and preserve meaning across themes.
+- docs/guides/custom-marks-and-renderers.md: Custom Marks and Renderers: Extend the grammar with typed mark channels and keyed scene nodes, or replace the mounted renderer without bypassing chart semantics.
+- docs/guides/large-data.md: Large Data: Choose bounded visual representations, measure preparation separately, preserve analytical invariants, and avoid rendering more detail than pixels can communicate.
+- docs/guides/ssr-and-hydration.md: SSR and Hydration: Render deterministic chart markup on the server, preserve runtime work through hydration, and handle responsive dimensions without mismatches.
+- docs/guides/exporting.md: Exporting: Export accessible chart SVG or browser-rendered raster images while preserving dimensions, styling, and resource identity.
+- docs/guides/bundle-size-and-performance.md: Bundle Size and Performance: Keep each chart proportional to the marks, scales, host capabilities, and data representation it actually uses.
+- docs/guides/typescript.md: TypeScript: Preserve end-to-end inference from chart data and channels through scales, focus callbacks, adapters, and custom extensions.
+- docs/guides/testing-and-debugging.md: Testing and Debugging: Test chart semantics, geometry, interaction, updates, accessibility, and performance without relying on brittle screenshots alone.
+- docs/guides/ai-authoring.md: AI Authoring: Give coding agents a deterministic route from a visualization goal to typed TanStack Charts code, validation, and advanced extension.
+- docs/guides/migrating.md: Migrating: Move an existing visualization to TanStack Charts by preserving analytical semantics, interaction behavior, and measurable output before changing design.
+- docs/examples/index.md: Example Gallery: Choose a TanStack Charts example from the question your reader needs to answer, then follow the linked concepts and reference pages.
+- docs/examples/lines-and-areas.md: Lines and Areas: Choose and compose line, range-area, rolling-statistic, and annotation patterns for ordered data.
+- docs/examples/bars-and-rankings.md: Bars and Rankings: Choose bar, lollipop, dumbbell, and waterfall compositions for categorical comparison and change.
+- docs/examples/scatterplots-and-relationships.md: Scatterplots and Relationships: Choose scatterplot, regression, connected-path, lag, and nearest-point patterns for quantitative relationships.
+- docs/examples/distributions.md: Distributions: Choose histograms, boxplots, empirical cumulative distributions, and violins for shape, spread, and rank.
+- docs/examples/heatmaps-and-densities.md: Heatmaps and Densities: Choose quantitative matrix cells, contours, or hexagonal bins to show concentration across two dimensions.
+- docs/examples/intervals-and-financial.md: Intervals and Financial Charts: Compose timelines, uncertainty intervals, candlesticks, and percentile ribbons from explicit endpoints.
+- docs/examples/stacked-and-composition.md: Stacked and Composed Charts: Choose stacked, normalized, streamgraph, funnel, and mosaic compositions for part-to-whole and stage-retention comparisons.
+- docs/examples/facets-and-multiple-views.md: Facets and Multiple Views: Choose shared-scale facets, marginal views, and focus-plus-context layouts for coordinated comparisons.
+- docs/examples/networks-and-hierarchies.md: Networks and Hierarchies: Choose tidy trees, Sankey flows, spatial adjacency graphs, and force-directed networks for connected or nested data.
+- docs/examples/maps-and-spatial.md: Maps and Spatial Charts: Build choropleths, bubble maps, globes, routes, and vector fields for geographic or projected spatial questions.
+- docs/examples/polar-and-radar.md: Polar and Radar Charts: Build native pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
+- docs/examples/annotations-and-overlays.md: Annotations and Overlays: Add direct labels, thresholds, change indicators, and explanatory layers without hiding chart semantics.
+- docs/examples/interactive-charts.md: Interactive Charts: Choose chart-owned focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
+- docs/examples/themes-and-motion.md: Themes and Motion: Apply inherited palettes and optional motion while keeping chart definitions separate from card layout and controls.
+- docs/reference/index.md: API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
+- docs/reference/chart-definitions.md: Chart Definition API: Reference static and responsive chart definitions, build context, and identity-based updates.
+- docs/reference/chart-spec.md: Chart Spec: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
+- docs/reference/view-composition.md: View Composition: Compose complete chart definitions with deterministic grid, layer, fill, and inset layouts.
+- docs/reference/transforms.md: Data Transforms: Typed, eager transforms for reusable application data.
+- docs/reference/scales-guides-and-color.md: Scales, Guides, and Color: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
+- docs/reference/dom-host.md: DOM Host: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
+- docs/reference/adapter-controller.md: Adapter Controller: Build framework adapters over shared prerender, mount, update, layout, scene access, and cleanup behavior.
+- docs/reference/runtime-and-scene.md: Runtime and Scene: Compile object and responsive chart definitions into renderer-neutral scenes.
+- docs/reference/focus-and-interaction.md: Focus and Interaction: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, built-in tooltips, selection, and spatial indexes.
+- docs/reference/rendering-and-export.md: Rendering and Export: Render chart scenes through the default SVG renderer, the optional Canvas renderer, or a custom surface, then export supported output.
+- docs/reference/motion.md: Motion: Optional SVG tween and spring motion, definition-local timing, interruption behavior, reduced motion, and the standalone spring sampler.
+- docs/reference/custom-extensions.md: Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
+- docs/reference/types.md: Types: Public TypeScript types, inference rules, channels, definitions, scenes, hosts, focus, rendering, and custom extension contracts.
+- docs/framework/react/reference/chart.md: React Chart: Complete prop and type reference for the @tanstack/charts/react Chart component.
+- docs/framework/preact/reference/chart.md: Preact Chart: Complete prop and type reference for the @tanstack/charts/preact Chart component.
+- docs/framework/vue/reference/chart.md: Vue Chart: Complete prop and type reference for the @tanstack/charts/vue Chart component.
+- docs/framework/solid/reference/chart.md: Solid Chart: Complete prop and type reference for the @tanstack/charts/solid Chart component.
+- docs/framework/svelte/reference/chart.md: Svelte Chart: Complete prop and type reference for the @tanstack/charts/svelte Chart component.
+- docs/framework/angular/reference/chart.md: Angular Chart: Complete option and type reference for the @tanstack/charts/angular standalone component.
+- docs/framework/lit/reference/chart.md: Lit Chart: Complete option and type reference for the @tanstack/charts/lit custom element.
+- docs/framework/alpine/reference/chart.md: Alpine Chart: Complete option and type reference for the @tanstack/charts/alpine x-chart directive.
+- docs/framework/octane/reference/chart.md: Octane Chart: Complete prop and type reference for the @tanstack/charts/octane Chart component.
+- docs/reference/marks/line-and-area.md: Line and Area Marks: Reference for lineY, lineX, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
+- docs/reference/marks/difference.md: Difference Marks: Reference for differenceY and differenceX comparison areas, exact crossings, grouping, gaps, lineage, styling, and interaction.
+- docs/reference/marks/regression.md: Linear Regression Marks: Reference for eager linearRegressionRowsY/X data and linearRegressionY/X least-squares marks, confidence bands, grouping, sampling, lineage, and interaction.
+- docs/reference/marks/bar-and-rect.md: Bar and Rect Marks: Reference for barY, barX, rect, cell, interval endpoints, band sizing, grouped bars, color, insets, and focus anchors.
+- docs/reference/marks/box.md: Box Marks: Reference for boxRows, boxY, and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
+- docs/reference/marks/dot-and-hexagon.md: Dot and Hexagon Marks: Reference for dot and hexagon channels, pixel radius, injected radius scales, color, grouping, keys, and interaction points.
+- docs/reference/marks/dodge.md: Dodge Layouts: Reference for responsive dodgeX and dodgeY dot collision layouts, anchors, padding, radii, identity, and scale ownership.
+- docs/reference/marks/waffle.md: Waffle Marks: Reference for responsive waffleY and waffleX unit layouts, cumulative rounding, color, source identity, and interaction.
+- docs/reference/marks/ridgeline.md: Ridgeline Marks: Reference for semantic ridgelineY and ridgelineX profile geometry, categorical baselines, overlap, curves, identity, and interaction.
+- docs/reference/marks/violin.md: Violin Marks: Reference for semantic violinY and violinX mirrored profile geometry, category-relative spans, curves, identity, and interaction.
+- docs/reference/marks/focus-guide.md: Focus Guide Marks: Render datum-bound focus rules, markers, and axis labels with stable renderer-neutral motion.
+- docs/reference/marks/treemap.md: Treemap Mark: Reference for responsive hierarchy tiling, flat-row construction, node lineage, color, labels, and the optional treemap import.
+- docs/reference/marks/sunburst.md: Sunburst Mark: Reference for flat hierarchy input, responsive radial partitioning, node lineage, branch color, and the optional sunburst import.
+- docs/reference/marks/sankey.md: Sankey Diagram Mark: Reference for responsive flow layout, semantic graph input, immutable node and link rows, ordinary child marks, and the optional Sankey import.
+- docs/reference/marks/hexbin.md: Hexbin Mark: Reference for responsive screen-space hexagonal aggregation, reducer outputs, source lineage, color, and the optional spatial import.
+- docs/reference/marks/contour.md: Contour Mark: Reference for regular scalar-grid contours, thresholds, orientation, source lineage, and structured multipolygon output.
+- docs/reference/marks/density.md: Density Contour Mark: Reference for responsive point-density contours, thresholds, grouping, weights, source lineage, and structured multipolygon output.
+- docs/reference/marks/delaunay.md: Delaunay Link Mark: Reference for responsive Delaunay adjacency links, source grouping, endpoint lineage, stable keys, and the optional spatial import.
+- docs/reference/marks/voronoi.md: Voronoi Mark: Reference for responsive final-screen Voronoi cells, grouping, stable coincident ownership, presentation, and interaction separation.
+- docs/reference/marks/rules-links-arrows-vectors-and-ticks.md: Rules, Links, Arrows, Vectors, and Ticks: Reference for ruleX, ruleY, link, arrow, vector, tickX, and tickY geometry, channels, defaults, curves, and focus anchors.
+- docs/reference/marks/text-frame-and-facet.md: Text, Frame, and Facet Marks: Reference for data labels, chart frames, responsive small multiples, shared or per-cell axes, labels, and facet constraints.
+- docs/reference/marks/geo.md: Geo Shape Mark: Reference for projecting GeoJSON with an opt-in D3-backed geoShape mark.
+- docs/reference/marks/polar.md: Polar Marks: Reference for the opt-in polar container, radial marks, guides, injected scale factories, and D3-backed geometry.
 
 Authoring rules:
 
@@ -112,10 +113,13 @@ Authoring rules:
 - Start with exact @tanstack/charts/scales/linear, @tanstack/charts/scales/band, @tanstack/charts/scales/point, or @tanstack/charts/scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.
 - Treat Date values on compact band or point scales as equally spaced categories. Use d3-scale scaleTime or scaleUtc when elapsed-time spacing or calendar-aware ticks matter.
 - Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.
+- Put Cartesian scale and guide options under scales.x and scales.y; root x and y properties are invalid.
+- Put polar position scales under scales.angle and scales.radius inside polar(); direct angle and radius properties are invalid.
 - Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.
 - Memoize the complete definition against captured application values; definition identity is the application update boundary.
 - Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.
 - Prefer built-in marks, then composition, then a custom mark or application-owned overlay.
+- Keep the default SVG renderer unless a measured paint-heavy mark benefits from Canvas. Import canvasChartRenderer from @tanstack/charts/canvas and set only that mark's renderer option when mixing surfaces.
 - Treat docs/concepts/scales-and-d3.md as the sole scale-selection and D3 integration contract and follow its official D3 links for D3 API details.
 - Reference a canonical catalog case with `<!-- ::chart-example id=case-id height=480 -->`. The documentation site resolves its source-backed workspace; never author a catalog iframe or duplicate the case source in a docs page.
 - Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.

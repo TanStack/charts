@@ -30,12 +30,15 @@ export const createExampleChart = (input: ChartOptions) =>
         }),
         ruleY([0]),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Month' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Unemployed (thousands)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Month' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Unemployed (thousands)' },
+        },
       },
+
       color: {
         range: colors,
         ...(input.preview === true

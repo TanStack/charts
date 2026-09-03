@@ -41,23 +41,26 @@ export function interactiveLegendDefinition(
           strokeWidth: 2.5,
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: {
-          ticks: {
-            format: (date) =>
-              date.toLocaleDateString('en-US', {
-                month: 'short',
-                timeZone: 'UTC',
-              }),
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: {
+            ticks: {
+              format: (date) =>
+                date.toLocaleDateString('en-US', {
+                  month: 'short',
+                  timeZone: 'UTC',
+                }),
+            },
           },
         },
+        y: {
+          scale: scaleLinear().domain(yDomain),
+          grid: true,
+          axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain(yDomain),
-        grid: true,
-        axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
-      },
+
       color: {
         domain: legendSeries.map((series) => series.id),
         range: legendSeries.map((series) => seriesColors[series.id]),
@@ -107,8 +110,11 @@ export function interactiveLegendPreviewDefinition(revision: number) {
         strokeWidth: 2.5,
       }),
     ],
-    x: { scale: scaleUtc },
-    y: { scale: scaleLinear().domain(yDomain) },
+    scales: {
+      x: { scale: scaleUtc },
+      y: { scale: scaleLinear().domain(yDomain) },
+    },
+
     color: {
       domain: legendSeries.map((series) => series.id),
       range: legendSeries.map((series) => seriesColors[series.id]),

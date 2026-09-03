@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-15
+Last updated: 2026-08-26
 
 ## Triage rule
 
@@ -52,7 +52,7 @@ Each entry records:
 | F-013 | Bar series identity also changed bar geometry                  | API                   | resolved   |
 | F-014 | Responsive nicing duplicates layout calculations               | API                   | resolved   |
 | F-015 | Legacy scale helpers compete with the D3-first API             | API                   | resolved   |
-| F-016 | Stats animated export still renders through Plot               | Integration/API       | resolved   |
+| F-016 | Stats animated export still renders through Plot               | Integration/API       | monitoring |
 | F-017 | React migration rebuilt a static definition                    | Documentation         | resolved   |
 | F-018 | Stats derivations still invalidate dynamic input               | Application           | resolved   |
 | F-019 | Custom tooltip formatting leaked float artifacts               | Application           | resolved   |
@@ -298,7 +298,7 @@ Each entry records:
 | F-259 | Chart resources cannot declare patterns                        | API                   | open       |
 | F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
-| F-262 | Mark inference accepted an unsupported style option            | API                   | open       |
+| F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 | F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
 | F-265 | Sunburst motion lost hierarchy across enter and exit           | API                   | resolved   |
@@ -329,6 +329,8 @@ Each entry records:
 | F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
 | F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
+| F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
+| F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 
 ## Findings
 
@@ -374,14 +376,18 @@ Each entry records:
   had to describe an axis it could never materialize.
 - Decision: derive each axis requirement from the marks' scale phantoms. A
   materialized dimension requires a configured scale. A dimension whose marks
-  all expose `never` may be omitted or explicitly set to `null`, and rejects a
-  configured phantom axis. Mixed charts require every dimension materialized
-  by any constituent mark. The runtime mirrors the type contract and renders
-  guides only for configured axes.
+  all expose `never` requires an explicit `null` reserved entry and rejects a
+  configured phantom axis at the precise authored type boundary. Every
+  definition explicitly declares both reserved entries. Mixed charts require
+  every dimension materialized by any constituent mark. Runtime validation
+  requires both reserved entries, rejects `null` for channels that materialize,
+  and renders guides only for configured axes. It cannot recover type-only
+  scale phantoms after a custom mark or stored definition has been erased.
 - Verification: focused type-contract and configured-scale tests cover
-  required Cartesian axes, mixed charts, omitted positionless axes, rejected
-  phantom axes, one-dimensional rules, runtime guards, and guide suppression.
-  Root typecheck passes.
+  required Cartesian axes, mixed charts, explicit null positionless axes,
+  rejected configured phantom axes, one-dimensional rules, deferred custom
+  marks, erased definitions, runtime guards, and guide suppression. Root
+  typecheck passes.
 
 ### F-004 — A radius channel silently imported continuous D3
 
@@ -657,7 +663,7 @@ Each entry records:
 
 ### F-016 — Stats animated export still renders through Plot
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Integration/API
 - Observed in: TanStack Stats default-renderer cutover
@@ -1049,9 +1055,8 @@ Each entry records:
   rectangle endpoints remain inferred, widened rectangle options remain
   compatible, and custom marks and `ChartScale` retain the unchecked path.
   Public `ChartMarkPointX`/`ChartMarkPointY` helpers expose interaction values
-  separately from `ChartMarkScaleX`/`ChartMarkScaleY`. The pre-existing
-  `ChartMarkX`/`ChartMarkY` names remain point aliases rather than silently
-  changing meaning. The explicit helpers ship from the advanced
+  separately from `ChartMarkScaleX`/`ChartMarkScaleY`. The explicit helpers
+  ship from the advanced
   `mark/scale-values` subpath: exporting them from the ergonomic root changed
   esbuild symbol ordering by 1–5 gzip bytes despite erasing at runtime, so the
   exact ordinary-bundle gate rejected that shape.
@@ -4467,6 +4472,14 @@ Each entry records:
   `tree/v<version>` and `blob/v<version>` links as release references, validates
   their exact count, and advances them with the package version. The focused
   regression counts only the matching version tag.
+- `0.15.0` follow-up: all twelve shipped Intent skills still targeted 0.9.0.
+  Intent defines `metadata.library_version` as the source library version the
+  skill targets and reports drift against the currently published version. The
+  release synchronizer now includes every shipped `SKILL.md` with one exact
+  version reference. A focused regression discovers the shipped skill
+  directories and rejects any skill missing from the allowlist, then the normal
+  reference test checks that every tracked skill matches the current package
+  version.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -7817,7 +7830,7 @@ Each entry records:
 
 ### F-262 — Mark inference accepted an unsupported style option
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: hiding the unfocused dots in the themed area case 120
@@ -7825,10 +7838,20 @@ Each entry records:
   preserving generic options overload accepts extra keys, but `DotOptions`
   does not own base `opacity` and the renderer silently ignored it. State
   styles do accept `opacity`, so the boundary was especially easy to misread.
-- Current decision: case 120 sets both `fillOpacity` and `strokeOpacity` to
-  zero, then restores them in focused states. Keep an exact-options check or a
-  consistent base-opacity contract open for the mark family; do not add a
-  runtime-only special case for dots.
+- Decision: keep the distinct base style contracts and give public mark
+  factories fixed-key contextual option signatures. Per-property const
+  generics retain direct channel and named-scale inference, while fresh object
+  literals receive normal TypeScript excess-property checks. Generic
+  `Options` and `Options | undefined` forwarding wrappers remain assignable.
+  Predeclared structural supersets remain accepted, which matches standard
+  TypeScript behavior. The helpers are type-only and add no runtime code or
+  bundle weight.
+- Verification: `cartesian-scale-types.test.ts` infers named scale IDs across
+  every Cartesian built-in factory and a polar mark, keeps reserved scale IDs
+  for explicit `undefined`, and compiles whole-options and optional forwarding
+  wrappers. Negative type checks reject fresh dot `opacity` and unknown keys
+  on Cartesian, composite, and polar factories. The focused strict TypeScript
+  compile and the full workspace `pnpm typecheck` pass.
 
 ### F-263 — Chromium transport and context churn interrupted catalog previews
 
@@ -8429,3 +8452,56 @@ Each entry records:
 - Follow-up verification: the generator contract covers all four tokens in both
   palettes, and regenerated ShadCN donut, radial, radar, and authored-label
   previews render readable dark text and theme-matched separators.
+
+### F-293 - Root scale slots blocked named axes
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: auditing the claimed TanStack Charts gaps against ECharts,
+  Observable Plot, and the existing React chart implementation
+- Friction: one root `x` slot and one root `y` slot could not describe multiple
+  unit-specific axes or bind different marks to independent scales. Polar marks
+  repeated the same limitation with one `angle` and one `radius` slot. Adding a
+  registry alone was not enough because composite marks could hide positional
+  identity, named callbacks could not see the resolved polar registry, and a
+  misspelled binding otherwise failed later with an undefined scale.
+- Decision: make `scales` the canonical Cartesian and polar registry, reserve
+  `x`, `y`, `angle`, and `radius` as readable defaults, and let marks bind to
+  named entries. Each named scale declares its positional channel and guide
+  side. Axes support all four sides and stack when they share one side. The
+  pre-Alpha release kept the old root options temporarily and warned with exact
+  migration instructions. The Alpha API removes those options, their runtime
+  adapters, and their deprecated aliases. Preserve positional identity through
+  composite channel namespacing and expose the public resolved polar registry
+  to length callbacks.
+- Verification: named scale, axis, grid, focus, facet, motion, composite, box,
+  regression, polar, and type-contract regressions pass. Every TanStack Charts
+  definition in examples, benchmarks, adapters, tests, and docs uses the
+  canonical registry. Alpha residue checks find no root scale compatibility
+  types, runtime fallback, warning, or deprecated public alias.
+
+### F-294 - Automatic mark renderers imposed shared host plumbing
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: adding Canvas rendering for dense marks while retaining SVG
+  guides, labels, focus, and accessibility
+- Friction: renderer choice belonged to the whole chart, and every DOM adapter
+  assumed one surface. A dense mark could not opt into Canvas without moving
+  axes and labels too, while nested compositions, SSR adoption, focus updates,
+  pointer geometry, and image export all depended on the original single-root
+  contract.
+- Decision: add a small universal renderer token to mark options and keep the
+  DOM compositor contract in the DOM layer. The compositor preserves authored
+  source order across nested SVG and Canvas layers, retains a default surface
+  for existing adapter callbacks, rebuilds complete interaction geometry after
+  focus presentation, and supports SSR, responsive updates, accessibility, and
+  mixed image export without importing Canvas into SVG-only bundles.
+- Verification: Canvas unit coverage includes nested ordering, remounting,
+  focus-guide layers, and a second geometry-only pointer resolution after a
+  mixed focus paint. The browser Canvas gate, packed declarations and runtime,
+  React Native Metro gates, and framework package checks pass. Bundle boundary
+  checks keep SVG-only entries free of Canvas and measure the opt-in mixed
+  representative and React consumers at 35.68 KiB and 41.63 KiB gzip.

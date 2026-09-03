@@ -41,14 +41,14 @@ describe('themed interactive area', () => {
     expect(definition.motion).toMatchObject({
       transition: { type: 'spring', stiffness: 190, damping: 24 },
     })
-    expect(definition.x?.axis).toMatchObject({
+    expect(definition.scales.x?.axis).toMatchObject({
       line: false,
       ticks: { values: expect.any(Array), size: 0 },
     })
-    expect(definition.x?.axis).toMatchObject({
+    expect(definition.scales.x?.axis).toMatchObject({
       ticks: { values: expect.objectContaining({ length: 3 }) },
     })
-    expect(definition.y?.axis).toMatchObject({
+    expect(definition.scales.y?.axis).toMatchObject({
       line: false,
       ticks: { values: expect.arrayContaining([0]), size: 0 },
       tickLabels: false,

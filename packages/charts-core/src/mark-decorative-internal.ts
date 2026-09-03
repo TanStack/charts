@@ -18,21 +18,34 @@ export function createDecorativeMark<
   TYPointValue extends ChartValue,
   TXScaleValue extends ChartValue,
   TYScaleValue extends ChartValue,
+  TXScaleId extends string,
+  TYScaleId extends string,
 >(
   mark: ChartMark<
     TDatum,
     TXPointValue,
     TYPointValue,
     TXScaleValue,
-    TYScaleValue
+    TYScaleValue,
+    TXScaleId,
+    TYScaleId
   >,
   transform: (
     scene: MarkScene<TDatum, TXPointValue, TYPointValue>,
   ) => MarkScene<TDatum, TXPointValue, TYPointValue>,
   options: DecorativeMarkLifecycleOptions,
-): ChartMark<TDatum, never, never, TXScaleValue, TYScaleValue> {
+): ChartMark<
+  TDatum,
+  never,
+  never,
+  TXScaleValue,
+  TYScaleValue,
+  TXScaleId,
+  TYScaleId
+> {
   return {
     motion: mark.motion,
+    renderer: mark.renderer,
     initialize(context) {
       const initialized = mark.initialize(context)
       assertConditionalMetadata(initialized, initialized.id, options)

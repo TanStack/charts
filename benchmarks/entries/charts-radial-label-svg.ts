@@ -15,8 +15,11 @@ const definition = defineChart({
   marks: [
     polar({
       radiusRatio: 0.72,
-      angle: { scale: scaleLinear().domain([0, tau]) },
-      radius: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        angle: { scale: scaleLinear().domain([0, tau]) },
+        radius: { scale: scaleLinear().domain([0, 1]) },
+      },
+
       marks: [
         radialRule(labels, {
           angle: 'angle',
@@ -36,6 +39,10 @@ const definition = defineChart({
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   margin: 0,
 })
 

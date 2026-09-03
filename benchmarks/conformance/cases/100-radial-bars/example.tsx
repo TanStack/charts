@@ -19,17 +19,20 @@ export const createExampleChart = (input: ChartOptions) => {
       marks: [
         polar({
           radiusRatio: 0.84,
-          angle: {
-            scale: scaleLinear().domain([0, maximumFrequency]),
+          scales: {
+            angle: {
+              scale: scaleLinear().domain([0, maximumFrequency]),
+            },
+            radius: {
+              scale: () =>
+                scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
+              range: [
+                ({ radius }) => radius * innerRadiusRatio,
+                ({ radius }) => radius,
+              ],
+            },
           },
-          radius: {
-            scale: () =>
-              scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
-            range: [
-              ({ radius }) => radius * innerRadiusRatio,
-              ({ radius }) => radius,
-            ],
-          },
+
           marks: [
             radialBarAngle(data, {
               id: 'letter-bars',
@@ -43,6 +46,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { range: colors },
       margin: 0,
     },

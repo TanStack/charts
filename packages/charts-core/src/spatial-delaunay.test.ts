@@ -35,8 +35,10 @@ describe('spatial Delaunay link', () => {
       guides: false,
       focusRing: false,
       margin: 0,
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 240, height: 180 })
     const repeated = createChartScene(definition, {
@@ -56,8 +58,10 @@ describe('spatial Delaunay link', () => {
         guides: false,
         focusRing: false,
         margin: 0,
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -114,8 +118,10 @@ describe('spatial Delaunay link', () => {
       guides: false,
       focusRing: false,
       margin: 0,
-      x: { scale: scaleLinear().domain([0, 3]) },
-      y: { scale: scaleLinear().domain([0, 3]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([0, 3]) },
+      },
     })
     const narrow = createChartScene(definition, { width: 100, height: 200 })
     const wide = createChartScene(definition, { width: 400, height: 200 })
@@ -143,8 +149,10 @@ describe('spatial Delaunay link', () => {
           guides: false,
           focusRing: false,
           margin: 0,
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
         }),
         { width: 200, height: 200 },
       )
@@ -183,8 +191,10 @@ describe('spatial Delaunay link', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -214,8 +224,10 @@ describe('spatial Delaunay link', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleTime() },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleTime() },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -248,14 +260,18 @@ describe('spatial Delaunay link', () => {
             chart: (cellRows) => ({
               marks: [delaunayLink(cellRows, { x: 'x', y: 'y', key: 'id' })],
               guides: false,
-              x: { scale: scaleLinear },
-              y: { scale: scaleLinear },
+              scales: {
+                x: { scale: scaleLinear },
+                y: { scale: scaleLinear },
+              },
             }),
           }),
         ],
         guides: false,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 320, height: 180 },
     )

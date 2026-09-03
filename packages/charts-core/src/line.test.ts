@@ -46,16 +46,20 @@ describe('lineX mark', () => {
     const xScene = createChartScene(
       defineChart({
         marks: [lineX(values)],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
     const yScene = createChartScene(
       defineChart({
         marks: [lineY(values)],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -89,8 +93,10 @@ describe('lineX mark', () => {
           key: 'id',
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleBand<string> },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleBand<string> },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 260 })
 
@@ -125,8 +131,10 @@ describe('lineX mark', () => {
     })
     const definition = defineChart({
       marks: [mark],
-      x: { scale: scaleLinear().domain([0, 8]) },
-      y: { scale: scaleLinear().domain([0, 3]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 8]) },
+        y: { scale: scaleLinear().domain([0, 3]) },
+      },
     })
     const first = createChartScene(definition, { width: 480, height: 260 })
     const second = createChartScene(definition, { width: 600, height: 300 })
@@ -177,8 +185,10 @@ describe('lineX mark', () => {
             curve: d3Curve(curveMonotoneY),
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 8]) },
-        y: { scale: scaleLinear().domain([0, 4]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 8]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -202,8 +212,10 @@ describe('lineX mark', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineX(rows, { x: 'value', y: 'at', key: 'id' })],
-        x: { scale: scaleLinear },
-        y: { scale: scaleUtc },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleUtc },
+        },
       }),
       { width: 480, height: 260 },
     )

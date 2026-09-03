@@ -35,11 +35,13 @@ export const createExampleChart = (input: ChartOptions) => {
           inset: 1,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (kg)' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Cumulative count' },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (kg)' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Cumulative count' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },

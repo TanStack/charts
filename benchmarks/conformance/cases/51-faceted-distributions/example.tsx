@@ -68,22 +68,28 @@ export const createExampleChart = (input: ChartOptions) => {
               }),
             ],
             ...(input.preview ? { guides: false, margin: 0 } : {}),
-            x: {
-              scale: scaleLinear().domain([2500, 6500]),
-              grid: true,
-              axis: { label: 'Body mass (g)' },
-            },
-            y: {
-              scale: scaleLinear().domain([0, 0.4]),
-              grid: true,
-              axis: {
-                ticks: { count: 3, format: (value) => percent.format(value) },
-                label: 'Proportion',
+            scales: {
+              x: {
+                scale: scaleLinear().domain([2500, 6500]),
+                grid: true,
+                axis: { label: 'Body mass (g)' },
+              },
+              y: {
+                scale: scaleLinear().domain([0, 0.4]),
+                grid: true,
+                axis: {
+                  ticks: { count: 3, format: (value) => percent.format(value) },
+                  label: 'Proportion',
+                },
               },
             },
           }),
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: 0,
     },
     {

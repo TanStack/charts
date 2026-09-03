@@ -53,14 +53,17 @@ export default defineChart({
       fontWeight: 650,
     }),
   ],
-  x: {
-    scale: () => scaleBand<string>().domain(quarters).padding(0.04),
-    axis: { label: 'Quarter' },
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().domain(quarters).padding(0.04),
+      axis: { label: 'Quarter' },
+    },
+    y: {
+      scale: () => scaleBand<string>().domain(teams).padding(0.04),
+      axis: { label: 'Team' },
+    },
   },
-  y: {
-    scale: () => scaleBand<string>().domain(teams).padding(0.04),
-    axis: { label: 'Team' },
-  },
+
   color: {
     scale: () =>
       scaleLinear<string>().domain([60, 100]).range(['#eff6ff', '#60a5fa']),

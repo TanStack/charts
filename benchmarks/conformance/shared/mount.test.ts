@@ -20,8 +20,10 @@ const definition = (_input: ConformanceInput) =>
         key: 'id',
       }),
     ],
-    x: { scale: scaleLinear().domain([0, 2]) },
-    y: { scale: scaleLinear().domain([0, 4]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 2]) },
+      y: { scale: scaleLinear().domain([0, 4]) },
+    },
   })
 
 describe('tanstackMount', () => {

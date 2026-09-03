@@ -57,12 +57,15 @@ export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
           ],
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
+      scales: {
+        x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
       },
+
       color: { range: colors },
     },
     {

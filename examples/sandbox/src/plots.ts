@@ -21,6 +21,7 @@ import {
   scaleUtc,
 } from 'd3-scale'
 import { curveCatmullRom, curveMonotoneX } from 'd3-shape'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import type { SimpsonsRow } from '@tanstack/charts-data/simpsons'
 import type {
@@ -79,24 +80,27 @@ export const createIndustryChart = (input: IndustryChartInput) =>
           curve: smooth,
         }),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: {
-          ticks: {
-            count: width < 680 ? 4 : 7,
-            format: input.compactTime ? formatMonth : formatYear,
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: {
+            ticks: {
+              count: width < 680 ? 4 : 7,
+              format: input.compactTime ? formatMonth : formatYear,
+            },
+          },
+        },
+        y: {
+          scale: scaleLinear,
+          nice: 4,
+          grid: true,
+          axis: {
+            ticks: { count: 4, format: compactNumber },
+            label: 'Unemployed (thousands)',
           },
         },
       },
-      y: {
-        scale: scaleLinear,
-        nice: 4,
-        grid: true,
-        axis: {
-          ticks: { count: 4, format: compactNumber },
-          label: 'Unemployed (thousands)',
-        },
-      },
+
       color: {
         domain: industryNames,
         range: industryNames.map((industry) => industryColors[industry]),
@@ -118,6 +122,65 @@ export interface SparkInput<TDatum> {
   value: (row: TDatum) => number | null
   color: string
 }
+
+export const createAaplPriceVolumeChart = (input: {
+  rows: readonly AaplRow[]
+}) =>
+  defineChart(({ width }) => ({
+    marks: [
+      areaY(input.rows, {
+        id: 'aapl-volume',
+        x: 'Date',
+        y1: 0,
+        y2: 'Volume',
+        yScale: 'volume',
+        fill: '#8579ff',
+        fillOpacity: 0.18,
+        curve: smooth,
+      }),
+      lineY(input.rows, {
+        id: 'aapl-close',
+        x: 'Date',
+        y: 'Close',
+        stroke: '#ff625a',
+        strokeWidth: 2,
+        curve: smooth,
+      }),
+    ],
+    scales: {
+      x: {
+        scale: scaleUtc,
+        axis: {
+          ticks: {
+            count: width < 680 ? 4 : 7,
+            format: formatYear,
+          },
+        },
+      },
+      y: {
+        scale: scaleLinear,
+        nice: true,
+        grid: true,
+        axis: {
+          label: 'Close ($)',
+          ticks: { count: 4, format: formatDollars },
+        },
+      },
+      volume: {
+        channel: 'y',
+        side: 'right',
+        scale: scaleLinear,
+        nice: true,
+        axis: {
+          label: 'Volume',
+          ticks: { count: 4, format: formatVolume },
+        },
+      },
+    },
+    clip: true,
+    margin: { top: 8, bottom: 30 },
+    theme: chartTheme,
+  }))
 
 export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
   const [minimum, maximum] = extent(input.rows, input.value)
@@ -154,8 +217,11 @@ export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
         r: 3.25,
       }),
     ],
-    x: { scale: scaleUtc },
-    y: { scale: scaleLinear },
+    scales: {
+      x: { scale: scaleUtc },
+      y: { scale: scaleLinear },
+    },
+
     guides: false,
     gradients: [
       {
@@ -178,6 +244,10 @@ export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
 export const createAgreementChart = (input: { value: number }) =>
   defineChart(() => ({
     marks: [radialAgreementMark(input.value)],
+    scales: {
+      x: null,
+      y: null,
+    },
     margin: 4,
     theme: chartTheme,
   }))
@@ -194,24 +264,27 @@ export const createRatingsHeatmap = (input: { rows: readonly SimpsonsRow[] }) =>
         radius: 3,
       }),
     ],
-    x: {
-      scale: () => scaleBand<number>().paddingInner(0.03),
-      axis: {
-        ticks: {
-          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+    scales: {
+      x: {
+        scale: () => scaleBand<number>().paddingInner(0.03),
+        axis: {
+          ticks: {
+            format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+          },
+          label: 'Episode',
         },
-        label: 'Episode',
+      },
+      y: {
+        scale: () => scaleBand<number>().paddingInner(0.03),
+        axis: {
+          ticks: {
+            format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+          },
+          label: 'Season',
+        },
       },
     },
-    y: {
-      scale: () => scaleBand<number>().paddingInner(0.03),
-      axis: {
-        ticks: {
-          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
-        },
-        label: 'Season',
-      },
-    },
+
     color: {
       scale: scaleSequential<string>,
       range: ['#1b181e', '#ff5b56'],
@@ -253,20 +326,23 @@ export const createCarEconomyChart = (input: {
           r: 3,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: {
-          ticks: { count: 3, format: (value: number) => `${value} mpg` },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: {
+            ticks: { count: 3, format: (value: number) => `${value} mpg` },
+          },
+        },
+        y: {
+          scale: () => scaleBand<number>().paddingInner(0.2),
+          axis: {
+            ticks: { format: (value: number) => `${value} cyl` },
+          },
         },
       },
-      y: {
-        scale: () => scaleBand<number>().paddingInner(0.2),
-        axis: {
-          ticks: { format: (value: number) => `${value} cyl` },
-        },
-      },
+
       color: {
         scale: scaleSequential<string>,
         range: ['#7f76e8', '#45d49c'],
@@ -332,18 +408,21 @@ export const createPenguinChart = (input: PenguinChartInput) =>
             ]
           : []),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: { ticks: { count: 3 }, label: 'Bill length (mm)' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: { ticks: { count: 3 }, label: 'Bill length (mm)' },
+        },
+        y: {
+          scale: scaleLinear,
+          nice: true,
+          grid: true,
+          axis: { ticks: { count: 3 }, label: 'Bill depth (mm)' },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        nice: true,
-        grid: true,
-        axis: { ticks: { count: 3 }, label: 'Bill depth (mm)' },
-      },
+
       color: {
         range: ['#ff625a', '#8579ff', '#45d49c'],
       },
@@ -368,14 +447,17 @@ export const createSurveyStackChart = (input: {
         radius: 3,
       }),
     ],
-    x: {
-      scale: () => scaleBand<string>().paddingInner(0.08),
+    scales: {
+      x: {
+        scale: () => scaleBand<string>().paddingInner(0.08),
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 3 }, label: 'Responses' },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 3 }, label: 'Responses' },
-    },
+
     color: {
       domain: surveyResponses,
       range: surveyResponses.map((response) => responseColors[response]),
@@ -398,14 +480,17 @@ export const createSurveyWaffleChart = (input: {
         radius: 2,
       }),
     ],
-    x: {
-      scale: scaleBand<number>().domain(
-        Array.from({ length: 21 }, (_, index) => index),
-      ),
+    scales: {
+      x: {
+        scale: scaleBand<number>().domain(
+          Array.from({ length: 21 }, (_, index) => index),
+        ),
+      },
+      y: {
+        scale: scaleBand<number>().domain([4, 3, 2, 1, 0]),
+      },
     },
-    y: {
-      scale: scaleBand<number>().domain([4, 3, 2, 1, 0]),
-    },
+
     guides: false,
     color: {
       domain: surveyResponses,
@@ -575,6 +660,15 @@ function polar(
 function compactNumber(value: number): string {
   if (value >= 1_000) return `${Math.round(value / 1_000)}k`
   return `${Math.round(value)}`
+}
+
+function formatDollars(value: number): string {
+  return `$${Math.round(value)}`
+}
+
+function formatVolume(value: number): string {
+  if (value >= 1_000_000) return `${Math.round(value / 1_000_000)}M`
+  return compactNumber(value)
 }
 
 function formatMonth(value: Date): string {

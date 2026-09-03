@@ -29,12 +29,19 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 0.75,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Bill length (mm)' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Bill length (mm)' },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Bill depth (mm)' },
+        },
       },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Bill depth (mm)' } },
+
       color: {
         range: groupRange,
         legend: colorLegend({ label: 'Species' }),

@@ -75,8 +75,16 @@ export function drillableSunburstDefinition(rootId: string) {
             },
           }),
         ],
+        scales: {
+          angle: null,
+          radius: null,
+        },
       }),
     ],
+    scales: {
+      x: null,
+      y: null,
+    },
     motion: {
       transition: { type: 'tween', duration: 720, easing: 'ease-in-out' },
     },

@@ -23,7 +23,7 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
   const viewport = resolveViewport(scale, context, contentDomain)
   const categorical = scale.bandwidth !== undefined
   const naturalRange =
-    categorical && context.id === 'y'
+    categorical && context.channel === 'y'
       ? ([Math.min(...context.range), Math.max(...context.range)] as const)
       : context.range
   const range = context.options?.reverse

@@ -100,27 +100,30 @@ export function editableEventDefinition(
               }),
             ]),
       ],
-      x: {
-        scale: scaleUtc().domain(editableDomain),
-        grid: true,
-        axis: {
-          ticks: {
-            format: (value: Date) =>
-              value.toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                timeZone: 'UTC',
-              }),
+      scales: {
+        x: {
+          scale: scaleUtc().domain(editableDomain),
+          grid: true,
+          axis: {
+            ticks: {
+              format: (value: Date) =>
+                value.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                }),
+            },
           },
         },
+        y: {
+          scale: scaleBand<string>()
+            .domain(editableLanes)
+            .paddingInner(0.38)
+            .paddingOuter(0.19),
+          grid: false,
+        },
       },
-      y: {
-        scale: scaleBand<string>()
-          .domain(editableLanes)
-          .paddingInner(0.38)
-          .paddingOuter(0.19),
-        grid: false,
-      },
+
       color: {
         domain: ['discovery', 'design', 'campaign', 'release'],
         range: [

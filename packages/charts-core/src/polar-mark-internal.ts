@@ -1,13 +1,17 @@
 import type {
   ChartBounds,
   ChartKey,
+  ChartMarkRenderer,
   ChartMotionDefinition,
   ChartTheme,
   ChartValue,
   MarkScene,
 } from './types'
+import { applyMarkRendererToScene } from './mark'
 
 export interface PolarResolvedScale<TValue extends ChartValue = ChartValue> {
+  id: string
+  channel: 'angle' | 'radius'
   domain: readonly TValue[]
   map: (value: TValue) => number
   ticks: (count: number) => readonly TValue[]
@@ -21,8 +25,7 @@ export interface PolarLayoutContext {
   radius: number
   startAngle: number
   endAngle: number
-  angle?: PolarResolvedScale
-  radiusScale?: PolarResolvedScale
+  scales: Readonly<Record<string, PolarResolvedScale>>
 }
 
 export interface InitializedPolarMark<
@@ -63,6 +66,7 @@ export interface PolarMark<
     context: PolarMarkInitializeContext,
   ) => InitializedPolarMark<TDatum, TAngle, TRadius>
   motion?: ChartMotionDefinition<any>
+  renderer?: ChartMarkRenderer
   readonly __datum?: TDatum
   readonly __angle?: TAngle
   readonly __radius?: TRadius
@@ -78,12 +82,24 @@ export function createPolarMark<
     context: PolarMarkInitializeContext,
   ) => InitializedPolarMark<TDatum, TAngle, TRadius>,
   motion?: ChartMotionDefinition<TDatum>,
+  renderer?: ChartMarkRenderer,
 ): PolarMark<TDatum, TAngle, TRadius> {
-  if (motion === undefined) return { initialize }
   return {
-    motion,
+    ...(motion === undefined ? {} : { motion }),
+    ...(renderer === undefined ? {} : { renderer }),
     initialize(context) {
-      return { ...initialize(context), motion }
+      const initialized = initialize(context)
+      const withMotion =
+        motion === undefined || initialized.motion !== undefined
+          ? initialized
+          : { ...initialized, motion }
+      if (renderer === undefined) return withMotion
+      const render = withMotion.render
+      return {
+        ...withMotion,
+        render: (renderContext) =>
+          applyMarkRendererToScene(render(renderContext), renderer),
+      }
     },
   }
 }

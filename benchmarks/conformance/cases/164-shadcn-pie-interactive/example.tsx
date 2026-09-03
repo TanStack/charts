@@ -41,8 +41,11 @@ export function createExampleChart(activeMonth = 'january') {
       marks: [
         polar({
           radiusRatio: 0.78,
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+
           marks: [
             radialArc(arcs, {
               id: 'month-slices',
@@ -107,6 +110,10 @@ export function createExampleChart(activeMonth = 'january') {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         domain: interactivePieRows.map((row) => row.browser),
         range: shadcnColors,

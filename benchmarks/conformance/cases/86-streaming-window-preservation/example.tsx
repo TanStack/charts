@@ -46,25 +46,28 @@ export function streamingWindowDefinition(
         strokeWidth: 1,
       }),
     ],
-    x: {
-      scale: scaleUtc().domain(viewport),
-      axis: {
-        ticks: {
-          format: (value) =>
-            value.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              timeZone: 'UTC',
-            }),
+    scales: {
+      x: {
+        scale: scaleUtc().domain(viewport),
+        axis: {
+          ticks: {
+            format: (value) =>
+              value.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              }),
+          },
+          label: streamingViewportLabel(viewportMode),
         },
-        label: streamingViewportLabel(viewportMode),
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 5 }, label: 'Downloads' },
       },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: 'Downloads' },
-    },
+
     margin: { top: 18, right: 24, bottom: 44, left: 58 },
     svgAnimation: false,
     keyboard: true,

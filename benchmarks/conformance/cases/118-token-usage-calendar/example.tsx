@@ -62,36 +62,39 @@ export function createExampleChart(input: ChartOptions) {
           radius: 3,
         }),
       ],
-      x: {
-        scale: scaleBand<number>()
-          .domain(weekDomain)
-          .paddingInner(calendarBandPaddingInner)
-          .paddingOuter(calendarBandPaddingOuter),
-        axis: {
-          line: false,
-          ticks: {
-            values: monthTicks.values,
-            size: 0,
-            padding: input.preview ? 3 : 7,
-            format: (week: number) => monthTicks.labels.get(week) ?? '',
-          },
-          tickLabels: {
-            fontSize: input.preview ? 8 : 13,
-            opacity: 0.62,
-            anchor: ({ index }) => (index === 0 ? 'start' : undefined),
-            dx: ({ index, bandwidth }) =>
-              index === 0 ? -bandwidth / 2 : undefined,
-            thin: { minGap: input.preview ? 2 : 8, priority: 'ends' },
+      scales: {
+        x: {
+          scale: scaleBand<number>()
+            .domain(weekDomain)
+            .paddingInner(calendarBandPaddingInner)
+            .paddingOuter(calendarBandPaddingOuter),
+          axis: {
+            line: false,
+            ticks: {
+              values: monthTicks.values,
+              size: 0,
+              padding: input.preview ? 3 : 7,
+              format: (week: number) => monthTicks.labels.get(week) ?? '',
+            },
+            tickLabels: {
+              fontSize: input.preview ? 8 : 13,
+              opacity: 0.62,
+              anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+              dx: ({ index, bandwidth }) =>
+                index === 0 ? -bandwidth / 2 : undefined,
+              thin: { minGap: input.preview ? 2 : 8, priority: 'ends' },
+            },
           },
         },
+        y: {
+          scale: scaleBand<string>()
+            .domain(weekdays)
+            .paddingInner(calendarBandPaddingInner)
+            .paddingOuter(calendarBandPaddingOuter),
+          axis: false,
+        },
       },
-      y: {
-        scale: scaleBand<string>()
-          .domain(weekdays)
-          .paddingInner(calendarBandPaddingInner)
-          .paddingOuter(calendarBandPaddingOuter),
-        axis: false,
-      },
+
       color: {
         scale: scaleOrdinal<string, string>()
           .domain(usageLevels)

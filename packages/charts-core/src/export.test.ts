@@ -96,8 +96,10 @@ describe('optional export', () => {
           dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' }),
           crosshair({ marker: true }),
         ],
-        x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 4]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
         guides: false,
       }),
       { width: 300, height: 180 },
@@ -174,5 +176,106 @@ describe('optional export', () => {
     )
     getContext.mockRestore()
     toBlob.mockRestore()
+  })
+
+  it('rasterizes mixed SVG and Canvas layers in their visual order', async () => {
+    const container = document.createElement('div')
+    container.innerHTML = `
+      <div class="ts-chart ts-chart-layers" data-ts-chart-width="400" data-ts-chart-height="200">
+        <div class="ts-chart-layer">
+          <svg class="ts-chart" viewBox="0 0 400 200"><rect width="400" height="200" fill="white" /></svg>
+        </div>
+        <div class="ts-chart-layer">
+          <div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2">
+            <canvas class="ts-chart-canvas__background" width="800" height="400"></canvas>
+            <canvas class="ts-chart-canvas__focus-under" width="800" height="400"></canvas>
+            <canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas>
+            <canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas>
+            <canvas class="ts-chart-canvas__base" width="800" height="400"></canvas>
+          </div>
+        </div>
+        <div class="ts-chart-layer">
+          <svg class="ts-chart" viewBox="0 0 400 200"><circle cx="20" cy="20" r="4" /></svg>
+        </div>
+      </div>`
+    const drawImage = vi.fn()
+    const getContext = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        scale: vi.fn(),
+        fillRect: vi.fn(),
+        drawImage,
+      } as unknown as CanvasRenderingContext2D)
+    const toBlob = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation((callback) => {
+        callback(new Blob(['layers'], { type: 'image/png' }))
+      })
+    const urlDescriptor = {
+      create: Object.getOwnPropertyDescriptor(window.URL, 'createObjectURL'),
+      revoke: Object.getOwnPropertyDescriptor(window.URL, 'revokeObjectURL'),
+    }
+    Object.defineProperties(window.URL, {
+      createObjectURL: {
+        configurable: true,
+        value: vi.fn(() => 'blob:chart-layer'),
+      },
+      revokeObjectURL: { configurable: true, value: vi.fn() },
+    })
+    const sourceDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLImageElement.prototype,
+      'src',
+    )
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true,
+      get() {
+        return 'blob:chart-layer'
+      },
+      set() {
+        this.onload?.call(this, new Event('load'))
+      },
+    })
+
+    try {
+      await expect(
+        renderChartImage(container, { scale: 1, includeFocus: true }),
+      ).resolves.toMatchObject({ type: 'image/png' })
+
+      const background = container.querySelector('.ts-chart-canvas__background')
+      const focusUnder = container.querySelector(
+        '.ts-chart-canvas__focus-under',
+      )
+      const scene = container.querySelector('.ts-chart-canvas__scene')
+      const focus = container.querySelector('.ts-chart-canvas__focus')
+      expect(drawImage).toHaveBeenCalledTimes(6)
+      expect(drawImage.mock.calls.map((call) => call[0])).toEqual([
+        expect.any(HTMLImageElement),
+        background,
+        focusUnder,
+        scene,
+        focus,
+        expect.any(HTMLImageElement),
+      ])
+      expect(() => serializeChartSvg(container)).toThrow(
+        'Mixed-renderer charts require raster export',
+      )
+    } finally {
+      if (sourceDescriptor) {
+        Object.defineProperty(
+          HTMLImageElement.prototype,
+          'src',
+          sourceDescriptor,
+        )
+      }
+      for (const [key, descriptor] of Object.entries({
+        createObjectURL: urlDescriptor.create,
+        revokeObjectURL: urlDescriptor.revoke,
+      })) {
+        if (descriptor) Object.defineProperty(window.URL, key, descriptor)
+        else delete (window.URL as unknown as Record<string, unknown>)[key]
+      }
+      getContext.mockRestore()
+      toBlob.mockRestore()
+    }
   })
 })

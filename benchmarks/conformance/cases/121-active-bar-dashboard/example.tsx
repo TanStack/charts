@@ -107,30 +107,34 @@ export function activeBarDashboardDefinition(
           motion: { transition: dashboardSpring },
         }),
       ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(rows.map((row) => row.id))
-          .paddingInner(0.18)
-          .paddingOuter(0.08),
-        axis: {
-          line: false,
-          ticks: {
-            values: tickIds,
-            size: 0,
-            padding: input.preview ? 4 : 8,
-            format: (value) => rows.find((row) => row.id === value)?.day ?? '',
-          },
-          tickLabels: {
-            fontSize: input.preview ? 8 : 10,
-            opacity: 0.52,
+      scales: {
+        x: {
+          scale: scaleBand<string>()
+            .domain(rows.map((row) => row.id))
+            .paddingInner(0.18)
+            .paddingOuter(0.08),
+          axis: {
+            line: false,
+            ticks: {
+              values: tickIds,
+              size: 0,
+              padding: input.preview ? 4 : 8,
+              format: (value) =>
+                rows.find((row) => row.id === value)?.day ?? '',
+            },
+            tickLabels: {
+              fontSize: input.preview ? 8 : 10,
+              opacity: 0.52,
+            },
           },
         },
+        y: {
+          scale: scaleLinear().domain([0, Math.ceil(maximum * 1.12)]),
+          grid: true,
+          axis: false,
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, Math.ceil(maximum * 1.12)]),
-        grid: true,
-        axis: false,
-      },
+
       gradients: [
         {
           id: 'visitor-bars',

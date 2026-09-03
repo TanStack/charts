@@ -1,9 +1,12 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { barY } from './bar'
+import { boxY } from './box'
 import { dot } from './dot'
+import { lineY } from './line'
 import { createMark } from './mark'
 import { compositeMark } from './mark-composite'
+import { linearRegressionY } from './regression'
 import { createChartScene, defineChart } from './scene'
 import { tickY } from './tick'
 import type { ChartDefinition, ChartMotionContext, SceneNode } from './types'
@@ -42,8 +45,10 @@ describe('compositeMark', () => {
     )
     const definition = defineChart({
       marks: [mark],
-      x: { scale: scaleBand<string> },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
 
@@ -105,8 +110,10 @@ describe('compositeMark', () => {
     const scene = createChartScene(
       defineChart({
         marks: [mark],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -117,6 +124,66 @@ describe('compositeMark', () => {
       'shared:ring',
       'shared:ring',
     ])
+  })
+
+  it('preserves positional channel identity under child namespaces', () => {
+    const mark = compositeMark([
+      lineY(rows, {
+        id: 'line',
+        x: 'category',
+        y: 'value',
+        yScale: 'alternate',
+      }),
+    ])
+
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [mark],
+          scales: {
+            x: { scale: scaleBand<string>() },
+            y: null,
+            alternate: { channel: 'x', scale: scaleLinear() },
+          },
+        }),
+        { width: 480, height: 280 },
+      ),
+    ).toThrow('Chart scale "alternate" is configured for x but is used as y')
+  })
+
+  it.each([
+    [
+      'boxY',
+      boxY(rows, {
+        x: 'category',
+        y: 'value',
+        yScale: 'alternate',
+      }),
+    ],
+    [
+      'linearRegressionY',
+      linearRegressionY(rows, {
+        x: 'value',
+        y: 'value',
+        ci: 0,
+        samples: 2,
+        yScale: 'alternate',
+      }),
+    ],
+  ])('validates the named positional channel used by %s', (_name, mark) => {
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [mark],
+          scales: {
+            x: { scale: scaleLinear() },
+            y: null,
+            alternate: { channel: 'x', scale: scaleLinear() },
+          },
+        }),
+        { width: 480, height: 280 },
+      ),
+    ).toThrow('Chart scale "alternate" is configured for x but is used as y')
   })
 
   it('merges parent and child motion under the resolved child namespace', () => {

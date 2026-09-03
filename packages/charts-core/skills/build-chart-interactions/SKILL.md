@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '0.9.0'
+  library_version: '0.16.0'
 sources:
   - 'TanStack/charts:docs/guides/tooltips-and-focus.md'
   - 'TanStack/charts:docs/guides/interactions-and-selections.md'
@@ -42,8 +42,10 @@ export const chart = defineChart({
     lineY(rows, { x: 'week', y: 'value', points: true }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scalePoint },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scalePoint },
+    y: { scale: scaleLinear },
+  },
   focus: 'nearest-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
   tooltip,
@@ -110,8 +112,10 @@ export const chart = defineChart({
       selection,
     ),
   ],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
   selection,
 })
 ```

@@ -18,8 +18,11 @@ export function createExampleChart() {
           radius: 5,
         }),
       ],
-      x: { scale: scaleLinear, axis: false },
-      y: shadcnBrowserYAxis(),
+      scales: {
+        x: { scale: scaleLinear, axis: false },
+        y: shadcnBrowserYAxis(),
+      },
+
       color: { domain: browserNames, range: shadcnColors },
       margin: { top: 5, right: 5, bottom: 5, left: 60 },
       theme: shadcnTheme(),

@@ -93,6 +93,10 @@ export default defineChart({
         ] as const,
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
   margin: 0,
 })
@@ -185,8 +189,11 @@ export default defineChart({
       dx: (node) => (node.internal ? -7 : 7),
     }),
   ],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
+
   guides: false,
   margin: { top: 24, right: 110, bottom: 24, left: 64 },
 })
@@ -254,6 +261,10 @@ const chart = defineChart({
       stroke: '#fff',
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
   margin: 0,
 })
@@ -353,8 +364,10 @@ const chart = defineChart({
     dot(graph.nodes, { x: 'x', y: 'y', color: 'group', key: 'id' }),
     text(graph.nodes, { x: 'x', y: 'y', text: 'id', key: 'id' }),
   ],
-  x: { scale: scaleLinear().domain(graph.xDomain) },
-  y: { scale: scaleLinear().domain(graph.yDomain) },
+  scales: {
+    x: { scale: scaleLinear().domain(graph.xDomain) },
+    y: { scale: scaleLinear().domain(graph.yDomain) },
+  },
 })
 ```
 

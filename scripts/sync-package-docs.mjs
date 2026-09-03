@@ -76,7 +76,7 @@ export async function createLlmsIndex(root) {
     const source = await readFile(resolve(docsRoot, `${path}.md`), 'utf8')
     const frontmatter = parseFrontmatter(source)
     lines.push(
-      `- docs/${path}.md — ${frontmatter?.title ?? path}: ${frontmatter?.description ?? ''}`,
+      `- docs/${path}.md: ${frontmatter?.title ?? path}: ${frontmatter?.description ?? ''}`,
     )
   }
 
@@ -88,10 +88,13 @@ export async function createLlmsIndex(root) {
     '- Start with exact @tanstack/charts/scales/linear, @tanstack/charts/scales/band, @tanstack/charts/scales/point, or @tanstack/charts/scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.',
     '- Treat Date values on compact band or point scales as equally spaced categories. Use d3-scale scaleTime or scaleUtc when elapsed-time spacing or calendar-aware ticks matter.',
     '- Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.',
+    '- Put Cartesian scale and guide options under scales.x and scales.y; root x and y properties are invalid.',
+    '- Put polar position scales under scales.angle and scales.radius inside polar(); direct angle and radius properties are invalid.',
     '- Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.',
     '- Memoize the complete definition against captured application values; definition identity is the application update boundary.',
     '- Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.',
     '- Prefer built-in marks, then composition, then a custom mark or application-owned overlay.',
+    "- Keep the default SVG renderer unless a measured paint-heavy mark benefits from Canvas. Import canvasChartRenderer from @tanstack/charts/canvas and set only that mark's renderer option when mixing surfaces.",
     '- Treat docs/concepts/scales-and-d3.md as the sole scale-selection and D3 integration contract and follow its official D3 links for D3 API details.',
     '- Reference a canonical catalog case with `<!-- ::chart-example id=case-id height=480 -->`. The documentation site resolves its source-backed workspace; never author a catalog iframe or duplicate the case source in a docs page.',
     '- Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.',

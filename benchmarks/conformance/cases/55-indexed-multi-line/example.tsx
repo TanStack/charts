@@ -71,15 +71,18 @@ export const createExampleChart = (input: ChartOptions) => {
               }),
             ]),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Month' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: {
-          ticks: { format: formatIndex },
-          label: 'Change from January 2008',
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Month' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: {
+            ticks: { format: formatIndex },
+            label: 'Change from January 2008',
+          },
         },
       },
+
       color: {
         range: colors,
       },

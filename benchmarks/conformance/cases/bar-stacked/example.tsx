@@ -27,15 +27,18 @@ export const createExampleChart = (input: ChartOptions) => {
         }),
         ruleY([0]),
       ],
-      x: {
-        scale: scaleUtc,
-        axis: { ticks: { count: 6, format: (value) => month.format(value) } },
+      scales: {
+        x: {
+          scale: scaleUtc,
+          axis: { ticks: { count: 6, format: (value) => month.format(value) } },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { ticks: { count: 5 }, label: 'Deaths' },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { ticks: { count: 5 }, label: 'Deaths' },
-      },
+
       color: { domain: causes, range: causeColors },
     },
     { keyboard: true, tooltip: exampleTooltip },

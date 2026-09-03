@@ -34,8 +34,16 @@ export const createExampleChart = (input: ChartOptions) => {
               strokeWidth: 2,
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         range: ['#7c3aed', '#0ea5e9', '#14b8a6'],
       },

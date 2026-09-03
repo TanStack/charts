@@ -42,6 +42,7 @@ function scene(
   return createChartScene(
     defineChart({
       marks: [mark],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
       margin,
@@ -185,6 +186,7 @@ describe('treemap', () => {
             inset: 0,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -211,6 +213,7 @@ describe('treemap', () => {
             },
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -249,6 +252,7 @@ describe('treemap', () => {
             },
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -297,6 +301,7 @@ describe('treemap', () => {
               inset: 0,
             }),
           ],
+          scales: { x: null, y: null },
           guides: false,
           focusRing: false,
           margin: 0,
@@ -341,6 +346,7 @@ describe('treemap', () => {
             inset: 0,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -368,6 +374,7 @@ describe('treemap', () => {
             method: 'dice',
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -545,6 +552,7 @@ describe('treemap', () => {
       createChartScene(
         defineChart({
           marks: [malformed],
+          scales: { x: null, y: null },
           guides: false,
           focusRing: false,
           margin: 0,

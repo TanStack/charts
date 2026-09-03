@@ -54,8 +54,11 @@ export const createExampleChart = (input: ChartOptions) => {
     {
       marks: [
         polar({
-          angle: { scale: angleScale, wrap: true },
-          radius: { scale: radiusScale },
+          scales: {
+            angle: { scale: angleScale, wrap: true },
+            radius: { scale: radiusScale },
+          },
+
           inset: 0,
           radiusRatio: input.preview === true ? 0.94 : 0.8,
           guides: [
@@ -98,6 +101,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       margin: input.preview === true ? 0 : margin,
     },
     {

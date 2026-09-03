@@ -6,6 +6,7 @@ import type {
   ChartHostControl,
   ChartHostControlExtensionToken,
   ChartMotionTransition,
+  ChartMarkRenderer,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -95,6 +96,10 @@ export interface ChartSurface<
 > {
   readonly renderer: ChartRenderer<TDatum, TXValue, TYValue>
   readonly element: Element
+  /** Ordered child surfaces when this surface composes multiple renderers. */
+  readonly layers?: readonly ChartSurface<TDatum, TXValue, TYValue>[]
+  /** Topmost surface element owned by the chart's default renderer. */
+  readonly defaultElement?: Element
   render: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
@@ -180,6 +185,17 @@ export interface ChartRenderer<
   ) => ChartSurface<TDatum, TXValue, TYValue>
 }
 
+export interface ChartLayerRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>
+  extends ChartRenderer<TDatum, TXValue, TYValue>, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<TDatum, TXValue, TYValue>,
+  ) => ChartRenderer<TDatum, TXValue, TYValue>
+}
+
 /** A definition-agnostic renderer that acquires chart types from its host. */
 export interface UniversalChartRenderer {
   readonly id: string
@@ -200,6 +216,13 @@ export interface UniversalChartRenderer {
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
   ) => ChartSurface<TDatum, TXValue, TYValue>
+}
+
+export interface UniversalChartLayerRenderer
+  extends UniversalChartRenderer, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<any, any, any>,
+  ) => ChartRenderer<any, any, any>
 }
 
 export interface ChartRendererRenderContext<
@@ -304,6 +327,7 @@ export interface ChartRenderContext<
   container: HTMLElement
   svg: SVGSVGElement
   scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
   interaction: ChartInteractionController<TDatum, TXValue, TYValue>
 }
 

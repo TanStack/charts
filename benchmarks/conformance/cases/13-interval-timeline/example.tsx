@@ -27,11 +27,18 @@ export const createExampleChart = (input: ChartOptions) => {
           radius: 3,
         }),
       ],
-      x: { scale: scaleLinear, grid: true, axis: { label: 'Share price ($)' } },
-      y: {
-        scale: () => scaleBand<Date>().paddingInner(0.16),
-        axis: { ticks: { format: (value) => date.format(value) } },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Share price ($)' },
+        },
+        y: {
+          scale: () => scaleBand<Date>().paddingInner(0.16),
+          axis: { ticks: { format: (value) => date.format(value) } },
+        },
       },
+
       color: {
         range: colors,
         legend: colorLegend({ label: 'Session' }),

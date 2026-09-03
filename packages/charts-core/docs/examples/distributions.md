@@ -76,8 +76,10 @@ const chart = defineChart({
       fill: '#2563eb',
     }),
   ],
-  x: { scale: scaleLinear, axis: { label: 'Response time (ms)' } },
-  y: { scale: scaleLinear, grid: true, axis: { label: 'Requests' } },
+  scales: {
+    x: { scale: scaleLinear, axis: { label: 'Response time (ms)' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Requests' } },
+  },
 })
 
 export default chart

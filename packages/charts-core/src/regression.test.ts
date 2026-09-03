@@ -46,8 +46,10 @@ describe('linear regression marks', () => {
             samples: 3,
           }),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -102,8 +104,10 @@ describe('linear regression marks', () => {
             samples: 3,
           }),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleTime },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleTime },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -190,8 +194,10 @@ describe('linear regression marks', () => {
           stroke: '#dc2626',
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 640, height: 360 })
     const nodes = flatten(scene.nodes)
@@ -237,8 +243,10 @@ describe('linear regression marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [linearRegressionY(rows, { x: 'x', y: 'y', ci: 0 })],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -273,8 +281,10 @@ describe('linear regression marks', () => {
             samples: 3,
           }),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -323,8 +333,10 @@ describe('linear regression marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [linearRegressionY(rows, { x: 'x', y: 'y', samples: 2 })],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -358,8 +370,10 @@ describe('linear regression marks', () => {
             samples: 2,
           }),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -387,8 +401,10 @@ describe('linear regression marks', () => {
           samples: 3,
         }),
       ],
-      x: { scale: scaleTime },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleTime },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
     type Datum = ChartSpecDatum<typeof definition>
@@ -419,8 +435,10 @@ describe('linear regression marks', () => {
             samples: 5,
           }),
         ],
-        x: { scale: scaleLog },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLog },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 600, height: 320 },
     )
@@ -453,8 +471,10 @@ describe('linear regression marks', () => {
           samples: 3,
         }),
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
     type Datum = ChartSpecDatum<typeof definition>
@@ -503,8 +523,10 @@ describe('linear regression marks', () => {
     const scene = createChartScene(
       defineChart({
         marks: [mark],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 280 },
     )

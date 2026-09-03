@@ -73,18 +73,21 @@ export function brushRangeDefinition(
         strokeWidth: 1,
       }),
     ],
-    x: {
-      scale: scaleUtc().domain(fullDomain),
-      axis: {
-        ticks: { format: (value) => brushMonthFormatter.format(value) },
-        label: 'Month',
+    scales: {
+      x: {
+        scale: scaleUtc().domain(fullDomain),
+        axis: {
+          ticks: { format: (value) => brushMonthFormatter.format(value) },
+          label: 'Month',
+        },
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
       },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
+
     controls: [
       brushX({
         id: 'monthly-range',

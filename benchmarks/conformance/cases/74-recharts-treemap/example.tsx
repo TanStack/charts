@@ -31,6 +31,10 @@ export const createExampleChart = (input?: ChartOptions) =>
           labelFontWeight: 600,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { range: colors },
       guides: false,
       margin: 0,

@@ -36,28 +36,29 @@ foregrounds paint last.
 function polar(options: PolarOptions): ChartMark
 ```
 
-| Option        | Type                    | Default       | Meaning                                          |
-| ------------- | ----------------------- | ------------- | ------------------------------------------------ |
-| `id`          | `string`                | Layer-derived | Stable container ID                              |
-| `className`   | `string`                | None          | Class added beside `ts-chart__polar`             |
-| `marks`       | `readonly PolarMark[]`  | Required      | Radial marks rendered in order                   |
-| `guides`      | `readonly PolarGuide[]` | `[]`          | Background/foreground guide layers around marks  |
-| `angle`       | `PolarAngleOptions`     | None          | Angle factory or instance and optional wrapping  |
-| `radius`      | `PolarRadiusOptions`    | None          | Radius scale and optional responsive pixel range |
-| `startAngle`  | `number`                | `0`           | Start of the available angular range in radians  |
-| `endAngle`    | `number`                | `2π`          | End of the available angular range in radians    |
-| `inset`       | `number`                | `0`           | Pixels removed from the maximum centered radius  |
-| `radiusRatio` | `number`                | `1`           | Multiplier applied to the radius after inset     |
+| Option        | Type                    | Default       | Meaning                                                        |
+| ------------- | ----------------------- | ------------- | -------------------------------------------------------------- |
+| `id`          | `string`                | Layer-derived | Stable container ID                                            |
+| `className`   | `string`                | None          | Class added beside `ts-chart__polar`                           |
+| `marks`       | `readonly PolarMark[]`  | Required      | Radial marks rendered in order                                 |
+| `guides`      | `readonly PolarGuide[]` | `[]`          | Background/foreground guide layers around marks                |
+| `scales`      | `PolarScales`           | Required      | Reserved `angle` and `radius` entries plus optional named ones |
+| `startAngle`  | `number`                | `0`           | Start of the available angular range in radians                |
+| `endAngle`    | `number`                | `2π`          | End of the available angular range in radians                  |
+| `inset`       | `number`                | `0`           | Pixels removed from the maximum centered radius                |
+| `radiusRatio` | `number`                | `1`           | Multiplier applied to the radius after inset                   |
+| `renderer`    | `ChartMarkRenderer`     | Host renderer | Renderer for the complete polar container                      |
 
 The default angular range is a complete circle. Angles use D3's radial
 convention: zero is at twelve o'clock and positive values move clockwise.
 
-`PolarAngleOptions` and `PolarRadiusOptions` accept compatible factories with
-mark-inferred domains or configured instances with fixed domains. `nice`
-applies after inference. TanStack supplies responsive ranges without mutating
-an instance. An omitted `wrap` closes a complete revolution without adding a
-duplicate semantic category, but preserves both endpoints of a partial range.
-Set it explicitly to override that behavior.
+`scales.angle` and `scales.radius` accept compatible factories with
+mark-inferred domains or configured instances with fixed domains. Use `null`
+when no child mark uses that channel. `nice` applies after inference. TanStack
+supplies responsive ranges without mutating an instance. An omitted `wrap`
+closes a complete revolution without adding a duplicate semantic category,
+but preserves both endpoints of a partial range. Set it explicitly to override
+that behavior.
 
 `PolarRadiusOptions.range` overrides the default `[0, radius]` pixel range on
 the copied radius scale. Each endpoint is a nonnegative pixel length or a
@@ -74,14 +75,49 @@ const radiusOptions = {
 The range is re-resolved on resize and never mutates the authored D3 scale.
 
 `PolarLayoutContext` contains `chart`, `centerX`, `centerY`, `radius`,
-`startAngle`, `endAngle`, and optional resolved angle/radius scales. Each
-`PolarResolvedScale` exposes its semantic `domain`, responsive `map`, `ticks`,
-and `bandwidth`. A `PolarLength` is either a pixel length or a callback of the
-layout context. Use a callback for radii that must remain proportional during
-resize.
+`startAngle`, `endAngle`, and resolved position scales under `scales`. Each
+`PolarResolvedScale` exposes its `id`, `channel`, semantic `domain`, responsive
+`map`, `ticks`, and `bandwidth`. A `PolarLength` is either a pixel length or a
+callback of the layout context. Use a callback for radii that must remain
+proportional during resize.
 
-The outer chart omits `x` and `y`. Cartesian axes do not participate in the
-internal polar scales.
+Additional entries support independent angle or radius mappings. Declare the
+entry's channel, then bind a radial mark to its ID:
+
+```ts
+polar({
+  scales: {
+    angle: { scale: categoryScale },
+    radius: { scale: percentScale },
+    target: {
+      channel: 'radius',
+      scale: targetScale,
+    },
+  },
+  marks: [
+    radialLine(actual, { angle: 'metric', radius: 'value' }),
+    radialLine(target, {
+      angle: 'metric',
+      radius: 'value',
+      radiusScale: 'target',
+    }),
+  ],
+})
+```
+
+`radialLine`, `radialArea`, `radialDot`, `radialText`, `radialRule`, and both
+radial bar marks use `angleScale` and `radiusScale`. Omitted bindings use the
+reserved `angle` and `radius` entries. `radialArc` uses authored angular and
+radial geometry instead of positional scale bindings.
+
+All radial mark option objects also accept `renderer?: ChartMarkRenderer`.
+Use `canvasChartRenderer` to paint one radial mark with Canvas while sibling
+marks and guide labels stay in SVG. Setting `renderer` on the outer `polar`
+options moves the complete polar container, including its guides, to that
+renderer.
+
+The outer chart uses `scales: { x: null, y: null }`. Cartesian axes do not
+participate in the internal polar scales.
 
 ## `focusGroupAngle`
 
@@ -227,11 +263,12 @@ Use the implicit physical-center radius baseline for nonnegative magnitudes.
 For signed values or true radial intervals, set `radius1: 0` (or another
 semantic baseline) so both endpoints map through the configured scale.
 
-Both marks accept `id`, `className`, `key`, `z`, `color`, `fill`, fill opacity,
-stroke styling, opacity, and motion. `cornerRadius` accepts a `PolarLength` or
-`"full"`; the latter resolves to half the bar's radial thickness. Each valid
-bar emits one geometry-backed interaction point at its quantitative endpoint
-and preserves its interval endpoints for focus and tooltip formatting.
+Both marks accept `id`, `className`, `angleScale`, `radiusScale`, `key`, `z`,
+`color`, `fill`, fill opacity, stroke styling, opacity, and motion.
+`cornerRadius` accepts a `PolarLength` or `"full"`; the latter resolves to half
+the bar's radial thickness. Each valid bar emits one geometry-backed
+interaction point at its quantitative endpoint and preserves its interval
+endpoints for focus and tooltip formatting.
 
 ## `radialLine` and `radialArea`
 
@@ -248,13 +285,14 @@ function radialArea<TDatum>(
 ```
 
 Both marks use `angle` and `radius` channels and accept `id`, `className`,
-`key`, `z`, `color`, and a D3 curve factory. The channels default to row index
-and a numeric datum. `color` contributes to the chart color scale and defaults
-to `z`. When `z` is omitted, an authored `color` also partitions the paths.
-When both are present, `z` remains the explicit geometry and interaction
-group. `radialLine` accepts final stroke, dash, opacity, and optional `points`
-styling. `radialArea` accepts final fill and stroke styling plus `radius1` for
-an explicit inner scale value; `radius1` defaults to zero.
+`angleScale`, `radiusScale`, `key`, `z`, `color`, and a D3 curve factory. The
+channels default to row index and a numeric datum. `color` contributes to the
+chart color scale and defaults to `z`. When `z` is omitted, an authored
+`color` also partitions the paths. When both are present, `z` remains the
+explicit geometry and interaction group. `radialLine` accepts final stroke,
+dash, opacity, and optional `points` styling. `radialArea` accepts final fill
+and stroke styling plus `radius1` for an explicit inner scale value; `radius1`
+defaults to zero.
 
 Their datum key defaults to a unique top-level or nested `data.id`, then a
 unique angle within each effective path group, then row index.
@@ -274,10 +312,11 @@ function radialDot<TDatum>(
 ```
 
 `radialDot` uses the same angle/radius channel defaults. It also accepts `id`,
-`className`, `key`, `z`, `color`, `r`, `rScale`, fill, stroke, and opacity styling.
-Radius defaults to 3.5 pixels. Each valid datum emits one interaction point
-with its original angle/radius values and projected screen position. Its key
-defaults to a unique top-level or nested `data.id`, then row index.
+`className`, `angleScale`, `radiusScale`, `key`, `z`, `color`, `r`, `rScale`,
+fill, stroke, and opacity styling. Radius defaults to 3.5 pixels. Each valid
+datum emits one interaction point with its original angle/radius values and
+projected screen position. Its key defaults to a unique top-level or nested
+`data.id`, then row index.
 
 ## `radialText`
 
@@ -290,8 +329,9 @@ function radialText<TDatum>(
 
 `radialText` maps `angle` and `radius` channels through the container's copied
 polar scales, then positions labels with D3's radial point projection. It
-accepts `text`, `key`, `z`, `color`, fill, font size and weight, anchor, baseline,
-rotation, and pixel `dx`/`dy`. `radiusOffset` is a signed constant or per-datum
+accepts `angleScale`, `radiusScale`, `text`, `key`, `z`, `color`, fill, font
+size and weight, anchor, baseline, rotation, and pixel `dx`/`dy`.
+`radiusOffset` is a signed constant or per-datum
 visual channel applied in pixels after the semantic radius is mapped. It does
 not contribute to the radius domain. Set `anchor: "outside"` to resolve
 `start`, `middle`, or `end` from the final mapped angle. Exact and near-exact
@@ -317,12 +357,12 @@ function radialRule<TDatum>(
 `radius1Offset` and `radius2Offset` as signed constant or per-datum pixel
 visual channels applied after the corresponding semantic radius is mapped.
 Offsets never contribute to radius-domain inference. A nonfinite resolved
-endpoint offset omits that segment. The mark also accepts `key`, `z`, `color`,
-stroke, opacity, width, and dash styling. It covers gauge needles, ticks, and
-pie-label leaders without expanding one logical segment into two path rows.
-Rules remain decorative and emit no interaction points. Its key defaults to a
-unique top-level or nested `data.id`, then a unique angle within each `z`
-group, then row index.
+endpoint offset omits that segment. The mark also accepts `angleScale`,
+`radiusScale`, `key`, `z`, `color`, stroke, opacity, width, and dash styling.
+It covers gauge needles, ticks, and pie-label leaders without expanding one
+logical segment into two path rows. Rules remain decorative and emit no
+interaction points. Its key defaults to a unique top-level or nested
+`data.id`, then a unique angle within each `z` group, then row index.
 
 Pixel offsets do not reserve space outside the polar radius. Use
 `radiusRatio`, `inset`, or chart margins when labels or leaders must remain
@@ -335,15 +375,17 @@ function radialGrid(options?: RadialGridOptions): PolarGuide
 function angleGrid(options?: AngleGridOptions): PolarGuide
 ```
 
-`radialGrid` draws radius values as circles or polygons. Supply explicit
-`values`, or let `ticks` request values from the configured radius scale.
-Labels are off by default. Label angle, offset, rotation, format, fill, and
-font size are configurable. Ring `fill` and `fillOpacity` can layer filled
-circle or polygon grids behind the chart marks.
+`radialGrid` draws radius values as circles or polygons. Its `scale` option
+selects a named radius scale, and `angleScale` selects the angle scale used for
+polygon rings. Supply explicit `values`, or let `ticks` request values from the
+selected radius scale. Labels are off by default. Label angle, offset,
+rotation, format, fill, and font size are configurable. Ring `fill` and
+`fillOpacity` can layer filled circle or polygon grids behind the chart marks.
 
-`angleGrid` draws spokes for explicit `values` or the configured angle domain.
-It can show labels around the circumference with `format` and `labelOffset`.
-Labels are on by default and use the same outside-anchor rule as
+`angleGrid` draws spokes for explicit `values` or the selected angle domain.
+Its `scale` option selects a named angle scale. It can show labels around the
+circumference with `format` and `labelOffset`. Labels are on by default and
+use the same outside-anchor rule as
 `radialText({ anchor: "outside" })` unless `labelAnchor` is supplied. Both
 guides accept ID, class, stroke, opacity, width, and dash styling.
 
@@ -369,7 +411,8 @@ built-in grids put rings and spokes in `background` and labels in
 `foreground`, keeping labels legible without painting grid geometry over the
 data.
 
-The exported option contracts are `PolarOptions`, `RadialArcOptions`,
+The exported option contracts are `PolarOptions`, `PolarScales`,
+`PolarPositionChannel`, `PolarPositionScaleOptions`, `RadialArcOptions`,
 `RadialBarRadiusOptions`, `RadialBarAngleOptions`, `RadialLineOptions`,
 `RadialAreaOptions`, `RadialDotOptions`, `RadialTextOptions`,
 `RadialRuleOptions`, `RadialGridOptions`, and `AngleGridOptions`. The coordinate contracts are `PolarAngleOptions`,

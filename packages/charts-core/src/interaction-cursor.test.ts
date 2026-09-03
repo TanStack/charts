@@ -66,8 +66,10 @@ describe('continuousCursor', () => {
           { x: 'x', y: 'y' },
         ),
       ],
-      x: { scale: scaleUtc().domain(dates) },
-      y: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        x: { scale: scaleUtc().domain(dates) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      },
       controls: [behavior],
     })
     const scene = createChartScene(definition, { width: 480, height: 240 })
@@ -296,8 +298,10 @@ describe('continuousCursor', () => {
           { x: 'x', y: 'y' },
         ),
       ],
-      x: { scale: scaleUtc().domain([dates[1], dates[0]]) },
-      y: { scale: scaleLinear().domain([10, 0]) },
+      scales: {
+        x: { scale: scaleUtc().domain([dates[1], dates[0]]) },
+        y: { scale: scaleLinear().domain([10, 0]) },
+      },
       controls: [continuousCursor({ id: 'temporal', position })],
       keyboard: false,
     })
@@ -388,8 +392,10 @@ function numericDefinition(
 ) {
   return defineChart({
     marks: [dot(rows, { x: 'x', y: 'y' })],
-    x: { scale: scaleLinear().domain([0, 10]) },
-    y: { scale: scaleLinear().domain([0, 10]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 10]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+    },
     controls: [
       continuousCursor({
         id: 'free',

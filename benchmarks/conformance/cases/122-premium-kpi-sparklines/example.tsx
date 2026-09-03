@@ -308,16 +308,19 @@ export function premiumKpiDefinition(metric: PremiumKpiMetric) {
               },
             ]
           : [],
-      x: {
-        scale: scalePoint<number>()
-          .domain(metric.rows.map((row) => row.period))
-          .padding(0.08),
-        axis: false,
+      scales: {
+        x: {
+          scale: scalePoint<number>()
+            .domain(metric.rows.map((row) => row.period))
+            .padding(0.08),
+          axis: false,
+        },
+        y: {
+          scale: scaleLinear().domain([baseline, maximum + padding]),
+          axis: false,
+        },
       },
-      y: {
-        scale: scaleLinear().domain([baseline, maximum + padding]),
-        axis: false,
-      },
+
       margin: { top: 4, right: 3, bottom: 3, left: 3 },
       clip: true,
       motion: { transition: premiumKpiSpring },

@@ -32,6 +32,7 @@ export const createExampleChart = (input: ChartOptions) => {
           id: 'precipitation-bars',
           x: 'date',
           y: 'precipitation',
+          yScale: 'precipitation',
           fill: '#413ea0',
           maxThickness: 20,
         }),
@@ -43,20 +44,50 @@ export const createExampleChart = (input: ChartOptions) => {
           curve: monotone,
         }),
         dot(rows, {
+          id: 'wind-points',
           x: 'date',
           y: 'wind',
+          yScale: 'wind',
           fill: '#ef4444',
           r: 4.5,
         }),
       ],
-      x: {
-        scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
-        axis: {
-          ticks: { format: (value: Date) => dateFormat.format(value) },
+      scales: {
+        x: {
+          scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
+          axis: {
+            ticks: { format: (value: Date) => dateFormat.format(value) },
+          },
+        },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: {
+            label: 'Temperature (°C)',
+            ticks: { count: 5 },
+          },
+        },
+        precipitation: {
+          channel: 'y',
+          side: 'right',
+          scale: scaleLinear,
+          axis: {
+            label: 'Precipitation (mm)',
+            ticks: { count: 5 },
+          },
+        },
+        wind: {
+          channel: 'y',
+          side: 'right',
+          scale: scaleLinear,
+          axis: {
+            label: 'Wind (m/s)',
+            ticks: { count: 5 },
+          },
         },
       },
-      y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 5 } } },
-      margin: { top: 20, right: 20, bottom: 50, left: 80 },
+
+      margin: { top: 20, bottom: 50 },
     },
     { keyboard: true, tooltip: exampleTooltip },
   )
@@ -65,7 +96,7 @@ export interface ChartOptions {
   revision: number
 }
 
-export const exampleAriaLabel = 'Layered Seattle weather'
+export const exampleAriaLabel = 'Seattle weather with three y axes'
 
 export const chart = createExampleChart({
   revision: 0,

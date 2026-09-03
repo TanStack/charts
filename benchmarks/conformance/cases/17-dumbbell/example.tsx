@@ -31,13 +31,15 @@ export const createExampleChart = (input: ChartOptions) => {
           r: 4,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: '90th/10th percentile wage ratio' },
-      },
-      y: {
-        scale: () => scaleBand<string>().padding(0.22),
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: '90th/10th percentile wage ratio' },
+        },
+        y: {
+          scale: () => scaleBand<string>().padding(0.22),
+        },
       },
     },
     {

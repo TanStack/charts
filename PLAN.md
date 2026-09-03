@@ -6,7 +6,7 @@ Observed difficulty from using the API is tracked separately in
 [`API-FRICTION.md`](./API-FRICTION.md). Production migrations, examples, and
 agent evaluations must update that log when they expose a repeatable problem.
 
-Last updated: 2026-08-06
+Last updated: 2026-08-26
 
 ## Working thesis
 
@@ -380,7 +380,7 @@ Remaining production gaps are tracked by the open and monitoring entries in
 Plot-backed GIF/WebM frame generator after the TanStack.com default-renderer
 cutover.
 
-`pnpm package:check` now builds real package artifacts, packs all three public
+`pnpm package:check` now builds real package artifacts, packs all twelve public
 packages, installs their tarballs into a disposable offline fixture, and gates
 every ESM subpath, strict declaration inference, required dynamic input,
 React/Octane runtime loading, and minimal production bundles. Every TanStack
@@ -1553,10 +1553,12 @@ export const downloadsChart = defineChart({
       key: 'id',
     }),
   ],
-  x: { scale: scaleUtc().domain(dateDomain) },
-  y: {
-    scale: scaleLinear().domain(downloadDomain).nice(),
-    label: 'Weekly downloads',
+  scales: {
+    x: { scale: scaleUtc().domain(dateDomain) },
+    y: {
+      scale: scaleLinear().domain(downloadDomain).nice(),
+      axis: { label: 'Weekly downloads' },
+    },
   },
 })
 ```
@@ -3140,11 +3142,11 @@ Exit criteria:
 
 ### Phase 2: minimal production core
 
-Status: in progress. Package names, capability boundaries, packed-consumer
-artifacts, automated visual and interaction conformance, production-browser
-stress evidence, and bundle CI are established. Remaining productization gates
-include public diagnostics, release compatibility policy, and published bundle
-budgets.
+Status: complete for Alpha and ongoing for production readiness. Package names,
+capability boundaries, packed-consumer artifacts, automated visual and
+interaction conformance, production-browser stress evidence, bundle CI, locked
+budgets, and the Alpha compatibility policy are established. Public diagnostics
+and stable-release policy remain productization work.
 
 - Finalize public package and entry-point structure.
 - Implement host lifecycle and diagnostics.

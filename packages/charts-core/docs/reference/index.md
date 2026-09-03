@@ -28,6 +28,11 @@ and application-owned interaction.
 
 ## Mark reference
 
+Built-in Cartesian, radial, and composite marks accept
+`renderer?: ChartMarkRenderer`. Pass `canvasChartRenderer` from
+`@tanstack/charts/canvas` to opt that mark into Canvas while the rest of the
+chart keeps its host renderer.
+
 | Marks                                                             | Reference                                                                                   |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `lineY`, `lineX`, `areaY`, and `areaX`                            | [Line and area](./marks/line-and-area.md)                                                   |
@@ -70,9 +75,9 @@ and application-owned interaction.
 | Alpine    | —                                                 | [Adapter](../framework/alpine/adapter.md)  | [`charts`](../framework/alpine/reference/chart.md)                   |
 | Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md)  | [`Chart`](../framework/octane/reference/chart.md)                    |
 
-React and Octane keep the default `Chart` SVG-based. Their `/canvas` entries
-select the optional Canvas renderer; their `/core` entries require an explicit
-`ChartRenderer`. The other adapters currently expose the default SVG surface.
+Every default `Chart` starts with SVG and can opt selected marks into Canvas.
+React and Octane also provide `/canvas` entries for a completely Canvas chart
+and `/core` entries that require an explicit `ChartRenderer`.
 
 ## Surface tiers
 
@@ -164,7 +169,7 @@ aggregate `/scales` export.
 | `@tanstack/charts/universal`            | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                                                                                                  |
 | `@tanstack/charts/reconcile`            | `reconcileChartSvg`, `reconcileChartSvgFragment`                                                                                                                                                                                |
 | `@tanstack/charts/rect`                 | `rect`, `cell`                                                                                                                                                                                                                  |
-| `@tanstack/charts/renderer`             | `mountChartRenderer`                                                                                                                                                                                                            |
+| `@tanstack/charts/renderer`             | `mountChartRenderer` and `resolveChartRenderer`                                                                                                                                                                                 |
 | `@tanstack/charts/ridgeline`            | `ridgelineY`, `ridgelineX`, `RidgelineYOptions`, `RidgelineXOptions`, `RidgelinePosition`, `RidgelineCurve`, and `RidgelineStateStyle`                                                                                          |
 | `@tanstack/charts/rule`                 | `ruleX`, `ruleY`                                                                                                                                                                                                                |
 | `@tanstack/charts/runtime`              | `createChartRuntime`, `isResponsiveChartDefinition`                                                                                                                                                                             |

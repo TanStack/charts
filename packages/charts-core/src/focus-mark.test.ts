@@ -41,10 +41,12 @@ describe('focus-filtered marks', () => {
             key: 'id',
           }),
         ],
-        x: {
-          scale: scaleBand<string>().domain(['A', 'B']).padding(0.1),
+        scales: {
+          x: {
+            scale: scaleBand<string>().domain(['A', 'B']).padding(0.1),
+          },
+          y: { scale: scaleLinear().domain([0, 20]) },
         },
-        y: { scale: scaleLinear().domain([0, 20]) },
       }),
       { width: 480, height: 260 },
     )
@@ -54,14 +56,20 @@ describe('focus-filtered marks', () => {
     const xScene = createChartScene(
       defineChart({
         marks: [bandX([{ x: 5 }], { x: 'x', width: 1 })],
-        x: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: null,
+        },
       }),
       { width: 240, height: 160 },
     )
     const yScene = createChartScene(
       defineChart({
         marks: [bandY([{ y: 5 }], { y: 'y', height: 2 })],
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: null,
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 240, height: 160 },
     )
@@ -74,14 +82,20 @@ describe('focus-filtered marks', () => {
             inset: 2,
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: null,
+        },
       }),
       { width: 240, height: 160 },
     )
     const zero = createChartScene(
       defineChart({
         marks: [bandY([{ y: 5 }], { y: 'y', height: 0 })],
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: null,
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 240, height: 160 },
     )
@@ -114,11 +128,13 @@ describe('focus-filtered marks', () => {
             ],
           }),
         ],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate: 25 },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate: 25 },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         clip: true,
       }),
@@ -238,8 +254,10 @@ describe('focus-filtered marks', () => {
           }),
           dot(data, { id: 'points', x: 'x', y: 'y', key: 'id' }),
         ],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 30]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 30]) },
+        },
       }),
       { width: 360, height: 220 },
     )
@@ -285,8 +303,10 @@ describe('focus-filtered marks', () => {
     const rulesOnly = createChartScene(
       defineChart({
         marks: [ruleX([1, 2]), ruleY([10, 20])],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 30]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 30]) },
+        },
         focusRing: false,
       }),
       { width: 360, height: 220 },
@@ -312,8 +332,10 @@ describe('focus-filtered marks', () => {
           }),
           dot(data, { id: 'points', x: 'x', y: 'y', key: 'id' }),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 30]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 30]) },
+        },
       }),
       { width: 360, height: 220 },
     )
@@ -373,8 +395,10 @@ describe('focus-filtered marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 5]) },
-        y: { scale: scaleLinear().domain([0, 30]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 5]) },
+          y: { scale: scaleLinear().domain([0, 30]) },
+        },
       }),
       { width: 360, height: 220 },
     )
@@ -419,8 +443,10 @@ describe('focus-filtered marks', () => {
           }),
           dot(data, { id: 'points', x: 'x', y: 'y', key: 'id' }),
         ],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
       }),
       { width: 320, height: 200 },
     )
@@ -461,8 +487,10 @@ describe('focus-filtered marks', () => {
     const resolved = createChartScene(
       defineChart({
         marks: [barY(rows, { x: 'category', y: 'value' })],
-        x: { scale: scaleBand<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 20]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 20]) },
+        },
         focusRing: false,
       }),
       { width: 240, height: 160 },
@@ -503,8 +531,10 @@ describe('focus-filtered marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 20]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 20]) },
+        },
         focusRing: false,
       }),
       { width: 320, height: 180 },
@@ -596,8 +626,10 @@ describe('focus-filtered marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
         focusRing: false,
       }),
       { width: 320, height: 180 },
@@ -658,8 +690,10 @@ describe('focus-filtered marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 20]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 20]) },
+        },
         focusRing: false,
       }),
       { width: 320, height: 180 },
@@ -702,8 +736,10 @@ describe('focus-filtered marks', () => {
             }),
           ),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -804,8 +840,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 360, height: 220 },
     )
@@ -865,8 +903,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -887,8 +927,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 10]) },
-        y: { scale: scaleBand<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: { scale: scaleBand<string>().domain(['A']) },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -946,8 +988,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -968,8 +1012,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 10]) },
-        y: { scale: scaleBand<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: { scale: scaleBand<string>().domain(['A']) },
+        },
       }),
       { width: 240, height: 180 },
     )
@@ -1026,8 +1072,10 @@ describe('inline mark states', () => {
             ],
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
       }),
       { width: 360, height: 220 },
     )

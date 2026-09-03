@@ -27,7 +27,7 @@ const pathRows = [
 ] satisfies PathRow[]
 
 function render<TDatum>(
-  mark: PolarMark<SunburstNode<TDatum>, number, number>,
+  mark: PolarMark<SunburstNode<TDatum>, number, number, never, never>,
   options: {
     width?: number
     height?: number
@@ -40,10 +40,12 @@ function render<TDatum>(
       marks: [
         polar({
           marks: [mark],
+          scales: { angle: null, radius: null },
           startAngle: options.startAngle,
           endAngle: options.endAngle,
         }),
       ],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
       margin: 0,
@@ -70,7 +72,7 @@ describe('sunburst', () => {
     const byId = new Map(scene.points.map((point) => [point.datum.id, point]))
 
     expectTypeOf(mark).toEqualTypeOf<
-      PolarMark<SunburstNode<PathRow>, number, number>
+      PolarMark<SunburstNode<PathRow>, number, number, never, never>
     >()
     expect(scene.points).toHaveLength(4)
     expect(byId.has('/root')).toBe(false)

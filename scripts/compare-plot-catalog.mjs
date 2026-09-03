@@ -834,8 +834,10 @@ function typeProtectionBaselines() {
       const rows: readonly Row[] = [{ x: 1, y: 2 }]
       defineChart({
         marks: [lineY(rows, { x: 'x', y: 'y' })],
-        x: { scale: scaleLinear() },
-        y: { scale: scaleLinear() },
+        scales: {
+          x: { scale: scaleLinear() },
+          y: { scale: scaleLinear() },
+        },
       })
     `,
   }
@@ -998,8 +1000,10 @@ function typeProtectionProbes() {
           const rows: readonly Row[] = [{ category: 'Alpha', value: 2 }]
           defineChart({
             marks: [dot(rows, { x: 'category', y: 'value' })],
-            x: { scale: scaleLinear() },
-            y: { scale: scaleLinear() },
+            scales: {
+              x: { scale: scaleLinear() },
+              y: { scale: scaleLinear() },
+            },
           })
         `,
       },
@@ -1040,11 +1044,13 @@ function typeProtectionProbes() {
           const rows: readonly Row[] = [{ date: new Date(0), value: 2 }]
           defineChart({
             marks: [lineY(rows, { x: 'date', y: 'value' })],
-            x: {
-              scale: scaleUtc(),
-              format: (value) => value.toFixed(2),
+            scales: {
+              x: {
+                scale: scaleUtc(),
+                format: (value) => value.toFixed(2),
+              },
+              y: { scale: scaleLinear() },
             },
-            y: { scale: scaleLinear() },
           })
         `,
       },
@@ -1097,8 +1103,10 @@ function typeProtectionProbes() {
                 y2: 'high',
               }),
             ],
-            x: { scale: scaleLinear() },
-            y: { scale: scaleLinear() },
+            scales: {
+              x: { scale: scaleLinear() },
+              y: { scale: scaleLinear() },
+            },
           })
         `,
       },

@@ -1745,12 +1745,13 @@ function scenePathSnapshot(
   const points =
     interaction && 'points' in interaction ? (interaction.points ?? []) : []
   if (!points.length) return undefined
+  const yScaleId = motionPointScaleId(scene, points[0], 'y') ?? 'y'
   return {
     kind: node.kind,
     points,
     geometry: node.points,
     chart: scene.chart,
-    yScale: scene.scales.y!,
+    yScale: scene.scales[yScaleId]!,
     viewportTranslate: {
       x: context.translateX,
       y: context.translateY,
@@ -1758,6 +1759,23 @@ function scenePathSnapshot(
     clipped: context.clipped,
     customPath: node.path !== undefined,
   }
+}
+
+function motionPointScaleId(
+  scene: ChartScene,
+  point: ChartPoint | undefined,
+  channel: 'x' | 'y',
+): string | undefined {
+  if (!point) return undefined
+  const initialized = motionSceneSource(scene)?.[1]
+  const mark = initialized
+    ?.filter(
+      (candidate) =>
+        point.markId === candidate.id ||
+        point.markId.startsWith(`${candidate.id}:`),
+    )
+    .sort((left, right) => right.id.length - left.id.length)[0]
+  return mark?.channels[channel]?.scale
 }
 
 function findSceneNodeContext(
@@ -2640,31 +2658,28 @@ function guideOrMarkTimingContext(
 
   const axes = element.closest<SVGGElement>('g.ts-chart__axes')
   const grid = element.closest<SVGGElement>('g.ts-chart__grid')
-  const axis = key.startsWith('x-')
-    ? 'x'
-    : key.startsWith('y-')
-      ? 'y'
-      : undefined
-  if (axis && (axes || grid)) {
+  const scaleId = guideScaleId(scene, key)
+  const axis = scaleId ? guideScaleChannel(scene, scaleId) : undefined
+  if (scaleId && axis && (axes || grid)) {
     const role: ChartMotionRole = grid
       ? 'grid'
-      : key === `${axis}-axis`
+      : key === `${scaleId}-axis`
         ? 'axis'
-        : key.startsWith(`${axis}-tick-rule:`)
+        : key.startsWith(`${scaleId}-tick-rule:`)
           ? 'tick'
-          : key.startsWith(`${axis}-tick-label:`)
+          : key.startsWith(`${scaleId}-tick-label:`)
             ? 'tick-label'
-            : key === `${axis}-label`
+            : key === `${scaleId}-label`
               ? 'axis-label'
               : 'axis'
     const parent = grid ?? axes
     const prefix =
       role === 'grid'
-        ? `${axis}-grid:`
+        ? `${scaleId}-grid:`
         : role === 'tick'
-          ? `${axis}-tick-rule:`
+          ? `${scaleId}-tick-rule:`
           : role === 'tick-label'
-            ? `${axis}-tick-label:`
+            ? `${scaleId}-tick-label:`
             : key
     const peers = parent
       ? [...parent.querySelectorAll<Element>('[data-ts-key]')].filter(
@@ -2677,8 +2692,9 @@ function guideOrMarkTimingContext(
       role,
       key,
       axis,
-      seriesKey: `${role}:${axis}`,
-      seriesIndex: axis === 'x' ? 0 : 1,
+      scaleId,
+      seriesKey: `${role}:${scaleId}`,
+      seriesIndex: Math.max(0, Object.keys(scene.scales).indexOf(scaleId)),
       datumIndex: Math.max(0, peers.indexOf(element)),
       datumCount: Math.max(1, peers.length),
       datum: undefined,
@@ -2724,6 +2740,28 @@ function guideOrMarkTimingContext(
     datum: point?.datum,
     point,
   }
+}
+
+function guideScaleId(scene: ChartScene, key: string): string | undefined {
+  return Object.keys(scene.scales)
+    .filter(
+      (id) =>
+        key === `${id}-axis` ||
+        key === `${id}-label` ||
+        key.startsWith(`${id}-tick-rule:`) ||
+        key.startsWith(`${id}-tick-label:`) ||
+        key.startsWith(`${id}-grid:`),
+    )
+    .sort((left, right) => right.length - left.length)[0]
+}
+
+function guideScaleChannel(
+  scene: ChartScene,
+  scaleId: string,
+): 'x' | 'y' | undefined {
+  if (scaleId === 'x' || scaleId === 'y') return scaleId
+  const definition = motionSceneSource(scene)?.[0]
+  return definition?.scales?.[scaleId]?.channel
 }
 
 function retargetFocusContext(
@@ -3373,10 +3411,11 @@ function resolveTiming(
       .sort((left, right) => right.length - left.length)[0]
     if (markId) apply(definitions.marks[markId])
   }
-  if (context.axis) {
-    apply(definitions?.guides?.[`axis:${context.axis}`])
+  const guideId = context.scaleId ?? context.axis
+  if (guideId) {
+    apply(definitions?.guides?.[`axis:${guideId}`])
     if (context.role !== 'axis') {
-      apply(definitions?.guides?.[`${context.role}:${context.axis}`])
+      apply(definitions?.guides?.[`${context.role}:${guideId}`])
     }
   }
   apply(overrides?.default)
@@ -3437,29 +3476,29 @@ function motionDefinitions(
   const guides: Record<string, ChartMotionDefinition<any>> = {}
   if (source) {
     const [definition] = source
-    for (const axis of ['x', 'y'] as const) {
-      const configured = definition[axis]
+    const configuredScales = definition.scales
+    for (const [scaleId, configured] of Object.entries(configuredScales)) {
       const presentation =
         !configured || configured.axis === false
           ? undefined
           : (configured.axis ?? {})
       if (presentation?.motion !== undefined) {
-        guides[`axis:${axis}`] = presentation.motion
+        guides[`axis:${scaleId}`] = presentation.motion
       }
       if (presentation?.ticks && presentation.ticks.motion !== undefined) {
-        guides[`tick:${axis}`] = presentation.ticks.motion
+        guides[`tick:${scaleId}`] = presentation.ticks.motion
       }
       if (
         presentation?.tickLabels &&
         presentation.tickLabels.motion !== undefined
       ) {
-        guides[`tick-label:${axis}`] = presentation.tickLabels.motion
+        guides[`tick-label:${scaleId}`] = presentation.tickLabels.motion
       }
       if (
         typeof presentation?.label === 'object' &&
         presentation.label.motion !== undefined
       ) {
-        guides[`axis-label:${axis}`] = presentation.label.motion
+        guides[`axis-label:${scaleId}`] = presentation.label.motion
       }
     }
   }

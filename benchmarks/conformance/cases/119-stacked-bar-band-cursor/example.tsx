@@ -97,14 +97,17 @@ export const createExampleChart = (rows: readonly StackedCursorRow[]) =>
           motion: { transition: cursorTransition },
         }),
       ],
-      x: {
-        scale: scaleBand<string>().domain(stackedCursorPeriods).padding(0.18),
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(stackedCursorPeriods).padding(0.18),
+        },
+        y: {
+          scale: scaleLinear().domain([0, stackedCursorMaximum]),
+          grid: true,
+          axis: { ticks: { count: 5 }, label: 'Deaths' },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, stackedCursorMaximum]),
-        grid: true,
-        axis: { ticks: { count: 5 }, label: 'Deaths' },
-      },
+
       color: {
         domain: stackedCursorCauses,
         range: stackedCursorColors,

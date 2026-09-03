@@ -117,10 +117,13 @@ export function focusCursorMotionDefinition() {
         },
       }),
     ],
-    x: {
-      scale: scaleBand<string>().domain(focusMotionPeriods).padding(0.1),
+    scales: {
+      x: {
+        scale: scaleBand<string>().domain(focusMotionPeriods).padding(0.1),
+      },
+      y: { scale: scaleLinear().domain([20, 90]), grid: true },
     },
-    y: { scale: scaleLinear().domain([20, 90]), grid: true },
+
     color: { domain: focusMotionSeries, range: colors },
     focus: focusGroupX,
     focusRing: false,

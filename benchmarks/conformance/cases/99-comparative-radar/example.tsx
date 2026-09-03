@@ -59,8 +59,11 @@ export const createExampleChart = (input: ChartOptions) => {
     {
       marks: [
         polar({
-          angle: { scale: angleScale, wrap: true },
-          radius: { scale: radiusScale },
+          scales: {
+            angle: { scale: angleScale, wrap: true },
+            radius: { scale: radiusScale },
+          },
+
           inset: 0,
           radiusRatio: input.preview === true ? 0.94 : 0.78,
           guides: [
@@ -101,6 +104,10 @@ export const createExampleChart = (input: ChartOptions) => {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: {
         domain: radarCountries,
         range: colors,

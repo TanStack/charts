@@ -55,6 +55,43 @@ A useful default order is:
 
 There is no separate overlay subsystem. An annotation is another mark with its own data, channels, and stable identity.
 
+## Opt individual marks into Canvas
+
+Import the Canvas renderer and attach it only to paint-heavy marks:
+
+```ts
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+
+const marks = [
+  areaY(denseRange, {
+    x: 'date',
+    y1: 'low',
+    y2: 'high',
+    renderer: canvasChartRenderer,
+  }),
+  lineY(summary, { x: 'date', y: 'value' }),
+  dot(highlights, { x: 'date', y: 'value' }),
+  text(labels, { x: 'date', y: 'value', text: 'label' }),
+]
+```
+
+The host keeps axes, guides, and marks without `renderer` in SVG. It creates
+ordered SVG and Canvas layers from the mark declaration order, so a Canvas
+mark can sit behind, between, or in front of SVG marks. Focus, tooltips,
+keyboard navigation, responsive updates, SSR shell adoption, and export still
+use the shared chart host.
+
+Cartesian and radial mark option objects accept `renderer`. A
+`compositeMark` can select a renderer for its complete output, or its children
+can select their own renderers when the parent does not. The same nested
+selection works inside facets and `polar`.
+
+Importing `@tanstack/charts/canvas` is the opt-in boundary that adds the Canvas
+painter to the bundle. Reuse a stable renderer instance across updates. The
+exported `canvasChartRenderer` singleton already has stable identity. Creating
+a new renderer or changing the renderer sequence replaces the affected layer
+composition.
+
 ## Decorative layers
 
 When two layered marks describe the same observations, choose one interaction
@@ -207,8 +244,11 @@ Set `clip: true` on the chart definition when marks must not paint outside the r
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   clip: true,
 })
 ```
@@ -248,15 +288,17 @@ export default defineChart({
       strokeWidth: 1.5,
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    axis: { label: 'Day' },
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Temperature (°F)' },
+  scales: {
+    x: {
+      scale: scaleUtc,
+      axis: { label: 'Day' },
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Temperature (°F)' },
+    },
   },
 })
 ```

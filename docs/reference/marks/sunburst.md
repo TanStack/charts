@@ -30,8 +30,16 @@ const chart = defineChart({
           stroke: '#fff',
         }),
       ],
+      scales: {
+        angle: null,
+        radius: null,
+      },
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 
@@ -140,8 +148,16 @@ const definition = (rootId: string) =>
             visibleDepth: 2,
           }),
         ],
+        scales: {
+          angle: null,
+          radius: null,
+        },
       }),
     ],
+    scales: {
+      x: null,
+      y: null,
+    },
     motion: {
       transition: { type: 'tween', duration: 720, easing: 'ease-in-out' },
     },

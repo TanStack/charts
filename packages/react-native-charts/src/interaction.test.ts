@@ -110,11 +110,14 @@ describe('native focus model', () => {
     const chartDefinition = (translate: number) =>
       defineChart({
         marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
+
         guides: false,
       })
     const settled = createChartScene(chartDefinition(0), {
@@ -158,7 +161,7 @@ describe('native focus model', () => {
 function definition(
   options: Partial<ChartDefinition<Datum, number, number>>,
 ): ChartDefinition<Datum, number, number> {
-  return { marks: [], ...options }
+  return { marks: [], scales: { x: null, y: null }, ...options }
 }
 
 function point(

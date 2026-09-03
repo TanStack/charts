@@ -115,7 +115,8 @@ export function charts(Alpine: AlpineLike) {
             onSelect: options.onSelect,
             onRender: options.onRender
               ? (context) => {
-                  const svg = context.surface.element
+                  const svg =
+                    context.surface.defaultElement ?? context.surface.element
                   const SvgElement =
                     context.container.ownerDocument.defaultView?.SVGSVGElement
                   if (!SvgElement || !(svg instanceof SvgElement)) {
@@ -124,6 +125,7 @@ export function charts(Alpine: AlpineLike) {
                   options.onRender?.({
                     container: context.container,
                     scene: context.scene,
+                    surface: context.surface,
                     svg,
                     interaction: context.interaction,
                   })

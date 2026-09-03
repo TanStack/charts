@@ -43,8 +43,11 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear, nice: true, grid: true },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear, nice: true, grid: true },
+  },
+
   focus: 'group-x',
   tooltip: {
     use: tooltip,
@@ -68,12 +71,14 @@ const definition = defineChart({
   svgAnimation: true,
   chart: ({ width }) => ({
     marks: [barY(rows, { x: 'category', y: 'value' })],
-    x: { scale: scaleBand },
-    y: {
-      scale: scaleLinear,
-      nice: true,
-      axis: { ticks: { count: width < 480 ? 4 : 7 } },
-      grid: true,
+    scales: {
+      x: { scale: scaleBand },
+      y: {
+        scale: scaleLinear,
+        nice: true,
+        axis: { ticks: { count: width < 480 ? 4 : 7 } },
+        grid: true,
+      },
     },
   }),
 })
@@ -141,13 +146,15 @@ const definition = useMemo(() => {
 
   return defineChart(({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'label' })],
-    x: {
-      scale: scaleLinear,
-      nice: true,
-      axis: { ticks: { count: width < 480 ? 4 : 7 } },
-    },
-    y: {
-      scale: () => scaleBand().padding(0.1),
+    scales: {
+      x: {
+        scale: scaleLinear,
+        nice: true,
+        axis: { ticks: { count: width < 480 ? 4 : 7 } },
+      },
+      y: {
+        scale: () => scaleBand().padding(0.1),
+      },
     },
   }))
 }, [rows, metric])

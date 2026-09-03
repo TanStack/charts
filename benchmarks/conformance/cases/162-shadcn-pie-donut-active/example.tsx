@@ -3,7 +3,6 @@ import { focusGroupAngle, pie, polar, radialArc } from '@tanstack/charts/polar'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { motion } from '@tanstack/charts/motion'
-import { scaleLinear } from 'd3-scale'
 import { shadcnBrowsers, shadcnColors } from '@tanstack/charts-data/shadcn'
 import './styles.css'
 const browserNames = shadcnBrowsers.map((row) => row.browser)
@@ -38,11 +37,18 @@ export function createExampleChart() {
       marks: [
         polar({
           radiusRatio: 0.78,
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: null,
+            radius: null,
+          },
+
           marks,
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       color: { domain: browserNames, range: shadcnColors },
       margin: 0,
     },

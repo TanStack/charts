@@ -96,16 +96,19 @@ export const createExampleChart = (input: ChartOptions) => {
                 fillOpacity: 0.78,
               }),
             ],
-            x: {
-              scale: flipperScale,
-              grid: true,
-              axis: { label: 'Flipper length (mm)' },
+            scales: {
+              x: {
+                scale: flipperScale,
+                grid: true,
+                axis: { label: 'Flipper length (mm)' },
+              },
+              y: {
+                scale: massScale,
+                grid: true,
+                axis: { label: 'Body mass (g)' },
+              },
             },
-            y: {
-              scale: massScale,
-              grid: true,
-              axis: { label: 'Body mass (g)' },
-            },
+
             color: {
               range: colors,
               ...(showLegend
@@ -135,8 +138,11 @@ export const createExampleChart = (input: ChartOptions) => {
                 inset: 1,
               }),
             ],
-            x: { scale: flipperScale },
-            y: { scale: scaleLinear },
+            scales: {
+              x: { scale: flipperScale },
+              y: { scale: scaleLinear },
+            },
+
             guides: false,
           }),
         },
@@ -160,8 +166,11 @@ export const createExampleChart = (input: ChartOptions) => {
                 inset: 1,
               }),
             ],
-            x: { scale: scaleLinear },
-            y: { scale: massScale },
+            scales: {
+              x: { scale: scaleLinear },
+              y: { scale: massScale },
+            },
+
             guides: false,
           }),
         },

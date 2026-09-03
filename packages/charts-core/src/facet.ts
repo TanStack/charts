@@ -13,6 +13,7 @@ import type {
   ChartMargin,
   ChartMotionDefinition,
   ChartPoint,
+  ChartPositionScaleOptions,
   ChartScene,
   ChartSpec,
   ChartSpecDatum,
@@ -97,114 +98,118 @@ export function facet<TDatum>(
     ChartValue,
     never,
     never
-  >(({ markIndex }) => {
-    const id = options.id ?? `facet-${markIndex}`
-    const keys = channelValues(data, options.by, () => '')
-    const groups = new Map<string, FacetEntry<TDatum>>()
-    data.forEach((datum, index) => {
-      const key = keys[index]
-      if (!isKey(key)) return
-      const identity = valueKey(key)
-      const group = groups.get(identity)
-      if (group) group.data.push(datum)
-      else groups.set(identity, { key, data: [datum] })
-    })
+  >(
+    ({ markIndex }) => {
+      const id = options.id ?? `facet-${markIndex}`
+      const keys = channelValues(data, options.by, () => '')
+      const groups = new Map<string, FacetEntry<TDatum>>()
+      data.forEach((datum, index) => {
+        const key = keys[index]
+        if (!isKey(key)) return
+        const identity = valueKey(key)
+        const group = groups.get(identity)
+        if (group) group.data.push(datum)
+        else groups.set(identity, { key, data: [datum] })
+      })
 
-    return {
-      id,
-      channels: {},
-      render: ({ chart, theme, layout }) => {
-        const entries = [...groups.values()]
-        const gap = Math.max(0, options.gap ?? 16)
-        const automaticColumns = Math.max(
-          1,
-          Math.floor((chart.width + gap) / ((options.minWidth ?? 220) + gap)),
-        )
-        const columns = Math.max(
-          1,
-          Math.min(
-            entries.length || 1,
-            Math.floor(options.columns ?? automaticColumns),
-          ),
-        )
-        const rows = Math.max(1, Math.ceil(entries.length / columns))
-        const cellWidth = cellSize(chart.width, gap, columns)
-        const cellHeight = cellSize(chart.height, gap, rows)
-        const showLabel = options.label !== false
-        const labelHeight = showLabel ? 22 : 0
-        const definitions = entries.map((entry) =>
-          mergeTheme(options.chart(entry.data, { key: entry.key }), theme),
-        )
+      return {
+        id,
+        channels: {},
+        render: ({ chart, theme, layout }) => {
+          const entries = [...groups.values()]
+          const gap = Math.max(0, options.gap ?? 16)
+          const automaticColumns = Math.max(
+            1,
+            Math.floor((chart.width + gap) / ((options.minWidth ?? 220) + gap)),
+          )
+          const columns = Math.max(
+            1,
+            Math.min(
+              entries.length || 1,
+              Math.floor(options.columns ?? automaticColumns),
+            ),
+          )
+          const rows = Math.max(1, Math.ceil(entries.length / columns))
+          const cellWidth = cellSize(chart.width, gap, columns)
+          const cellHeight = cellSize(chart.height, gap, rows)
+          const showLabel = options.label !== false
+          const labelHeight = showLabel ? 22 : 0
+          const definitions = entries.map((entry) =>
+            mergeTheme(options.chart(entry.data, { key: entry.key }), theme),
+          )
 
-        if (
-          options.axes === 'cell' ||
-          entries.length <= 1 ||
-          definitions.every((definition) => definition.guides === false)
-        ) {
-          return renderCellAxes<TDatum, unknown>({
+          if (
+            options.axes === 'cell' ||
+            entries.length <= 1 ||
+            definitions.every((definition) => definition.guides === false)
+          ) {
+            return renderCellAxes<TDatum, unknown>({
+              id,
+              entries,
+              definitions,
+              chart,
+              columns,
+              cellWidth,
+              cellHeight,
+              gap,
+              labelHeight,
+              showLabel,
+              label: options.label,
+              theme,
+              layout,
+            })
+          }
+
+          const guideScenes = entries.map((entry, index) =>
+            createFacetScene<TDatum, unknown>(
+              id,
+              entry,
+              {
+                ...definitions[index]!,
+                marks: definitions[index]!.marks.map(withoutMarkRendering),
+              },
+              {
+                width: cellWidth,
+                height: Math.max(1, cellHeight - labelHeight),
+              },
+              layout,
+            ),
+          )
+          assertOuterAxes(id, definitions, guideScenes)
+          const margin = resolveOuterMargin<TDatum, unknown>({
             id,
             entries,
             definitions,
             chart,
             columns,
-            cellWidth,
-            cellHeight,
+            rows,
+            gap,
+            labelHeight,
+            initial: maxSceneMargins(guideScenes),
+            layout,
+          })
+
+          return renderOuterAxes<TDatum, unknown>({
+            id,
+            entries,
+            definitions,
+            chart,
+            columns,
+            rows,
             gap,
             labelHeight,
             showLabel,
             label: options.label,
             theme,
+            margin,
             layout,
           })
-        }
-
-        const guideScenes = entries.map((entry, index) =>
-          createFacetScene<TDatum, unknown>(
-            id,
-            entry,
-            {
-              ...definitions[index]!,
-              marks: definitions[index]!.marks.map(withoutMarkRendering),
-            },
-            {
-              width: cellWidth,
-              height: Math.max(1, cellHeight - labelHeight),
-            },
-            layout,
-          ),
-        )
-        assertOuterAxes(id, definitions, guideScenes)
-        const margin = resolveOuterMargin<TDatum, unknown>({
-          id,
-          entries,
-          definitions,
-          chart,
-          columns,
-          rows,
-          gap,
-          labelHeight,
-          initial: maxSceneMargins(guideScenes),
-          layout,
-        })
-
-        return renderOuterAxes<TDatum, unknown>({
-          id,
-          entries,
-          definitions,
-          chart,
-          columns,
-          rows,
-          gap,
-          labelHeight,
-          showLabel,
-          label: options.label,
-          theme,
-          margin,
-          layout,
-        })
-      },
-    }
-  }, options.motion)
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 
   return mark
 }
@@ -637,7 +642,9 @@ function createFacetScene<TDatum, TChildDatum>(
   }
 }
 
-function withoutMarkRendering(mark: ChartMark<unknown>): ChartMark<unknown> {
+function withoutMarkRendering(
+  mark: ChartMark<unknown, any, any, any, any, any, any>,
+): ChartMark<unknown, any, any, any, any, any, any> {
   return {
     initialize: (context) => {
       const initialized = mark.initialize(context)
@@ -664,20 +671,26 @@ function assertOuterAxes(
 ): void {
   const firstDefinition = definitions[0]
   const firstScene = scenes[0]
+  const firstScales = firstDefinition
+    ? positionScaleOptions(firstDefinition)
+    : undefined
   const incompatible =
     !firstDefinition ||
     !firstScene ||
+    !firstScales ||
     definitions.some(
       (definition) =>
         definition.guides === false ||
         definition.margin !== undefined ||
-        definition.color?.legend !== undefined,
+        definition.color?.legend !== undefined ||
+        hasUnsupportedOuterAxis(definition),
     ) ||
     scenes.slice(1).some((scene, index) => {
       const definition = definitions[index + 1]!
+      const scales = positionScaleOptions(definition)
       return (
-        !sameAxis(firstDefinition.x, definition.x) ||
-        !sameAxis(firstDefinition.y, definition.y) ||
+        !sameAxis(firstScales.x, scales.x) ||
+        !sameAxis(firstScales.y, scales.y) ||
         !sameScale(firstScene.scales.x!, scene.scales.x!) ||
         !sameScale(firstScene.scales.y!, scene.scales.y!) ||
         !sameMaterializedAxes(firstScene, scene) ||
@@ -694,8 +707,8 @@ function assertOuterAxes(
 }
 
 function sameAxis(
-  left: StaticChartDefinition['x'],
-  right: StaticChartDefinition['x'],
+  left: ChartPositionScaleOptions | null | undefined,
+  right: ChartPositionScaleOptions | null | undefined,
 ): boolean {
   if (left === null || right === null) return left === right
   const leftAxis = left?.axis
@@ -718,13 +731,27 @@ function sameAxis(
   )
 }
 
+function positionScaleOptions(
+  definition: StaticChartDefinition,
+): Readonly<Record<string, ChartPositionScaleOptions | null | undefined>> {
+  return definition.scales
+}
+
+function hasUnsupportedOuterAxis(definition: StaticChartDefinition): boolean {
+  return Object.entries(positionScaleOptions(definition)).some(
+    ([id, options]) => {
+      if (options === null || options?.axis === false) return false
+      if (id !== 'x' && id !== 'y') return true
+      const side = options?.side ?? (id === 'x' ? 'bottom' : 'left')
+      return side !== (id === 'x' ? 'bottom' : 'left')
+    },
+  )
+}
+
 function sameAxisTicks(
-  left: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
-    false
-  >['ticks'],
+  left: Exclude<NonNullable<ChartPositionScaleOptions['axis']>, false>['ticks'],
   right: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['ticks'],
 ): boolean {
@@ -740,11 +767,11 @@ function sameAxisTicks(
 
 function sameAxisTickLabels(
   left: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['tickLabels'],
   right: Exclude<
-    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    NonNullable<ChartPositionScaleOptions['axis']>,
     false
   >['tickLabels'],
 ): boolean {
@@ -882,8 +909,7 @@ export function facetChart<TDatum>(
     marks: [facet(source, options)],
     guides: false,
     margin: 0,
-    x: null,
-    y: null,
+    scales: { x: null, y: null },
   }
 }
 

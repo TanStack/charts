@@ -60,12 +60,15 @@ export function chartTableSelectionDefinition(
         selection,
       ),
     ],
-    x: { scale: scaleLinear, axis: { label: 'Flipper length (mm)' } },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
+    scales: {
+      x: { scale: scaleLinear, axis: { label: 'Flipper length (mm)' } },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
+      },
     },
+
     margin: { top: 16, right: 24, bottom: 42, left: 62 },
     svgAnimation: false,
     keyboard: true,

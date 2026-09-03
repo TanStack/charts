@@ -112,8 +112,11 @@ export default defineChart({
     }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.2) },
-  y: { scale: scaleLinear, grid: true, axis: { label: 'Active users' } },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Active users' } },
+  },
+
   focus: 'nearest-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
   tooltip,
@@ -163,8 +166,11 @@ point:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   tooltip: {
     use: tooltip,
     items: [
@@ -272,7 +278,14 @@ const renderer = motion({
   },
 })
 
-const definition = defineChart({ marks, tooltip })
+const definition = defineChart({
+  marks,
+  scales: {
+    x: null,
+    y: null,
+  },
+  tooltip,
+})
 
 mountChartRenderer(container, {
   definition,
@@ -288,6 +301,10 @@ A static chart-level transition can refine the renderer fallback:
 ```ts
 const definition = defineChart({
   marks,
+  scales: {
+    x: null,
+    y: null,
+  },
   motion: {
     transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
   },
@@ -351,8 +368,11 @@ group's bounding-box center:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   focus: 'group-x',
   tooltip: {
     use: tooltip,
@@ -407,8 +427,11 @@ import { portal } from '@tanstack/charts/tooltip/portal'
 
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   focus: 'group-x',
   tooltip: {
     use: tooltip,
@@ -542,11 +565,18 @@ function SeriesPie({ points }: { points: readonly RevenuePoint[] }) {
               fill: (slice) => slice.data.color ?? 'CanvasText',
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
       guides: false,
-      x: null,
-      y: null,
+      scales: {
+        x: null,
+        y: null,
+      },
+
       keyboard: false,
     })
   }, [points])

@@ -33,14 +33,16 @@ const alphabet: readonly AlphabetRow[] = [
 
 const letterFrequencies = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
-  x: {
-    scale: () => scaleBand<string>().padding(0.12),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Frequency' },
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().padding(0.12),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Frequency' },
+    },
   },
 })
 ```
@@ -57,13 +59,15 @@ const productRanking = defineChart({
   tooltip,
   chart: ({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'product' })],
-    x: {
-      scale: scaleLinear,
-      nice: true,
-      axis: { ticks: { count: width < 480 ? 4 : 7 } },
-    },
-    y: {
-      scale: () => scaleBand<string>().padding(0.1),
+    scales: {
+      x: {
+        scale: scaleLinear,
+        nice: true,
+        axis: { ticks: { count: width < 480 ? 4 : 7 } },
+      },
+      y: {
+        scale: () => scaleBand<string>().padding(0.1),
+      },
     },
   }),
 })
@@ -108,13 +112,15 @@ function ProductRanking({ rows, metric }: Props) {
       tooltip,
       chart: ({ width }) => ({
         marks: [barX(ranked, { x: 'value', y: 'product' })],
-        x: {
-          scale: scaleLinear,
-          nice: true,
-          axis: { ticks: { count: width < 480 ? 4 : 7 } },
-        },
-        y: {
-          scale: () => scaleBand<string>().padding(0.1),
+        scales: {
+          x: {
+            scale: scaleLinear,
+            nice: true,
+            axis: { ticks: { count: width < 480 ? 4 : 7 } },
+          },
+          y: {
+            scale: () => scaleBand<string>().padding(0.1),
+          },
         },
       }),
     })

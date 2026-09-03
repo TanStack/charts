@@ -31,12 +31,14 @@ export const createExampleChart = (input: ChartOptions) => {
           inset: 1,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Count' } },
       },
-      y: { scale: scaleLinear, grid: true, axis: { label: 'Count' } },
     },
     {
       keyboard: true,

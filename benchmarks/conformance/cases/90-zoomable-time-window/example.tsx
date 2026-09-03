@@ -71,18 +71,21 @@ export function zoomTimeWindowDefinition(
         strokeWidth: 1,
       }),
     ],
-    x: {
-      scale: scaleUtc().domain([window.start, window.end]),
-      axis: {
-        ticks: { format: (value) => zoomDateFormatter.format(value) },
-        label: 'Date',
+    scales: {
+      x: {
+        scale: scaleUtc().domain([window.start, window.end]),
+        axis: {
+          ticks: { format: (value) => zoomDateFormatter.format(value) },
+          label: 'Date',
+        },
+      },
+      y: {
+        scale: scaleLinear,
+        grid: true,
+        axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
       },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
+
     controls: [
       zoomX({
         id: 'time-window',

@@ -38,12 +38,15 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 1,
         }),
       ],
-      x: {
-        scale: scaleLinear().domain(densityXDomain),
+      scales: {
+        x: {
+          scale: scaleLinear().domain(densityXDomain),
+        },
+        y: {
+          scale: scaleLinear().domain(densityYDomain),
+        },
       },
-      y: {
-        scale: scaleLinear().domain(densityYDomain),
-      },
+
       guides: false,
       margin: densityBandwidth * 1.5,
     },

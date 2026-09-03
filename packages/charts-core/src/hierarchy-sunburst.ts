@@ -111,7 +111,7 @@ export function sunburst<
     readonly nodeId?: never
     readonly parentId?: never
   },
-): PolarMark<SunburstNode<TDatum>, number, number>
+): PolarMark<SunburstNode<TDatum>, number, number, never, never>
 export function sunburst<
   TDatum,
   const TNodeId extends TransformValue<TDatum, string>,
@@ -124,11 +124,11 @@ export function sunburst<
     readonly path?: never
     readonly delimiter?: never
   },
-): PolarMark<SunburstNode<TDatum>, number, number>
+): PolarMark<SunburstNode<TDatum>, number, number, never, never>
 export function sunburst<TDatum>(
   source: Iterable<TDatum>,
   options: SunburstOptions<TDatum>,
-): PolarMark<SunburstNode<TDatum>, number, number> {
+): PolarMark<SunburstNode<TDatum>, number, number, never, never> {
   const hierarchyOptions: FlatHierarchyOptions<TDatum> =
     options.path !== undefined
       ? { path: options.path, delimiter: options.delimiter }
@@ -335,6 +335,7 @@ export function sunburst<TDatum>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 

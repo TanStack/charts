@@ -11,8 +11,10 @@ const rows = [
 
 const staticDefinition = defineChart({
   marks: [lineY(rows, { x: 'x', y: 'value', key: 'id' })],
-  x: { scale: scaleLinear().domain([0, 1]) },
-  y: { scale: scaleLinear().domain([0, 8]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 8]) },
+  },
 })
 
 const dynamicDefinition = defineChart(() => ({
@@ -24,8 +26,10 @@ const dynamicDefinition = defineChart(() => ({
       stroke: 'red',
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 1]) },
-  y: { scale: scaleLinear().domain([0, 8]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 8]) },
+  },
 }))
 const widenedDefinition: ChartDefinition<
   (typeof rows)[number],

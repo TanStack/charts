@@ -42,17 +42,19 @@ export const createExampleChart = (input: ChartOptions) => {
           strokeWidth: 2,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Fuel economy (mpg)' },
-      },
-      y: {
-        scale: scaleLinear().domain([0, 1]),
-        grid: true,
-        axis: {
-          ticks: { format: (value) => percent.format(value) },
-          label: 'Cumulative proportion',
+      scales: {
+        x: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Fuel economy (mpg)' },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1]),
+          grid: true,
+          axis: {
+            ticks: { format: (value) => percent.format(value) },
+            label: 'Cumulative proportion',
+          },
         },
       },
     },

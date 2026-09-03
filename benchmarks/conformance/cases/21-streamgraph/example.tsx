@@ -34,12 +34,15 @@ export const createExampleChart = () => {
           fillOpacity: 0.85,
         }),
       ],
-      x: { scale: scaleUtc, axis: { label: 'Month' } },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Unemployed (thousands)' },
+      scales: {
+        x: { scale: scaleUtc, axis: { label: 'Month' } },
+        y: {
+          scale: scaleLinear,
+          grid: true,
+          axis: { label: 'Unemployed (thousands)' },
+        },
       },
+
       color: {
         range: colors,
         ...(showLegend ? { legend: colorLegend({ label: 'Industry' }) } : {}),

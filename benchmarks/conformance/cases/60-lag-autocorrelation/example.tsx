@@ -42,15 +42,17 @@ export const createExampleChart = () => {
           r: 4,
         }),
       ],
-      x: {
-        scale: scaleLinear().domain(closeDomain),
-        grid: true,
-        axis: { label: 'Previous close (USD)' },
-      },
-      y: {
-        scale: scaleLinear().domain(closeDomain),
-        grid: true,
-        axis: { label: 'Current close (USD)' },
+      scales: {
+        x: {
+          scale: scaleLinear().domain(closeDomain),
+          grid: true,
+          axis: { label: 'Previous close (USD)' },
+        },
+        y: {
+          scale: scaleLinear().domain(closeDomain),
+          grid: true,
+          axis: { label: 'Current close (USD)' },
+        },
       },
     },
     { keyboard: true, tooltip: exampleTooltip },
