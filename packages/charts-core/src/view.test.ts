@@ -12,6 +12,10 @@ import type {
   SceneNode,
 } from './types'
 
+const unsafeViewGrid = viewGrid as unknown as (
+  options: object,
+) => import('./types').StaticChartDefinition
+
 interface MainRow {
   id: string
   x: number
@@ -159,8 +163,10 @@ describe('view grids', () => {
           align: { x: 'detail' },
           chart: defineChart({
             marks: [dot([{ x: 50, y: 1 }], { x: 'x', y: 'y' })],
-            x: { scale: scaleLinear().domain([0, 100]) },
-            y: { scale: scaleLinear().domain([0, 2]) },
+            scales: {
+              x: { scale: scaleLinear().domain([0, 100]) },
+              y: { scale: scaleLinear().domain([0, 2]) },
+            },
             guides: false,
           }),
         },
@@ -170,10 +176,12 @@ describe('view grids', () => {
           column: 'main',
           chart: defineChart({
             marks: [dot([{ x: 5, y: 1 }], { x: 'x', y: 'y' })],
-            y: { scale: scaleLinear().domain([0, 2]) },
-            x: {
-              scale: scaleLinear().domain([0, 10]),
-              axis: { label: 'A deliberately long detail-axis label' },
+            scales: {
+              x: {
+                scale: scaleLinear().domain([0, 10]),
+                axis: { label: 'A deliberately long detail-axis label' },
+              },
+              y: { scale: scaleLinear().domain([0, 2]) },
             },
           }),
         },
@@ -189,12 +197,14 @@ describe('view grids', () => {
     const child = (domain: readonly [number, number], power = false) =>
       defineChart({
         marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' })],
-        x: {
-          scale: power
-            ? scalePow().exponent(2).domain(domain)
-            : scaleLinear().domain(domain),
+        scales: {
+          x: {
+            scale: power
+              ? scalePow().exponent(2).domain(domain)
+              : scaleLinear().domain(domain),
+          },
+          y: { scale: scaleLinear().domain([0, 2]) },
         },
-        y: { scale: scaleLinear().domain([0, 2]) },
         guides: false,
       })
     const compose = (
@@ -202,7 +212,7 @@ describe('view grids', () => {
       bottom: ReturnType<typeof child>,
       bottomColumn = 'main' as 'main' | 'side',
     ) =>
-      viewGrid({
+      unsafeViewGrid({
         rows: [
           { id: 'top', size: 80 },
           { id: 'bottom', grow: 1 },
@@ -248,8 +258,10 @@ describe('view grids', () => {
   it('validates ids, cells, links, resources, and child ownership', () => {
     const chart = defineChart({
       marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' })],
-      x: { scale: scaleLinear().domain([0, 2]) },
-      y: { scale: scaleLinear().domain([0, 2]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 2]) },
+      },
     })
     const base = {
       rows: [{ id: 'main', grow: 1 }],
@@ -257,7 +269,7 @@ describe('view grids', () => {
     } as const
 
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           { id: 'a', row: 'main', column: 'main', chart },
@@ -266,7 +278,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/same grid cell/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -280,7 +292,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/unknown view/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -293,7 +305,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "tooltip"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -306,7 +318,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "pointer"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -326,7 +338,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "cursor"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -404,8 +416,10 @@ describe('view grids', () => {
                 motion: timing,
               }),
             ],
-            x: { scale: scaleLinear().domain([0, 2]) },
-            y: { scale: scaleLinear().domain([0, 2]) },
+            scales: {
+              x: { scale: scaleLinear().domain([0, 2]) },
+              y: { scale: scaleLinear().domain([0, 2]) },
+            },
           }),
         },
       ],
@@ -446,13 +460,15 @@ function marginalGrid(
         column: 'main',
         chart: defineChart({
           marks: [dot(rows, { id: 'main-dots', x: 'x', y: 'y', key: 'id' })],
-          x: {
-            scale: xScale,
-            axis: { label: 'A long horizontal measurement label' },
-          },
-          y: {
-            scale: yScale,
-            axis: { label: 'A long vertical measurement label' },
+          scales: {
+            x: {
+              scale: xScale,
+              axis: { label: 'A long horizontal measurement label' },
+            },
+            y: {
+              scale: yScale,
+              axis: { label: 'A long vertical measurement label' },
+            },
           },
         }),
       },
@@ -473,8 +489,10 @@ function marginalGrid(
               key: 'id',
             }),
           ],
-          x: { scale: xScale },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: xScale },
+            y: { scale: scaleLinear },
+          },
           guides: false,
         }),
       },
@@ -496,8 +514,10 @@ function marginalGrid(
               key: 'id',
             }),
           ],
-          x: { scale: scaleLinear },
-          y: { scale: yScale },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: yScale },
+          },
           guides: false,
         }),
       },

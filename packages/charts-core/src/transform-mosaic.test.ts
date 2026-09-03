@@ -267,13 +267,13 @@ describe('mosaic transforms', () => {
       yield* rows
     }
     const result = mosaicY(source(), {
-      x: ({ datum, index, data }) => {
+      x: (datum, { index, data }) => {
         expect(data[index]).toBe(datum)
         seenData = data
         return datum.day as Date
       },
-      y: ({ datum }) => datum.bucket as string,
-      value: ({ datum }) => datum.amount,
+      y: (datum) => datum.bucket as string,
+      value: (datum) => datum.amount,
       xOrder: [new Date(first)],
     })
 

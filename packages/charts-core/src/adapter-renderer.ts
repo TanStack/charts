@@ -1,4 +1,4 @@
-import { mountChartRenderer } from './renderer'
+import { mountChartRenderer, resolveChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import {
   resolveChartAdapterLayout,
@@ -38,7 +38,7 @@ export function createChartRendererAdapter<
         },
         { measureText: options.measureText },
       )
-      return options.renderer.prerender(scene, {
+      return resolveChartRenderer(scene, options.renderer).prerender(scene, {
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,

@@ -35,8 +35,10 @@ function fixedLinearScale(
 
 const definition = defineChart({
   marks: [lineY([4, 9, 7])],
-  x: { scale: fixedLinearScale([0, 2], [0, 1, 2]) },
-  y: { scale: fixedLinearScale([0, 10], [0, 5, 10]) },
+  scales: {
+    x: { scale: fixedLinearScale([0, 2], [0, 1, 2]) },
+    y: { scale: fixedLinearScale([0, 10], [0, 5, 10]) },
+  },
 })
 
 export const scene = createChartScene(definition, {

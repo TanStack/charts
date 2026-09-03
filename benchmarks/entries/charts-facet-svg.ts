@@ -16,8 +16,10 @@ const definition = facetChart(data, {
   by: 'group',
   chart: (group) => ({
     marks: [lineY(group, { x: 'x', y: 'y' })],
-    x: { scale: scaleLinear().domain([0, 1]) },
-    y: { scale: scaleLinear().domain([0, 6]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 6]) },
+    },
   }),
 })
 

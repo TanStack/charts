@@ -1,4 +1,4 @@
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import * as Plot from '@observablehq/plot'
 import { rank } from 'd3-array'
 import { mountObservablePlot } from '../../shared/mount'

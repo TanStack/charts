@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1470,
+  "id": "146-shadcn-bar-interactive",
+  "title": "shadcn Bar Chart - Interactive",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-interactive example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "interactive", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-interactive",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-interactive"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-interactive card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar interactive treatment, card dimensions, and light and dark tokens."
+  }
+}

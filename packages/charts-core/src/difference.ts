@@ -16,11 +16,13 @@ import { groupedIndexes } from './transform-internal'
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartLineStateStyle,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
-  ChartMotionDefinition,
   ResolvedScale,
   VisualChannel,
 } from './types'
@@ -50,10 +52,10 @@ export type DifferenceDatum<
   TIndependent extends DifferenceIndependent = DifferenceIndependent,
 > = TDatum | DifferenceAreaDatum<TDatum, TIndependent>
 
-interface DifferenceOptions<
-  TDatum,
-  TIndependent extends DifferenceIndependent,
-> {
+interface DifferenceOptions<TDatum, TIndependent extends DifferenceIndependent>
+  extends
+    CartesianScaleBindings,
+    ChartMarkMotionOptions<DifferenceDatum<TDatum, TIndependent>> {
   id?: string
   z?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
@@ -84,7 +86,6 @@ interface DifferenceOptions<
     TDatum,
     ChartLineStateStyle<TDatum>
   >[]
-  motion?: ChartMotionDefinition<DifferenceDatum<TDatum, TIndependent>>
 }
 
 export interface DifferenceYOptions<
@@ -143,18 +144,27 @@ export function differenceY<
     NoInfer<TDatum>,
     DifferenceIndependent | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: DifferenceYCallOptions<TDatum, TXChannel>,
+  options: DifferenceYCallOptions<TDatum, TXChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   DifferenceDatum<TDatum, IndependentOutput<TDatum, TXChannel>>,
   IndependentOutput<TDatum, TXChannel>,
-  number
+  number,
+  IndependentOutput<TDatum, TXChannel>,
+  number,
+  TXScaleId,
+  TYScaleId
 >
 export function differenceY<TDatum>(
   source: Iterable<TDatum>,
   options: DifferenceYOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, DifferenceYOptions<TDatum>> {
   return difference(source, options, options.x, options.y1, options.y2, 'y')
 }
 
@@ -165,18 +175,27 @@ export function differenceX<
     NoInfer<TDatum>,
     DifferenceIndependent | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: DifferenceXCallOptions<TDatum, TYChannel>,
+  options: DifferenceXCallOptions<TDatum, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   DifferenceDatum<TDatum, IndependentOutput<TDatum, TYChannel>>,
   number,
-  IndependentOutput<TDatum, TYChannel>
+  IndependentOutput<TDatum, TYChannel>,
+  number,
+  IndependentOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function differenceX<TDatum>(
   source: Iterable<TDatum>,
   options: DifferenceXOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, DifferenceXOptions<TDatum>> {
   return difference(source, options, options.y, options.x1, options.x2, 'x')
 }
 
@@ -217,97 +236,119 @@ function difference<TDatum, TIndependent extends DifferenceIndependent>(
   comparison: number | Channel<TDatum, number | null | undefined>,
   primary: number | Channel<TDatum, number | null | undefined>,
   orientation: 'x' | 'y',
-): ChartMark<any, any, any> {
+): CartesianChartMark<
+  any,
+  any,
+  any,
+  any,
+  any,
+  DifferenceOptions<TDatum, TIndependent>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `difference-${orientation}-${markIndex}`
-    const independentValues = channelValues(data, independent, () => undefined)
-    const comparisonValues = numericValues(data, comparison)
-    const primaryValues = numericValues(data, primary)
-    const groupValues = channelValues(data, options.z, () => null)
-    validateIndependentValues(
-      independentValues,
-      comparisonValues,
-      primaryValues,
-      orientation,
-    )
-    const keys = inferredKeyValues(data, options.key, {
-      groups: groupValues,
-      candidates: [independentValues],
-      markId: id,
-      warningIdentity: options,
-    })
-    const semanticValid = data.map(
-      (_datum, index) =>
-        isIndependent(independentValues[index]) &&
-        isFiniteNumber(comparisonValues[index]) &&
-        isFiniteNumber(primaryValues[index]),
-    )
-    const domainIndependent = independentValues.filter(
-      (_value, index): _value is TIndependent => semanticValid[index]!,
-    )
-    const domainDependent = [
-      ...comparisonValues.filter(
-        (_value, index): _value is number => semanticValid[index]!,
-      ),
-      ...primaryValues.filter(
-        (_value, index): _value is number => semanticValid[index]!,
-      ),
-    ]
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `difference-${orientation}-${markIndex}`
+      const independentValues = channelValues(
+        data,
+        independent,
+        () => undefined,
+      )
+      const comparisonValues = numericValues(data, comparison)
+      const primaryValues = numericValues(data, primary)
+      const groupValues = channelValues(data, options.z, () => null)
+      validateIndependentValues(
+        independentValues,
+        comparisonValues,
+        primaryValues,
+        orientation,
+      )
+      const keys = inferredKeyValues(data, options.key, {
+        groups: groupValues,
+        candidates: [independentValues],
+        markId: id,
+        warningIdentity: options,
+      })
+      const semanticValid = data.map(
+        (_datum, index) =>
+          isIndependent(independentValues[index]) &&
+          isFiniteNumber(comparisonValues[index]) &&
+          isFiniteNumber(primaryValues[index]),
+      )
+      const domainIndependent = independentValues.filter(
+        (_value, index): _value is TIndependent => semanticValid[index]!,
+      )
+      const domainDependent = [
+        ...comparisonValues.filter(
+          (_value, index): _value is number => semanticValid[index]!,
+        ),
+        ...primaryValues.filter(
+          (_value, index): _value is number => semanticValid[index]!,
+        ),
+      ]
 
-    return {
-      id,
-      channels:
-        orientation === 'y'
-          ? {
-              x: { scale: 'x', values: domainIndependent },
-              y: { scale: 'y', values: domainDependent },
-            }
-          : {
-              x: { scale: 'x', values: domainDependent },
-              y: { scale: 'y', values: domainIndependent },
-            },
-      resolveLayout: ({ scales }) => {
-        const projection = resolveDifferenceScales(scales, orientation)
-        const positions = projectDifferenceValues(
-          independentValues,
-          comparisonValues,
-          primaryValues,
-          projection,
-        )
-        const lobes = differenceLobes(
-          data,
-          independentValues,
-          comparisonValues,
-          primaryValues,
-          positions.independent,
-          positions.comparison,
-          positions.primary,
-          groupValues,
-          keys,
-          projection,
-        )
-        const children = differenceChildren(
-          data,
-          options,
-          orientation,
-          materializeAreaRows(lobes),
-          independentValues,
-          comparisonValues,
-          primaryValues,
-          groupValues,
-          keys,
-          positions.valid,
-        )
-        return adoptResolvedChildMark(
-          initializeCompositeMark(id, children, {
-            interactiveChildren: interactiveDifferenceChildren,
-          }),
-        )
-      },
-    }
-  }, options.motion)
+      return {
+        id,
+        channels:
+          orientation === 'y'
+            ? {
+                x: { scale: xScale, values: domainIndependent },
+                y: { scale: yScale, values: domainDependent },
+              }
+            : {
+                x: { scale: xScale, values: domainDependent },
+                y: { scale: yScale, values: domainIndependent },
+              },
+        resolveLayout: ({ scales }) => {
+          const projection = resolveDifferenceScales(
+            scales,
+            orientation,
+            xScale,
+            yScale,
+          )
+          const positions = projectDifferenceValues(
+            independentValues,
+            comparisonValues,
+            primaryValues,
+            projection,
+          )
+          const lobes = differenceLobes(
+            data,
+            independentValues,
+            comparisonValues,
+            primaryValues,
+            positions.independent,
+            positions.comparison,
+            positions.primary,
+            groupValues,
+            keys,
+            projection,
+          )
+          const children = differenceChildren(
+            data,
+            options,
+            orientation,
+            materializeAreaRows(lobes),
+            independentValues,
+            comparisonValues,
+            primaryValues,
+            groupValues,
+            keys,
+            positions.valid,
+          )
+          return adoptResolvedChildMark(
+            initializeCompositeMark(id, children, {
+              interactiveChildren: interactiveDifferenceChildren,
+            }),
+          )
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
@@ -324,7 +365,7 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
   groupValues: readonly (ChartKey | null | undefined)[],
   keys: readonly ChartKey[],
   sharedValid: readonly boolean[],
-): ChartMark<any, any, any>[] {
+): ChartMark<any, any, any, any, any, any, any>[] {
   const lineIndependent = (_datum: TDatum, { index }: { index: number }) =>
     sharedValid[index] ? independentValues[index] : undefined
   const comparisonValue = (_datum: TDatum, { index }: { index: number }) =>
@@ -336,7 +377,7 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
   const lineKey = (_datum: TDatum, { index }: { index: number }) =>
     keys[index] ?? index
   const noColor = () => null
-  const children: ChartMark<any, any, any>[] = []
+  const children: ChartMark<any, any, any, any, any, any, any>[] = []
 
   if (options.positiveFill !== null) {
     children.push(
@@ -352,6 +393,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
             fill: options.positiveFill ?? '#3ca951',
             fillOpacity:
               options.positiveFillOpacity ?? options.fillOpacity ?? 0.2,
+            xScale: options.xScale,
+            yScale: options.yScale,
           })
         : areaX(areas.positive, {
             id: 'positive',
@@ -364,6 +407,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
             fill: options.positiveFill ?? '#3ca951',
             fillOpacity:
               options.positiveFillOpacity ?? options.fillOpacity ?? 0.2,
+            xScale: options.xScale,
+            yScale: options.yScale,
           }),
     )
   }
@@ -381,6 +426,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
             fill: options.negativeFill ?? '#4269d0',
             fillOpacity:
               options.negativeFillOpacity ?? options.fillOpacity ?? 0.2,
+            xScale: options.xScale,
+            yScale: options.yScale,
           })
         : areaX(areas.negative, {
             id: 'negative',
@@ -393,6 +440,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
             fill: options.negativeFill ?? '#4269d0',
             fillOpacity:
               options.negativeFillOpacity ?? options.fillOpacity ?? 0.2,
+            xScale: options.xScale,
+            yScale: options.yScale,
           }),
     )
   }
@@ -414,6 +463,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
           strokeDasharray: options.comparisonStrokeDasharray,
           points: options.points,
           states: options.comparisonStates,
+          xScale: options.xScale,
+          yScale: options.yScale,
         })
       : lineX(data, {
           id: 'comparison',
@@ -430,6 +481,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
           strokeDasharray: options.comparisonStrokeDasharray,
           points: options.points,
           states: options.comparisonStates,
+          xScale: options.xScale,
+          yScale: options.yScale,
         }),
     orientation === 'y'
       ? lineY(data, {
@@ -445,6 +498,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
           strokeDasharray: options.strokeDasharray,
           points: options.points,
           states: options.states,
+          xScale: options.xScale,
+          yScale: options.yScale,
         })
       : lineX(data, {
           id: 'primary',
@@ -459,6 +514,8 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
           strokeDasharray: options.strokeDasharray,
           points: options.points,
           states: options.states,
+          xScale: options.xScale,
+          yScale: options.yScale,
         }),
   )
 
@@ -477,10 +534,12 @@ function numericValues<TDatum>(
 function resolveDifferenceScales(
   scales: Readonly<Record<string, ResolvedScale>>,
   orientation: 'x' | 'y',
+  xScale: string,
+  yScale: string,
 ): DifferenceScales {
   const owner = orientation === 'y' ? 'differenceY' : 'differenceX'
-  const x = scales.x
-  const y = scales.y
+  const x = scales[xScale]
+  const y = scales[yScale]
   if (!x || !y) {
     throw new TypeError(`${owner}: x and y scales are required`)
   }

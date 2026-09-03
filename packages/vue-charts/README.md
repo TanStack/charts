@@ -1,16 +1,17 @@
 # `@tanstack/vue-charts`
 
-Vue lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Vue adapter from `@tanstack/charts/vue`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/vue-charts vue
+pnpm add @tanstack/charts vue
 ```
 
 ```vue
 <script setup lang="ts">
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/vue-charts'
+import { Chart } from '@tanstack/charts/vue'
 
 const interactiveDefinition = defineChart(definition, { tooltip })
 </script>

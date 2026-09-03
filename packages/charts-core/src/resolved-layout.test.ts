@@ -82,8 +82,10 @@ describe('mark resolved layout', () => {
         marks: [createMark(initialize)],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         color: {
           scale: scaleLinear<string>,
           range: ['#eff6ff', '#1d4ed8'],
@@ -133,8 +135,10 @@ describe('mark resolved layout', () => {
         defineChart({
           marks: [mark],
           guides: false,
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
           color: {
             scale: scaleLinear<string>,
             range: ['#eff6ff', '#1d4ed8'],

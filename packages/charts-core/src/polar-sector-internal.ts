@@ -40,12 +40,17 @@ export function resolvePolarSector(
     .cornerRadius((value) => value.cornerRadius))
   const path = generator(sector)
   if (typeof path !== 'string' || !path) return undefined
-  return { path, points: polarSectorBoundary(generator, sector) }
+  return {
+    path,
+    points: tracePolarArcBoundary(generator, sector, 0, [sector]),
+  }
 }
 
-function polarSectorBoundary(
-  generator: Arc<any, PolarSectorGeometry>,
-  sector: PolarSectorGeometry,
+export function tracePolarArcBoundary<TDatum>(
+  generator: Arc<any, TDatum>,
+  datum: TDatum,
+  index: number,
+  data: readonly TDatum[],
 ): readonly (readonly [number, number])[] {
   // Replay D3's own path commands so the interaction polygon samples rounded,
   // reversed, and full-circle geometry without parsing SVG or using a DOM API.
@@ -98,7 +103,7 @@ function polarSectorBoundary(
   // the complete Canvas context.
   generator.context(context as unknown as CanvasRenderingContext2D)
   try {
-    generator(sector)
+    generator(datum, index, data)
   } finally {
     generator.context(previousContext)
   }

@@ -32,7 +32,6 @@ describe('release workflow contract', () => {
         '@tanstack/charts',
         '@tanstack/charts-scales',
         '@tanstack/react-charts',
-        '@tanstack/react-charts-catalog',
         '@tanstack/react-native-charts',
         '@tanstack/octane-charts',
         '@tanstack/preact-charts',

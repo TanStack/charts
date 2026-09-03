@@ -1,5 +1,1120 @@
 # Changelog
 
+## 0.16.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#115](https://github.com/TanStack/charts/pull/115) [`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a) - Move TanStack Charts into official Alpha on the regular `0.x` release line.
+
+  Chart definitions now require Cartesian scales under `scales.x` and `scales.y`.
+  Polar definitions require `scales.angle` and `scales.radius`. The temporary
+  pre-Alpha root properties, runtime adapters, and development warnings have been
+  removed. Custom mark types should replace `ChartMarkX` and `ChartMarkY` with
+  `ChartMarkPointX` and `ChartMarkPointY`, imported from
+  `@tanstack/charts/mark/scale-values`. Polar layout callbacks should read the
+  reserved mappings from `layout.scales`.
+
+  Reserved scale entries are checked against the marks that use them at the
+  precise authored type boundary. A materialized dimension requires a configured
+  scale, while an unused dimension requires an explicit `null` entry. Runtime
+  validation still checks required reserved entries and channels that actually
+  materialize, but type-only scale ownership cannot be recovered after a custom
+  mark or stored definition has been erased.
+
+  Fresh built-in mark option literals now reject unsupported properties while
+  preserving typed channels, named scale IDs, and generic mark wrappers.
+
+  Exact-zero cells in diverging stacks now stay on their running positive or
+  negative baseline instead of drawing false spikes through lower area layers.
+  Pinned tooltips now dismiss when the pointer is pressed outside the chart and
+  tooltip, so pointer inspection resumes after focus leaves the chart.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+## 0.15.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#112](https://github.com/TanStack/charts/pull/112) [`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3) - Add named Cartesian and polar scale registries with multiple axes, guided
+  legacy scale migration, and opt-in per-mark Canvas rendering that composes with
+  the default renderer across DOM framework adapters, SSR, focus, and image
+  export.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+## 0.14.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#102](https://github.com/TanStack/charts/pull/102) [`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918) - Improve definition-driven inference for optional motion renderers, raw chart specs with separate behaviors, responsive chart factories, and decorative marks.
+
+#### Patch Changes
+
+- [#104](https://github.com/TanStack/charts/pull/104) [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e) - Inject tooltip motion through a structural renderer capability so motion works across separately bundled package entrypoints.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+## 0.13.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#96](https://github.com/TanStack/charts/pull/96) [`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438) - Add ShadCN-compatible chart catalog support with renderer-owned tooltip and
+  entrance motion, composable stagger timing, motion cascade opt-outs, and
+  expanded polar presentation controls.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+## 0.12.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#90](https://github.com/TanStack/charts/pull/90) [`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140) - Add angular grouped focus for radial charts and geometry-backed arc tooltips.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+## 0.11.2
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#88](https://github.com/TanStack/charts/pull/88) [`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a) - Ship scenario-driven TanStack Charts skills for visualization design, responsive behavior, migration, interaction, accessibility, debugging, extension, and coordination with the TanStack data and application ecosystem.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+## 0.11.1
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+## 0.11.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#81](https://github.com/TanStack/charts/pull/81) [`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8) - Add controlled sunburst drill-down roots, bounded visible depth, and hierarchy-aware polar motion that keeps animated sectors centered. Add funnel and drillable sunburst catalog examples.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+## 0.10.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#79](https://github.com/TanStack/charts/pull/79) [`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e) - Let chart containers theme the built-in DOM tooltip surface through inherited
+  `--ts-chart-tooltip-*` CSS variables while preserving the existing defaults.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+## 0.9.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+### @tanstack/charts-scales
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+## 0.8.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+### @tanstack/charts-scales
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+### @tanstack/react-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/react-native-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/octane-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/preact-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/vue-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/solid-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/svelte-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/angular-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/lit-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### @tanstack/alpine-charts
+
+#### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+#### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+### Public API harmonization
+
+- Track the pre-alpha public API cleanup in
+  [`API-HARMONIZATION-ROADMAP.md`](./API-HARMONIZATION-ROADMAP.md). This release
+  will tighten compact-scale contracts, make platform-specific definition
+  boundaries type-safe, harmonize responsive, interaction, callback, focus,
+  color, animation, export, and transform names, strengthen view composition,
+  and make the public reference mechanically complete.
+
+#### Breaking migrations
+
+| Before                                                                     | After                                                                               |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `DynamicChartConfig`, `DynamicChartDefinition`, `isDynamicChartDefinition` | `ResponsiveChartConfig`, `ResponsiveChartDefinition`, `isResponsiveChartDefinition` |
+| responsive builder `{ theme }`                                             | `{ defaultTheme }`                                                                  |
+| definition `behaviors` and `ChartBehavior*`                                | `controls` and `ChartControl*`                                                      |
+| definition `animate`                                                       | `svgAnimation`                                                                      |
+| `color.type`                                                               | `color.resolver`                                                                    |
+| `focusX`, `focusY`                                                         | `focusGroupX`, `focusGroupY`                                                        |
+| `RenderChartPngOptions`                                                    | `RenderChartImageOptions`                                                           |
+| transform `window` and `/transform/window`                                 | `rollingWindow` and `/transform/rolling-window`                                     |
+| reduce helper `difference`                                                 | `delta`                                                                             |
+| transform accessor `(context)`                                             | `(datum, { index, data })`                                                          |
+
+Compact linear domains and band ranges now require exactly two finite values.
+Ordinal scales return `undefined` when no range value can be resolved.
+
+Tooltip extension tokens now declare `__chartExtensionType: 'tooltip'` and a
+`__chartTooltipHost` brand. DOM adapters reject exact React Native tooltip
+definitions, React Native rejects exact DOM tooltip definitions, and both
+retain runtime guards for deliberately widened values. `StaticChartDefinition`,
+`ResponsiveChartDefinition`, and `ChartDefinition` accept an optional tooltip
+host type parameter. Host adapters can share the environment-neutral
+`@tanstack/charts/tooltip/model` policy.
+
+Text measurement is now a synchronous, deterministic host contract with font
+family, style, stretch, letter spacing, direction, locale, and font scale.
+Browser hosts pass inherited typography and re-layout after fonts load. React
+Native exposes matching typography props and applies font scale to measurement
+and SVG label paint; hosts own any asynchronous font-readiness lifecycle.
+
+View composition accepts `ComposableChartDefinition`, including responsive
+children resolved against their allocated frames. Embedded host options,
+gradients, and scene backgrounds are rejected by exact types and guarded at
+runtime. `createChartRuntime({ defaultTheme })` now supplies one platform theme
+to both responsive builders and final scene compilation.
+
+Documentation checks now validate syntax and public imports for all 503 typed
+fences and fully compile the 18 examples presented as complete. Contextual
+fragments do not receive hidden fixture declarations.
+
 ## 0.7.2
 
 ### @tanstack/react-charts

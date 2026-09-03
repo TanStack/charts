@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1290,
+  "id": "128-shadcn-bar-multiple",
+  "title": "shadcn Bar Chart - Multiple",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-multiple example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "multiple", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 12
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-multiple",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-multiple"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar multiple treatment, card dimensions, and light and dark tokens."
+  }
+}

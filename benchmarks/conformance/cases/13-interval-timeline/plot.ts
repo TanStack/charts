@@ -1,4 +1,4 @@
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

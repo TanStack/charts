@@ -37,8 +37,10 @@ describe('spatial density contours', () => {
       guides: false,
       focusRing: false,
       margin: { top: 17, right: 13, bottom: 11, left: 19 },
-      x: { scale: scaleSymlog },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleSymlog },
+        y: { scale: scaleLinear },
+      },
       color: {
         scale: scaleLinear<string>,
         range: ['#eff6ff', '#1d4ed8'],
@@ -101,8 +103,10 @@ describe('spatial density contours', () => {
           guides: false,
           focusRing: false,
           margin: 0,
-          x: { scale: scaleLinear().domain([-2, 2]) },
-          y: { scale: scaleLinear().domain([-1, 1]) },
+          scales: {
+            x: { scale: scaleLinear().domain([-2, 2]) },
+            y: { scale: scaleLinear().domain([-1, 1]) },
+          },
         }),
         { width: 320, height: 180 },
       )
@@ -137,8 +141,10 @@ describe('spatial density contours', () => {
       guides: false,
       focusRing: false,
       margin: 0,
-      x: { scale: scaleLinear().domain([0, 3]) },
-      y: { scale: scaleLinear().domain([0, 3]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([0, 3]) },
+      },
     })
     const narrow = createChartScene(definition, { width: 220, height: 160 })
     const wide = createChartScene(definition, { width: 660, height: 160 })
@@ -185,8 +191,10 @@ describe('spatial density contours', () => {
           guides: false,
           focusRing: false,
           margin: 0,
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         }),
         { width, height: 220 },
       )
@@ -228,8 +236,10 @@ describe('spatial density contours', () => {
         guides: false,
         focusRing: false,
         margin: 0,
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
       }),
       { width: 240, height: 180 },
     )

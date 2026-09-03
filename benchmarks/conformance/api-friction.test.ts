@@ -12,9 +12,9 @@ describe('API friction log', () => {
     const indexIds = [...content.matchAll(/^\| (F-\d{3}) \|/gm)].map(
       ([, id]) => id,
     )
-    const findingIds = [...content.matchAll(/^### (F-\d{3}) —/gm)].map(
-      ([, id]) => id,
-    )
+    const findingIds = [
+      ...content.matchAll(/^### (F-\d{3}) (?:-|\u2014)/gm),
+    ].map(([, id]) => id)
 
     expect(new Set(indexIds).size).toBe(indexIds.length)
     expect(new Set(findingIds).size).toBe(findingIds.length)
@@ -33,7 +33,9 @@ describe('API friction log', () => {
         ([, id, status]) => [id, status],
       ),
     )
-    const headings = [...content.matchAll(/^### (F-\d{3}) —[^\n]*$/gm)]
+    const headings = [
+      ...content.matchAll(/^### (F-\d{3}) (?:-|\u2014)[^\n]*$/gm),
+    ]
     const findingStatuses = new Map<string, string>()
 
     headings.forEach((heading, index) => {

@@ -2,7 +2,7 @@ import { createElement, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import {
   isLegendSeriesId,
   legendRows,

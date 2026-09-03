@@ -1,4 +1,4 @@
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export type CompletePenguin = PenguinsRow & {
   readonly culmen_length_mm: number

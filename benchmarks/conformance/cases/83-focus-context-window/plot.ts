@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { brushX } from 'd3-brush'
 import { select } from 'd3-selection'
 import {

@@ -16,8 +16,10 @@ describe('frame mark', () => {
           }),
         ],
         guides: false,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 320, height: 180 },
     )

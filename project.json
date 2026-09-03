@@ -101,7 +101,7 @@
     "package-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node scripts/check-packed-consumers.mjs && node scripts/check-framework-adapters.mjs"
+        "command": "node scripts/check-release-packages.mjs"
       }
     },
     "bundle": {
@@ -122,46 +122,28 @@
         "command": "node scripts/compare-chart-libraries.mjs --check"
       }
     },
-    "catalog-check": {
+    "catalog-index-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
+        "command": "node scripts/catalog-index.mjs --check"
       }
     },
-    "react-catalog-check": {
+    "catalog-example-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node scripts/sync-react-charts-catalog.mjs --check"
-      },
-      "cache": true,
-      "inputs": ["source"]
-    },
-    "catalog-vite-build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "CATALOG_BASE_PATH=/charts/catalog/ pnpm --filter @charts-poc/conformance-example build:vite"
+        "command": "node scripts/check-catalog-examples.mjs"
       }
     },
-    "catalog-artifact-build": {
+    "catalog-preview-check": {
       "executor": "nx:run-commands",
-      "dependsOn": ["catalog-vite-build"],
       "options": {
-        "command": "node scripts/build-conformance-artifact.mjs && node scripts/check-conformance-artifact.mjs"
+        "command": "node scripts/catalog-preview.mjs --check"
       }
     },
-    "catalog-build": {
+    "conformance-app-build": {
       "executor": "nx:run-commands",
-      "dependsOn": ["catalog-artifact-build"],
       "options": {
-        "command": "node -e \"console.log('Catalog build passed.')\""
-      },
-      "cache": false
-    },
-    "catalog-loading-check": {
-      "executor": "nx:run-commands",
-      "dependsOn": ["catalog-artifact-build"],
-      "options": {
-        "command": "node scripts/check-catalog-loading.mjs"
+        "command": "pnpm --filter @charts-poc/conformance-example build"
       }
     },
     "workspace-diff-check": {
@@ -194,9 +176,10 @@
         "package-check",
         "bundle-check",
         "benchmark-check",
-        "catalog-check",
-        "react-catalog-check",
-        "catalog-loading-check"
+        "catalog-example-check",
+        "catalog-index-check",
+        "catalog-preview-check",
+        "conformance-app-build"
       ],
       "options": {
         "command": "node -e \"console.log('CI targets passed.')\""
@@ -219,9 +202,10 @@
         "react-native-types",
         "bundle-check",
         "benchmark-check",
-        "catalog-check",
-        "react-catalog-check",
-        "catalog-loading-check"
+        "catalog-example-check",
+        "catalog-index-check",
+        "catalog-preview-check",
+        "conformance-app-build"
       ],
       "options": {
         "command": "node -e \"console.log('Distributed CI targets passed.')\""

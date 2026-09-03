@@ -20,7 +20,9 @@ Use `createChartScene` for one static compilation.
 ```ts
 import { createChartRuntime } from '@tanstack/charts/runtime'
 
-const runtime = createChartRuntime<Row, Date, number>()
+const runtime = createChartRuntime<Row, Date, number>({
+  defaultTheme: platformTheme,
+})
 const scene = runtime.render(definition, {
   width: 800,
   height: 400,
@@ -34,7 +36,7 @@ function createChartRuntime<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(): ChartRuntime<TDatum, TXValue, TYValue>
+>(options?: ChartRuntimeOptions): ChartRuntime<TDatum, TXValue, TYValue>
 ```
 
 `ChartRuntime.render` accepts a definition, size, and optional layout:
@@ -44,7 +46,10 @@ interface RuntimeRenderSignature {
   render(
     definition,
     size: { width: number; height: number },
-    layout?: { measureText?: ChartTextMeasurer },
+    layout?: {
+      measureText?: ChartTextMeasurer
+      typography?: ChartTextTypography
+    },
   ): ChartScene
 }
 ```
@@ -56,8 +61,10 @@ framework adapter hosts infer them from the definition.
 ### Runtime behavior
 
 The runtime does not cache application data. A responsive builder receives the
-current surface size on every direct render. Framework adapters and application
-code own definition memoization and asynchronous cleanup.
+current surface size and the runtime's platform `defaultTheme` on every direct
+render. The same default theme is applied before the authored definition theme
+during final scene compilation. Framework adapters and application code own
+definition memoization and asynchronous cleanup.
 
 ## `createChartScene`
 
@@ -67,7 +74,7 @@ import { createChartScene } from '@tanstack/charts/scene'
 const scene = createChartScene(
   staticDefinition,
   { width: 800, height: 400 },
-  { measureText },
+  { measureText, typography },
 )
 ```
 

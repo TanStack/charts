@@ -17,8 +17,10 @@ const definition = defineChart({
       key: 'id',
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 6]) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 6]) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
 })
 
 export function render(width: number, height: number) {

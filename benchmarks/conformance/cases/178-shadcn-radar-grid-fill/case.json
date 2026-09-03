@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1790,
+  "id": "178-shadcn-radar-grid-fill",
+  "title": "shadcn Radar Chart - Grid Filled",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-grid-fill example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "grid fill", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-grid-fill",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-fill"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-grid-fill card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar grid fill treatment, card dimensions, and light and dark tokens."
+  }
+}

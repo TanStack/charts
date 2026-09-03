@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import { worldLand, worldSphere } from '@tanstack/charts-data/country-atlas'
 import { projectionGalleryData } from './projection'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import type { GeoProjection } from 'd3-geo'

@@ -164,7 +164,7 @@ export interface ChartPrepareContext {
   signal: AbortSignal
 }
 
-export interface DynamicChartConfig<
+export interface ResponsiveChartConfig<
   TInput,
   TPrepared,
   TMarks extends readonly ChartMark<unknown>[] = readonly ChartMark<unknown>[],
@@ -175,7 +175,7 @@ export interface DynamicChartConfig<
   prepareEqual?: (previous: TInput, next: TInput) => boolean
 }
 
-export interface DynamicChartDefinition<
+export interface ResponsiveChartDefinition<
   TInput = unknown,
   TPrepared = TInput,
   TDatum = unknown,
@@ -193,7 +193,7 @@ export type ChartDefinition<
   TPrepared = TInput,
 > =
   | StaticChartDefinition<TDatum>
-  | DynamicChartDefinition<TInput, TPrepared, TDatum>
+  | ResponsiveChartDefinition<TInput, TPrepared, TDatum>
 
 export type ChartMarkDatum<TMark> =
   TMark extends ChartMark<infer TDatum> ? TDatum : never
@@ -442,7 +442,7 @@ export interface ChartHostOptions<
   maxFocusDistance?: number
   focus?: ChartFocusStrategy
   spatialIndex?: ChartSpatialIndexFactory<TDatum>
-  animate?: boolean | ChartAnimationOptions
+  svgAnimation?: boolean | ChartAnimationOptions
   keyboard?: boolean
   tooltip?: boolean | ChartTooltipOptions<TDatum>
   onFocusChange?: (point: ChartPoint<TDatum> | null) => void

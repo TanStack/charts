@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1430,
+  "id": "142-shadcn-area-step",
+  "title": "shadcn Area Chart - Step",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-step example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "step", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-step",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-step"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-step card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area step treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,5 +1,5 @@
-import { wind } from '@charts-poc/demo-data/wind'
-import type { WindRow } from '@charts-poc/demo-data/wind'
+import { wind } from '@tanstack/charts-data/wind'
+import type { WindRow } from '@tanstack/charts-data/wind'
 
 const selectableLatitudeBands = [48.125, 55.125] as const
 

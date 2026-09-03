@@ -1,5 +1,5 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export type BubblePenguin = PenguinsRow & {
   culmen_length_mm: number

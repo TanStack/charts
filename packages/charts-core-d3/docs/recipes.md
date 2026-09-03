@@ -4,7 +4,7 @@
 > current D3-native product.
 
 All examples use `@tanstack/charts`. React renders the definition with
-`@tanstack/react-charts`; Octane uses `@tanstack/octane-charts`.
+`@tanstack/charts/react`; Octane uses `@tanstack/charts/octane`.
 
 ## Grouped time-series line
 

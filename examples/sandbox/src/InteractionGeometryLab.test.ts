@@ -3,7 +3,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createChartScene, findNearestPoint } from '@tanstack/charts'
 import type { SceneNode } from '@tanstack/charts'
-import { focusX, focusY } from '@tanstack/charts/focus'
+import { focusGroupX, focusGroupY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
   facetFocusDefinitions,
@@ -115,7 +115,7 @@ describe('intentional interaction contracts', () => {
       expect(probe).not.toBeNull()
       if (!probe) continue
 
-      const strategy = proof.grouped.axis === 'x' ? focusX : focusY
+      const strategy = proof.grouped.axis === 'x' ? focusGroupX : focusGroupY
       const points = strategy.resolve(scene.points, {
         x: probe.x,
         y: probe.y,

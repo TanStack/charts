@@ -1,4 +1,4 @@
-import type { WindRow } from '@charts-poc/demo-data/wind'
+import type { WindRow } from '@tanstack/charts-data/wind'
 
 export function sampleWind(rows: readonly WindRow[]) {
   const longitudes = [...new Set(rows.map((row) => row.longitude))]

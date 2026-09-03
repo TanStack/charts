@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear, scaleUtc } from 'd3-scale'
 import { facetChart } from './facet'
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import {
   createChartCursor,
   createFocusChartCursorState,
@@ -41,8 +41,10 @@ function numericScene(width = 320, height = 180) {
   return createChartScene(
     defineChart({
       marks: [lineY(numericRows, { x: 'x', y: 'y', key: 'id' })],
-      x: { scale: scaleLinear().domain([0, 10]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
       guides: false,
     }),
     { width, height },
@@ -63,11 +65,11 @@ describe('chart cursor controller', () => {
       { mode: 'nearest-x', scene: xScene, x: 50, y: 80, grouped: false },
       { mode: focusNearestX, scene: xScene, x: 50, y: 80, grouped: false },
       { mode: 'group-x', scene: xScene, x: 50, y: 80, grouped: true },
-      { mode: focusX, scene: xScene, x: 50, y: 80, grouped: true },
+      { mode: focusGroupX, scene: xScene, x: 50, y: 80, grouped: true },
       { mode: 'nearest-y', scene: yScene, x: 80, y: 50, grouped: false },
       { mode: focusNearestY, scene: yScene, x: 80, y: 50, grouped: false },
       { mode: 'group-y', scene: yScene, x: 80, y: 50, grouped: true },
-      { mode: focusY, scene: yScene, x: 80, y: 50, grouped: true },
+      { mode: focusGroupY, scene: yScene, x: 80, y: 50, grouped: true },
     ]
 
     for (const testCase of cases) {
@@ -364,13 +366,15 @@ describe('chart cursor projection', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY(numericRows, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 10]),
-          viewport: { domain: [2, 8], translate: 24 },
-        },
-        y: {
-          scale: scaleLinear().domain([0, 10]),
-          viewport: { domain: [2, 8], translate: -16 },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 10]),
+            viewport: { domain: [2, 8], translate: 24 },
+          },
+          y: {
+            scale: scaleLinear().domain([0, 10]),
+            viewport: { domain: [2, 8], translate: -16 },
+          },
         },
         guides: false,
       }),
@@ -462,8 +466,10 @@ describe('chart cursor projection', () => {
             { x: 'x', y: 'y' },
           ),
         ],
-        x: { scale: scaleBand().domain(['A', 'B']) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleBand().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
       }),
       { width: 320, height: 180 },
@@ -513,8 +519,10 @@ describe('chart cursor projection', () => {
         axes: 'cell',
         chart: (data) => ({
           marks: [lineY(data, { x: 'x', y: 'y' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 2]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 2]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -577,10 +585,12 @@ describe('focus cursor semantics', () => {
           key: 'id',
         }),
       ],
-      x: {
-        scale: scaleUtc().domain([instant, rows[2]!.date]),
+      scales: {
+        x: {
+          scale: scaleUtc().domain([instant, rows[2]!.date]),
+        },
+        y: { scale: scaleLinear().domain([0, 10]) },
       },
-      y: { scale: scaleLinear().domain([0, 10]) },
       guides: false,
     }),
     { width: 320, height: 180 },
@@ -684,13 +694,15 @@ describe('focus cursor semantics', () => {
               key: 'id',
             }),
           ],
-          x: {
-            scale: scaleUtc().domain([
-              instant,
-              new Date(instant.getTime() + 86_400_000),
-            ]),
+          scales: {
+            x: {
+              scale: scaleUtc().domain([
+                instant,
+                new Date(instant.getTime() + 86_400_000),
+              ]),
+            },
+            y: { scale: scaleLinear().domain([0, 10]) },
           },
-          y: { scale: scaleLinear().domain([0, 10]) },
           guides: false,
         }),
         { width: 320, height: 180 },
@@ -820,8 +832,10 @@ if (false) {
   const controller = createChartCursor<string, number>()
   const definition = defineChart({
     marks: [mark],
-    x: { scale: scaleBand<string>().domain(['A']) },
-    y: { scale: scaleLinear().domain([0, 1]) },
+    scales: {
+      x: { scale: scaleBand<string>().domain(['A']) },
+      y: { scale: scaleLinear().domain([0, 1]) },
+    },
     cursor: {
       mode: 'free',
       use: cursorHost,

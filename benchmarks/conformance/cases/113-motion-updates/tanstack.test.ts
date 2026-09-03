@@ -198,20 +198,27 @@ describe('declarative keyed motion updates', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/113-motion-updates/tanstack.ts',
+        'benchmarks/conformance/cases/113-motion-updates/example.tsx',
       ),
       'utf8',
     )
     const start = source.indexOf('export function motionUpdatesDefinition(')
-    const end = source.indexOf('function clearTimer', start)
+    const end = source.indexOf('export function readEasing', start)
     const definitionSource = source.slice(start, end)
 
-    expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('controls.advance.addEventListener')
-    expect(source).toContain('controls.interrupt.addEventListener')
-    expect(source).toContain('controls.replay.addEventListener')
-    expect(source).toContain('setTimeout(() =>')
-    expect(source).toContain('settleChartMotion(chart')
+    const view = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/113-motion-updates/view.tsx',
+      ),
+      'utf8',
+    )
+    expect(view).toContain("from '../../shared/motion'")
+    expect(view).toContain('onClick={advance}')
+    expect(view).toContain('onClick={interrupt}')
+    expect(view).toContain('onClick={replay}')
+    expect(view).toContain('window.setTimeout(() =>')
+    expect(view).toContain('settleChartMotion(')
     expect(definitionSource).toContain('defineChart({')
     expect(definitionSource).toContain("id: 'actual'")
     expect(definitionSource).toContain("id: 'target'")
@@ -268,6 +275,6 @@ function motionContext(
 function resolveMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }

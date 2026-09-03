@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { downloads } from '@charts-poc/demo-data/downloads'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { downloads } from '@tanstack/charts-data/downloads'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { downloadData, penguinData } from './data'
 
 describe('shared Observable Plot fixtures', () => {

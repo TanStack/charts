@@ -4,7 +4,7 @@ import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { resourceLanes, resourceTasks, timelineStatuses } from './scenario'
 import { resourceTimelineDefinition } from './tanstack'
-import type { DynamicChartDefinition } from '@tanstack/charts'
+import type { ResponsiveChartDefinition } from '@tanstack/charts'
 import type { ResourceTask } from './scenario'
 import type { ConformanceInput } from '../../types'
 
@@ -27,7 +27,7 @@ describe('native scrollable resource timeline geometry', () => {
       })
 
       expectTypeOf(definition).toMatchTypeOf<
-        DynamicChartDefinition<ResourceTask>
+        ResponsiveChartDefinition<ResourceTask>
       >()
       expect(scene.points).toHaveLength(rows.length)
       expect(scene.points.map((point) => point.datum)).toEqual(rows)
@@ -58,11 +58,11 @@ describe('native scrollable resource timeline geometry', () => {
       'benchmarks/conformance/cases/85-scrollable-resource-lanes',
     )
     const shell = readFileSync(resolve(directory, 'shell.ts'), 'utf8')
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     expect(shell).not.toContain("from 'd3-scale'")
     expect(source).toContain('scene.scales.y.map(lane)')
-    expect(source).toContain('onFocusChange: updateFocusedTask')
+    expect(source).toContain('onFocusChange={updateFocusedTask}')
     expect(source).not.toContain('onFocusGroupChange')
   })
 })

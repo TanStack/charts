@@ -1,15 +1,15 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import { createChartRuntime } from '@tanstack/charts'
 import type { ChartSpecDatum } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { errorBarsDefinition, sampleDeviation } from './tanstack'
+import { createExampleChart, sampleDeviation } from './tanstack'
 import type { ConformanceInput } from '../../types'
 
 type PenguinWithMass = PenguinsRow & { body_mass_g: number }
-type ErrorBarDatum = ChartSpecDatum<ReturnType<typeof errorBarsDefinition>>
+type ErrorBarDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 const expected = [
   {
@@ -123,7 +123,7 @@ describe('definition-owned error bars', () => {
       'benchmarks/conformance/cases/14-error-bars',
     )
     const tanstackSource = readFileSync(
-      resolve(caseDirectory, 'tanstack.ts'),
+      resolve(caseDirectory, 'example.tsx'),
       'utf8',
     )
     const plotSource = readFileSync(resolve(caseDirectory, 'plot.ts'), 'utf8')
@@ -148,7 +148,7 @@ function render(revision: number) {
     interactive: true,
   }
   return createChartRuntime<ErrorBarDatum, string, number>().render(
-    errorBarsDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

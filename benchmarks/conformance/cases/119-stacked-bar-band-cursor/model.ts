@@ -1,4 +1,4 @@
-import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
+import { crimeanWar } from '@tanstack/charts-data/crimean-war'
 
 export const stackedCursorCauses = ['disease', 'wounds', 'other'] as const
 export const stackedCursorColors = ['#4269d0', '#ff725c', '#efb118']

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { canvasChartRenderer } from '@tanstack/charts/canvas'
 import type {
-  ChartDefinition,
+  DomChartDefinition,
   ChartTooltipBodyTarget,
   ChartValue,
 } from '@tanstack/charts'
@@ -21,7 +21,7 @@ export type CanvasChartProps<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = CanvasChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type CanvasChartImplementationProps<

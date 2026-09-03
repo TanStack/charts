@@ -215,7 +215,7 @@ function linkRecord(source, destination, index) {
   }
 }
 
-function maskMarkdownCode(source) {
+export function maskMarkdownCode(source) {
   const characters = source.split('')
   let offset = 0
   let fence = null

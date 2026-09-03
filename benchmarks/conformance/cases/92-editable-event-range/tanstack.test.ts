@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { editableDateKey, editableEventEndValues } from './model'
 import { editableEventDefinition, mount } from './tanstack'
@@ -52,7 +53,10 @@ describe('definition-owned editable event handle', () => {
   it('uses the first-party handle while date validation stays application-owned', () => {
     const container = document.createElement('div')
     document.body.append(container)
-    const mounted = mount(container, input)
+    let mounted!: ReturnType<typeof mount>
+    act(() => {
+      mounted = mount(container, input)
+    })
     const driver = mounted.driver
     const handle = container.querySelector<SVGElement>(
       '[data-chart-handle-surface="release-end"]',
@@ -74,13 +78,15 @@ describe('definition-owned editable event handle', () => {
     })
 
     handle.focus()
-    handle.dispatchEvent(
-      new KeyboardEvent('keydown', {
-        key: 'ArrowRight',
-        bubbles: true,
-        cancelable: true,
-      }),
-    )
+    act(() => {
+      handle.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'ArrowRight',
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       editor: {
         end: '2025-02-13',
@@ -93,13 +99,17 @@ describe('definition-owned editable event handle', () => {
 
     dateInput.focus()
     dateInput.value = ''
-    dateInput.dispatchEvent(new Event('input', { bubbles: true }))
+    act(() => {
+      dateInput.dispatchEvent(new Event('input', { bubbles: true }))
+    })
     expect(dateInput.getAttribute('aria-invalid')).toBe('true')
     expect(driver.readState()).toMatchObject({
       editor: { end: '2025-02-13', editCount: 1 },
     })
 
-    mounted.destroy()
+    act(() => {
+      mounted.destroy()
+    })
     expect(container.childElementCount).toBe(0)
     container.remove()
   })
@@ -109,10 +119,11 @@ describe('definition-owned editable event handle', () => {
       process.cwd(),
       'benchmarks/conformance/cases/92-editable-event-range',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     expect(existsSync(resolve(directory, 'overlay.ts'))).toBe(true)
-    expect(existsSync(resolve(directory, 'controls.ts'))).toBe(true)
+    expect(existsSync(resolve(directory, 'controls.ts'))).toBe(false)
     for (const forbidden of [
       "from './overlay'",
       'createEditableHandleOverlay',
@@ -132,6 +143,7 @@ describe('definition-owned editable event handle', () => {
     expect(source).toContain('handleX<Date, string>({')
     expect(source).toContain('controlledSignal<')
     expect(source).toContain('(next, { reason }) => onEndChange(next, reason)')
-    expect(source).toContain("from './controls'")
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('className="ts-conformance-event-date"')
   })
 })

@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { isMosaicResponse, mosaicResponses } from './selection'
-import { marimekkoDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   ChartPoint,
   ChartSpecDatum,
@@ -24,7 +24,7 @@ const expectedQuestionTotals = {
 describe('Marimekko survey composition', () => {
   it('keeps aggregation policy explicit and allocates both denominators declaratively', () => {
     const observations = survey.filter(isMosaicResponse)
-    const definition = marimekkoDefinition()
+    const definition = createExampleChart()
     type Datum = ChartSpecDatum<typeof definition>
     expectTypeOf<Datum['Question']>().toEqualTypeOf<string>()
     expectTypeOf<Datum['Response']>().toEqualTypeOf<MosaicResponse>()
@@ -111,7 +111,7 @@ describe('Marimekko survey composition', () => {
   it.each([320, 640, 960])(
     'renders ordinary rectangles and labels at %spx',
     (width) => {
-      const scene = createChartScene(marimekkoDefinition(), {
+      const scene = createChartScene(createExampleChart(), {
         width,
         height: 480,
       })
@@ -151,7 +151,7 @@ describe('Marimekko survey composition', () => {
   )
 
   it('keeps cell and label identity stable while resizing', () => {
-    const definition = marimekkoDefinition()
+    const definition = createExampleChart()
     const narrow = createChartScene(definition, { width: 320, height: 360 })
     const wide = createChartScene(definition, { width: 960, height: 600 })
     const narrowPoints = narrow.points.filter((point) =>
@@ -176,7 +176,7 @@ describe('Marimekko survey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/64-marimekko-mosaic/tanstack.ts',
+        'benchmarks/conformance/cases/64-marimekko-mosaic/example.tsx',
       ),
       'utf8',
     )

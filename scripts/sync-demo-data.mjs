@@ -294,7 +294,7 @@ for (const dataset of datasets) {
   metadata.push({
     id: dataset.id,
     title: dataset.title,
-    specifier: `@charts-poc/demo-data/${dataset.id}`,
+    specifier: `@tanstack/charts-data/${dataset.id}`,
     format: dataset.file.endsWith('.csv') ? 'CSV' : 'JSON',
     records,
     fields,

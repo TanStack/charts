@@ -39,7 +39,7 @@ export { colorGradientLegend, colorLegend } from './legend-static'
 export { createMark } from './mark'
 export { compositeMark } from './mark-composite'
 export { cell, rect } from './rect'
-export { createChartRuntime, isDynamicChartDefinition } from './runtime'
+export { createChartRuntime, isResponsiveChartDefinition } from './runtime'
 export {
   createChartScene,
   defaultChartTheme,
@@ -59,7 +59,7 @@ export { mosaicX, mosaicY } from './transform-mosaic'
 export { normalize } from './transform-normalize'
 export {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,
@@ -71,7 +71,7 @@ export { rank } from './transform-rank'
 export { select } from './transform-select'
 export { stackRowsX, stackRowsY } from './transform-stack'
 export { waterfall } from './transform-waterfall'
-export { window } from './transform-window'
+export { rollingWindow } from './transform-rolling-window'
 export { ruleX, ruleY } from './rule'
 export { text } from './text'
 export { tickX, tickY } from './tick'

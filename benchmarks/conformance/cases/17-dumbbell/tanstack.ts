@@ -1,52 +1,8 @@
-import { citywages } from '@charts-poc/demo-data/citywages'
-import { defineChart, dot, link } from '@tanstack/charts'
-import { scaleBand, scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const definition = (input: ConformanceInput) => {
-  const rows = citywages.slice(input.revision * 4, input.revision * 4 + 8)
-  return defineChart({
-    marks: [
-      link(rows, {
-        x1: 'R90_10_1980',
-        y1: 'nyt_display',
-        x2: 'R90_10_2015',
-        y2: 'nyt_display',
-        stroke: '#94a3b8',
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        x: 'R90_10_1980',
-        y: 'nyt_display',
-        fill: '#2563eb',
-        r: 4,
-      }),
-      dot(rows, {
-        x: 'R90_10_2015',
-        y: 'nyt_display',
-        fill: '#f97316',
-        r: 4,
-      }),
-    ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: '90th/10th percentile wage ratio' },
-    },
-    y: {
-      scale: () => scaleBand<string>().padding(0.22),
-    },
-  })
-}
+export * from './example'
 
-export const mount = tanstackMount(
-  definition,
-  'Metropolitan wage inequality in 1980 and 2015',
-  {
-    format: ({ datum }) =>
-      `${datum.nyt_display} · 1980 ${datum.R90_10_1980.toLocaleString(
-        'en-US',
-      )} · 2015 ${datum.R90_10_2015.toLocaleString('en-US')}`,
-  },
-)
+export const mount = tanstackExampleMount(createExampleChart, exampleAriaLabel)
+
+export const catalogCase = mount

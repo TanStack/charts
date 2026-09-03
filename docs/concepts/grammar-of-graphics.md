@@ -27,8 +27,8 @@ The result is one `ChartSpec` compiled into a renderer-neutral scene.
 
 ```ts
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 interface LetterFrequency {
   letter: string
@@ -45,8 +45,10 @@ const alphabet: readonly LetterFrequency[] = [
 
 const chart = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
-  x: { scale: scaleBand },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleBand },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -137,8 +139,8 @@ Read [Data and Channels](./data-and-channels.md) for missing values, accessors, 
 Pass a factory when its domain should follow the mark channels:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 
 const axes = {
   x: {
@@ -170,7 +172,7 @@ const y = {
     label: 'Monthly revenue',
     ticks: {
       count: 5,
-      format: (value: number) => `$${Math.round(value / 1_000)}k`,
+      format: (value: number) => `${Math.round(value / 1_000)}k`,
     },
   },
 }
@@ -184,128 +186,57 @@ Omitted margins are measured from the actual guides. See [Layout, Axes, and Coor
 
 Marks render in array order. Put context behind the primary data and annotations above it:
 
-```ts
-import { curveMonotoneX } from 'd3-shape'
-import { areaY, barY, d3Curve, defineChart, dot, lineY } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+```ts group=layered-chart env=charts file=/src/chart.ts entry
+import { areaY, defineChart, dot, lineY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-interface WeatherRow {
-  location: string
-  date: Date
-  precipitation: number
-  temp_max: number
-  temp_min: number
-  wind: number
-}
-
-const weather: readonly WeatherRow[] = [
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-01T00:00:00Z'),
-    precipitation: 0.5,
-    temp_max: 9.4,
-    temp_min: 3.2,
-    wind: 4.1,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-02T00:00:00Z'),
-    precipitation: 3.1,
-    temp_max: 8.2,
-    temp_min: 2.8,
-    wind: 5.2,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-03T00:00:00Z'),
-    precipitation: 1.4,
-    temp_max: 10.6,
-    temp_min: 4.1,
-    wind: 3.8,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-04T00:00:00Z'),
-    precipitation: 0,
-    temp_max: 12.7,
-    temp_min: 5.3,
-    wind: 2.9,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-05T00:00:00Z'),
-    precipitation: 2.2,
-    temp_max: 11.1,
-    temp_min: 4.7,
-    wind: 4.6,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2026-03-06T00:00:00Z'),
-    precipitation: 0.3,
-    temp_max: 13.4,
-    temp_min: 6.1,
-    wind: 3.3,
-  },
+const rows = [
+  { month: 'Jan', value: 14 },
+  { month: 'Feb', value: 18 },
+  { month: 'Mar', value: 16 },
+  { month: 'Apr', value: 23 },
+  { month: 'May', value: 27 },
+  { month: 'Jun', value: 25 },
 ]
 
-const rows = weather.filter((row) => row.location === 'Seattle')
-
-const composedChart = defineChart({
+export default defineChart({
   marks: [
     areaY(rows, {
-      x: 'date',
-      y: 'temp_max',
-      fill: '#8884d8',
-      fillOpacity: 0.2,
-      stroke: '#8884d8',
-      curve: d3Curve(curveMonotoneX),
-    }),
-    barY(rows, {
-      x: 'date',
-      y: 'precipitation',
-      fill: '#413ea0',
-      inset: 10,
+      x: 'month',
+      y: 'value',
+      fill: '#93c5fd',
+      fillOpacity: 0.35,
     }),
     lineY(rows, {
-      x: 'date',
-      y: 'temp_min',
-      stroke: '#ff7300',
-      curve: d3Curve(curveMonotoneX),
+      x: 'month',
+      y: 'value',
+      stroke: '#2563eb',
+      strokeWidth: 2,
     }),
     dot(rows, {
-      x: 'date',
-      y: 'wind',
+      x: 'month',
+      y: 'value',
       r: 4,
-      fill: '#ef4444',
+      fill: '#2563eb',
     }),
   ],
-  x: {
-    scale: () => scaleBand<Date>().padding(0.12),
-    axis: { label: 'Date' },
-  },
-  y: {
-    scale: scaleLinear,
-    grid: true,
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().padding(0.12),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Value' },
+    },
   },
 })
 ```
 
-The compact band scale treats these dates as equally spaced categories. Use a
-D3 time or UTC scale instead when elapsed time must determine spacing or ticks.
-This example imports `d3-shape` for the curves, so add it and
-`@types/d3-shape` as direct dependencies. `d3Curve` is the bridge from a D3
-curve factory to the mark curve contract.
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=480"
-  title="Layered Seattle weather area, bars, line, and wind points built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+The area establishes context, the line carries the trend, and the dots keep
+each observation visible. All three marks share the same rows and scales.
 
 ## Definitions compile the grammar
 

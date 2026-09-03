@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1520,
+  "id": "151-shadcn-bar-stacked",
+  "title": "shadcn Bar Chart - Stacked + Legend",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-stacked example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "stacked", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 12
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-stacked",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-stacked"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-stacked card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar stacked treatment, card dimensions, and light and dark tokens."
+  }
+}

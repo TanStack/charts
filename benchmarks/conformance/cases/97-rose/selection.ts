@@ -1,4 +1,4 @@
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 
 const sliceSize = 6
 

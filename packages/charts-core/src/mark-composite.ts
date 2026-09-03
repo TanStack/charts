@@ -6,11 +6,29 @@ import type {
   ChartMarkMotionOptions,
   ChartMarkPointX,
   ChartMarkPointY,
-  ChartMarkScaleX,
-  ChartMarkScaleY,
 } from './types'
 
-type AnyChartMark = ChartMark<any, any, any, any, any>
+type AnyChartMark = ChartMark<any, any, any, any, any, any, any>
+
+type ChartMarkScaleIdX<TMark> =
+  TMark extends ChartMark<any, any, any, any, any, infer TScaleId, any>
+    ? TScaleId
+    : never
+
+type ChartMarkAnyScaleX<TMark> =
+  TMark extends ChartMark<any, any, any, infer TValue, any, any, any>
+    ? TValue
+    : never
+
+type ChartMarkAnyScaleY<TMark> =
+  TMark extends ChartMark<any, any, any, any, infer TValue, any, any>
+    ? TValue
+    : never
+
+type ChartMarkScaleIdY<TMark> =
+  TMark extends ChartMark<any, any, any, any, any, any, infer TScaleId>
+    ? TScaleId
+    : never
 
 export interface CompositeMarkOptions<
   TDatum = unknown,
@@ -26,15 +44,21 @@ export function compositeMark<const TMarks extends readonly AnyChartMark[]>(
   ChartMarkDatum<TMarks[number]>,
   ChartMarkPointX<TMarks[number]>,
   ChartMarkPointY<TMarks[number]>,
-  ChartMarkScaleX<TMarks[number]>,
-  ChartMarkScaleY<TMarks[number]>
+  ChartMarkAnyScaleX<TMarks[number]>,
+  ChartMarkAnyScaleY<TMarks[number]>,
+  ChartMarkScaleIdX<TMarks[number]>,
+  ChartMarkScaleIdY<TMarks[number]>
 >
 export function compositeMark(
   marks: readonly AnyChartMark[],
   options: CompositeMarkOptions = {},
-): ChartMark<any, any, any, any, any> {
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `composite-${markIndex}`
-    return initializeCompositeMark(id, marks, { motion: options.motion })
-  })
+): ChartMark<any, any, any, any, any, any, any> {
+  return createMark(
+    ({ markIndex }) => {
+      const id = options.id ?? `composite-${markIndex}`
+      return initializeCompositeMark(id, marks, { motion: options.motion })
+    },
+    options.motion,
+    options.renderer,
+  )
 }

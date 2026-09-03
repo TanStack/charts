@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1350,
+  "id": "134-shadcn-area-default",
+  "title": "shadcn Area Chart",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-default example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-default",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-default"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-default card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area default treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -42,6 +42,7 @@ function scene(
   return createChartScene(
     defineChart({
       marks: [mark],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
       margin,
@@ -61,7 +62,7 @@ describe('treemap', () => {
   it('renders path leaves in final chart bounds with exact metadata and lineage', () => {
     const source = Object.freeze(rows.map((row) => Object.freeze({ ...row })))
     const before = JSON.stringify(source)
-    const value = vi.fn(({ datum }: { datum: PathRow }) => datum.value)
+    const value = vi.fn((datum: PathRow) => datum.value)
     const rendered = scene(
       treemap(source, {
         path: 'path',
@@ -185,6 +186,7 @@ describe('treemap', () => {
             inset: 0,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -211,6 +213,7 @@ describe('treemap', () => {
             },
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -249,6 +252,7 @@ describe('treemap', () => {
             },
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -297,6 +301,7 @@ describe('treemap', () => {
               inset: 0,
             }),
           ],
+          scales: { x: null, y: null },
           guides: false,
           focusRing: false,
           margin: 0,
@@ -341,6 +346,7 @@ describe('treemap', () => {
             inset: 0,
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -368,6 +374,7 @@ describe('treemap', () => {
             method: 'dice',
           }),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: 0,
@@ -440,6 +447,12 @@ describe('treemap', () => {
     expect(measureText).toHaveBeenCalledWith('a', {
       fontSize: 9,
       fontWeight: 600,
+      fontFamily: 'sans-serif',
+      fontStyle: 'normal',
+      fontStretch: 'normal',
+      letterSpacing: 0,
+      direction: 'inherit',
+      fontScale: 1,
       anchor: 'middle',
       baseline: 'middle',
     })
@@ -539,6 +552,7 @@ describe('treemap', () => {
       createChartScene(
         defineChart({
           marks: [malformed],
+          scales: { x: null, y: null },
           guides: false,
           focusRing: false,
           margin: 0,

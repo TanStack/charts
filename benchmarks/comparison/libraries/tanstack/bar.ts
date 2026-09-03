@@ -32,15 +32,18 @@ const definition = (input: BenchmarkInput) =>
               fill: BENCHMARK_INTERACTIVE ? undefined : color,
             }),
       ],
-      x: {
-        scale: () => scaleBand<string>().padding(0.1),
-        grid: true,
+      scales: {
+        x: {
+          scale: () => scaleBand<string>().padding(0.1),
+          grid: true,
+        },
+        y: {
+          scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
+          grid: true,
+          axis: { ticks: { count: 5 } },
+        },
       },
-      y: {
-        scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
-        grid: true,
-        axis: { ticks: { count: 5 } },
-      },
+
       color: BENCHMARK_INTERACTIVE
         ? {
             scale: scaleOrdinal<string, string>()

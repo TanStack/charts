@@ -316,9 +316,11 @@ function definition(
 ) {
   return defineChart({
     marks: [dot(rows, { x: 'date', y: 'value' })],
-    x: { scale: scaleUtc().domain(dates), reverse },
-    y: { scale: scaleLinear },
-    behaviors: [
+    scales: {
+      x: { scale: scaleUtc().domain(dates), reverse },
+      y: { scale: scaleLinear },
+    },
+    controls: [
       brushX({
         id: 'window',
         range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(

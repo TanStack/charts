@@ -9,13 +9,13 @@ import { select } from './transform-select'
 import type { SelectOptions } from './transform-select'
 import { stackRowsX, stackRowsY } from './transform-stack'
 import type { StackRowsYOptions } from './transform-stack'
-import { window } from './transform-window'
-import type { WindowOptions } from './transform-window'
+import { rollingWindow } from './transform-rolling-window'
+import type { RollingWindowOptions } from './transform-rolling-window'
 import { cumulative } from './transform-cumulative'
 import { rank } from './transform-rank'
 import {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,
@@ -47,7 +47,7 @@ describe('data transforms', () => {
       outputs: { total: { value: 'value', reduce: 'sum' } },
     }
     const binOptions: BinOptions<Row> = { value: 'value', thresholds: 4 }
-    const windowOptions: WindowOptions<Row> = {
+    const windowOptions: RollingWindowOptions<Row> = {
       size: 2,
       outputs: { average: { value: 'value', reduce: 'mean' } },
     }
@@ -122,7 +122,7 @@ describe('data transforms', () => {
     const grouped = groupBy(rows, {
       by: {
         group: 'group',
-        category: ({ datum, index, data }) => {
+        category: (datum, { index, data }) => {
           expect(data[index]).toBe(datum)
           return datum.category
         },
@@ -162,7 +162,7 @@ describe('data transforms', () => {
     const yBins = binY(
       rows.map((row) => row.value),
       {
-        value: ({ datum }) => datum,
+        value: (datum) => datum,
         thresholds: [0, 2, 4],
       },
     )
@@ -225,7 +225,7 @@ describe('data transforms', () => {
   it('bins two dimensions and calendar intervals without coupling their bundles', () => {
     const cells = binXY(rows, {
       x: 'value',
-      y: ({ datum }) => (datum.category === 'x' ? 0 : 1),
+      y: (datum) => (datum.category === 'x' ? 0 : 1),
       xThresholds: [0, 2, 4],
       yThresholds: [0, 1, 2],
     })
@@ -270,7 +270,7 @@ describe('data transforms', () => {
   })
 
   it('derives grouped rolling outputs without hiding source windows', () => {
-    const rolling = window(rows, {
+    const rolling = rollingWindow(rows, {
       by: 'group',
       size: 2,
       partial: false,
@@ -296,7 +296,7 @@ describe('data transforms', () => {
       { id: 'b1', group: 'B', average: 3, spread: 2, sourceIndexes: [2, 3] },
     ])
     expect(() =>
-      window(rows, {
+      rollingWindow(rows, {
         size: 0,
         outputs: { total: { value: 'value', reduce: 'sum' } },
       }),
@@ -339,12 +339,12 @@ describe('data transforms', () => {
 
   it('orders rolling, cumulative, and rank calculations explicitly', () => {
     const shuffled = [rows[1]!, rows[0]!, rows[3]!, rows[2]!]
-    const rolling = window(shuffled, {
+    const rolling = rollingWindow(shuffled, {
       by: 'group',
       orderBy: 'id',
       size: 2,
       partial: false,
-      outputs: { change: { value: 'value', reduce: difference } },
+      outputs: { change: { value: 'value', reduce: delta } },
     })
     const totals = cumulative(shuffled, {
       by: 'group',
@@ -383,7 +383,7 @@ describe('data transforms', () => {
       deviation: deviation(reducerContext),
       first: first(reducerContext),
       last: last(reducerContext),
-      difference: difference(reducerContext),
+      delta: delta(reducerContext),
       ratio: ratio(reducerContext),
     }).toEqual({
       median: 2,
@@ -391,7 +391,7 @@ describe('data transforms', () => {
       deviation: 1,
       first: 1,
       last: 3,
-      difference: 2,
+      delta: 2,
       ratio: 3,
     })
   })

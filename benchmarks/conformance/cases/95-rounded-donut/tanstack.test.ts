@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { createChartRuntime } from '@tanstack/charts'
 import { arc } from 'd3-shape'
 import { describe, expect, it } from 'vitest'
 import { selectRoundedDonutData } from './selection'
-import { roundedDonutDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
@@ -108,7 +108,7 @@ describe('native rounded-donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/95-rounded-donut/tanstack.ts',
+        'benchmarks/conformance/cases/95-rounded-donut/example.tsx',
       ),
       'utf8',
     )
@@ -129,10 +129,7 @@ describe('native rounded-donut allocation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    roundedDonutDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function slicePoints(points: readonly ChartPoint<unknown>[]) {

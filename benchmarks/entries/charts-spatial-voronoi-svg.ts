@@ -21,8 +21,10 @@ const definition = defineChart({
       strokeWidth: 1,
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 100]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 100]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
 })
 
 export function render(width: number, height: number) {

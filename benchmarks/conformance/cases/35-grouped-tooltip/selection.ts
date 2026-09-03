@@ -1,4 +1,4 @@
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 
 export const industryNames = ['Manufacturing', 'Construction', 'Finance']
 export type IndustryName = (typeof industryNames)[number]

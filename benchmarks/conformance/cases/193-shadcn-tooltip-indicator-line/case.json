@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1940,
+  "id": "193-shadcn-tooltip-indicator-line",
+  "title": "shadcn Tooltip - Line Indicator",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-line example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "indicator line", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-indicator-line",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-indicator-line"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-line card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip indicator line treatment, card dimensions, and light and dark tokens."
+  }
+}

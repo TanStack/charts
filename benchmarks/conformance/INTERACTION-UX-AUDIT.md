@@ -59,7 +59,7 @@ The main ownership split is:
 
 What works:
 
-- `focusX` returns one point per series.
+- `focusGroupX` returns one point per series.
 - The tooltip has rich rows, swatches, locale formatting, and a polite live
   region.
 - Pointer leave and keyboard date navigation work.
@@ -335,7 +335,7 @@ Correct fix:
 - Enable keyboard navigation and link its focus callback across both hosts.
 - Add one shared date/value panel and active markers in both views.
 - Add tap-to-pin/Escape behavior and a linked-view group description.
-- Document the relationship between `focusX` and `maxFocusDistance`.
+- Document the relationship between `focusGroupX` and `maxFocusDistance`.
 
 Missing gates:
 

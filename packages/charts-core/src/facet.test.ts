@@ -43,8 +43,10 @@ describe('facets', () => {
         firstGroup = groupRows[0]
         return {
           marks: [lineY(children, { x: 'x', y: 'y', key: 'id' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 4]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 4]) },
+          },
           guides: false,
           margin: 0,
         }
@@ -169,13 +171,15 @@ describe('facets', () => {
         columns: 2,
         chart: (group) => ({
           marks: [lineY(group, { x: 'x', y: 'y' })],
-          x: {
-            scale: scaleLinear().domain([0, 1]),
-            axis: { label: 'Horizontal' },
-          },
-          y: {
-            scale: scaleLinear().domain([0, 6]),
-            axis: { label: 'Vertical' },
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: { label: 'Horizontal' },
+            },
+            y: {
+              scale: scaleLinear().domain([0, 6]),
+              axis: { label: 'Vertical' },
+            },
           },
         }),
       }),
@@ -226,13 +230,15 @@ describe('facets', () => {
         columns: 2,
         chart: (group) => ({
           marks: [lineY(group, { x: 'x', y: 'y', key: 'id' })],
-          x: {
-            scale: scaleLinear().domain([0, 1]),
-            axis: { label: 'Horizontal' },
-          },
-          y: {
-            scale: scaleLinear().domain([0, 6]),
-            axis: { label: 'Vertical' },
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: { label: 'Horizontal' },
+            },
+            y: {
+              scale: scaleLinear().domain([0, 6]),
+              axis: { label: 'Vertical' },
+            },
           },
         }),
       }),
@@ -301,13 +307,15 @@ describe('facets', () => {
         gap: 12,
         chart: (group) => ({
           marks: [lineY(group, { x: 'x', y: 'y' })],
-          x: {
-            scale: scaleLinear().domain([3, 20]),
-            axis: { ticks: { count: 5 } },
-          },
-          y: {
-            scale: scaleLinear().domain([2, 14]),
-            axis: { ticks: { count: 4 } },
+          scales: {
+            x: {
+              scale: scaleLinear().domain([3, 20]),
+              axis: { ticks: { count: 5 } },
+            },
+            y: {
+              scale: scaleLinear().domain([2, 14]),
+              axis: { ticks: { count: 4 } },
+            },
           },
         }),
       }),
@@ -330,6 +338,40 @@ describe('facets', () => {
     expect(
       Math.max(...labels.map((bounds) => bounds.x + bounds.width)),
     ).toBeLessThanOrEqual(320)
+  })
+
+  it('rejects named guides that outer-axis composition cannot place safely', () => {
+    const data = [
+      { group: 'A', x: 0, y: 1 },
+      { group: 'B', x: 0, y: 2 },
+    ]
+    const definition = facetChart(data, {
+      by: 'group',
+      chart: (group) => ({
+        marks: [
+          lineY(group, {
+            x: 'x',
+            y: 'y',
+            yScale: 'alternate',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+          alternate: {
+            channel: 'y' as const,
+            side: 'right' as const,
+            scale: scaleLinear().domain([0, 2]),
+          },
+        },
+      }),
+    })
+
+    expect(() =>
+      createChartScene(definition, { width: 480, height: 260 }),
+    ).toThrowError(
+      'cannot share outer axes because its cell scales or guide options differ',
+    )
   })
 
   it('composes nested facets with unique points and responsive outer flow', () => {
@@ -371,8 +413,10 @@ describe('facets', () => {
         ],
         guides: false,
         margin: 0,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
     })
     const wide = createChartScene(definition, { width: 720, height: 520 })
@@ -416,8 +460,10 @@ describe('facets', () => {
         axes: 'cell',
         chart: (rows) => ({
           marks: [barY(rows, { x: 'x', y: 'value' })],
-          x: { scale: scaleBand<number>().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -481,8 +527,10 @@ describe('facets', () => {
             ),
             barY(rows, { x: 'x', y: 'value' }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -537,8 +585,10 @@ describe('facets', () => {
             }),
             barY(rows, { x: 'x', y: 'value' }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -599,8 +649,10 @@ describe('facets', () => {
             ),
             barY(rows, { x: 'x', y: 'value' }),
           ],
-          x: { scale: scaleBand<number>().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 100]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -654,9 +706,11 @@ describe('facets', () => {
         axes,
         chart: (group, { key }) => ({
           marks: [lineY(group, { y: 'value' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: {
-            scale: scaleLinear().domain(key === 'A' ? [0, 2] : [0, 20]),
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: {
+              scale: scaleLinear().domain(key === 'A' ? [0, 2] : [0, 20]),
+            },
           },
         }),
       })
@@ -686,19 +740,21 @@ describe('facets', () => {
         columns: 2,
         chart: (group, { key }) => ({
           marks: [lineY(group, { y: 'value' })],
-          x: {
-            scale: scaleLinear().domain([0, 1]),
-            axis: {
-              ticks: { values: [0, 1] },
-              tickLabels: {
-                fontSize: ({ index }: { index: number }) =>
-                  index === 0 && (!different || key === 'A') ? 13 : undefined,
-                anchor: ({ index }: { index: number }) =>
-                  index === 0 ? 'start' : undefined,
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: {
+                ticks: { values: [0, 1] },
+                tickLabels: {
+                  fontSize: ({ index }: { index: number }) =>
+                    index === 0 && (!different || key === 'A') ? 13 : undefined,
+                  anchor: ({ index }: { index: number }) =>
+                    index === 0 ? 'start' : undefined,
+                },
               },
             },
+            y: { scale: scaleLinear().domain([0, 2]) },
           },
-          y: { scale: scaleLinear().domain([0, 2]) },
         }),
       })
 
@@ -779,8 +835,10 @@ describe('facets', () => {
           by: 'group',
           chart: (group) => ({
             marks: [lineY(group, { y: 'value' })],
-            x: null,
-            y: { scale: scaleLinear().domain([0, 1]) },
+            scales: {
+              x: null,
+              y: { scale: scaleLinear().domain([0, 1]) },
+            },
           }),
         }),
         { width: 360, height: 260 },

@@ -5,8 +5,10 @@ import { scaleLinear } from 'd3-scale'
 
 const definition = defineChart({
   marks: [lineX([4, 9, 7])],
-  x: { scale: scaleLinear().domain([0, 10]) },
-  y: { scale: scaleLinear().domain([0, 2]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 10]) },
+    y: { scale: scaleLinear().domain([0, 2]) },
+  },
 })
 
 export function render(width: number, height: number) {

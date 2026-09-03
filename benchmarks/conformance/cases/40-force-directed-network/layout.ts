@@ -12,7 +12,7 @@ import type {
   MiserablesGraph,
   MiserablesLink,
   MiserablesNode,
-} from '@charts-poc/demo-data/miserables'
+} from '@tanstack/charts-data/miserables'
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force'
 
 export interface PositionedNetworkNode extends MiserablesNode {

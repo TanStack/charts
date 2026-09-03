@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1460,
+  "id": "145-shadcn-bar-horizontal",
+  "title": "shadcn Bar Chart - Horizontal",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-horizontal example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "horizontal", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-horizontal",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-horizontal"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-horizontal card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar horizontal treatment, card dimensions, and light and dark tokens."
+  }
+}

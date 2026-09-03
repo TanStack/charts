@@ -3,36 +3,38 @@ title: React Adapter
 description: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
 ---
 
-`@tanstack/react-charts` is a thin lifecycle and SSR adapter around
+`@tanstack/charts/react` is a thin lifecycle and SSR adapter around
 `@tanstack/charts`. Chart definitions, scale resolution, guide layout, scenes,
 rendering, animation, and interaction remain in the framework-neutral core.
 
 ## Public exports
 
 ```ts
-export { Chart } from '@tanstack/react-charts'
+export { Chart } from '@tanstack/charts/react'
 
 export type {
   ChartCommonProps,
   ChartProps,
   ChartDefinition,
   ChartPoint,
-} from '@tanstack/react-charts'
+} from '@tanstack/charts/react'
 ```
 
 Choose Canvas or an application-supplied renderer through an explicit
 subpath:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/react-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/react/core'
 ```
 
 `CanvasChart` selects the optional built-in renderer. `RendererChart` requires
 a `renderer` prop. The default `Chart` remains SVG-based, so importing the
-default adapter does not pull Canvas into its module graph.
+default adapter does not pull Canvas into its module graph. A definition can
+still import `canvasChartRenderer` and assign it to selected marks, which makes
+the default component render an ordered mixed surface.
 
-The base entries render the native tooltip without the React tooltip-body
+The base entries render the built-in tooltip without the React tooltip-body
 bridge. Import from the optional tooltip entry when passing
 `renderTooltipBody`:
 
@@ -42,11 +44,11 @@ import {
   CanvasChart,
   RendererChart,
   type ChartTooltipBodyRenderContext,
-} from '@tanstack/react-charts/tooltip'
+} from '@tanstack/charts/react/tooltip'
 ```
 
 Existing `renderTooltipBody` users should move the default component import
-from `@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. For Canvas
+from `@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. For Canvas
 or an application renderer, replace the aliased `Chart` import from `/canvas`
 or `/core` with `CanvasChart` or `RendererChart` from `/tooltip`.
 
@@ -90,6 +92,11 @@ layers. It does not paint pixels on the server. The client adopts those
 elements, paints after mount, and attaches the same focus, keyboard, tooltip,
 and selection host.
 
+A default chart with selected Canvas marks emits one mixed root containing
+ordered SVG markup and Canvas shells. SVG marks are visible in the server
+response, Canvas pixels appear after mount, and the client adopts every child
+surface.
+
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`
 from `React.useId()` when one is not supplied, keeping document resources
@@ -109,7 +116,7 @@ The adapter renders two nested containers:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart | div.ts-chart-canvas
+    svg.ts-chart | div.ts-chart-canvas | div.ts-chart-layers
 ```
 
 The outer host has `position: relative`.
@@ -157,8 +164,8 @@ The React adapter's `className` intentionally owns the outer element instead.
 
 ## Tooltip body composition
 
-The components from `@tanstack/react-charts/tooltip` accept
-`renderTooltipBody`, which mounts React content into the native tooltip
+The components from `@tanstack/charts/react/tooltip` accept
+`renderTooltipBody`, which mounts React content into the built-in tooltip
 surface. Its context provides `points`, `content`, `defaultBody`, `pinned`,
 and `dismiss`. Composing `defaultBody` keeps the core title, rows, formatting,
 and swatches; arbitrary React content can sit beside it.
@@ -183,6 +190,10 @@ import { defineChart } from '@tanstack/charts'
 
 const definition = defineChart({
   marks: [],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 

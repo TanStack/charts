@@ -1,13 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { scaleBand } from 'd3-scale'
 import { arc } from 'd3-shape'
 import { describe, expect, it } from 'vitest'
 import { selectRadialBarData } from './selection'
-import { radialBarsDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -114,7 +114,7 @@ describe('native concentric radial bars', () => {
       process.cwd(),
       'benchmarks/conformance/cases/100-radial-bars',
     )
-    const source = readFileSync(resolve(caseDirectory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(caseDirectory, 'example.tsx'), 'utf8')
 
     expect(source).toContain('radialBarAngle')
     expect(source).toContain("angle: 'frequency'")
@@ -133,7 +133,7 @@ describe('native concentric radial bars', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(radialBarsDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function radialBandScale(

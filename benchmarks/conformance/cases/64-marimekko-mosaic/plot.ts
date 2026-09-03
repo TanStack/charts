@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { mosaicLayout, mosaicResponses } from './layout'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

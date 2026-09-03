@@ -1,18 +1,19 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   focusContextDetailDefinition,
   focusContextOverviewDefinition,
+  mount,
 } from './tanstack'
 import {
   initialFocusContextWindow,
   monthlyAaplRows,
   rowsInWindow,
 } from './model'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ChartDefinition,
   ChartSpecDatum,
@@ -81,18 +82,44 @@ describe('definition-owned focus/context brush', () => {
     expect(selected[0]).not.toHaveProperty('interaction')
   })
 
+  it('renders both native chart hosts and the selected brush window in the catalog preview', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    })
+
+    expect(container.querySelectorAll('svg.ts-chart')).toHaveLength(2)
+    expect(
+      container.querySelector('[data-chart-brush="focus-window"]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector('[data-chart-brush-selection]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector(
+        '.ts-chart__dot[data-ts-key$="selected-point"] circle',
+      ),
+    ).not.toBeNull()
+
+    handle.destroy()
+    container.remove()
+  })
+
   it('audits the transitive view implementation and keeps each behavior in its own host', () => {
     const directory = resolve(
       process.cwd(),
       'benchmarks/conformance/cases/83-focus-context-window',
     )
-    const entry = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const entry = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
-    expect(entry).toContain("from './view'")
+    expect(source).toContain("from './example'")
     expect(entry).toContain('focusContextDetailDefinition')
     expect(entry).toContain('focusContextOverviewDefinition')
-    expect(entry).not.toContain('brushX(')
 
     for (const forbidden of [
       "from 'd3-brush'",
@@ -105,20 +132,27 @@ describe('definition-owned focus/context brush', () => {
       '<svg',
       'selectedRows',
     ]) {
+      expect(entry).not.toContain(forbidden)
       expect(source).not.toContain(forbidden)
     }
-    expect(source).toContain("from '@tanstack/charts/interaction/brush'")
-    expect(source).toContain("from '@tanstack/charts/selection'")
-    expect(source).toContain('behaviors: [')
-    expect(source).toContain('brushX({')
-    expect(source).toContain('keyedSelection<')
-    expect(source).toContain('whenSelected(')
+    expect(entry).toContain("from '@tanstack/charts/interaction/brush'")
+    expect(entry).toContain("from '@tanstack/charts/selection'")
+    expect(entry).toContain('controls: [')
+    expect(entry).toContain('brushX({')
+    expect(entry).toContain('keyedSelection<')
+    expect(entry).toContain('whenSelected(')
     expect(source).toContain('if (input.preview)')
-    expect(source.match(/<Chart\b/g)).toHaveLength(3)
-    expect(source.match(/definition=\{detailDefinition\}/g)).toHaveLength(2)
+    expect(source.match(/<Chart\b/g)).toHaveLength(4)
+    expect(source.match(/definition=\{detailDefinition\}/g)).toHaveLength(1)
     expect(source.match(/definition=\{overviewDefinition\}/g)).toHaveLength(1)
-    expect(source).not.toContain("from '@tanstack/charts/view'")
-    expect(source).not.toContain('viewGrid(')
+    expect(source).toContain(
+      'definition={catalogPreviewDefinition(detailDefinition)}',
+    )
+    expect(source).toContain(
+      'definition={catalogPreviewDefinition(overviewDefinition)}',
+    )
+    expect(entry).not.toContain("from '@tanstack/charts/view'")
+    expect(entry).not.toContain('viewGrid(')
   })
 })
 

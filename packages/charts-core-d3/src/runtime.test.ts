@@ -5,7 +5,7 @@ import { lineY } from './line'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
-import { focusX } from './focus'
+import { focusGroupX } from './focus'
 
 interface Datum {
   id: string
@@ -201,7 +201,7 @@ describe('dynamic chart runtime', () => {
       width: 480,
       height: 260,
       ariaLabel: 'Grouped downloads',
-      focus: focusX,
+      focus: focusGroupX,
       maxFocusDistance: 1_000,
       tooltip: {
         formatGroup: (points) =>
@@ -407,13 +407,13 @@ describe('dynamic chart runtime', () => {
     }
     const host = mountChart(container, options)
 
-    host.update({ ...options, input: { value: 8 }, animate: true })
+    host.update({ ...options, input: { value: 8 }, svgAnimation: true })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
       input: { value: 12 },
-      animate: { respectReducedMotion: false },
+      svgAnimation: { respectReducedMotion: false },
     })
     expect(requestFrame).toHaveBeenCalled()
 

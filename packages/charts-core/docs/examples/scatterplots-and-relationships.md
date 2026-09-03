@@ -21,6 +21,50 @@ that relationship.
 Do not infer causation from proximity or a fitted trend. Show the model and
 preparation only when they answer the stated question.
 
+## Start with two quantitative measures
+
+A plain scatterplot should establish the relationship before adding a fitted
+model, chronology, or spatial partition.
+
+```ts group=basic-scatter env=charts file=/src/chart.ts entry
+import { defineChart, dot } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+
+const rows = [
+  { temperature: 12, sales: 18 },
+  { temperature: 16, sales: 25 },
+  { temperature: 20, sales: 31 },
+  { temperature: 24, sales: 46 },
+  { temperature: 29, sales: 52 },
+  { temperature: 32, sales: 61 },
+]
+
+const chart = defineChart({
+  marks: [
+    dot(rows, {
+      x: 'temperature',
+      y: 'sales',
+      r: 5,
+      fill: '#2563eb',
+    }),
+  ],
+  scales: {
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Temperature (°C)' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Daily sales' },
+    },
+  },
+})
+
+export default chart
+```
+
 ## Add a linear regression
 
 Pass the observations directly to `linearRegressionY`. The mark owns the
@@ -28,14 +72,7 @@ least-squares fit, semantic-domain samples, optional confidence band, and
 aggregate source lineage. Keep the dot layer separate so each observation
 remains independently focusable.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/31-linear-regression/?theme=system&height=480"
-  title="Scatterplot with a linear regression mark built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=31-linear-regression height=480 -->
 
 Set `ci: 0` when only the fitted line is needed. The default `0.95` band uses a
 Student-t interval for the fitted mean. See the
@@ -50,14 +87,7 @@ A connected scatterplot turns sequence into a path through two-dimensional
 measure space. Chronological labels and direction arrows make that additional
 ordering visible.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/56-connected-scatter/?theme=system&height=480"
-  title="Chronologically connected scatterplot with direction cues built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=56-connected-scatter height=480 -->
 
 Without an explicit order, connecting points invents a relationship. Keep the
 path, arrow, selected labels, and points as separate layers so each can use the
@@ -69,14 +99,7 @@ A lag plot moves time out of the axis and into data preparation. Each point
 pairs a current value with the previous value; an identity rule shows where
 those values would be equal.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/60-lag-autocorrelation/?theme=system&height=480"
-  title="Lag-one autocorrelation scatterplot with an identity reference built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=60-lag-autocorrelation height=480 -->
 
 Make the lag length explicit and decide how the first observation is handled.
 The chart should receive the resulting pairs rather than conceal the shift
@@ -89,14 +112,7 @@ mark paints those cells but deliberately adds no focus candidates. A layered
 `dot` mark remains the semantic source for pointer focus, keyboard navigation,
 and tooltips.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/65-voronoi-nearest-tooltip/?theme=system&height=480"
-  title="Scatterplot with two-dimensional nearest-point focus built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=65-voronoi-nearest-tooltip height=480 -->
 
 See the [`voronoi` mark](../reference/marks/voronoi.md) for final-screen cell
 geometry and stable identity. [Tooltips and Focus](../guides/tooltips-and-focus.md)

@@ -1,63 +1,8 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
-import {
-  barY,
-  colorLegend,
-  defineChart,
-  group,
-  groupBy,
-} from '@tanstack/charts'
-import { scaleBand, scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
-import type { ConformanceInput } from '../../types'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const sexDomain = ['FEMALE', 'MALE']
-const sexColors = ['#2563eb', '#f97316']
+export * from './example'
 
-type SexedPenguin = PenguinsRow & { readonly sex: string }
+export const mount = tanstackExampleMount(createExampleChart, exampleAriaLabel)
 
-export const groupedBarDefinition = (input: ConformanceInput) =>
-  defineChart(({ width }) => {
-    const observations = penguins
-      .slice(0, penguins.length - input.revision * 12)
-      .filter((row): row is SexedPenguin => row.sex !== null)
-    const rows = groupBy(observations, {
-      by: { species: 'species', sex: 'sex' },
-      outputs: { count: { reduce: 'count' } },
-    })
-
-    return {
-      marks: [
-        barY(rows, {
-          id: 'penguin-count-bars',
-          x: 'species',
-          y: 'count',
-          color: 'sex',
-          layout: group({
-            scale: scaleBand<string>().domain(sexDomain).paddingInner(0.08),
-          }),
-          inset: 1,
-        }),
-      ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.06),
-        axis: { tickLabels: { rotate: width < 640 ? -32 : 0 } },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { ticks: { count: 5 }, label: 'Penguins' },
-      },
-      color: {
-        range: sexColors,
-        legend: colorLegend({
-          label: 'Sex',
-        }),
-      },
-    }
-  })
-
-export const mount = tanstackMount(
-  groupedBarDefinition,
-  'Penguins grouped by species',
-)
+export const catalogCase = mount

@@ -4,7 +4,7 @@ description: Build controlled cursors, linked selections, brushes, zooming, scro
 ---
 
 TanStack Charts owns datum focus, selection, crosshair presentation, optional
-cursor bindings, and the mechanics of explicitly imported chart behaviors. The
+cursor bindings, and the mechanics of explicitly imported chart controls. The
 application owns accepted semantic values, shared controller identity, and
 product policy.
 
@@ -22,7 +22,7 @@ Use native chart focus for:
 - keyboard point navigation;
 - point activation.
 
-Use a first-party controlled behavior for:
+Use a first-party controlled chart control for:
 
 - categorical series visibility through `interactiveColorLegend`;
 - semantic point selection through `keyedSelection`;
@@ -30,7 +30,7 @@ Use a first-party controlled behavior for:
 - one ordered scale value through `handleX`;
 - a scale-bound horizontal range through `brushX`;
 - a controlled numeric or temporal x window through `zoomX`;
-- other behaviors that explicitly accept a `ControlledSignal`.
+- other controls that explicitly accept a `ControlledSignal`.
 
 Use controlled application state for:
 
@@ -43,7 +43,7 @@ Use controlled application state for:
 - editable intervals;
 - rich pinned tooltips.
 
-See [Tooltips and Focus](./tooltips-and-focus.md) for the native path.
+See [Tooltips and Focus](./tooltips-and-focus.md) for chart-owned datum inspection.
 
 ## Cursors and crosshairs
 
@@ -58,8 +58,11 @@ const definition = defineChart({
     lineY(rows, { x: 'date', y: 'value' }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
 })
@@ -124,8 +127,11 @@ const definition = defineChart({
       marker: true,
     }),
   ],
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   cursor: {
     use: cursorHost,
     controller: freeCursor,
@@ -156,7 +162,7 @@ freeCursor.setState(null)
 
 With `pin: true`, click or tap pins the current cursor and another activation
 dismisses it. Browser focus mode also supports Enter, Space, and Escape. React
-Native focus mode exposes equivalent activate and escape accessibility
+Chart-owned focus exposes equivalent activate and escape accessibility
 actions. Free mode has no invented keyboard or accessibility point order; pair
 it with labeled date/number inputs, a range control, or textual status when
 arbitrary values are part of the reader's task. The crosshair itself is visual
@@ -231,6 +237,10 @@ const definition = defineChart({
       selection,
     ),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   selection,
 })
 ```
@@ -270,9 +280,12 @@ type Position = ContinuousCursorPosition<number, number>
 
 const definition = defineChart({
   marks: [dot(rows, { x: 'horsepower', y: 'economy' })],
-  x: { scale: horsepowerScale },
-  y: { scale: economyScale },
-  behaviors: [
+  scales: {
+    x: { scale: horsepowerScale },
+    y: { scale: economyScale },
+  },
+
+  controls: [
     continuousCursor({
       position: controlledSignal<
         Position | null,
@@ -333,8 +346,11 @@ let interaction: ChartInteractionController<Row, Date, number> | undefined
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
-  x: { scale: scaleUtc() },
-  y: { scale: scaleLinear() },
+  scales: {
+    x: { scale: scaleUtc() },
+    y: { scale: scaleLinear() },
+  },
+
   focus: 'nearest-x',
   pointer: false,
   tooltip,
@@ -362,7 +378,7 @@ function stopInspecting() {
 `resolvePointer` uses the current renderer presentation, including an active
 motion or viewport transform, and returns the scene position, primary point,
 and complete focus group. `setControlledFocus` paints the same definition-owned
-focus and tooltip as native pointer input. Pass `{ pinned: true }` when the
+focus and tooltip as chart-owned pointer input. Pass `{ pinned: true }` when the
 configured sticky tooltip should accept interaction.
 
 For a drag that does not require a nearby datum, use
@@ -407,7 +423,7 @@ D3 ownership and official interaction-module links.
 
 ## Disable competing datum focus
 
-When a gesture has no datum inspection at all, disable native focus explicitly:
+When a gesture has no datum inspection at all, disable chart-owned focus explicitly:
 
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
@@ -449,31 +465,96 @@ A complete brush owns:
 
 Import the optional first-party behavior and bind it to application state:
 
-```ts
+```tsx group=controlled-brush env=charts-react file=/src/App.tsx entry
+import { useMemo, useState } from 'react'
 import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import {
   brushX,
   type BrushRange,
   type BrushXChange,
 } from '@tanstack/charts/interaction/brush'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { Chart } from '@tanstack/charts/react'
+import { rows } from './data'
 
-const definition = defineChart({
-  marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale },
-  behaviors: [
-    brushX({
-      range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
-        visibleRange,
-        (next, { reason }) => {
-          if (reason.type === 'commit') setVisibleRange(next)
+const weeks = rows.map((row) => row.week)
+const initialRange: BrushRange<number> = { start: 2, end: 6 }
+
+export default function App() {
+  const [range, setRange] = useState<BrushRange<number>>(initialRange)
+  const definition = useMemo(
+    () =>
+      defineChart({
+        marks: [
+          lineY(rows, {
+            x: 'week',
+            y: 'signups',
+            points: true,
+            stroke: '#2563eb',
+            strokeWidth: 2.5,
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([1, 8]) },
+          y: { scale: scaleLinear, grid: true, axis: { label: 'Signups' } },
         },
-      ),
-      values: observedMonths,
-      format: (date) => monthFormat(date),
-    }),
-  ],
-})
+
+        controls: [
+          brushX({
+            range: controlledSignal<BrushRange<number>, BrushXChange<number>>(
+              range,
+              (next, { reason }) => {
+                if (reason.type === 'commit') setRange(next)
+              },
+            ),
+            values: weeks,
+            format: (week) => `Week ${week}`,
+            ariaLabel: 'Reporting range',
+            startAriaLabel: 'Range start',
+            endAriaLabel: 'Range end',
+          }),
+        ],
+      }),
+    [range],
+  )
+
+  const isInitial =
+    range.start === initialRange.start && range.end === initialRange.end
+
+  return (
+    <section>
+      <Chart
+        definition={definition}
+        height={280}
+        ariaLabel="Weekly signups with a selectable reporting range"
+      />
+      <p role="status" aria-live="polite">
+        Current range: weeks {range.start}–{range.end}
+      </p>
+      <button
+        type="button"
+        disabled={isInitial}
+        onClick={() => setRange({ ...initialRange })}
+      >
+        Reset range
+      </button>
+    </section>
+  )
+}
+```
+
+```ts group=controlled-brush file=/src/data.ts collapsed
+export const rows = [
+  { week: 1, signups: 18 },
+  { week: 2, signups: 24 },
+  { week: 3, signups: 31 },
+  { week: 4, signups: 29 },
+  { week: 5, signups: 42 },
+  { week: 6, signups: 48 },
+  { week: 7, signups: 46 },
+  { week: 8, signups: 57 },
+]
 ```
 
 `values` defines semantic order, snapping, and keyboard steps. It is required
@@ -494,12 +575,7 @@ native applications must supply their own semantic range control. Import
 `d3-brush` and `d3-selection` directly only for a different application-owned
 gesture.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/89-brush-range-selection/?theme=system&height=480"
-  title="Monthly-snapped brush with pointer and keyboard range selection"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+[Open the monthly time-series brush catalog case](https://tanstack.com/charts/catalog/89-brush-range-selection/).
 
 ## Scale-bound handle
 
@@ -516,8 +592,11 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale },
-  behaviors: [
+  scales: {
+    x: { scale: utcScale },
+    y: null,
+  },
+  controls: [
     handleX({
       value: controlledSignal<Date, HandleXChange<Date>>(currentDate, (next) =>
         setCurrentDate(next),
@@ -566,8 +645,11 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale.copy().domain([window.start, window.end]) },
-  behaviors: [
+  scales: {
+    x: { scale: utcScale.copy().domain([window.start, window.end]) },
+    y: null,
+  },
+  controls: [
     zoomX({
       window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
         window,
@@ -653,7 +735,7 @@ survives lifecycle cleanup until an explicit dismissal or programmatic clear.
 - Crosshair presentation is derived from focus or a cursor binding instead of
   DOM mutation.
 - Geometry comes from `scene.chart` and configured scale copies.
-- Native focus is disabled only when another complete interaction owns the
+- Chart-owned focus is disabled only when another complete interaction owns the
   surface.
 - Pointer, keyboard, and touch reach equivalent outcomes.
 - Wheel capture does not unexpectedly trap page scrolling.

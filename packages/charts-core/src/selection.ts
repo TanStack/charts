@@ -130,16 +130,28 @@ export function whenSelected<
   TYPointValue extends ChartValue,
   TXScaleValue extends ChartValue,
   TYScaleValue extends ChartValue,
+  TXScaleId extends string,
+  TYScaleId extends string,
 >(
   mark: ChartMark<
     TDatum,
     TXPointValue,
     TYPointValue,
     TXScaleValue,
-    TYScaleValue
+    TYScaleValue,
+    TXScaleId,
+    TYScaleId
   >,
   selection: KeyedSelection<TDatum, TKey, TXPointValue, TYPointValue>,
-): ChartMark<TDatum, never, never, TXScaleValue, TYScaleValue> {
+): ChartMark<
+  TDatum,
+  never,
+  never,
+  TXScaleValue,
+  TYScaleValue,
+  TXScaleId,
+  TYScaleId
+> {
   const filter = (
     scene: MarkScene<TDatum, TXPointValue, TYPointValue>,
   ): MarkScene<TDatum, TXPointValue, TYPointValue> =>

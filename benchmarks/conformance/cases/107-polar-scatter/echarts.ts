@@ -4,7 +4,7 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { echartsMount } from '../../shared/echarts-mount'
 import { windDirection, windLatitudeBand, windSpeed } from './transform'
-import type { WindRow } from '@charts-poc/demo-data/wind'
+import type { WindRow } from '@tanstack/charts-data/wind'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
 import type {
   ConformanceGeometryQuery,

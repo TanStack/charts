@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "order": 1230,
+  "id": "122-premium-kpi-sparklines",
+  "title": "Premium KPI sparklines",
+  "family": "composition",
+  "intent": "Present three business metrics as restrained, theme-aware cards with compact line and area trends that remain coherent during live data updates.",
+  "support": "composed",
+  "features": [
+    "three native chart surfaces",
+    "guide-free line and area sparklines",
+    "CSS-variable palette inheritance",
+    "light and dark themes",
+    "keyed spring updates",
+    "reduced-motion preference",
+    "responsive catalog composition"
+  ],
+  "geometry": [
+    { "id": "revenue-area", "role": "area", "count": 1 },
+    { "id": "revenue-line", "role": "line", "count": 1 },
+    { "id": "customers-line", "role": "line", "count": 1 },
+    { "id": "churn-area", "role": "area", "count": 1 },
+    { "id": "churn-line", "role": "line", "count": 1 }
+  ],
+  "source": {
+    "title": "Bklit UI chart blocks",
+    "url": "https://bklit.com/blocks"
+  },
+  "ai": {
+    "create": "Create three polished KPI cards for monthly revenue, active customers, and net churn. Use compact native line and area charts without guides, inherit every chart color from the card palette, and keep the preview composed from the same real chart surfaces.",
+    "maintain": "Preserve the three stable keyed series, spring continuity across revisions, reduced-motion behavior, inherited light and dark tokens, restrained metric copy, and responsive three-surface preview."
+  }
+}

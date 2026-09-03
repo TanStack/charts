@@ -3,8 +3,8 @@ import type { InteractionAxis } from './interaction-axis-internal'
 import { cloneInteractionValue } from './interaction-range-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
-  ChartBehavior,
-  ChartBehaviorContext,
+  ChartControl,
+  ChartControlContext,
   ChartBounds,
   ChartHostControl,
   ChartScene,
@@ -98,7 +98,7 @@ const ruleThickness = 2
 export function handleX<
   TXValue extends ChartValue,
   TYValue extends ChartValue = any,
->(options: HandleXOptions<TXValue, TYValue>): ChartBehavior<TXValue, TYValue> {
+>(options: HandleXOptions<TXValue, TYValue>): ChartControl<TXValue, TYValue> {
   const id = options.id?.trim() || defaultId
   if (options.id !== undefined && !options.id.trim()) {
     throw new TypeError('handleX id cannot be empty')
@@ -181,7 +181,7 @@ export function handleX<
 
 function resolveCross<TValue extends ChartValue>(
   cross: HandleXCross<TValue>,
-  context: ChartBehaviorContext,
+  context: ChartControlContext,
 ) {
   if (!cross || typeof cross !== 'object') {
     throw new TypeError('handleX cross is required')

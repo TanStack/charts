@@ -1,4 +1,4 @@
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const scale = scaleOrdinal<string, string>(['a', 'b'], ['red', 'blue']).unknown(
   'gray',

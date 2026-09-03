@@ -1,5 +1,5 @@
-import { weather } from '@charts-poc/demo-data/weather'
-import type { WeatherRow } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
+import type { WeatherRow } from '@tanstack/charts-data/weather'
 
 const selectableYears = [2012, 2013] as const
 

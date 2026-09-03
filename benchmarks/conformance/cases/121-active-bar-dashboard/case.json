@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1220,
+  "id": "121-active-bar-dashboard",
+  "title": "Active bar dashboard",
+  "family": "theme",
+  "intent": "Use metric totals as the series controls for a dense daily bar chart with gradient paint, focused-bar emphasis, and spring updates.",
+  "support": "native",
+  "features": [
+    "integrated KPI controls",
+    "CSS-variable gradient",
+    "focus-driven bar dimming",
+    "animated band ring",
+    "spring data updates",
+    "light and dark inheritance",
+    "reduced-motion support"
+  ],
+  "geometry": [
+    { "role": "bar", "count": 24 },
+    { "role": "rule", "count": 0, "maxCount": 1 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "switch-dashboard-metric",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "metric:mobile" }
+        },
+        {
+          "type": "assert",
+          "assertions": [{ "path": "metric", "equals": "mobile" }]
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "day:10" }
+        },
+        { "type": "wait", "durationMs": 240 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focusedId", "equals": "10" },
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.text", "includes": "May 10" },
+            { "path": "tooltip.text", "includes": "mobile visitors" }
+          ]
+        },
+        { "type": "screenshot", "name": "mobile-metric-focused" },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focusedId", "equals": null },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "shadcn Bar Chart — Interactive",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-interactive"
+  },
+  "ai": {
+    "create": "Create a polished visitor dashboard whose two KPI totals are also accessible series selectors. Use native bars, a declared CSS-variable gradient, spring transitions, a focused band ring, sparse date labels, and inherited light/dark colors.",
+    "maintain": "Preserve 24 stable day keys, metric-specific totals and tooltips, keyboard-operable selectors, reduced-motion behavior, and one native chart definition rather than drawing the active state in React."
+  }
+}

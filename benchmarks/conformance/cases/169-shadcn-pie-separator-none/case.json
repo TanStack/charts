@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1700,
+  "id": "169-shadcn-pie-separator-none",
+  "title": "shadcn Pie Chart - Separator None",
+  "family": "pie",
+  "intent": "Reproduce shadcn/ui's chart-pie-separator-none example with TanStack Charts.",
+  "support": "native",
+  "features": ["pie chart", "separator none", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "arc",
+      "count": 5
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-pie-separator-none",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-separator-none"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-pie-separator-none card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, pie separator none treatment, card dimensions, and light and dark tokens."
+  }
+}

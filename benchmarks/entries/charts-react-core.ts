@@ -1,1 +1,1 @@
-export { Chart } from '@tanstack/react-charts/core'
+export { Chart } from '@tanstack/charts/react/core'

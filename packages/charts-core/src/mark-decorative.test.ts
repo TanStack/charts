@@ -10,6 +10,7 @@ import { createChartScene, defineChart } from './scene'
 import { text } from './text'
 import { waffleY } from './waffle'
 import type {
+  ChartMarkDatum,
   ChartMarkPointX,
   ChartMarkPointY,
   ChartMarkScaleX,
@@ -50,8 +51,10 @@ describe('decorative mark', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -71,6 +74,7 @@ describe('decorative mark', () => {
     expect(polylines[0]).not.toHaveProperty('interaction')
     expectTypeOf<ChartMarkPointX<typeof trend>>().toEqualTypeOf<never>()
     expectTypeOf<ChartMarkPointY<typeof trend>>().toEqualTypeOf<never>()
+    expectTypeOf<ChartMarkDatum<typeof trend>>().toEqualTypeOf<never>()
     expectTypeOf<ChartMarkScaleX<typeof trend>>().toEqualTypeOf<number>()
     expectTypeOf<ChartMarkScaleY<typeof trend>>().toEqualTypeOf<number>()
   })
@@ -82,7 +86,10 @@ describe('decorative mark', () => {
     const scene = createChartScene(
       defineChart({
         marks: [threshold],
-        y: { scale: scaleLinear().domain([0, 8]) },
+        scales: {
+          x: null,
+          y: { scale: scaleLinear().domain([0, 8]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -136,6 +143,7 @@ describe('decorative mark', () => {
     const scene = createChartScene(
       defineChart({
         marks: [decorative(resolvedPostDomain)],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
       }),
@@ -163,8 +171,10 @@ describe('decorative mark', () => {
     const definition = (mark: typeof source) =>
       defineChart({
         marks: [mark],
-        x: { scale: scaleLinear().domain([0, 10]) },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
         focusRing: false,
       })
@@ -213,8 +223,10 @@ describe('decorative mark', () => {
       createChartScene(
         defineChart({
           marks: [nested],
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
           guides: false,
           focusRing: false,
         }),

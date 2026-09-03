@@ -1,4 +1,9 @@
 import { placeTooltip } from './tooltip-position'
+import {
+  createChartTooltipContent,
+  orderChartTooltipPoints,
+  resolveChartTooltipAnchor,
+} from './tooltip-model'
 import type {
   ChartTooltipExtension,
   ChartTooltipExtensionContext,
@@ -22,6 +27,8 @@ import type {
 
 export const tooltip: ChartTooltipExtension = {
   id: 'tooltip',
+  __chartExtensionType: 'tooltip',
+  __chartTooltipHost: 'dom',
   create: createTooltipExtension,
 }
 
@@ -76,6 +83,7 @@ function createTooltipExtension<
   let portalInstance: ChartTooltipPortalExtensionInstance | undefined
   const { container } = extensionContext
   const view = container.ownerDocument.defaultView
+  const tooltipMotion = extensionContext.motion
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
     if (options !== nextOptions) bodyDirty = true
@@ -93,29 +101,24 @@ function createTooltipExtension<
     }
     const tooltipElement = ensureElement()
     syncPortal()
+    const motionSnapshot = tooltipMotion?.beforePaint(tooltipElement)
+    tooltipElement.style.visibility = 'hidden'
+    tooltipElement.removeAttribute('hidden')
     tooltipElement.className = options.className
       ? `ts-chart-tooltip ${options.className}`
       : 'ts-chart-tooltip'
-    const points = orderTooltipPoints(
+    const points = orderChartTooltipPoints(
       nextContext.points,
       nextContext.scene,
       options.sort,
     )
-    const contentContext = createTooltipContentContext(
+    const resolvedContent = createChartTooltipContent(
+      points,
       nextContext.scene,
       nextContext.pinned,
       options,
+      nextContext.point,
     )
-    const content = options.content?.(points, contentContext)
-    const text =
-      content === undefined
-        ? (options.formatGroup?.(points, contentContext) ??
-          options.format?.(nextContext.point, contentContext))
-        : undefined
-    const resolvedContent =
-      content ??
-      text ??
-      defaultTooltipContent(points, nextContext.scene, options, contentContext)
     const custom = renderTooltipBody(
       tooltipElement,
       points,
@@ -138,9 +141,7 @@ function createTooltipExtension<
     tooltipElement.style.pointerEvents = nextContext.pinned ? 'auto' : 'none'
     tooltipElement.style.userSelect = nextContext.pinned ? 'text' : 'none'
     tooltipElement.dataset.sticky = String(nextContext.pinned)
-    tooltipElement.style.visibility = 'hidden'
-    tooltipElement.removeAttribute('hidden')
-    anchor = resolveTooltipAnchor(
+    anchor = resolveChartTooltipAnchor(
       nextContext.point,
       points,
       nextContext.scene,
@@ -150,6 +151,9 @@ function createTooltipExtension<
     )
     position()
     tooltipElement.style.removeProperty('visibility')
+    if (motionSnapshot) {
+      tooltipMotion?.afterPaint(tooltipElement, motionSnapshot, options.motion)
+    }
   }
 
   function ensureElement() {
@@ -318,9 +322,19 @@ function createTooltipExtension<
   function hide() {
     paintContext = undefined
     anchor = null
-    portalInstance?.hide()
-    element?.setAttribute('hidden', '')
-    hideTooltipBody()
+    const currentElement = element
+    if (!currentElement || currentElement.hidden) {
+      portalInstance?.hide()
+      hideTooltipBody()
+      return
+    }
+    const complete = () => {
+      portalInstance?.hide()
+      currentElement.setAttribute('hidden', '')
+      hideTooltipBody()
+    }
+    if (tooltipMotion?.hide(currentElement, options.motion, complete)) return
+    complete()
   }
 
   function destroy() {
@@ -333,6 +347,7 @@ function createTooltipExtension<
       view?.cancelAnimationFrame?.(positionFrame)
       positionFrame = undefined
     }
+    tooltipMotion?.destroy(element)
     resizeObserver?.disconnect()
     resizeObserver = undefined
     element?.remove()
@@ -371,14 +386,15 @@ function createTooltip(document: Document) {
   Object.assign(tooltipElement.style, {
     position: 'absolute',
     zIndex: '1',
-    maxWidth: 'min(24rem, 80%)',
-    padding: '0.4rem 0.55rem',
-    border: '1px solid color-mix(in srgb, CanvasText 18%, transparent)',
-    borderRadius: '0.45rem',
-    background: 'Canvas',
-    color: 'CanvasText',
-    boxShadow: '0 6px 24px rgb(0 0 0 / 0.14)',
-    font: '500 0.75rem/1.3 system-ui, sans-serif',
+    maxWidth: 'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    padding: 'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    border:
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    borderRadius: 'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    background: 'var(--ts-chart-tooltip-background, Canvas)',
+    color: 'var(--ts-chart-tooltip-color, CanvasText)',
+    boxShadow: 'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    font: 'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
     pointerEvents: 'none',
     overflowWrap: 'anywhere',
   })

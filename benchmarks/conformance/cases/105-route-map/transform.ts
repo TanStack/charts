@@ -1,4 +1,4 @@
-import { beagle } from '@charts-poc/demo-data/beagle'
+import { beagle } from '@tanstack/charts-data/beagle'
 import type { ExtendedFeature, GeoGeometryObjects } from 'd3-geo'
 
 type RouteLineString = Extract<GeoGeometryObjects, { type: 'LineString' }>

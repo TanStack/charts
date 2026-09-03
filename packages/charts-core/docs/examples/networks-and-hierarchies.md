@@ -39,27 +39,19 @@ recombining into one output. Link width is the only quantitative encoding in
 this example; nodes and links use the chart theme, and every node gets one
 short name.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/111-basic-sankey/?theme=system&height=480"
-  title="Basic Sankey diagram built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
 Use this version as the starting point when the structure matters more than
-styling. Its four explicit links start with a 60/40 split. **Update data**
-varies that split while preserving a total flow of 10 through both paths.
+styling. Its four explicit links preserve a total flow of 10 through a 60/40
+split.
 
 The definition supplies semantic rows and composes ordinary marks after the
 responsive layout resolves:
 
-```ts
+```ts group=basic-sankey env=charts file=/src/chart.ts entry
 import { defineChart, link, rect, text } from '@tanstack/charts'
 import { sankeyDiagram } from '@tanstack/charts/network/sankey'
+import { links, nodes } from './data'
 
-const chart = defineChart({
+export default defineChart({
   marks: [
     sankeyDiagram({
       nodes,
@@ -69,6 +61,8 @@ const chart = defineChart({
       target: 'target',
       value: 'value',
       align: 'left',
+      nodePadding: 28,
+      inset: { left: 16, right: 16, top: 24, bottom: 12 },
       marks: ({ nodes: layoutNodes, links: layoutLinks }) =>
         [
           link(layoutLinks, {
@@ -76,8 +70,8 @@ const chart = defineChart({
             y1: 'y1',
             x2: 'x2',
             y2: 'y2',
-            strokeWidth: 'width',
             key: 'key',
+            strokeWidth: (flow) => flow.width,
           }),
           rect(layoutNodes, {
             x1: 'x0',
@@ -89,16 +83,42 @@ const chart = defineChart({
           }),
           text(layoutNodes, {
             x: 'x',
-            y: 'y',
+            y: (node) => node.y0 - 8,
             text: (node) => node.data.label,
             key: 'key',
+            fill: 'currentColor',
+            fontSize: 12,
+            fontWeight: 650,
           }),
         ] as const,
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
+  margin: 0,
 })
 ```
+
+```ts group=basic-sankey file=/src/data.ts collapsed
+export const nodes = [
+  { id: 'input', label: 'Input' },
+  { id: 'path-a', label: 'Path A' },
+  { id: 'path-b', label: 'Path B' },
+  { id: 'output', label: 'Output' },
+]
+
+export const links = [
+  { source: 'input', target: 'path-a', value: 6 },
+  { source: 'input', target: 'path-b', value: 4 },
+  { source: 'path-a', target: 'output', value: 6 },
+  { source: 'path-b', target: 'output', value: 4 },
+]
+```
+
+[Open the interactive basic Sankey catalog example](https://tanstack.com/charts/catalog/111-basic-sankey/).
 
 ## Customize a Sankey
 
@@ -108,14 +128,7 @@ or outcome. This Apple FY22 income statement follows product and service
 revenue through gross profit, operating costs, operating profit, and net
 profit.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/111-sankey-flow/?theme=system&height=500"
-  title="Apple FY22 income statement Sankey diagram built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+<!-- ::chart-example id=111-sankey-flow height=500 -->
 
 `sankeyDiagram` owns the responsive flow layout, D3 mutation isolation,
 endpoint resolution, proportional widths, identity, and source lineage. Its
@@ -135,28 +148,20 @@ A tidy tree assigns one position per node and one link per parent-child
 relationship. Direct labels make a small hierarchy readable without requiring
 hover.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/36-hierarchy-tree/?theme=system&height=480"
-  title="Directly labeled tidy Flare toolkit hierarchy built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
 Use the exact optional transform for a static tidy tree:
 
-```ts
+```ts group=hierarchy-tree env=charts file=/src/chart.ts entry
 import { defineChart, dot, link, text } from '@tanstack/charts'
 import { treeLayout } from '@tanstack/charts/hierarchy/tree'
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { rows } from './data'
 
 const hierarchy = treeLayout(rows, {
   path: 'name',
   delimiter: '.',
 })
 
-const chart = defineChart({
+export default defineChart({
   marks: [
     link(hierarchy.links, {
       x1: 'x1',
@@ -164,20 +169,49 @@ const chart = defineChart({
       x2: 'x2',
       y2: 'y2',
       key: 'id',
+      stroke: '#94a3b8',
+      strokeWidth: 1.5,
     }),
-    dot(hierarchy.nodes, { x: 'x', y: 'y', key: 'id' }),
+    dot(hierarchy.nodes, {
+      x: 'x',
+      y: 'y',
+      key: 'id',
+      fill: '#2563eb',
+      r: 4,
+    }),
     text(hierarchy.nodes, {
       x: 'x',
       y: 'y',
       text: 'name',
       key: 'id',
+      fill: '#2563eb',
+      anchor: (node) => (node.internal ? 'end' : 'start'),
+      dx: (node) => (node.internal ? -7 : 7),
     }),
   ],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
+
   guides: false,
+  margin: { top: 24, right: 110, bottom: 24, left: 64 },
 })
 ```
+
+```ts group=hierarchy-tree file=/src/data.ts collapsed
+export const rows = [
+  { name: 'Product' },
+  { name: 'Product.Analytics' },
+  { name: 'Product.Analytics.Reports' },
+  { name: 'Product.Analytics.Dashboards' },
+  { name: 'Product.Platform' },
+  { name: 'Product.Platform.API' },
+  { name: 'Product.Platform.Workers' },
+]
+```
+
+[Open the larger Flare hierarchy catalog example](https://tanstack.com/charts/catalog/36-hierarchy-tree/).
 
 Use `id` and `parentId` instead of `path` for explicit parent-reference rows.
 Path input may omit ancestors; the result includes those structural nodes with
@@ -204,14 +238,7 @@ A treemap encodes each leaf's contribution as area while keeping leaves inside
 their parent branch. Use it when branch size matters more than exact depth or
 link tracing.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/74-recharts-treemap/?theme=system&height=480"
-  title="Flare analytics package-size treemap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=74-recharts-treemap height=480 -->
 
 The exact optional mark accepts the same flat path or parent-reference input as
 the tidy-tree transform, but it owns final-pixel rectangles and labels:
@@ -234,6 +261,10 @@ const chart = defineChart({
       stroke: '#fff',
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
   margin: 0,
 })
@@ -262,20 +293,26 @@ as the other hierarchy entries, aggregates values, and allocates its sectors
 after the final polar radius resolves. Use `branchId` for inherited branch
 color and direct `SunburstNode` lineage for tooltips and state callbacks.
 
+For a large hierarchy, keep the complete source data but show only the next
+one or two levels below a controlled root.
+
+<!-- ::chart-example id=126-drillable-sunburst height=480 -->
+
+Set `rootId` to the selected node and `visibleDepth` to the number of descendant
+rings. `onSelect` receives the same semantic node for pointer and keyboard
+activation. The application owns the selected root and back control; the mark
+retains aggregate values and stable node keys. With the motion renderer,
+shared descendants interpolate their angles and radii while remaining centered
+sectors. Newly revealed nodes unfold from their disappearing parent sector,
+and drill-up reverses that relationship.
+
 ## Reveal spatial adjacency
 
 A Delaunay network connects points that are neighbors in a triangulation. It
 answers local spatial adjacency; it does not imply a business or causal
 relationship unless the data model defines one.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/37-delaunay-network/?theme=system&height=480"
-  title="Delaunay spatial adjacency network built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=37-delaunay-network height=480 -->
 
 The optional [`delaunayLink` mark](../reference/marks/delaunay.md) accepts the
 source points directly. It projects both configured axes after final layout,
@@ -293,14 +330,7 @@ A force-directed layout can reveal clusters and bridges when positions are not
 already meaningful. It also introduces motion, stochastic initialization, and
 collision policy that can make comparison unstable.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/40-force-directed-network/?theme=system&height=480"
-  title="Force-directed Les Misérables character network built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=40-force-directed-network height=480 -->
 
 Use the exact optional transform for a settled static network:
 
@@ -334,8 +364,10 @@ const chart = defineChart({
     dot(graph.nodes, { x: 'x', y: 'y', color: 'group', key: 'id' }),
     text(graph.nodes, { x: 'x', y: 'y', text: 'id', key: 'id' }),
   ],
-  x: { scale: scaleLinear().domain(graph.xDomain) },
-  y: { scale: scaleLinear().domain(graph.yDomain) },
+  scales: {
+    x: { scale: scaleLinear().domain(graph.xDomain) },
+    y: { scale: scaleLinear().domain(graph.yDomain) },
+  },
 })
 ```
 

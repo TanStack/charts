@@ -1,4 +1,4 @@
-import { citywages } from '@charts-poc/demo-data/citywages'
+import { citywages } from '@tanstack/charts-data/citywages'
 import * as Plot from '@observablehq/plot'
 import { toSlopePoints } from './transform'
 import { mountObservablePlot } from '../../shared/mount'

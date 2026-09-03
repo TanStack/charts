@@ -12,6 +12,15 @@ import type {
 } from '@tanstack/charts/universal'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+const specializedLoaderSpecifiers = new Set([
+  '@tanstack/charts/angular',
+  '@tanstack/charts/octane',
+  '@tanstack/charts/octane/canvas',
+  '@tanstack/charts/octane/core',
+  '@tanstack/charts/react-native',
+  '@tanstack/charts/react-native/tooltip',
+  '@tanstack/charts/svelte',
+])
 
 describe('public package exports', () => {
   it('keeps public dot-layout types aligned across authoring barrels', () => {
@@ -24,21 +33,26 @@ describe('public package exports', () => {
     expectTypeOf<UniversalDotLayoutResolveContext>().toEqualTypeOf<RootDotLayoutResolveContext>()
   })
 
-  it('resolves every manifest capability subpath', async () => {
+  it('resolves every manifest capability subpath supported by the generic loader', async () => {
     const specifiers = Object.keys(packageJson.exports).map((subpath) =>
       subpath === '.'
         ? '@tanstack/charts'
         : `@tanstack/charts${subpath.slice(1)}`,
     )
+    const runtimeSpecifiers = specifiers.filter(
+      (specifier) => !specializedLoaderSpecifiers.has(specifier),
+    )
     const modules = await Promise.all(
-      specifiers.map((specifier) => import(/* @vite-ignore */ specifier)),
+      runtimeSpecifiers.map(
+        (specifier) => import(/* @vite-ignore */ specifier),
+      ),
     )
 
-    expect(modules).toHaveLength(specifiers.length)
+    expect(modules).toHaveLength(runtimeSpecifiers.length)
     expect(
       modules.every(
         (module, index) =>
-          typeOnlySpecifiers.has(specifiers[index]!) ||
+          typeOnlySpecifiers.has(runtimeSpecifiers[index]!) ||
           Object.keys(module).length > 0,
       ),
     ).toBe(true)
@@ -74,6 +88,24 @@ describe('public package exports', () => {
     expect(root).not.toHaveProperty('portal')
     expect(tooltipModule.tooltip.id).toBe('tooltip')
     expect(portalModule.portal.id).toBe('portal')
+  })
+
+  it('keeps motion and timing utilities on the optional motion subpath', async () => {
+    const [root, universal, motionModule, definitionModule] = await Promise.all(
+      [
+        import('@tanstack/charts'),
+        import('@tanstack/charts/universal'),
+        import('@tanstack/charts/motion'),
+        import('@tanstack/charts/motion/definition'),
+      ],
+    )
+
+    for (const name of ['motion', 'stagger']) {
+      expect(root).not.toHaveProperty(name)
+      expect(universal).not.toHaveProperty(name)
+      expect(motionModule).toHaveProperty(name)
+    }
+    expect(Object.keys(definitionModule)).toEqual(['stagger'])
   })
 
   it('keeps focus guide marks on their exact subpath', async () => {
@@ -229,6 +261,18 @@ describe('public package exports', () => {
       expect(universal).not.toHaveProperty(name)
       expect(polar).toHaveProperty(name)
     }
+  })
+
+  it('keeps angular focus on the polar subpath', async () => {
+    const [root, universal, polar] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/polar'),
+    ])
+
+    expect(root).not.toHaveProperty('focusGroupAngle')
+    expect(universal).not.toHaveProperty('focusGroupAngle')
+    expect(polar).toHaveProperty('focusGroupAngle')
   })
 
   it('keeps the optional hexbin algorithm on its exact spatial subpath', async () => {
@@ -534,6 +578,9 @@ describe('public package exports', () => {
       'resolveChartFocusStrategy',
       'resolveChartPointerFocus',
       'resolveFocusPresentation',
+      'resolveMarkStateScene',
+      'restoreChartFocusPoint',
+      'sameChartPointIdentity',
     ])
   })
 

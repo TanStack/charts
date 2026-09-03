@@ -1,13 +1,13 @@
 ---
 title: Focus and Interaction
-description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, native tooltips, selection, and spatial indexes.
+description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, built-in tooltips, selection, and spatial indexes.
 ---
 
 The DOM hosts, framework adapters, and React Native `Chart` provide point-level
 interaction from each mark's emitted `ChartPoint` values and rendered scene
 primitives. The defaults cover geometry-aware pointer or responder focus,
 linear keyboard or accessibility navigation, activation, and an optional
-native tooltip. Definitions own these policies; adapters mount them and report
+built-in tooltip. Definitions own these policies; adapters mount them and report
 events.
 
 ## Default behavior
@@ -22,6 +22,7 @@ With no custom focus strategy:
 - `Home` and `End` move to the first and last point
 - `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
   the focused point
+- pressing the pointer outside both the chart and the tooltip dismisses a pinned tooltip
 - a configured selection controller receives the same focused point before
   `onSelect`
 - a click focuses and selects the nearest point, or selects `null` on the
@@ -133,11 +134,17 @@ const groupedDownloads = defineChart(definition, {
 Grouping compares semantic values, including dates by timestamp. Duplicate
 points with the same `group` value are reduced to one member in grouped focus.
 
-The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
+The equivalent `focusGroupX`, `focusGroupY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
 or direct strategy use. The exact exported objects receive the same host-level
 containment behavior as their presets. A strategy that wraps or copies one of
 them is custom and owns its complete pointer resolution.
+
+`focusGroupAngle` is available from `@tanstack/charts/polar`. It resolves the
+nearest radial ray, groups points with the same semantic angle value, and
+orders keyboard tasks by angle. Use it for grouped radar, polar-line, and
+radial-dot tooltips. Painted `radialArc` geometry already participates in
+default nearest focus.
 
 ## Crosshair guides
 
@@ -156,8 +163,11 @@ const definition = defineChart({
       strokeDasharray: '4 4',
     }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
 })
@@ -316,8 +326,11 @@ const definition = defineChart({
     lineY(rows, { x: 'date', y: 'value' }),
     crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+
   focus: 'group-x',
   cursor: {
     use: cursorHost,
@@ -503,7 +516,7 @@ definition and can update the same controlled key.
 ## Continuous cursor
 
 Import `continuousCursor` from `@tanstack/charts/interaction/cursor` and place
-it in `ChartDefinitionOptions.behaviors`. Its `position` is a controlled
+it in `ChartDefinitionOptions.controls`. Its `position` is a controlled
 `ContinuousCursorPosition<TXValue, TYValue> | null`. Both values must be
 numbers or dates backed by invertible scales.
 
@@ -551,7 +564,7 @@ The public cursor types divide state, event, and presentation concerns:
 ## Horizontal brush
 
 Import `brushX` from `@tanstack/charts/interaction/brush` and place it in
-`ChartDefinitionOptions.behaviors`. Its `range` is a controlled
+`ChartDefinitionOptions.controls`. Its `range` is a controlled
 `BrushRange<TValue>` with inclusive semantic `start` and `end` values.
 
 `BrushXChange` reports `preview`, `commit`, or `cancel`, the proposed and
@@ -577,7 +590,7 @@ status text, persistence, and any native semantic control.
 ## Horizontal scale handle
 
 Import `handleX` from `@tanstack/charts/interaction/handle` and place it in
-`ChartDefinitionOptions.behaviors`. It binds one controlled x value to an
+`ChartDefinitionOptions.controls`. It binds one controlled x value to an
 explicit ordered candidate list. The controlled value must equal one of those
 candidates.
 
@@ -624,7 +637,7 @@ controls.
 ## Horizontal zoom
 
 Import `zoomX` from `@tanstack/charts/interaction/zoom` and place it in
-`ChartDefinitionOptions.behaviors`. Its `window` is a controlled
+`ChartDefinitionOptions.controls`. Its `window` is a controlled
 `ZoomXWindow<TValue>` with semantic `start` and `end` values. `TValue` must be
 a number or Date backed by an invertible x scale.
 
@@ -670,7 +683,7 @@ The public zoom types are:
 
 ## Disabling chart-owned focus
 
-Set `focus: false` to disable native pointer and keyboard point focus. The
+Set `focus: false` to disable chart-owned pointer and keyboard point focus. The
 scene keeps its semantic points but omits the generated default focus layer,
 and the DOM host forces the chart surface out of the tab order. Explicit
 focus-only marks remain available to custom renderers and programmatic paint.
@@ -774,6 +787,26 @@ Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
 is appended to `ts-chart-tooltip`.
 
+The default DOM surface inherits these optional CSS variables from the chart
+container while retaining its built-in fallback values. A portaled Popover
+keeps that ancestry. If the portal fallback moves the tooltip under
+`ownerDocument.body`, chart-container-only variables no longer inherit; set
+them on the tooltip class or a shared document ancestor instead:
+
+| Variable                           | Controls                    |
+| ---------------------------------- | --------------------------- |
+| `--ts-chart-tooltip-background`    | Surface background          |
+| `--ts-chart-tooltip-color`         | Text color                  |
+| `--ts-chart-tooltip-border`        | Complete border declaration |
+| `--ts-chart-tooltip-border-radius` | Corner radius               |
+| `--ts-chart-tooltip-shadow`        | Box shadow                  |
+| `--ts-chart-tooltip-max-width`     | Maximum width               |
+| `--ts-chart-tooltip-padding`       | Inner spacing               |
+| `--ts-chart-tooltip-font`          | Complete font shorthand     |
+
+Use `className` for content structure or additional selectors. Use the
+variables for ordinary surface theming without specificity overrides.
+
 `ChartTooltipContentContext.pinned` is `false` during transient inspection and
 `true` after activation. `content`, `format`, `formatGroup`, and item `text`
 receive the same context, so either structured or plaintext content can reveal
@@ -866,8 +899,9 @@ resize, and content resize, and collide against the viewport instead of the
 chart box.
 
 Clicking, Enter, or Space pins the tooltip. The next activation unpins it.
-`Escape` unpins and clears focus. Set `sticky: false` to disable pinning. A
-display-only tooltip has `role="status"` and `aria-live="polite"`.
+Pressing the pointer outside the chart and tooltip, or pressing `Escape`,
+unpins and clears focus. Set `sticky: false` to disable pinning. A display-only
+tooltip has `role="status"` and `aria-live="polite"`.
 
 Set `visibility: 'pinned'` for click-or-keyboard detail that should not paint a
 transient shell. Focus and inline mark states still update before activation;
@@ -933,10 +967,10 @@ resolution.
 
 Dragging, scrolling, custom crosshair overlays, and freeform range or lasso
 selections can listen on a wrapper or use `onRender` to attach application
-behavior to the live SVG. Use `handleX` for one ordered scale value, `brushX`
-for a normal horizontal semantic range, and `zoomX` for a normal controlled x
-window. For custom gestures, keep semantic state outside the scene and update a
-dynamic definition by replacing its identity.
+behavior to the default SVG or complete surface. Use `handleX` for one ordered
+scale value, `brushX` for a normal horizontal semantic range, and `zoomX` for a
+normal controlled x window. For custom gestures, keep semantic state outside
+the scene and update a responsive definition by replacing its identity.
 
 Use a definition cursor binding for snapped or free crosshairs. Keep other
 semantic state outside the scene.

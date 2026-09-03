@@ -77,9 +77,7 @@ export function last({ values }: TransformReduceContext<unknown>): number {
   return values.at(-1) ?? Number.NaN
 }
 
-export function difference({
-  values,
-}: TransformReduceContext<unknown>): number {
+export function delta({ values }: TransformReduceContext<unknown>): number {
   return (values.at(-1) ?? Number.NaN) - (values[0] ?? Number.NaN)
 }
 

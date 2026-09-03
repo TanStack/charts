@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { axisPointerData, axisPointerIndustries } from './selection'
-import { axisPointerDefinition, mount } from './tanstack'
+import { createExampleChart, catalogCase, mount } from './tanstack'
 import type {
   ChartDefinition,
   ChartFocusState,
@@ -28,7 +28,7 @@ describe('definition-owned snapped axis pointer', () => {
   it.each([0, 1])(
     'keeps raw observations and guide candidates typed for revision %s',
     (revision) => {
-      const definition = axisPointerDefinition({ ...input, revision })
+      const definition = createExampleChart({ ...input, revision })
       const rows = axisPointerData(industries, revision)
       const scene = createChartScene(definition, {
         width: input.width,
@@ -75,10 +75,10 @@ describe('definition-owned snapped axis pointer', () => {
   it.each([320, 640, 960])(
     'retargets one full-height dashed rule with stable structure at %spx',
     (width) => {
-      const scene = createChartScene(
-        axisPointerDefinition({ ...input, width }),
-        { width, height: input.height },
-      )
+      const scene = createChartScene(createExampleChart({ ...input, width }), {
+        width,
+        height: input.height,
+      })
       const april = resolveAtDate(scene, '2005-04-01')
       const august = resolveAtDate(scene, '2005-08-01')
       const aprilLayer = focusLayer(april)
@@ -173,17 +173,40 @@ describe('definition-owned snapped axis pointer', () => {
     container.remove()
   })
 
+  it('paints a deterministic native axis pointer in catalog previews', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase.mount(container, {
+      ...input,
+      width: 288,
+      height: 192,
+      interactive: false,
+      preview: true,
+    })
+
+    expect(
+      container.querySelectorAll('.ts-chart__focus-guide-x-rule'),
+    ).toHaveLength(1)
+    expect(
+      container
+        .querySelector('[data-ts-focus-guide-layer="over"]')
+        ?.getAttribute('visibility'),
+    ).not.toBe('hidden')
+
+    handle.destroy()
+    container.remove()
+  })
+
   it('contains no application-owned crosshair or tooltip renderer', () => {
     const directory = resolve(
       process.cwd(),
       'benchmarks/conformance/cases/80-echarts-axis-pointer',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/react-charts',
       'useState',
       'onRender',
       'positionTooltip',

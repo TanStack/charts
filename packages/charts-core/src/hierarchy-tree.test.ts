@@ -136,12 +136,12 @@ describe('treeLayout', () => {
     ]
     const observedData: (readonly (typeof source)[number][])[] = []
     const layout = treeLayout(source, {
-      id: ({ datum, index, data }) => {
+      id: (datum, { index, data }) => {
         expect(datum).toBe(source[index])
         observedData.push(data)
         return datum.key
       },
-      parentId: ({ datum, index, data }) => {
+      parentId: (datum, { index, data }) => {
         expect(datum).toBe(source[index])
         observedData.push(data)
         return datum.parent
@@ -165,7 +165,7 @@ describe('treeLayout', () => {
   it('supports primitive path rows with exact indexes', () => {
     const source = ['gods', 'gods.chaos', 'gods.chaos.night']
     const layout = treeLayout(source, {
-      path: ({ datum }) => datum,
+      path: (datum) => datum,
       delimiter: '.',
     })
 

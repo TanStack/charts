@@ -18,7 +18,7 @@
 
 <div align="center">
   <a href="#status">
-    <img alt="Status - PRE-ALPHA" src="https://img.shields.io/badge/status-pre--alpha-orange" />
+    <img alt="Status - ALPHA" src="https://img.shields.io/badge/status-alpha-yellow" />
   </a>
   <a href="https://twitter.com/tan_stack">
     <img alt="Follow @TanStack" src="https://img.shields.io/twitter/follow/tan_stack.svg?style=social" />
@@ -39,10 +39,12 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> This README follows unreleased `main`. The latest published release is
-> TanStack Charts `0.7.2`; use its
-> [release-source documentation](https://github.com/TanStack/charts/tree/v0.7.2/docs).
-> It is pre-alpha and not ready for production use.
+> This README follows unreleased `main`, the official Alpha line. The latest
+> published release is TanStack Charts `0.16.0`; use its
+> [release-source documentation](https://github.com/TanStack/charts/tree/v0.16.0/docs).
+> Alpha releases use regular `0.x` versions and may contain breaking changes
+> between minor releases. Pin an exact version for production use and read the
+> [Alpha stability policy](./docs/stability.md) before upgrading.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar
@@ -71,10 +73,10 @@ or dropping down to a separate API.
 
 ```tsx
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 const revenue = [
   { month: 'Jan', value: 42 },
@@ -90,15 +92,18 @@ const revenueChart = defineChart({
       y: 'value',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.2),
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.2),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Revenue' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Revenue' },
-  },
+
   tooltip,
 })
 
@@ -124,7 +129,7 @@ When SVG element count becomes the bottleneck, switch the adapter import and
 keep the definition and host callbacks:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/canvas'
+import { Chart } from '@tanstack/charts/react/canvas'
 ```
 
 Canvas stays outside the default bundles. React and Octane also expose a
@@ -133,22 +138,22 @@ removes per-mark DOM cost, not scene memory or dense nearest-point work, so
 large interactive charts should still use a measured spatial index or a
 bounded representation.
 
-## Packages
+## Package
 
-| Package                                                           | Role                                  |
-| ----------------------------------------------------------------- | ------------------------------------- |
-| [`@tanstack/charts`](./packages/charts-core)                      | Framework-neutral grammar and runtime |
-| [`@tanstack/charts-scales`](./packages/charts-scales)             | Compact linear and categorical scales |
-| [`@tanstack/react-charts`](./packages/react-charts)               | React adapter                         |
-| [`@tanstack/react-native-charts`](./packages/react-native-charts) | Experimental React Native SVG adapter |
-| [`@tanstack/preact-charts`](./packages/preact-charts)             | Preact adapter                        |
-| [`@tanstack/vue-charts`](./packages/vue-charts)                   | Vue adapter                           |
-| [`@tanstack/solid-charts`](./packages/solid-charts)               | Solid adapter                         |
-| [`@tanstack/svelte-charts`](./packages/svelte-charts)             | Svelte adapter                        |
-| [`@tanstack/angular-charts`](./packages/angular-charts)           | Angular standalone-component adapter  |
-| [`@tanstack/lit-charts`](./packages/lit-charts)                   | Lit custom-element adapter            |
-| [`@tanstack/alpine-charts`](./packages/alpine-charts)             | Alpine directive adapter              |
-| [`@tanstack/octane-charts`](./packages/octane-charts)             | Octane adapter                        |
+Install `@tanstack/charts` once. Its exact subpaths expose compact scales,
+framework adapters, renderers, and optional capabilities without pulling
+unrelated code into application bundles:
+
+```ts
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { Chart } from '@tanstack/charts/react'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+```
+
+The source remains split into focused workspace packages for development and
+verification. Those internal boundaries are assembled into the published
+`@tanstack/charts` package. Existing package names remain published for
+compatibility, but new applications do not need them.
 
 The earlier host experiment remains under `@plot-poc/*` for migration evidence
 and benchmark comparison. The private

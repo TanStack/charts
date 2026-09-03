@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { agreementPercent } from './transform'
-import { gaugeDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { GaugeDatum } from './transform'
@@ -83,7 +83,7 @@ describe('native gauge allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/78-gauge/tanstack.ts',
+        'benchmarks/conformance/cases/78-gauge/example.tsx',
       ),
       'utf8',
     )
@@ -102,7 +102,7 @@ describe('native gauge allocation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(gaugeDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function gaugePoints(points: readonly ChartPoint<unknown>[]) {

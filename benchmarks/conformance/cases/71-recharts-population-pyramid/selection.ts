@@ -1,4 +1,4 @@
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export const pyramidSexes = ['MALE', 'FEMALE'] as const
 

@@ -146,7 +146,8 @@ and streaming inputs are source-accounted independently.
 Multi-series output gates exact ordered series identity, stable color
 ownership, explicit x-domain changes, and per-series vertex counts. Trusted
 pointer checks validate the exact focused x and every series value on the
-initial chart and again after reorder, append, and visibility updates.
+initial chart and again after reorder, append, and visibility updates. Pointer
+activation timing starts only after two consecutive inactive animation frames.
 
 Cross-library timing rank is informational. Browser timing, long tasks, and
 retained-memory deltas are meaningful only within the same run, machine, and

@@ -2,6 +2,7 @@ import { mountChart } from './dom'
 import { createChartRuntime } from './runtime'
 import { renderChartSvg } from './svg'
 import { createSvgChartRenderer } from './svg-surface'
+import { resolveChartRenderer } from './renderer'
 import {
   resolveChartAdapterLayout,
   resolveChartHostTabIndex,
@@ -50,7 +51,7 @@ export function createChartAdapter<
       const renderer = createSvgChartRenderer<TDatum, TXValue, TYValue>(
         options.renderSvg ?? renderChartSvg,
       )
-      return renderer.prerender(scene, {
+      return resolveChartRenderer(scene, renderer).prerender(scene, {
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,

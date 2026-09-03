@@ -84,6 +84,11 @@ interface ChartAdapter<
 
 Keep one controller per framework component instance.
 
+Both controllers resolve mark-level renderers from the compiled scene before
+prerender and mount. A default SVG adapter therefore emits and adopts a mixed
+shell when selected marks use `canvasChartRenderer`; framework adapters do not
+need their own layer-selection logic.
+
 ## Prerender and mount
 
 ```ts

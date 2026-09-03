@@ -23,6 +23,8 @@ export function parseConformanceCaseMeta(
     value.schemaVersion !== 1 ||
     ('referenceRenderer' in value &&
       !isReferenceRenderer(value.referenceRenderer)) ||
+    ('collections' in value && !isNonEmptyStringArray(value.collections)) ||
+    ('height' in value && !isCaseHeight(value.height)) ||
     !('order' in value) ||
     typeof value.order !== 'number' ||
     !('id' in value) ||
@@ -56,6 +58,12 @@ export function parseConformanceCaseMeta(
     'referenceRenderer' in value && isReferenceRenderer(value.referenceRenderer)
       ? value.referenceRenderer
       : undefined
+  const collections =
+    'collections' in value && isNonEmptyStringArray(value.collections)
+      ? value.collections
+      : undefined
+  const height =
+    'height' in value && isCaseHeight(value.height) ? value.height : undefined
   const guideAssertions =
     'guideAssertions' in value && isGuideArray(value.guideAssertions)
       ? value.guideAssertions
@@ -74,6 +82,8 @@ export function parseConformanceCaseMeta(
   return {
     schemaVersion: 1,
     ...(referenceRenderer ? { referenceRenderer } : {}),
+    ...(collections ? { collections } : {}),
+    ...(height === undefined ? {} : { height }),
     order: value.order,
     id: value.id,
     title: value.title,
@@ -90,6 +100,15 @@ export function parseConformanceCaseMeta(
     source: value.source,
     ai: value.ai,
   }
+}
+
+function isCaseHeight(value: unknown): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isSafeInteger(value) &&
+    value >= 120 &&
+    value <= 1_200
+  )
 }
 
 function isReferenceRenderer(
@@ -112,6 +131,15 @@ function isSupport(value: unknown): value is ConformanceCaseMeta['support'] {
 function isStringArray(value: unknown): value is string[] {
   return (
     Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+  )
+}
+
+function isNonEmptyStringArray(value: unknown): value is string[] {
+  return (
+    isStringArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => entry.length > 0) &&
+    new Set(value).size === value.length
   )
 }
 

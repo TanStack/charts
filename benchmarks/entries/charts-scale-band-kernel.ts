@@ -1,4 +1,4 @@
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 
 const scale = scaleBand(['a', 'b', 'c'], [0, 100])
   .paddingInner(0.1)

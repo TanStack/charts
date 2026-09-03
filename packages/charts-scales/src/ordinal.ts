@@ -6,7 +6,7 @@ export interface OrdinalScale<
   TDomain extends ScaleDomainValue = string,
   TRange = unknown,
 > {
-  (value: TDomain): TRange
+  (value: TDomain): TRange | undefined
   domain(): TDomain[]
   domain(values: Iterable<TDomain>): OrdinalScale<TDomain, TRange>
   range(): TRange[]

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1760,
+  "id": "175-shadcn-radar-grid-circle-no-lines",
+  "title": "shadcn Radar Chart - Grid Circle - No lines",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-no-lines example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "grid circle no lines", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-grid-circle-no-lines",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle-no-lines"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-no-lines card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar grid circle no lines treatment, card dimensions, and light and dark tokens."
+  }
+}

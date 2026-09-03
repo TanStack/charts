@@ -1,4 +1,4 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createElement } from 'react'
 import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 import { countPenguinsBySpecies, divergeMaleCounts } from './transform'

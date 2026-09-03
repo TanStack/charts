@@ -1,9 +1,9 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
-import { groupedBarDefinition } from './tanstack'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import { createExampleChart } from './tanstack'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import type { ChartPoint } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -78,7 +78,7 @@ describe('grouped penguin bars', () => {
 })
 
 function render(input: ConformanceInput) {
-  return createChartRuntime().render(groupedBarDefinition(input), input)
+  return createChartRuntime().render(createExampleChart(input), input)
 }
 
 function count(

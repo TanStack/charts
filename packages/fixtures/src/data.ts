@@ -1,7 +1,7 @@
-import { downloads } from '@charts-poc/demo-data/downloads'
-import { penguins } from '@charts-poc/demo-data/penguins'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import { downloads } from '@tanstack/charts-data/downloads'
+import { penguins } from '@tanstack/charts-data/penguins'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export interface PenguinBodyMassRow extends PenguinsRow {
   readonly body_mass_g: number

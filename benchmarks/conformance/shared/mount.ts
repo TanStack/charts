@@ -1,11 +1,11 @@
 import {
   defineChart,
-  isDynamicChartDefinition,
+  isResponsiveChartDefinition,
   mountChart,
 } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import type {
-  ChartDefinition,
+  DomChartDefinition,
   ChartDefinitionOptions,
   ChartValue,
   ChartTooltipOptions,
@@ -15,6 +15,7 @@ import type {
   ConformanceInput,
   ConformanceMount,
 } from '../types'
+import { catalogPreviewDefinition, type CatalogPreviewOptions } from './preview'
 
 export function mountObservablePlot(
   container: HTMLElement,
@@ -43,9 +44,49 @@ export function tanstackMount<
 >(
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  return createTanstackMount(
+    createDefinition,
+    ariaLabel,
+    interactiveTooltip,
+    previewOptions,
+  )
+}
+
+export function tanstackExampleMount<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
+  ariaLabel: string,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  return createTanstackMount(
+    createDefinition,
+    ariaLabel,
+    undefined,
+    previewOptions,
+  )
+}
+
+function createTanstackMount<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
+  ariaLabel: string,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue>,
 ): TanStackConformanceCase<TDatum, TXValue, TYValue> {
   const mount: ConformanceMount = (container, input) => {
     const options = {
@@ -53,12 +94,14 @@ export function tanstackMount<
         createDefinition(input),
         input,
         interactiveTooltip,
+        previewOptions,
       ),
       width: input.width,
       height: input.height,
       ariaLabel,
     } as const
     const host = mountChart(container, options)
+    applyCatalogPreviewFocus(host, input, previewOptions)
 
     return {
       update(nextInput) {
@@ -68,10 +111,12 @@ export function tanstackMount<
             createDefinition(nextInput),
             nextInput,
             interactiveTooltip,
+            previewOptions,
           ),
           width: nextInput.width,
           height: nextInput.height,
         })
+        applyCatalogPreviewFocus(host, nextInput, previewOptions)
       },
       destroy() {
         host.destroy()
@@ -96,9 +141,9 @@ export interface TanStackConformanceCase<
   (container: HTMLElement, input: ConformanceInput): ConformanceHandle
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>
   ariaLabel: string
-  interactiveTooltip: true | ChartTooltipOptions<TDatum>
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined
   mount: ConformanceMount
 }
 
@@ -109,11 +154,17 @@ export function tanstackCase<
 >(
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
 ): TanStackConformanceCase<TDatum, TXValue, TYValue> {
-  return tanstackMount(createDefinition, ariaLabel, interactiveTooltip)
+  return tanstackMount(
+    createDefinition,
+    ariaLabel,
+    interactiveTooltip,
+    previewOptions,
+  )
 }
 
 export function withConformanceBehavior<
@@ -121,24 +172,51 @@ export function withConformanceBehavior<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
   input: ConformanceInput,
-  interactiveTooltip: true | ChartTooltipOptions<TDatum>,
-): ChartDefinition<TDatum, TXValue, TYValue> {
-  const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue> = {
-    animate: false,
-    ...(input.interactive === true ? {} : { focus: false }),
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
+): DomChartDefinition<TDatum, TXValue, TYValue> {
+  const presentation =
+    input.preview === true
+      ? catalogPreviewDefinition(definition, previewOptions)
+      : definition
+  const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue, 'dom'> = {
+    svgAnimation: false,
+    ...(input.interactive === true ||
+    (input.preview === true && previewOptions.focus)
+      ? {}
+      : { focus: false }),
     keyboard: input.interactive === true,
-    tooltip:
-      input.interactive !== true
-        ? false
-        : interactiveTooltip === true
-          ? tooltip
-          : { use: tooltip, ...interactiveTooltip },
+    ...(input.interactive !== true
+      ? { tooltip: false as const }
+      : interactiveTooltip === undefined
+        ? {}
+        : {
+            tooltip:
+              interactiveTooltip === true
+                ? tooltip
+                : { use: tooltip, ...interactiveTooltip },
+          }),
   }
 
-  if (isDynamicChartDefinition(definition)) {
-    return defineChart(definition, behavior)
+  if (isResponsiveChartDefinition(presentation)) {
+    return defineChart(presentation, behavior)
   }
-  return defineChart(definition, behavior)
+  return defineChart(presentation, behavior)
+}
+
+function applyCatalogPreviewFocus<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  host: ReturnType<typeof mountChart<TDatum, TXValue, TYValue>>,
+  input: ConformanceInput,
+  options: CatalogPreviewOptions<TDatum, TXValue, TYValue>,
+) {
+  if (input.preview !== true || !options.focus) return
+  host.interaction.setControlledFocus(options.focus(host.getScene(), input), {
+    source: 'programmatic',
+  })
 }

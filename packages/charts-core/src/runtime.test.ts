@@ -7,13 +7,14 @@ import { rect } from './rect'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
-import { focusX } from './focus'
+import { focusGroupX } from './focus'
 import { bandXAxes, bandYAxes, linearAxes, utcXAxes } from './test-scales'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartDefinition,
   ChartDefinitionOptions,
+  DomChartDefinition,
   ChartPoint,
   ChartTextMeasurer,
   ChartTooltipContentContext,
@@ -32,17 +33,47 @@ interface Input {
 }
 
 describe('dynamic chart runtime', () => {
+  it('uses one platform theme for responsive builders and final scenes', () => {
+    const build = vi.fn(({ defaultTheme }) => ({
+      marks: [dot([{ id: 'a', x: 1, y: 2 }], { x: 'x', y: 'y' })],
+      ...linearAxes([0, 2], [0, 3]),
+      theme: {
+        foreground: defaultTheme.foreground,
+        muted: '#authored-muted',
+      },
+    }))
+    const runtime = createChartRuntime<Datum>({
+      defaultTheme: {
+        foreground: '#platform-foreground',
+        muted: '#platform-muted',
+      },
+    })
+    const scene = runtime.render(defineChart(build), {
+      width: 480,
+      height: 260,
+    })
+
+    expect(build.mock.calls[0]?.[0].defaultTheme.foreground).toBe(
+      '#platform-foreground',
+    )
+    expect(scene.theme.foreground).toBe('#platform-foreground')
+    expect(scene.theme.muted).toBe('#authored-muted')
+  })
+
   it('compiles dynamic specifications through the strict scale path', () => {
     const definition = {
       chart: () => ({
         marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        scales: { x: null, y: null },
       }),
     } as unknown as ChartDefinition<Datum>
     const runtime = createChartRuntime<Datum>()
 
     expect(() =>
       runtime.render(definition, { width: 480, height: 260 }),
-    ).toThrow(/requires a configured scale/)
+    ).toThrow(
+      'Chart scale "x" cannot be null when a mark materializes its channel',
+    )
     runtime.destroy()
   })
 
@@ -97,7 +128,7 @@ describe('dynamic chart runtime', () => {
         ...linearAxes([0, 1], [0, 4]),
       })),
       {
-        behaviors: [{ id: 'dynamic-behavior', resolve }],
+        controls: [{ id: 'dynamic-behavior', resolve }],
         focusRing: false,
       },
     )
@@ -334,6 +365,31 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
     const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
     expect(tooltip?.hidden).toBe(false)
+    expect(tooltip?.style.background).toBe(
+      'var(--ts-chart-tooltip-background, Canvas)',
+    )
+    expect(tooltip?.style.color).toBe(
+      'var(--ts-chart-tooltip-color, CanvasText)',
+    )
+    expect(tooltip?.style.maxWidth).toBe(
+      'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    )
+    expect(tooltip?.style.padding).toBe(
+      'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    )
+    expect(tooltip?.style.border).toBe(
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    )
+    expect(tooltip?.style.borderRadius).toBe(
+      'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    )
+    expect(tooltip?.style.boxShadow).toBe(
+      'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    )
+    expect(tooltip?.style.font).toBe(
+      'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
+    )
+    expect(tooltip?.style.backdropFilter).toBe('')
 
     host.update({
       ...options,
@@ -643,12 +699,17 @@ describe('dynamic chart runtime', () => {
             key: 'id',
           }),
         ],
-        x: { ...bandXAxes(['A'], [0, 12]).x, axis: { label: 'Period' } },
-        y: {
-          ...linearAxes([0, 1], [0, 12]).y,
-          axis: {
-            ticks: { format: (value) => `${value}k` },
-            label: 'Downloads',
+        scales: {
+          x: {
+            ...bandXAxes(['A'], [0, 12]).scales.x,
+            axis: { label: 'Period' },
+          },
+          y: {
+            ...linearAxes([0, 1], [0, 12]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value}k` },
+              label: 'Downloads',
+            },
           },
         },
         focus: 'group-x',
@@ -771,12 +832,14 @@ describe('dynamic chart runtime', () => {
             y: 'end',
           }),
         ],
-        x: bandXAxes(['A'], [0, 20]).x,
-        y: {
-          ...linearAxes([0, 1], [0, 20]).y,
-          axis: {
-            ticks: { format: (value) => `${value} units` },
-            label: 'Change',
+        scales: {
+          x: bandXAxes(['A'], [0, 20]).scales.x,
+          y: {
+            ...linearAxes([0, 1], [0, 20]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value} units` },
+              label: 'Change',
+            },
           },
         },
         tooltip: tooltipExtension,
@@ -801,10 +864,15 @@ describe('dynamic chart runtime', () => {
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
-      x: { ...linearAxes([0, 1], [0, 4]).x, axis: { label: 'Week' } },
-      y: {
-        ...linearAxes([0, 1], [0, 4]).y,
-        axis: { ticks: { format: (value) => `${value}k` } },
+      scales: {
+        x: {
+          ...linearAxes([0, 1], [0, 4]).scales.x,
+          axis: { label: 'Week' },
+        },
+        y: {
+          ...linearAxes([0, 1], [0, 4]).scales.y,
+          axis: { ticks: { format: (value) => `${value}k` } },
+        },
       },
     })
     const host = mountChart(container, {
@@ -866,8 +934,16 @@ describe('dynamic chart runtime', () => {
       const data = [{ id: 'released', x: 1, y: 4 }]
       const definition = defineChart({
         marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
-        x: { ...linearAxes([0, 2], [0, 4]).x, axis: { label: 'Week' } },
-        y: { ...linearAxes([0, 2], [0, 4]).y, axis: { label: 'Downloads' } },
+        scales: {
+          x: {
+            ...linearAxes([0, 2], [0, 4]).scales.x,
+            axis: { label: 'Week' },
+          },
+          y: {
+            ...linearAxes([0, 2], [0, 4]).scales.y,
+            axis: { label: 'Downloads' },
+          },
+        },
       })
       const resolveText = (context: ChartTooltipContentContext) => {
         contexts.push(context)
@@ -1417,7 +1493,7 @@ describe('dynamic chart runtime', () => {
     const onRender = vi.fn()
     const host = mountChart(container, {
       definition: withChartOptions(definition, {
-        focus: focusX,
+        focus: focusGroupX,
         maxFocusDistance: 1_000,
         tooltip: {
           use: tooltipExtension,
@@ -1673,12 +1749,17 @@ describe('dynamic chart runtime', () => {
     const spacious = textMeasurer(1.2)
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { ...linearAxes([0, 2], [0, 3]).x, axis: { label: 'Release' } },
-      y: {
-        ...linearAxes([0, 2], [0, 3]).y,
-        axis: {
-          ticks: { format: () => 'Long formatted tick' },
-          label: 'Downloads',
+      scales: {
+        x: {
+          ...linearAxes([0, 2], [0, 3]).scales.x,
+          axis: { label: 'Release' },
+        },
+        y: {
+          ...linearAxes([0, 2], [0, 3]).scales.y,
+          axis: {
+            ticks: { format: () => 'Long formatted tick' },
+            label: 'Downloads',
+          },
         },
       },
     })
@@ -1773,14 +1854,14 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      definition: withChartOptions(createDefinition(8), { animate: true }),
+      definition: withChartOptions(createDefinition(8), { svgAnimation: true }),
     })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
       definition: withChartOptions(createDefinition(12), {
-        animate: { respectReducedMotion: false },
+        svgAnimation: { respectReducedMotion: false },
       }),
     })
     expect(requestFrame).toHaveBeenCalled()
@@ -1796,9 +1877,9 @@ function withChartOptions<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): ChartDefinition<TDatum, TXValue, TYValue> {
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue, 'dom'>,
+): DomChartDefinition<TDatum, TXValue, TYValue> {
   return { ...definition, ...options }
 }
 

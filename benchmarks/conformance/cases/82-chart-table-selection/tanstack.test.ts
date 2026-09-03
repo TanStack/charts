@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
@@ -9,7 +9,7 @@ import {
   type CompletePenguin,
   type SelectionId,
 } from './model'
-import { chartTableSelectionDefinition } from './tanstack'
+import { chartTableSelectionDefinition, mount } from './tanstack'
 import type {
   ChartDefinition,
   ChartSpecDatum,
@@ -100,11 +100,45 @@ describe('definition-owned chart selection', () => {
     )
   })
 
+  it('renders a deterministic native selected point in the catalog preview', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    })
+
+    expect(
+      container.querySelectorAll(
+        '.ts-chart__dot[data-ts-key="selected-observation"] circle',
+      ),
+    ).toHaveLength(1)
+    expect(
+      container
+        .querySelector(
+          '.ts-chart__dot[data-ts-key="selected-observation"] circle',
+        )
+        ?.getAttribute('fill'),
+    ).toBe('#f97316')
+
+    handle.destroy()
+    container.remove()
+  })
+
   it('keeps the semantic table in the app and removes selection plumbing', () => {
-    const source = readFileSync(
+    const shellSource = readFileSync(
       resolve(
         process.cwd(),
         'benchmarks/conformance/cases/82-chart-table-selection/view.tsx',
+      ),
+      'utf8',
+    )
+    const exampleSource = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/82-chart-table-selection/example.tsx',
       ),
       'utf8',
     )
@@ -115,12 +149,14 @@ describe('definition-owned chart selection', () => {
       '...(selectedRows',
       'onSelect=',
     ]) {
-      expect(source).not.toContain(forbidden)
+      expect(exampleSource).not.toContain(forbidden)
+      expect(shellSource).not.toContain(forbidden)
     }
-    expect(source).toContain('keyedSelection')
-    expect(source).toContain('whenSelected')
-    expect(source).toContain('<table')
-    expect(source).toContain('data-clear-selection')
+    expect(shellSource).toContain("from './example'")
+    expect(exampleSource).toContain('keyedSelection')
+    expect(exampleSource).toContain('whenSelected')
+    expect(shellSource).toContain('<table')
+    expect(shellSource).toContain('data-clear-selection')
   })
 })
 

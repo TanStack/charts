@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1910,
+  "id": "190-shadcn-tooltip-default",
+  "title": "shadcn Tooltip - Default",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-default example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-default",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-default"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-default card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip default treatment, card dimensions, and light and dark tokens."
+  }
+}

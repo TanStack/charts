@@ -7,7 +7,7 @@ import {
   YAxis,
   ZAxis,
 } from 'recharts'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import { selectManyPointData } from './selection'
 import { groupCarsByCylinder } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'

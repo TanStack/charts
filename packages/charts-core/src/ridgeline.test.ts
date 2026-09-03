@@ -47,8 +47,10 @@ describe('ridgeline marks', () => {
       marks: [mark],
       guides: false,
       focusRing: false,
-      x: { scale: scaleLinear().domain([4, 6]) },
-      y: { scale: scalePoint<number>().domain([10, 20]).padding(0.75) },
+      scales: {
+        x: { scale: scaleLinear().domain([4, 6]) },
+        y: { scale: scalePoint<number>().domain([10, 20]).padding(0.75) },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 300 })
     const resized = createChartScene(definition, { width: 720, height: 480 })
@@ -120,8 +122,10 @@ describe('ridgeline marks', () => {
         marks: [mark],
         guides: false,
         focusRing: false,
-        x: { scale: scalePoint<string>().domain(['A', 'B']).padding(0.5) },
-        y: { scale: scaleUtc().domain(at) },
+        scales: {
+          x: { scale: scalePoint<string>().domain(['A', 'B']).padding(0.5) },
+          y: { scale: scaleUtc().domain(at) },
+        },
       }),
       { width: 480, height: 300 },
     )
@@ -165,8 +169,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scaleBand<number>().domain([10, 20]).padding(0.2) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scaleBand<number>().domain([10, 20]).padding(0.2) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -183,8 +189,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scalePoint<number>().domain([10]).padding(0.5) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scalePoint<number>().domain([10]).padding(0.5) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -211,8 +219,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scalePoint<number>().domain(domain) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scalePoint<number>().domain(domain) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -256,8 +266,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: pointScale },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: pointScale },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -287,8 +299,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scalePoint<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scalePoint<string>().domain(['A']) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -317,8 +331,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scalePoint<number>().domain([10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scalePoint<number>().domain([10]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -336,8 +352,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scalePoint<number>().domain([10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scalePoint<number>().domain([10]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -373,8 +391,10 @@ describe('ridgeline marks', () => {
         ],
         guides: false,
         focusRing: false,
-        x: { scale: scaleLinear().domain([4, 6]) },
-        y: { scale: scalePoint<number>().domain([10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([4, 6]) },
+          y: { scale: scalePoint<number>().domain([10]) },
+        },
       }),
       { width: 400, height: 240 },
     )
@@ -427,8 +447,10 @@ describe('ridgeline marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([4, 6]) },
-          y: { scale: scalePoint<number>().domain([10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([4, 6]) },
+            y: { scale: scalePoint<number>().domain([10]) },
+          },
         }),
         { width: 400, height: 240 },
       )
@@ -489,8 +511,10 @@ describe('ridgeline marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scalePoint<string>().domain(['A']) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scalePoint<string>().domain(['A']) },
+          },
         }),
         { width: 240, height: 160 },
       )
@@ -509,8 +533,10 @@ describe('ridgeline marks', () => {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([4, 6]) },
-          y: { scale: scaleLinear().domain([10, 20]) },
+          scales: {
+            x: { scale: scaleLinear().domain([4, 6]) },
+            y: { scale: scaleLinear().domain([10, 20]) },
+          },
         }),
         { width: 240, height: 160 },
       ),

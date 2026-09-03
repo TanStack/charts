@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1860,
+  "id": "185-shadcn-radial-grid",
+  "title": "shadcn Radial Chart - Grid",
+  "family": "radial",
+  "intent": "Reproduce shadcn/ui's chart-radial-grid example with TanStack Charts.",
+  "support": "native",
+  "features": ["radial chart", "grid", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 5,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radial-grid",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-grid"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radial-grid card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radial grid treatment, card dimensions, and light and dark tokens."
+  }
+}

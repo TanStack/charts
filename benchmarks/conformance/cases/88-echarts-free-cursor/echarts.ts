@@ -7,7 +7,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   AriaComponentOption,

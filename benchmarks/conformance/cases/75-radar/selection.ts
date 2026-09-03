@@ -1,4 +1,4 @@
-import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
+import type { DecathlonRow } from '@tanstack/charts-data/decathlon'
 
 export const radarEvents = [
   '100 Meters',

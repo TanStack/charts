@@ -5,76 +5,19 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, lineY } from '@tanstack/charts'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { interactiveColorLegend } from '@tanstack/charts/legend'
-import { Chart } from '@tanstack/react-charts'
-import { industries } from '@charts-poc/demo-data/industries'
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { Chart } from '@tanstack/charts/react'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
-import { isLegendSeriesId, legendRows, legendSeries } from './model'
+import { isLegendSeriesId, legendSeries } from './model'
+import {
+  initialVisibleSeries,
+  interactiveLegendDefinition,
+  interactiveLegendPreviewDefinition,
+  seriesColors,
+  yDomain,
+} from './example'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
-import type { LegendSeriesId } from './model'
-
-const yDomain = [0, 900] as const
-const initialVisibleSeries: readonly LegendSeriesId[] = [
-  'Manufacturing',
-  'Construction',
-]
-const seriesColors: Readonly<Record<LegendSeriesId, string>> = {
-  Manufacturing: '#2563eb',
-  Construction: '#f97316',
-}
-
-export function interactiveLegendDefinition(
-  revision: number,
-  visibleSeries: readonly LegendSeriesId[],
-  onVisibleSeriesChange: (visible: readonly LegendSeriesId[]) => void,
-) {
-  const rows = legendRows(industries, revision)
-  return defineChart(
-    defineChart({
-      marks: [
-        lineY(rows, {
-          id: 'industry-lines',
-          x: 'date',
-          y: 'unemployed',
-          color: 'industry',
-          strokeWidth: 2.5,
-        }),
-      ],
-      x: {
-        scale: scaleUtc,
-        axis: {
-          ticks: {
-            format: (date) =>
-              date.toLocaleDateString('en-US', {
-                month: 'short',
-                timeZone: 'UTC',
-              }),
-          },
-        },
-      },
-      y: {
-        scale: scaleLinear().domain(yDomain),
-        grid: true,
-        axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
-      },
-      color: {
-        domain: legendSeries.map((series) => series.id),
-        range: legendSeries.map((series) => seriesColors[series.id]),
-        legend: interactiveColorLegend({
-          visible: controlledSignal(visibleSeries, onVisibleSeriesChange),
-          placement: 'bottom',
-          ariaLabel: 'Series visibility',
-        }),
-      },
-      margin: { top: 20, right: 24, left: 62 },
-    }),
-    { animate: false, keyboard: false },
-  )
-}
 
 const InteractiveLegendExample = forwardRef<
   ConformanceTestDriver,
@@ -89,7 +32,7 @@ const InteractiveLegendExample = forwardRef<
         visibleSeries,
         setVisibleSeries,
       ),
-    [input.revision, visibleSeries],
+    [input.preview, input.revision, visibleSeries],
   )
 
   useImperativeHandle(
@@ -127,7 +70,13 @@ const InteractiveLegendExample = forwardRef<
     return (
       <Chart
         idPrefix={idPrefix}
-        definition={definition}
+        definition={catalogPreviewDefinition(
+          interactiveLegendPreviewDefinition(input.revision),
+          {
+            legend: true,
+            margin: true,
+          },
+        )}
         initialWidth={input.width}
         aspectRatio={input.width / input.height}
         ariaLabel="Manufacturing and construction unemployment chart"

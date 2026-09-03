@@ -16,6 +16,8 @@ import { groupedIndexes } from './transform-internal'
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartCurve,
   ChartKey,
   ChartMark,
@@ -35,7 +37,8 @@ export type RidgelineStateStyle<TDatum = unknown> = Pick<
   'fillOpacity' | 'strokeOpacity' | 'opacity'
 >
 
-interface RidgelineOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+interface RidgelineOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   /** Normalized profile height in the inclusive range [0, 1]. */
   height: Channel<TDatum, number | null | undefined>
@@ -128,18 +131,27 @@ export function ridgelineY<
     RidgelinePosition | null | undefined
   >,
   const TYChannel extends Channel<NoInfer<TDatum>, ChartKey | null | undefined>,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: RidgelineYCallOptions<TDatum, TXChannel, TYChannel>,
+  options: RidgelineYCallOptions<TDatum, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   PositionOutput<TDatum, TXChannel>,
-  CategoryOutput<TDatum, TYChannel>
+  CategoryOutput<TDatum, TYChannel>,
+  PositionOutput<TDatum, TXChannel>,
+  CategoryOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function ridgelineY<TDatum>(
   source: Iterable<TDatum>,
   options: RidgelineYOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, RidgelineYOptions<TDatum>> {
   return ridgeline(source, options, options.x, options.y, 'y')
 }
 
@@ -151,18 +163,27 @@ export function ridgelineX<
     NoInfer<TDatum>,
     RidgelinePosition | null | undefined
   >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: RidgelineXCallOptions<TDatum, TXChannel, TYChannel>,
+  options: RidgelineXCallOptions<TDatum, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   CategoryOutput<TDatum, TXChannel>,
-  PositionOutput<TDatum, TYChannel>
+  PositionOutput<TDatum, TYChannel>,
+  CategoryOutput<TDatum, TXChannel>,
+  PositionOutput<TDatum, TYChannel>,
+  TXScaleId,
+  TYScaleId
 >
 export function ridgelineX<TDatum>(
   source: Iterable<TDatum>,
   options: RidgelineXOptions<NoInfer<TDatum>>,
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, RidgelineXOptions<TDatum>> {
   return ridgeline(source, options, options.y, options.x, 'x')
 }
 
@@ -172,243 +193,251 @@ function ridgeline<TDatum>(
   position: Channel<TDatum, RidgelinePosition | null | undefined>,
   category: Channel<TDatum, ChartKey | null | undefined>,
   orientation: 'x' | 'y',
-): ChartMark<any, any, any> {
+): CartesianChartMark<any, any, any, any, any, RidgelineOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
   const overlap = options.overlap ?? 1
   if (!isFiniteNumber(overlap) || overlap <= 0) {
     throw new TypeError('ridgeline: overlap must be a positive finite number')
   }
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `ridgeline-${orientation}-${markIndex}`
-    const positionValues = channelValues(data, position, () => undefined)
-    const categoryValues = channelValues(data, category, () => undefined)
-    const heights = channelValues(data, options.height, () => undefined)
-    heights.forEach((height, index) => {
-      if (!isFiniteNumber(height)) return
-      if (height < 0 || height > 1) {
-        throw new TypeError(
-          `ridgeline: height must be between 0 and 1; received ${height} at index ${index}`,
-        )
-      }
-    })
-    const categoryKeys = categoryValues.map((value) =>
-      isChartKey(value) ? value : null,
-    )
-    const colorValues =
-      options.color === undefined
-        ? categoryKeys
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: categoryKeys,
-      candidates: [positionValues],
-      markId: id,
-      warningIdentity: options,
-    })
-
-    return {
-      id,
-      states: markStates(data, options.states),
-      channels:
-        orientation === 'y'
-          ? {
-              x: {
-                scale: 'x',
-                values: positionValues.filter(isRidgelinePosition),
-              },
-              y: {
-                scale: 'y',
-                values: categoryValues.filter(isChartKey),
-              },
-              color: {
-                scale: 'color',
-                values: colorValues.filter(isChartKey),
-              },
-            }
-          : {
-              x: {
-                scale: 'x',
-                values: categoryValues.filter(isChartKey),
-              },
-              y: {
-                scale: 'y',
-                values: positionValues.filter(isRidgelinePosition),
-              },
-              color: {
-                scale: 'color',
-                values: colorValues.filter(isChartKey),
-              },
-            },
-      render: ({ chart, scales, color: resolveColor }) => {
-        const categoryScale = orientation === 'y' ? scales.y : scales.x
-        if (!isResolvedCategoryScale(categoryScale)) {
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `ridgeline-${orientation}-${markIndex}`
+      const positionValues = channelValues(data, position, () => undefined)
+      const categoryValues = channelValues(data, category, () => undefined)
+      const heights = channelValues(data, options.height, () => undefined)
+      heights.forEach((height, index) => {
+        if (!isFiniteNumber(height)) return
+        if (height < 0 || height > 1) {
           throw new TypeError(
-            `ridgeline${orientation.toUpperCase()}: the category axis requires a band or point scale`,
+            `ridgeline: height must be between 0 and 1; received ${height} at index ${index}`,
           )
         }
-        const positionScale = orientation === 'y' ? scales.x : scales.y
-        if (!positionScale) {
-          throw new TypeError(
-            `ridgeline${orientation.toUpperCase()}: the profile axis scale is required`,
-          )
-        }
-        const span = orientation === 'y' ? chart.height : chart.width
-        const step = resolvedCategoryStep(categoryScale, span, overlap * 2)
-        const areas: SceneArea[] = []
-        const lines: ScenePolyline[] = []
-        const points: ChartPoint<TDatum>[] = []
+      })
+      const categoryKeys = categoryValues.map((value) =>
+        isChartKey(value) ? value : null,
+      )
+      const colorValues =
+        options.color === undefined
+          ? categoryKeys
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: categoryKeys,
+        candidates: [positionValues],
+        markId: id,
+        warningIdentity: options,
+      })
 
-        for (const { key: group, indexes } of groupedIndexes(categoryKeys)) {
-          const firstIndex = indexes.find((index) =>
-            isChartKey(categoryValues[index]),
-          )
-          if (firstIndex === undefined) continue
-          const categoryValue = categoryValues[firstIndex]!
-          const baseline = categoryScale.map(categoryValue)
-          if (!Number.isFinite(baseline)) continue
-          const datum = data[firstIndex]!
-          const fallback = resolveColor(colorValues[firstIndex] ?? null)
-          const fill = visualValue(
-            options.fill,
-            datum,
-            firstIndex,
-            data,
-            fallback,
-          )
-          const stroke =
-            options.stroke === null
-              ? undefined
-              : visualValue(options.stroke, datum, firstIndex, data, fallback)
-          let profile: (readonly [number, number])[] = []
-          let baselinePoints: (readonly [number, number])[] = []
-          let segmentPoints: ChartPoint<TDatum>[] = []
-          let segmentIndex = 0
-
-          const flush = () => {
-            if (!profile.length) return
-            const groupKey = valueKey(group)
-            const interaction = {
-              points: segmentPoints,
-              affinity: orientation === 'y' ? ('x' as const) : ('y' as const),
-            }
-            const profilePath = options.curve?.line(profile)
-            areas.push({
-              kind: 'area',
-              key: `${id}:${groupKey}:segment:${segmentIndex}:area`,
-              points: [...profile, ...[...baselinePoints].reverse()],
-              ...(profilePath
-                ? { path: closeProfilePath(profilePath, baselinePoints) }
-                : {}),
-              interaction,
-              style: {
-                fill,
-                fillOpacity: options.fillOpacity ?? 0.5,
+      return {
+        id,
+        states: markStates(data, options.states),
+        channels:
+          orientation === 'y'
+            ? {
+                x: {
+                  scale: xScale,
+                  values: positionValues.filter(isRidgelinePosition),
+                },
+                y: {
+                  scale: yScale,
+                  values: categoryValues.filter(isChartKey),
+                },
+                color: {
+                  scale: 'color',
+                  values: colorValues.filter(isChartKey),
+                },
+              }
+            : {
+                x: {
+                  scale: xScale,
+                  values: categoryValues.filter(isChartKey),
+                },
+                y: {
+                  scale: yScale,
+                  values: positionValues.filter(isRidgelinePosition),
+                },
+                color: {
+                  scale: 'color',
+                  values: colorValues.filter(isChartKey),
+                },
               },
-            })
-            if (stroke !== undefined) {
-              lines.push({
-                kind: 'polyline',
-                key: `${id}:${groupKey}:segment:${segmentIndex}:line`,
-                points: profile,
-                ...(profilePath ? { path: profilePath } : {}),
+        render: ({ chart, scales, color: resolveColor }) => {
+          const categoryScale =
+            orientation === 'y' ? scales[yScale]! : scales[xScale]!
+          if (!isResolvedCategoryScale(categoryScale)) {
+            throw new TypeError(
+              `ridgeline${orientation.toUpperCase()}: the category axis requires a band or point scale`,
+            )
+          }
+          const positionScale =
+            orientation === 'y' ? scales[xScale] : scales[yScale]
+          if (!positionScale) {
+            throw new TypeError(
+              `ridgeline${orientation.toUpperCase()}: the profile axis scale is required`,
+            )
+          }
+          const span = orientation === 'y' ? chart.height : chart.width
+          const step = resolvedCategoryStep(categoryScale, span, overlap * 2)
+          const areas: SceneArea[] = []
+          const lines: ScenePolyline[] = []
+          const points: ChartPoint<TDatum>[] = []
+
+          for (const { key: group, indexes } of groupedIndexes(categoryKeys)) {
+            const firstIndex = indexes.find((index) =>
+              isChartKey(categoryValues[index]),
+            )
+            if (firstIndex === undefined) continue
+            const categoryValue = categoryValues[firstIndex]!
+            const baseline = categoryScale.map(categoryValue)
+            if (!Number.isFinite(baseline)) continue
+            const datum = data[firstIndex]!
+            const fallback = resolveColor(colorValues[firstIndex] ?? null)
+            const fill = visualValue(
+              options.fill,
+              datum,
+              firstIndex,
+              data,
+              fallback,
+            )
+            const stroke =
+              options.stroke === null
+                ? undefined
+                : visualValue(options.stroke, datum, firstIndex, data, fallback)
+            let profile: (readonly [number, number])[] = []
+            let baselinePoints: (readonly [number, number])[] = []
+            let segmentPoints: ChartPoint<TDatum>[] = []
+            let segmentIndex = 0
+
+            const flush = () => {
+              if (!profile.length) return
+              const groupKey = valueKey(group)
+              const interaction = {
+                points: segmentPoints,
+                affinity: orientation === 'y' ? ('x' as const) : ('y' as const),
+              }
+              const profilePath = options.curve?.line(profile)
+              areas.push({
+                kind: 'area',
+                key: `${id}:${groupKey}:segment:${segmentIndex}:area`,
+                points: [...profile, ...[...baselinePoints].reverse()],
+                ...(profilePath
+                  ? { path: closeProfilePath(profilePath, baselinePoints) }
+                  : {}),
                 interaction,
                 style: {
-                  fill: 'none',
-                  stroke,
-                  strokeOpacity: options.strokeOpacity,
-                  strokeWidth: options.strokeWidth ?? 1.5,
-                  strokeDasharray: options.strokeDasharray,
+                  fill,
+                  fillOpacity: options.fillOpacity ?? 0.5,
                 },
               })
+              if (stroke !== undefined) {
+                lines.push({
+                  kind: 'polyline',
+                  key: `${id}:${groupKey}:segment:${segmentIndex}:line`,
+                  points: profile,
+                  ...(profilePath ? { path: profilePath } : {}),
+                  interaction,
+                  style: {
+                    fill: 'none',
+                    stroke,
+                    strokeOpacity: options.strokeOpacity,
+                    strokeWidth: options.strokeWidth ?? 1.5,
+                    strokeDasharray: options.strokeDasharray,
+                  },
+                })
+              }
+              points.push(...segmentPoints)
+              profile = []
+              baselinePoints = []
+              segmentPoints = []
+              segmentIndex += 1
             }
-            points.push(...segmentPoints)
-            profile = []
-            baselinePoints = []
-            segmentPoints = []
-            segmentIndex += 1
+
+            for (const index of indexes) {
+              const positionValue = positionValues[index]
+              const nextCategory = categoryValues[index]
+              const height = heights[index]
+              if (
+                !isRidgelinePosition(positionValue) ||
+                !isChartKey(nextCategory) ||
+                !isFiniteNumber(height)
+              ) {
+                flush()
+                continue
+              }
+              const positionPixel = positionScale.map(positionValue)
+              const nextBaseline = categoryScale.map(nextCategory)
+              if (
+                !Number.isFinite(positionPixel) ||
+                !Number.isFinite(nextBaseline)
+              ) {
+                flush()
+                continue
+              }
+              const profilePixel =
+                nextBaseline +
+                (orientation === 'y' ? -1 : 1) * height * overlap * step
+              const x = orientation === 'y' ? positionPixel : profilePixel
+              const y = orientation === 'y' ? profilePixel : positionPixel
+              const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
+              const point: ChartPoint<TDatum> = {
+                key,
+                markId: id,
+                group,
+                groupLabel: String(nextCategory),
+                datum: data[index]!,
+                datumIndex: index,
+                xValue: orientation === 'y' ? positionValue : nextCategory,
+                yValue: orientation === 'y' ? nextCategory : positionValue,
+                x,
+                y,
+                color: fill,
+              }
+              profile.push([x, y])
+              baselinePoints.push(
+                orientation === 'y'
+                  ? [positionPixel, nextBaseline]
+                  : [nextBaseline, positionPixel],
+              )
+              segmentPoints.push(point)
+            }
+            flush()
           }
 
-          for (const index of indexes) {
-            const positionValue = positionValues[index]
-            const nextCategory = categoryValues[index]
-            const height = heights[index]
-            if (
-              !isRidgelinePosition(positionValue) ||
-              !isChartKey(nextCategory) ||
-              !isFiniteNumber(height)
-            ) {
-              flush()
-              continue
-            }
-            const positionPixel = positionScale.map(positionValue)
-            const nextBaseline = categoryScale.map(nextCategory)
-            if (
-              !Number.isFinite(positionPixel) ||
-              !Number.isFinite(nextBaseline)
-            ) {
-              flush()
-              continue
-            }
-            const profilePixel =
-              nextBaseline +
-              (orientation === 'y' ? -1 : 1) * height * overlap * step
-            const x = orientation === 'y' ? positionPixel : profilePixel
-            const y = orientation === 'y' ? profilePixel : positionPixel
-            const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
-            const point: ChartPoint<TDatum> = {
-              key,
-              markId: id,
-              group,
-              groupLabel: String(nextCategory),
-              datum: data[index]!,
-              datumIndex: index,
-              xValue: orientation === 'y' ? positionValue : nextCategory,
-              yValue: orientation === 'y' ? nextCategory : positionValue,
-              x,
-              y,
-              color: fill,
-            }
-            profile.push([x, y])
-            baselinePoints.push(
-              orientation === 'y'
-                ? [positionPixel, nextBaseline]
-                : [nextBaseline, positionPixel],
-            )
-            segmentPoints.push(point)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: `ts-chart__ridgeline ts-chart__ridgeline-${orientation}`,
+                ariaHidden: true,
+                children: [
+                  {
+                    kind: 'group',
+                    key: `${id}:areas`,
+                    className: 'ts-chart__area',
+                    ariaHidden: true,
+                    children: areas,
+                  },
+                  {
+                    kind: 'group',
+                    key: `${id}:lines`,
+                    className: 'ts-chart__line',
+                    ariaHidden: true,
+                    children: lines,
+                  },
+                ],
+              },
+            ],
+            points,
           }
-          flush()
-        }
-
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: `ts-chart__ridgeline ts-chart__ridgeline-${orientation}`,
-              ariaHidden: true,
-              children: [
-                {
-                  kind: 'group',
-                  key: `${id}:areas`,
-                  className: 'ts-chart__area',
-                  ariaHidden: true,
-                  children: areas,
-                },
-                {
-                  kind: 'group',
-                  key: `${id}:lines`,
-                  className: 'ts-chart__line',
-                  ariaHidden: true,
-                  children: lines,
-                },
-              ],
-            },
-          ],
-          points,
-        }
-      },
-    }
-  }, options.motion)
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function isRidgelinePosition(value: unknown): value is RidgelinePosition {

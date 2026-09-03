@@ -1,7 +1,7 @@
 import * as Plot from '@observablehq/plot'
 import { pairs } from 'd3-array'
-import { driving } from '@charts-poc/demo-data/driving'
-import type { DrivingRow } from '@charts-poc/demo-data/driving'
+import { driving } from '@tanstack/charts-data/driving'
+import type { DrivingRow } from '@tanstack/charts-data/driving'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

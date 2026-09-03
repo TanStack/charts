@@ -1,4 +1,4 @@
-import type { CarsRow } from '@charts-poc/demo-data/cars'
+import type { CarsRow } from '@tanstack/charts-data/cars'
 
 export type CompleteCar = CarsRow & {
   readonly 'economy (mpg)': number

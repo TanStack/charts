@@ -20,7 +20,7 @@ only to one mark.
 const daily = groupBy(orders, {
   by: {
     region: 'region',
-    day: ({ datum }) => utcDay.floor(datum.createdAt),
+    day: (datum) => utcDay.floor(datum.createdAt),
   },
   outputs: {
     revenue: { value: 'amount', reduce: 'sum' },
@@ -29,7 +29,7 @@ const daily = groupBy(orders, {
   },
 })
 
-const trends = window(daily, {
+const trends = rollingWindow(daily, {
   by: 'region',
   orderBy: 'day',
   size: 28,
@@ -149,5 +149,5 @@ that mark.
 
 Granular imports such as `@tanstack/charts/transform/fold`,
 `@tanstack/charts/transform/group`, and
-`@tanstack/charts/transform/window` keep unrelated transform families out of
+`@tanstack/charts/transform/rolling-window` keep unrelated transform families out of
 bundle-sensitive code.

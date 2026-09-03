@@ -3,8 +3,8 @@ import { createInteractionAxis } from './interaction-axis-internal'
 import type { InteractionAxis } from './interaction-axis-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
-  ChartBehavior,
-  ChartBehaviorContext,
+  ChartControl,
+  ChartControlContext,
   ChartBounds,
   ChartHostControl,
   ChartScene,
@@ -163,7 +163,7 @@ export function continuousCursor<
   TYValue extends ContinuousCursorValue,
 >(
   options: ContinuousCursorOptions<TXValue, TYValue>,
-): ChartBehavior<TXValue, TYValue> {
+): ChartControl<TXValue, TYValue> {
   const id = options.id?.trim() || defaultId
   if (options.id !== undefined && !options.id.trim()) {
     throw new TypeError('continuousCursor id cannot be empty')
@@ -247,7 +247,7 @@ function resolveGuide<
   TYValue extends ContinuousCursorValue,
 >(
   options: ContinuousCursorOptions<TXValue, TYValue>,
-  context: ChartBehaviorContext,
+  context: ChartControlContext,
 ): ResolvedContinuousCursorGuide<TXValue, TYValue> {
   const rule = (input: false | ContinuousCursorRuleOptions | undefined) =>
     input === false
@@ -285,7 +285,7 @@ function resolveGuide<
 
 function resolveLabel<TValue extends ContinuousCursorValue>(
   input: false | ContinuousCursorLabelOptions<TValue> | undefined,
-  context: ChartBehaviorContext,
+  context: ChartControlContext,
 ): false | ResolvedContinuousCursorLabel<TValue> {
   if (input === false || input === undefined) return false
   return {

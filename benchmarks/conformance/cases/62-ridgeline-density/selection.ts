@@ -1,4 +1,4 @@
-import type { SimpsonsRow } from '@charts-poc/demo-data/simpsons'
+import type { SimpsonsRow } from '@tanstack/charts-data/simpsons'
 
 export type RatedEpisode = SimpsonsRow & {
   readonly imdb_rating: number

@@ -1,12 +1,8 @@
-import type { ChartValue } from './types'
+import type { ChannelAccessorContext, ChartValue } from './types'
 
 export { quantile } from './transform-reduce'
 
-export interface TransformAccessorContext<TDatum> {
-  datum: TDatum
-  index: number
-  data: readonly TDatum[]
-}
+export type TransformAccessorContext<TDatum> = ChannelAccessorContext<TDatum>
 
 export type TransformField<TDatum, TValue> = {
   [TKey in Extract<keyof TDatum, string>]-?: NonNullable<
@@ -17,6 +13,7 @@ export type TransformField<TDatum, TValue> = {
 }[Extract<keyof TDatum, string>]
 
 export type TransformAccessor<TDatum, TValue> = (
+  datum: TDatum,
   context: TransformAccessorContext<TDatum>,
 ) => TValue
 

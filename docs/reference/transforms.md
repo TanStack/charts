@@ -16,7 +16,7 @@ reactivity.
 | `binX`, `binY`             | Numeric intervals on one axis                            |
 | `binXY`                    | Numeric cells with x and y intervals                     |
 | `binTimeX`, `binTimeY`     | Calendar-aligned intervals from a supplied time interval |
-| `window`                   | Flat input rows extended with rolling outputs            |
+| `rollingWindow`            | Flat input rows extended with rolling outputs            |
 | `cumulative`               | Flat input rows extended with running outputs            |
 | `rank`                     | Flat input rows extended with ranks                      |
 | `normalize`                | Flat input rows extended with normalized values          |
@@ -46,7 +46,7 @@ Granular entry points are:
 - `@tanstack/charts/transform/select`
 - `@tanstack/charts/transform/stack`
 - `@tanstack/charts/transform/waterfall`
-- `@tanstack/charts/transform/window`
+- `@tanstack/charts/transform/rolling-window`
 - `@tanstack/charts/box`
 - `@tanstack/charts/regression`
 - `@tanstack/charts/hierarchy/tree`
@@ -57,6 +57,12 @@ binning does not enlarge an ordinary histogram.
 
 Numeric `thresholds` accepts a count, complete boundary array, or a
 D3-compatible threshold callback such as `thresholdScott`.
+
+Collection transforms use action names such as `fold`, `groupBy`,
+`rollingWindow`, and `normalize`. A `*RowsX` or `*RowsY` name is reserved for
+prepared rows paired with a same-named mark family, such as `boxRows` and
+`linearRegressionRowsX/Y`. Reducers remain scoped to the reduce entry and use
+analytical names such as `delta`.
 
 ## Fold wide rows
 
@@ -93,7 +99,7 @@ named object:
 const daily = groupBy(orders, {
   by: {
     region: 'region',
-    day: ({ datum }) => utcDay.floor(datum.createdAt),
+    day: (datum) => utcDay.floor(datum.createdAt),
   },
   outputs: {
     revenue: { value: 'amount', reduce: 'sum' },
@@ -109,7 +115,7 @@ The result contains `region` and `day`, not an opaque `key` or tuple.
 Every output names its reducer. `count` omits `value`; numeric reducers require
 it. Compact built-in strings are `count`, `sum`, `mean`, `min`, and `max`.
 Tree-shakeable reducer functions provide `median`, `variance`, `deviation`,
-`first`, `last`, `difference`, and `ratio` without adding them to every
+`first`, `last`, `delta`, and `ratio` without adding them to every
 aggregation bundle.
 
 Custom reducers receive one object with `values`, selected `data`, source
@@ -128,14 +134,14 @@ contain only contributors.
 
 ## Ordering and flat rows
 
-`window` and `cumulative` accept `orderBy` and ascending or descending `order`.
+`rollingWindow` and `cumulative` accept `orderBy` and ascending or descending `order`.
 Input order is used when `orderBy` is omitted. `rank` orders by its `value` and
 supports competition, dense, and ordinal ties.
 
 One-to-one transforms spread the input row and add named outputs:
 
 ```ts
-const trends = window(daily, {
+const trends = rollingWindow(daily, {
   by: 'region',
   orderBy: 'day',
   size: 28,
@@ -199,14 +205,14 @@ does not derive the contributions themselves, so analytical intent remains
 visible beside the chart:
 
 ```ts
-import { barY, difference, window } from '@tanstack/charts'
+import { barY, delta, rollingWindow } from '@tanstack/charts'
 import { waterfall } from '@tanstack/charts/transform/waterfall'
 
-const changes = window(observations, {
+const changes = rollingWindow(observations, {
   orderBy: 'year',
   size: 2,
   partial: false,
-  outputs: { delta: { value: 'price', reduce: difference } },
+  outputs: { delta: { value: 'price', reduce: delta } },
 })
 
 const bridge = waterfall(changes, {
@@ -400,7 +406,7 @@ Group exports are `GroupByOptions` and `GroupByDatum`. Numeric bin exports are
 Fold exports are `FoldField`, `FoldOutputNames`, `FoldOptions`, and
 `FoldDatum`.
 
-Rolling exports are `WindowOptions`, `WindowDatum`, and `WindowAnchor`.
+Rolling exports are `RollingWindowOptions`, `RollingWindowDatum`, and `RollingWindowAnchor`.
 Cumulative exports are `CumulativeOptions` and `CumulativeDatum`. Rank exports
 are `RankOptions`, `RankDatum`, and `RankTies`.
 

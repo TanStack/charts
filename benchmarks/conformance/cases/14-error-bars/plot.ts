@@ -1,4 +1,4 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import * as Plot from '@observablehq/plot'
 import { deviation, mean } from 'd3-array'
 import { mountObservablePlot } from '../../shared/mount'

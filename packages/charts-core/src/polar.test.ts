@@ -1,9 +1,17 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleOrdinal, scalePoint } from 'd3-scale'
-import { arc, areaRadial, curveLinearClosed, lineRadial } from 'd3-shape'
+import {
+  arc,
+  areaRadial,
+  curveLinearClosed,
+  lineRadial,
+  pointRadial,
+} from 'd3-shape'
 import * as rootExports from './index'
+import { resolveChartPointerFocus } from './interaction'
 import {
   angleGrid,
+  focusGroupAngle,
   pie,
   polar,
   radialArc,
@@ -14,7 +22,7 @@ import {
   radialRule,
   radialText,
 } from './polar'
-import { createChartScene, defineChart } from './scene'
+import { createChartScene, defineChart, findNearestPoint } from './scene'
 import type {
   ChartDefinition,
   ChartMotionContext,
@@ -42,6 +50,7 @@ describe('polar marks', () => {
       marks: [
         polar({
           radiusRatio: 0.8,
+          scales: { angle: null, radius: null },
           marks: [
             radialArc(arcs, {
               key: 'id',
@@ -53,8 +62,7 @@ describe('polar marks', () => {
           ],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     const small = createChartScene(definition, {
@@ -95,6 +103,17 @@ describe('polar marks', () => {
       datum: arcs[0],
     })
     expect(small.points[0]?.datum).not.toHaveProperty('data')
+    expect(
+      smallPaths[0]?.kind === 'area' ? smallPaths[0].interaction : null,
+    ).toMatchObject({ point: small.points[0], affinity: 'geometry' })
+    const interior = pointRadial(
+      (arcs[0]!.startAngle + arcs[0]!.endAngle) / 2,
+      expectedRadius * 0.8,
+    )
+    expect(
+      findNearestPoint(small, 100 + interior[0], 80 + interior[1], 0),
+    ).toBe(small.points[0])
+    expect(findNearestPoint(small, 100, 80, 0)).toBeNull()
   })
 
   it('renders materialized pie gaps without applying arc padding twice', () => {
@@ -102,8 +121,10 @@ describe('polar marks', () => {
     const arcs = pie(slices, { value: 'value', gapAngle })
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
+            scales: { angle: null, radius: null },
             marks: [radialArc(arcs, { id: 'gapped-arcs', key: 'id' })],
           }),
         ],
@@ -149,8 +170,10 @@ describe('polar marks', () => {
       defineChart({
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 1]) },
-            radius: { scale: scaleLinear().domain([0, 2]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 1]) },
+              radius: { scale: scaleLinear().domain([0, 2]) },
+            },
             marks: [
               radialLine(data, {
                 angle: 'angle',
@@ -162,8 +185,7 @@ describe('polar marks', () => {
             ],
           }),
         ],
-        x: null,
-        y: null,
+        scales: { x: null, y: null },
         guides: false,
         color: { scale: colors },
       }),
@@ -204,8 +226,10 @@ describe('polar marks', () => {
       defineChart({
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 1]) },
-            radius: { scale: scaleLinear().domain([0, 2]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 1]) },
+              radius: { scale: scaleLinear().domain([0, 2]) },
+            },
             marks: [
               radialLine(data, {
                 angle: 'angle',
@@ -220,8 +244,7 @@ describe('polar marks', () => {
             ],
           }),
         ],
-        x: null,
-        y: null,
+        scales: { x: null, y: null },
         guides: false,
         color: {
           scale: scaleOrdinal<string, string>()
@@ -271,13 +294,17 @@ describe('polar marks', () => {
       marks: [
         polar({
           radiusRatio: 0.8,
-          angle: { scale: angle },
-          radius: { scale: radius },
+          scales: {
+            angle: { scale: angle },
+            radius: { scale: radius },
+          },
           guides: [
             radialGrid({
               values: [50, 100],
               shape: 'polygon',
               labels: true,
+              fill: '#dbeafe',
+              fillOpacity: 0.2,
             }),
             angleGrid(),
           ],
@@ -302,8 +329,7 @@ describe('polar marks', () => {
           ],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     const scene = createChartScene(definition, {
@@ -363,6 +389,11 @@ describe('polar marks', () => {
     expect(
       nodes.filter((node) => node.kind === 'polyline').length,
     ).toBeGreaterThanOrEqual(3)
+    expect(
+      nodes.find(
+        (node) => node.kind === 'polyline' && node.style?.fill === '#dbeafe',
+      ),
+    ).toMatchObject({ style: { fillOpacity: 0.2 } })
     expect(scene.points).toHaveLength(9)
     expect(
       Math.max(...scene.points.map((point) => point.x)),
@@ -404,8 +435,10 @@ describe('polar marks', () => {
         polar({
           startAngle: -Math.PI / 2,
           endAngle: Math.PI / 2,
-          angle: { scale: angle },
-          radius: { scale: radius },
+          scales: {
+            angle: { scale: angle },
+            radius: { scale: radius },
+          },
           marks: [
             radialRule(ticks, {
               angle: 'value',
@@ -429,8 +462,7 @@ describe('polar marks', () => {
           ],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     const scene = createChartScene(definition, {
@@ -542,10 +574,13 @@ describe('polar marks', () => {
       key: 'id',
     })
     const definition = defineChart({
+      scales: { x: null, y: null },
       marks: [
         polar({
-          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-          radius: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
           marks: [ruleMark, textMark],
         }),
       ],
@@ -654,10 +689,13 @@ describe('polar marks', () => {
     }))
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, tau]) },
-            radius: { scale: scaleLinear().domain([0, 1]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, tau]) },
+              radius: { scale: scaleLinear().domain([0, 1]) },
+            },
             guides: [
               angleGrid({ values }),
               angleGrid({
@@ -820,10 +858,13 @@ describe('polar marks', () => {
     })
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-            radius: { scale: scaleLinear().domain([0, 1]) },
+            scales: {
+              angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+              radius: { scale: scaleLinear().domain([0, 1]) },
+            },
             marks: [ruleMark, textMark],
           }),
         ],
@@ -861,11 +902,11 @@ describe('polar marks', () => {
     const arcOnly = defineChart({
       marks: [
         polar({
+          scales: { angle: null, radius: null },
           marks: [radialArc([{ startAngle: 0, endAngle: Math.PI }])],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     expect(() =>
@@ -873,9 +914,13 @@ describe('polar marks', () => {
     ).not.toThrow()
 
     const missingScale = defineChart({
-      marks: [polar({ marks: [radialLine([1, 2, 3])] })],
-      x: null,
-      y: null,
+      marks: [
+        polar({
+          scales: { angle: null, radius: null } as any,
+          marks: [radialLine([1, 2, 3])],
+        }),
+      ],
+      scales: { x: null, y: null },
       guides: false,
     })
     expect(() =>
@@ -885,13 +930,25 @@ describe('polar marks', () => {
     const missingPolygonAngle = defineChart({
       marks: [
         polar({
-          radius: { scale: scaleLinear().domain([0, 1]) },
-          guides: [radialGrid({ values: [1], shape: 'polygon' })],
+          scales: {
+            angle: null,
+            radius: null,
+            guideRadius: {
+              channel: 'radius',
+              scale: scaleLinear().domain([0, 1]),
+            },
+          },
+          guides: [
+            radialGrid({
+              scale: 'guideRadius',
+              values: [1],
+              shape: 'polygon',
+            }),
+          ],
           marks: [],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     expect(() =>
@@ -900,6 +957,23 @@ describe('polar marks', () => {
         height: 200,
       }),
     ).toThrow(/requires a configured angle scale/)
+
+    const configuredPhantom = defineChart({
+      marks: [
+        polar({
+          scales: {
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: null,
+          } as any,
+          marks: [radialArc([{ startAngle: 0, endAngle: Math.PI }])],
+        }),
+      ],
+      scales: { x: null, y: null },
+      guides: false,
+    })
+    expect(() =>
+      createChartScene(configuredPhantom, { width: 200, height: 200 }),
+    ).toThrow(/cannot be configured when no mark materializes its channel/)
   })
 
   it('supports authored D3 arc generators with per-datum radii', () => {
@@ -922,6 +996,7 @@ describe('polar marks', () => {
     const definition = defineChart({
       marks: [
         polar({
+          scales: { angle: null, radius: null },
           marks: [
             radialArc(rings, {
               key: 'id',
@@ -935,8 +1010,7 @@ describe('polar marks', () => {
           ],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     const scene = createChartScene(definition, {
@@ -962,8 +1036,10 @@ describe('polar marks', () => {
     const definition = defineChart({
       marks: [
         polar({
-          angle: { scale: angle },
-          radius: { scale: radius },
+          scales: {
+            angle: { scale: angle },
+            radius: { scale: radius },
+          },
           marks: [
             radialDot(data, {
               angle: 'direction',
@@ -972,8 +1048,7 @@ describe('polar marks', () => {
           ],
         }),
       ],
-      x: null,
-      y: null,
+      scales: { x: null, y: null },
       guides: false,
     })
     const scene = createChartScene(definition, {
@@ -993,6 +1068,49 @@ describe('polar marks', () => {
     ])
   })
 
+  it('groups radial series by the nearest angular ray', () => {
+    const rows = [
+      { id: 'a', direction: 'east', series: 'A', value: 0.3 },
+      { id: 'b', direction: 'east', series: 'B', value: 0.8 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        scales: { x: null, y: null },
+        marks: [
+          polar({
+            scales: {
+              angle: {
+                scale: scalePoint<string>().domain([
+                  'north',
+                  'east',
+                  'south',
+                  'west',
+                ]),
+              },
+              radius: { scale: scaleLinear().domain([0, 1]) },
+            },
+            marks: [
+              radialLine(rows, {
+                angle: 'direction',
+                radius: 'value',
+                z: 'series',
+                key: 'id',
+              }),
+            ],
+          }),
+        ],
+        margin: 0,
+        focus: focusGroupAngle,
+      }),
+      { width: 200, height: 200 },
+    )
+
+    expect(
+      resolveChartPointerFocus(scene, focusGroupAngle, 165, 100, 1),
+    ).toEqual([scene.points[1], scene.points[0]])
+    expect(focusGroupAngle.navigation(scene.points)).toEqual([scene.points[0]])
+  })
+
   it('preserves partial point-scale endpoints unless wrapping is explicit', () => {
     const data = ['left', 'top', 'right'].map((direction) => ({
       direction,
@@ -1009,11 +1127,13 @@ describe('polar marks', () => {
             polar({
               startAngle: -Math.PI / 2,
               endAngle: Math.PI / 2,
-              angle: {
-                scale: sourceAngle,
-                ...(wrap === undefined ? {} : { wrap }),
+              scales: {
+                angle: {
+                  scale: sourceAngle,
+                  ...(wrap === undefined ? {} : { wrap }),
+                },
+                radius: { scale: sourceRadius },
               },
-              radius: { scale: sourceRadius },
               marks: [
                 radialDot(data, {
                   angle: 'direction',
@@ -1022,8 +1142,7 @@ describe('polar marks', () => {
               ],
             }),
           ],
-          x: null,
-          y: null,
+          scales: { x: null, y: null },
           guides: false,
         }),
         { width: 200, height: 200 },
@@ -1062,8 +1181,10 @@ describe('polar marks', () => {
       defineChart({
         marks: [
           polar({
-            angle: { scale: scalePoint<string> },
-            radius: { scale: scaleLinear, nice: true },
+            scales: {
+              angle: { scale: scalePoint<string> },
+              radius: { scale: scaleLinear, nice: true },
+            },
             marks: [
               radialDot(data, {
                 angle: 'direction',
@@ -1072,8 +1193,7 @@ describe('polar marks', () => {
             ],
           }),
         ],
-        x: null,
-        y: null,
+        scales: { x: null, y: null },
         guides: false,
       }),
       { width: 200, height: 200 },
@@ -1096,6 +1216,10 @@ describe('polar marks', () => {
 
   it('snapshots child motion for each reused polar initialization', () => {
     const mark = polar({
+      scales: {
+        angle: { scale: scaleLinear },
+        radius: { scale: scaleLinear },
+      },
       motion: {
         delay: 5,
         transition: { type: 'tween', duration: 100 },
@@ -1163,7 +1287,7 @@ function authoredMotionContext(markId: string): ChartMotionContext {
 function resolveAuthoredMotion(
   motion: ChartMotionDefinition<any> | undefined,
   context: ChartMotionContext,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming | undefined {
   return typeof motion === 'function' ? motion(context) : motion
 }
 
@@ -1175,15 +1299,19 @@ if (false) {
   })
 
   polar({
-    angle: { scale: scaleBand<string>().domain(['A']) },
-    radius: { scale: scaleLinear().domain([0, 1]) },
+    scales: {
+      angle: { scale: scaleBand<string>().domain(['A']) },
+      radius: { scale: scaleLinear().domain([0, 1]) },
+    },
     marks: [categoricalDots],
   })
 
   polar({
-    // @ts-expect-error A numeric scale cannot materialize categorical angles.
-    angle: { scale: scaleLinear().domain([0, 1]) },
-    radius: { scale: scaleLinear().domain([0, 1]) },
+    scales: {
+      // @ts-expect-error A numeric scale cannot materialize categorical angles.
+      angle: { scale: scaleLinear().domain([0, 1]) },
+      radius: { scale: scaleLinear().domain([0, 1]) },
+    },
     marks: [categoricalDots],
   })
 

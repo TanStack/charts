@@ -2,8 +2,8 @@ import * as React from 'react'
 import { SafeAreaView, View } from 'react-native'
 import { scaleLinear } from 'd3-scale'
 import { defineChart, lineY } from '@tanstack/charts/universal'
-import { Chart } from '@tanstack/react-native-charts'
-import { tooltip } from '@tanstack/react-native-charts/tooltip'
+import { Chart } from '@tanstack/charts/react-native'
+import { tooltip } from '@tanstack/charts/react-native/tooltip'
 
 const rows = [
   { month: 1, revenue: 12 },
@@ -23,8 +23,11 @@ const definition = defineChart({
       points: true,
     }),
   ],
-  x: { label: 'Month', scale: scaleLinear().domain([1, 5]) },
-  y: { label: 'Revenue', scale: scaleLinear().domain([0, 35]) },
+  scales: {
+    x: { label: 'Month', scale: scaleLinear().domain([1, 5]) },
+    y: { label: 'Revenue', scale: scaleLinear().domain([0, 35]) },
+  },
+
   focus: 'nearest-x',
   tooltip: { use: tooltip, sticky: true },
 })

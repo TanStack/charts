@@ -63,10 +63,12 @@ defineChart({
     }),
     dot(summaries, { x: 'species', y: 'median' }),
   ],
-  x: {
-    scale: scalePoint<string>().domain(species).padding(0.5),
+  scales: {
+    x: {
+      scale: scalePoint<string>().domain(species).padding(0.5),
+    },
+    y: { scale: scaleLinear },
   },
-  y: { scale: scaleLinear },
 })
 ```
 

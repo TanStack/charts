@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from 'react'
 import { defineChart } from '@tanstack/charts'
-import { Chart } from '@tanstack/react-charts/core'
-import { createStackedCursorRenderer, stackedCursorDefinition } from './chart'
+import { Chart } from '@tanstack/charts/react/core'
+import { createStackedCursorRenderer, createExampleChart } from './example'
 import { stackedCursorRowsForRevision } from './model'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
@@ -14,9 +14,9 @@ const StackedCursorCatalogView = forwardRef<
   const definition = useMemo(
     () =>
       defineChart(
-        stackedCursorDefinition(stackedCursorRowsForRevision(input.revision)),
+        createExampleChart(stackedCursorRowsForRevision(input.revision)),
         {
-          animate: false,
+          svgAnimation: false,
           ...(input.interactive ? {} : { focus: false }),
           keyboard: input.interactive,
           tooltip: false,

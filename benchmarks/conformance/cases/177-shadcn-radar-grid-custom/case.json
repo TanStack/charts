@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1780,
+  "id": "177-shadcn-radar-grid-custom",
+  "title": "shadcn Radar Chart - Grid Custom",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-grid-custom example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "grid custom", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-grid-custom",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-custom"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-grid-custom card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar grid custom treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,4 +1,4 @@
-import { wind } from '@charts-poc/demo-data/wind'
+import { wind } from '@tanstack/charts-data/wind'
 import { describe, expect, it } from 'vitest'
 import { windDirection, windLatitudeBand, windSpeed } from './transform'
 

@@ -1,5 +1,5 @@
 import { cumsum, group, rollup, sum } from 'd3-array'
-import type { SurveyRow } from '@charts-poc/demo-data/survey'
+import type { SurveyRow } from '@tanstack/charts-data/survey'
 import { mosaicResponses } from './selection'
 
 export { mosaicResponses } from './selection'

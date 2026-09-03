@@ -5,10 +5,12 @@ import type {
   ChartMotionTransition,
 } from './types'
 
+type ResolvedCompositeMotion<TDatum> = false | ChartMotionTiming<TDatum>
+
 export function resolveCompositeMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): ResolvedCompositeMotion<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }
 
@@ -16,7 +18,7 @@ export function resolveCompositeChildMotion<TDatum>(
   parent: ChartMotionDefinition<TDatum> | undefined,
   children: ReadonlyMap<string, ChartMotionDefinition<any>>,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): ResolvedCompositeMotion<TDatum> | undefined {
   let childId: string | undefined
   for (const candidate of children.keys()) {
     if (
@@ -35,12 +37,13 @@ export function resolveCompositeChildMotion<TDatum>(
   )
 }
 
-export function mergeCompositeMotion(
-  parent: ChartMotionTiming | undefined,
-  child: ChartMotionTiming | undefined,
-): ChartMotionTiming | undefined {
-  if (!parent) return child
-  if (!child) return parent
+export function mergeCompositeMotion<TDatum>(
+  parent: ResolvedCompositeMotion<TDatum> | undefined,
+  child: ResolvedCompositeMotion<TDatum> | undefined,
+): ResolvedCompositeMotion<TDatum> | undefined {
+  if (child === false) return false
+  if (child === undefined) return parent
+  if (parent === false || parent === undefined) return child
   const path = child.path ?? parent.path
   return {
     delay: child.delay ?? parent.delay,

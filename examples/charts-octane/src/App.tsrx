@@ -8,8 +8,8 @@ import {
 import type { IndustriesRow, IndustryHistoryMode } from './charts'
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/octane-charts'
-import type { ChartPoint } from '@tanstack/octane-charts'
+import { Chart } from '@tanstack/charts/octane'
+import type { ChartPoint } from '@tanstack/charts/octane'
 
 const historyModes = ['line', 'stacked', 'share', 'stream'] as const
 
@@ -280,7 +280,7 @@ export function App() {
       </section>
 
       <footer class="footer">
-        <span>Built with Octane 0.1.13 + @tanstack/octane-charts</span>
+        <span>Built with Octane 0.1.13 + @tanstack/charts/octane</span>
         <span>The same definition also runs in React and vanilla DOM.</span>
       </footer>
     </main>

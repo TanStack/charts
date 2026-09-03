@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { wind } from '@charts-poc/demo-data/wind'
+import { wind } from '@tanstack/charts-data/wind'
 import { sampleWind } from './selection'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'

@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
-import { miserables } from '@charts-poc/demo-data/miserables'
+import { miserables } from '@tanstack/charts-data/miserables'
 import { describe, expect, it } from 'vitest'
 import { networkLayout } from './layout'
-import { forceDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import { forceNetworkData } from './transform'
 import type { ConformanceInput } from '../../types'
 import type { ChartPoint, ChartScene, SceneNode } from '@tanstack/charts'
@@ -165,7 +165,7 @@ describe('native force-directed network', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/40-force-directed-network/tanstack.ts',
+        'benchmarks/conformance/cases/40-force-directed-network/example.tsx',
       ),
       'utf8',
     )
@@ -178,10 +178,9 @@ describe('native force-directed network', () => {
 
 function render(revision: number) {
   return createChartRuntime().render(
-    forceDefinition({
+    createExampleChart({
       ...size,
       revision,
-      interactive: true,
     } satisfies ConformanceInput),
     size,
   )

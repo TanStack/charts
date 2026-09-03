@@ -22,6 +22,7 @@ import {
 } from './benchmark/comparison-capabilities.mjs'
 import {
   comparisonInstalledVersionFailure,
+  tanstackComparisonInputDigest,
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
 } from './comparison-source-revision.mjs'
@@ -1111,8 +1112,9 @@ async function writeBundleBaseline(
   baselineTiers,
 ) {
   const sourceRevision = tanstackComparisonRevision(root)
+  const sourceInputDigest = tanstackComparisonInputDigest(root)
   const baseline = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     generatedAt: new Date().toISOString(),
     packageVersions: baselineVersions,
     sources: Object.fromEntries(
@@ -1122,6 +1124,7 @@ async function writeBundleBaseline(
           ? {
               kind: 'workspace',
               revision: sourceRevision,
+              inputDigest: sourceInputDigest,
             }
           : {
               kind: 'package',
@@ -1180,7 +1183,10 @@ async function checkBundleBaseline(
   const expectedTanStackRevision = checkSourceProvenance
     ? tanstackComparisonRevision(root)
     : undefined
-  if (baselineRecord.schemaVersion !== 3) {
+  const expectedTanStackInputDigest = checkSourceProvenance
+    ? tanstackComparisonInputDigest(root)
+    : undefined
+  if (baselineRecord.schemaVersion !== 4) {
     failures.push(
       'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
     )
@@ -1213,6 +1219,7 @@ async function checkBundleBaseline(
         const sourceFailure = tanstackComparisonSourceFailure(
           source,
           expectedTanStackRevision,
+          expectedTanStackInputDigest,
         )
         if (sourceFailure) failures.push(`${library.label}: ${sourceFailure}`)
       }

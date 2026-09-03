@@ -754,9 +754,11 @@ function numericDefinition(
 ) {
   return defineChart({
     marks: [dot(numericRows, { x: 'x', y: 'y' })],
-    x: { scale: scaleLinear().domain([window.start, window.end]) },
-    y: { scale: scaleLinear().domain([0, 10]) },
-    behaviors: [
+    scales: {
+      x: { scale: scaleLinear().domain([window.start, window.end]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+    },
+    controls: [
       zoomX({
         id: 'window',
         window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
@@ -788,12 +790,14 @@ function temporalDefinition(
         { x: 'x', y: 'y' },
       ),
     ],
-    x: {
-      scale: scaleUtc().domain([window.start, window.end]),
-      reverse,
+    scales: {
+      x: {
+        scale: scaleUtc().domain([window.start, window.end]),
+        reverse,
+      },
+      y: { scale: scaleLinear().domain([0, 1]) },
     },
-    y: { scale: scaleLinear().domain([0, 1]) },
-    behaviors: [
+    controls: [
       zoomX({
         id: 'window',
         window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(

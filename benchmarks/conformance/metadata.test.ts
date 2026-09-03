@@ -19,6 +19,22 @@ const baseMetadata = {
 } as const
 
 describe('conformance metadata', () => {
+  it('accepts explicit collection membership', () => {
+    expect(
+      parseConformanceCaseMeta(
+        { ...baseMetadata, collections: ['shadcn'] },
+        'case.json',
+      ).collections,
+    ).toEqual(['shadcn'])
+  })
+
+  it('accepts a taller catalog viewport for application examples', () => {
+    expect(
+      parseConformanceCaseMeta({ ...baseMetadata, height: 860 }, 'case.json')
+        .height,
+    ).toBe(860)
+  })
+
   it('accepts arc geometry for polar sector comparisons', () => {
     expect(
       parseConformanceCaseMeta(

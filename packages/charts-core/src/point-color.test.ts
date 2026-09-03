@@ -286,7 +286,10 @@ describe('mark point colors', () => {
     const scene = createChartScene(
       defineChart({
         marks: [ruleY(data, { y: 'value', color: 'status' })],
-        y: linearAxes([0, 1], [0, 3]).y,
+        scales: {
+          x: null,
+          y: linearAxes([0, 1], [0, 3]).scales.y,
+        },
         color: { scale: semanticColors() },
       }),
       { width: 480, height: 260 },

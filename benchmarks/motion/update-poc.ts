@@ -3,7 +3,7 @@ import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import type {
-  ChartDefinition,
+  DomChartDefinition,
   ChartMotionContext,
   ChartPoint,
   ChartSurface,
@@ -192,7 +192,7 @@ function maximumGeometryDelta(
 
 function chartDefinition(
   rows: UpdateRow[],
-): ChartDefinition<UpdateRow, string, number> {
+): DomChartDefinition<UpdateRow, string, number> {
   return defineChart(
     {
       motion: timing,
@@ -214,8 +214,11 @@ function chartDefinition(
           points: true,
         }),
       ],
-      x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
-      y: { scale: scaleLinear().domain([0, 100]) },
+      scales: {
+        x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+      },
+
       guides: false,
       margin: { top: 24, right: 24, bottom: 24, left: 24 },
     },

@@ -127,12 +127,43 @@ describe('compact categorical scales', () => {
     expect(compact.domain()).toEqual(['Alpha', 'Beta', 'Gamma'])
   })
 
+  it('rejects ambiguous or nonfinite positional ranges', () => {
+    const band = scaleBand<string>()
+    const point = scalePoint<string>()
+
+    for (const scale of [band, point]) {
+      expect(() => scale.range([0])).toThrow(
+        'requires exactly two finite numbers',
+      )
+      expect(() => scale.range([0, 50, 100])).toThrow(
+        'requires exactly two finite numbers',
+      )
+      expect(() => scale.range([0, Number.POSITIVE_INFINITY])).toThrow(
+        'requires exactly two finite numbers',
+      )
+    }
+    expect(() => band.rangeRound([0, Number.NaN])).toThrow(
+      'requires exactly two finite numbers',
+    )
+  })
+
+  it('types ordinal unknown and empty-range output honestly', () => {
+    const empty = scaleOrdinal<string, number>()
+    const explicitUnknown = scaleOrdinal<string, number>()
+      .range([1])
+      .unknown(undefined)
+
+    expect(empty('Alpha')).toBeUndefined()
+    expect(explicitUnknown('Alpha')).toBeUndefined()
+    expectTypeOf(empty('Alpha')).toEqualTypeOf<number | undefined>()
+  })
+
   it('exposes precise callable contracts', () => {
     const band: BandScale<string> = scaleBand<string>()
     const point: PointScale<number> = scalePoint<number>()
     const ordinal: OrdinalScale<string, number> = scaleOrdinal<string, number>()
     expectTypeOf(band('x')).toEqualTypeOf<number | undefined>()
     expectTypeOf(point(1)).toEqualTypeOf<number | undefined>()
-    expectTypeOf(ordinal('x')).toEqualTypeOf<number>()
+    expectTypeOf(ordinal('x')).toEqualTypeOf<number | undefined>()
   })
 })

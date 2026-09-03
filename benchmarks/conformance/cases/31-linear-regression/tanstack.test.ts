@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { completeCars, regressionDefinition } from './tanstack'
+import { completeCars, createExampleChart } from './tanstack'
 import type { ConformanceInput } from '../../types'
 
 type CompleteCar = (typeof completeCars)[number]
@@ -74,7 +74,7 @@ describe('definition-owned linear regression', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/31-linear-regression/tanstack.ts',
+        'benchmarks/conformance/cases/31-linear-regression/example.tsx',
       ),
       'utf8',
     )
@@ -90,7 +90,7 @@ describe('definition-owned linear regression', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(regressionDefinition(nextInput), {
+  return createChartRuntime().render(createExampleChart(nextInput), {
     width: nextInput.width,
     height: nextInput.height,
   })

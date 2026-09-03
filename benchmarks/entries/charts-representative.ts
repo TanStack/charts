@@ -27,13 +27,15 @@ const definition = defineChart({
     ruleY([0]),
     text(data, { x: 'category', y: 'y', text: 'label' }),
   ],
-  x: {
-    scale: scaleBand<string>()
-      .domain(data.map((point) => point.category))
-      .paddingInner(0.1)
-      .paddingOuter(0.05),
+  scales: {
+    x: {
+      scale: scaleBand<string>()
+        .domain(data.map((point) => point.category))
+        .paddingInner(0.1)
+        .paddingOuter(0.05),
+    },
+    y: { scale: scaleLinear().domain([0, 8]) },
   },
-  y: { scale: scaleLinear().domain([0, 8]) },
 })
 
 export function render(width: number, height: number) {

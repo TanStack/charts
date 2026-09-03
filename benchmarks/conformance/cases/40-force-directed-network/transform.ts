@@ -1,4 +1,4 @@
-import type { MiserablesGraph } from '@charts-poc/demo-data/miserables'
+import type { MiserablesGraph } from '@tanstack/charts-data/miserables'
 
 export function forceNetworkData(source: MiserablesGraph): MiserablesGraph {
   const nodes = source.nodes.slice(0, 13)

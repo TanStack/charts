@@ -31,14 +31,7 @@ Faceted distributions give each cohort its own panel while preserving a common
 binning and positional scale. The reader can compare both local shape and
 absolute position without decoding overlapping fills.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/51-faceted-distributions/?theme=system&height=480"
-  title="Shared-scale faceted cohort distributions built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=51-faceted-distributions height=480 -->
 
 Use shared domains when position should be directly comparable. Independent
 domains can make local variation easier to see, but they can also exaggerate
@@ -76,14 +69,7 @@ A scatterplot with marginal histograms combines three roles:
 - The top histogram shows the x distribution.
 - The side histogram shows the y distribution.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/57-scatter-marginal-histograms/?theme=system&height=480"
-  title="Scatterplot with coordinated x and y marginal histograms built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=57-scatter-marginal-histograms height=480 -->
 
 All regions can derive from the same raw observations, but they do not share
 the same marks or plot rectangle. This example uses public `binX` and `binY`
@@ -135,14 +121,7 @@ A focus-plus-context layout uses a compact overview to control the explicit
 domain of a larger detail chart. The selection is semantic application state,
 not a rectangle stored inside one renderer.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/83-focus-context-window/?theme=system&height=480"
-  title="Linked overview and detail time windows with a persistent semantic selection"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=83-focus-context-window height=480 -->
 
 The overview should retain the complete domain. The detail should receive the
 selected start and end as its configured scale domain. Pointer, touch, and

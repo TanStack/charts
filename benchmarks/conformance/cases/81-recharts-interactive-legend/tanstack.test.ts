@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { createChartScene } from '@tanstack/charts'
 import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { legendRows, legendSeries } from './model'
 import { interactiveLegendDefinition, mount } from './tanstack'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import type { ChartDefinition, ChartSpecDatum } from '@tanstack/charts'
 import type { LegendSeriesId } from './model'
 import type { ConformanceInput } from '../../types'
@@ -124,7 +124,7 @@ describe('definition-owned interactive legend', () => {
       process.cwd(),
       'benchmarks/conformance/cases/81-recharts-interactive-legend',
     )
-    const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     for (const forbidden of [
       'flatMap(',

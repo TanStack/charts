@@ -10,15 +10,17 @@ definition changes or when the chart surface changes size.
 ## React
 
 ```tsx
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 function RankingChart({ rows, metric, accent }: Props) {
   const definition = useMemo(() => {
-    const ranked = rankRows(rows, metric)
+    const ranked = rows
+      .map((row) => ({ label: row.label, value: row[metric] }))
+      .sort((left, right) => right.value - left.value)
 
     return defineChart({
-      animate: { duration: 280, easing: 'ease-out' },
+      svgAnimation: { duration: 280, easing: 'ease-out' },
       chart: ({ width }) => ({
         marks: [
           barX(ranked, {
@@ -27,13 +29,15 @@ function RankingChart({ rows, metric, accent }: Props) {
             fill: accent,
           }),
         ],
-        x: {
-          scale: scaleLinear,
-          nice: true,
-          axis: { ticks: { count: width < 420 ? 4 : 7 } },
-        },
-        y: {
-          scale: () => scaleBand<string>().padding(0.1),
+        scales: {
+          x: {
+            scale: scaleLinear,
+            nice: true,
+            axis: { ticks: { count: width < 420 ? 4 : 7 } },
+          },
+          y: {
+            scale: () => scaleBand<string>().padding(0.1),
+          },
         },
       }),
     })
@@ -81,7 +85,7 @@ focused points, and transition continuity.
 
 ## Lightweight SVG tweening
 
-`animate` accepts `true` or:
+`svgAnimation` accepts `true` or:
 
 - `duration`: milliseconds;
 - `easing`: `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or a
@@ -107,12 +111,14 @@ Use `motion()` when animation quality is part of the chart contract:
 ```ts
 import { scaleUtc } from 'd3-scale'
 import { motion } from '@tanstack/charts/motion'
+import { stagger } from '@tanstack/charts/motion/definition'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   motion: {
-    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+    path: 'morph',
+    ...stagger({ each: 35, roles: 'line', by: 'series' }),
   },
   marks: [
     lineY(rows, {
@@ -127,21 +133,25 @@ const definition = defineChart({
       motion: { transition: { type: 'spring', mass: 1.25 } },
     }),
   ],
-  x: { scale: scaleUtc },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
 })
 
 const host = mountChartRenderer(container, {
   definition,
-  renderer: motion(),
+  renderer: motion({
+    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+  }),
   width: 640,
   height: 360,
   ariaLabel: 'Actual and forecast revenue',
 })
 ```
 
-Each host has one animation owner. The default SVG renderer uses `animate`.
-When `motion()` is the renderer, it ignores `animate` and uses motion
+Each host has one animation owner. The default SVG renderer uses `svgAnimation`.
+When `motion()` is the renderer, it ignores `svgAnimation` and uses motion
 declarations from the definition. A `motion` declaration configures the motion
 renderer; it does not select it.
 
@@ -176,22 +186,28 @@ rules, bands, labels, and marker retain DOM identity and spring velocity while
 focus retargets. Default SVG, Canvas, and native surfaces paint the same guide
 at its current target without importing the browser motion runtime.
 
-Spring updates always retarget immediately; a returned update delay is ignored
-so incoming momentum cannot freeze. Use delays for spring enter/exit
-choreography or any tween phase.
+`stagger()` contributes only a context-aware delay, so it composes with
+transition and path fields through normal object spread. Spring updates always
+retarget immediately; an update delay is ignored so incoming momentum cannot
+freeze. Use delays for spring enter/exit choreography or any tween phase.
 
-The renderer grows entering bars from their semantic baseline, reveals entering
-line groups, staggers bar entrances, morphs compatible numeric SVG geometry,
-and fades incompatible keyed topology. Authored delay replaces automatic
-staggering for that target.
+The renderer grows entering Cartesian bars, lines, and areas from their
+semantic baseline; grows radial paths from the polar center; sweeps arcs
+through their authored angle; staggers bar entrances; morphs compatible
+numeric SVG geometry; and keeps removed keys painted through their exit
+transition. Authored delay replaces automatic staggering for that target.
 
 `motion()` respects reduced motion and does not animate resize-only updates by
-default. It adopts server-rendered SVG without replaying entrance motion.
+default. It adopts server-rendered SVG without replaying entrance motion by
+default; pass `initial: 'always'` to replay entrance motion after hydration.
 Static SVG and Canvas accept the same definitions but paint the final state.
 
 See the [Motion reference](../reference/motion.md) for the complete cascade,
 types, focus-state transitions, compatibility limits, and standalone spring
 sampler.
+
+See [Themes and Motion examples](../examples/themes-and-motion.md) for complete
+cards that separate keyed chart motion from controls, labels, and palette CSS.
 
 ## Streaming
 
@@ -219,6 +235,10 @@ const definition = defineChart({
     transition: { type: 'tween', duration: sampleInterval, easing: 'linear' },
   },
   marks,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 

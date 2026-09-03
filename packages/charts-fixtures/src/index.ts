@@ -9,13 +9,13 @@ import {
   ruleY,
   rect,
 } from '@tanstack/charts'
-import { cars } from '@charts-poc/demo-data/cars'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { cars } from '@tanstack/charts-data/cars'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { bin as d3Bin } from 'd3-array'
 import { scaleBand, scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { CarsRow } from '@tanstack/charts-data/cars'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 import type { Bin } from 'd3-array'
 
 export type HorsepowerBin = Bin<CarsRow, number>
@@ -50,12 +50,14 @@ export const downloadsChart = defineChart({
       stroke: 'var(--ts-chart-1, #2563eb)',
     }),
   ],
-  x: { scale: scaleUtc, axis: { ticks: { count: 6 } } },
-  y: {
-    scale: scaleLinear,
-    nice: 5,
-    grid: true,
-    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
+  scales: {
+    x: { scale: scaleUtc, axis: { ticks: { count: 6 } } },
+    y: {
+      scale: scaleLinear,
+      nice: 5,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Daily downloads' },
+    },
   },
 })
 
@@ -78,11 +80,13 @@ export const downloadAreaChart = defineChart({
       stroke: 'var(--ts-chart-4, #8b5cf6)',
     }),
   ],
-  x: { scale: scaleUtc, nice: 7, axis: { ticks: { count: 7 } } },
-  y: {
-    scale: scaleLinear,
-    nice: 5,
-    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
+  scales: {
+    x: { scale: scaleUtc, nice: 7, axis: { ticks: { count: 7 } } },
+    y: {
+      scale: scaleLinear,
+      nice: 5,
+      axis: { ticks: { count: 5 }, label: 'Daily downloads' },
+    },
   },
 })
 
@@ -106,17 +110,20 @@ export const horsepowerChart = defineChart({
       radius: 2,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    nice: 7,
-    grid: false,
-    axis: { label: 'Power (hp)' },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: 7,
+      grid: false,
+      axis: { label: 'Power (hp)' },
+    },
+    y: {
+      scale: scaleLinear,
+      nice: 5,
+      axis: { ticks: { count: 5 }, label: 'Cars' },
+    },
   },
-  y: {
-    scale: scaleLinear,
-    nice: 5,
-    axis: { ticks: { count: 5 }, label: 'Cars' },
-  },
+
   color: {
     scale: () =>
       scaleLinear<string>()
@@ -168,24 +175,28 @@ export const createRankingChart = (input: RankingInput) =>
           inset: width < 420 ? 2 : 3,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: xTicks,
-        grid: true,
-        axis: {
-          ticks: { count: xTicks },
-          label:
-            width < 420
-              ? undefined
-              : input.metric === 'economy (mpg)'
-                ? 'Fuel economy (mpg)'
-                : 'Power (hp)',
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: xTicks,
+          grid: true,
+          axis: {
+            ticks: { count: xTicks },
+            label:
+              width < 420
+                ? undefined
+                : input.metric === 'economy (mpg)'
+                  ? 'Fuel economy (mpg)'
+                  : 'Power (hp)',
+          },
+        },
+        y: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),
+          grid: false,
         },
       },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),
-        grid: false,
-      },
+
       color: {
         scale: () => scaleOrdinal<string, string>().range([input.accent]),
       },

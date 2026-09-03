@@ -212,6 +212,7 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 

@@ -55,9 +55,17 @@ describe('compact linear scale', () => {
     expect(scale.tickFormat(5)(0.2)).toBe('0.2')
     expect(scale(null)).toBeUndefined()
     expect(scale(Number.NaN)).toBeUndefined()
-    expect(() => scale.domain([1])).toThrow('requires two finite numbers')
+    expect(() => scale.domain([1])).toThrow(
+      'requires exactly two finite numbers',
+    )
+    expect(() => scale.domain([0, 0.5, 1])).toThrow(
+      'requires exactly two finite numbers',
+    )
     expect(() => scale.range([0, Number.NaN])).toThrow(
-      'requires two finite numbers',
+      'requires exactly two finite numbers',
+    )
+    expect(() => scale.range([0, 50, 100])).toThrow(
+      'requires exactly two finite numbers',
     )
   })
 

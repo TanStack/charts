@@ -1,4 +1,4 @@
-import { weather } from '@charts-poc/demo-data/weather'
+import { weather } from '@tanstack/charts-data/weather'
 import { describe, expect, it } from 'vitest'
 import { dayOfYearAngle, seattleWeatherYear } from './transform'
 

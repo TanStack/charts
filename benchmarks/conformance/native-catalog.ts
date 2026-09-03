@@ -34,5 +34,5 @@ export function loadTanStackImplementation(
 }
 
 export function loadTanStackSources(id: string) {
-  return loadCatalogSourceClosure(sourceModules, `./cases/${id}/tanstack.ts`)
+  return loadCatalogSourceClosure(sourceModules, `./cases/${id}/example.tsx`)
 }

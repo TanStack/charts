@@ -6,7 +6,7 @@ import {
   Radar,
   RadarChart,
 } from 'recharts'
-import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlon } from '@tanstack/charts-data/decathlon'
 import { selectRadarProfiles } from './selection'
 import { comparativeRadarData } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'

@@ -1,10 +1,12 @@
 import type {
   ChartAnimationOptions,
   ChartCursorPresentation,
-  ChartDefinition,
+  DomChartDefinition,
   ChartFocusState,
   ChartHostControl,
   ChartHostControlExtensionToken,
+  ChartMotionTransition,
+  ChartMarkRenderer,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -94,6 +96,10 @@ export interface ChartSurface<
 > {
   readonly renderer: ChartRenderer<TDatum, TXValue, TYValue>
   readonly element: Element
+  /** Ordered child surfaces when this surface composes multiple renderers. */
+  readonly layers?: readonly ChartSurface<TDatum, TXValue, TYValue>[]
+  /** Topmost surface element owned by the chart's default renderer. */
+  readonly defaultElement?: Element
   render: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
@@ -123,12 +129,52 @@ export interface ChartSurface<
   destroy: () => void
 }
 
+export interface ChartTooltipMotionSnapshot {
+  wasHidden: boolean
+  showPresence: boolean
+  previousLeft?: number
+  previousTop?: number
+  movementX: number
+  movementY: number
+  velocityX: number
+  velocityY: number
+  presence?: { opacity: number; scale: number }
+}
+
+export interface ChartTooltipMotionController {
+  beforePaint: (element: HTMLElement) => ChartTooltipMotionSnapshot
+  afterPaint: (
+    element: HTMLElement,
+    snapshot: ChartTooltipMotionSnapshot,
+    transition: false | ChartMotionTransition | undefined,
+  ) => void
+  hide: (
+    element: HTMLElement,
+    transition: false | ChartMotionTransition | undefined,
+    complete: () => void,
+  ) => boolean
+  destroy: (element: HTMLElement | undefined) => void
+}
+
+export interface ChartRendererTooltipMotionCapability {
+  readonly protocol: 1
+  createController: (context: {
+    container: HTMLElement
+    transition: () => false | ChartMotionTransition | undefined
+  }) => ChartTooltipMotionController
+}
+
+export interface ChartRendererCapabilities {
+  readonly tooltipMotion?: ChartRendererTooltipMotionCapability
+}
+
 export interface ChartRenderer<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
   readonly id: string
+  readonly capabilities?: ChartRendererCapabilities
   prerender: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: RenderChartOptions,
@@ -137,6 +183,46 @@ export interface ChartRenderer<
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
   ) => ChartSurface<TDatum, TXValue, TYValue>
+}
+
+export interface ChartLayerRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>
+  extends ChartRenderer<TDatum, TXValue, TYValue>, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<TDatum, TXValue, TYValue>,
+  ) => ChartRenderer<TDatum, TXValue, TYValue>
+}
+
+/** A definition-agnostic renderer that acquires chart types from its host. */
+export interface UniversalChartRenderer {
+  readonly id: string
+  readonly capabilities?: ChartRendererCapabilities
+  prerender: <
+    TDatum,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    options: RenderChartOptions,
+  ) => string
+  mount: <
+    TDatum,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
+    container: HTMLElement,
+    requestRender: (force?: boolean) => void,
+  ) => ChartSurface<TDatum, TXValue, TYValue>
+}
+
+export interface UniversalChartLayerRenderer
+  extends UniversalChartRenderer, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<any, any, any>,
+  ) => ChartRenderer<any, any, any>
 }
 
 export interface ChartRendererRenderContext<
@@ -158,7 +244,7 @@ export interface ChartTooltipBodyTarget<
   element: HTMLElement
 }
 
-export interface ChartTooltipExtension extends ChartTooltipExtensionToken {
+export interface ChartTooltipExtension extends ChartTooltipExtensionToken<'dom'> {
   create: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
     context: ChartTooltipExtensionContext<TDatum, TXValue, TYValue>,
   ) => ChartTooltipExtensionInstance<TDatum, TXValue, TYValue>
@@ -170,6 +256,7 @@ export interface ChartTooltipExtensionContext<
   TYValue extends ChartValue = ChartValue,
 > {
   container: HTMLElement
+  motion?: ChartTooltipMotionController
   dismiss: () => void
   bodyChange: () =>
     | ((
@@ -240,6 +327,7 @@ export interface ChartRenderContext<
   container: HTMLElement
   svg: SVGSVGElement
   scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
   interaction: ChartInteractionController<TDatum, TXValue, TYValue>
 }
 
@@ -299,7 +387,7 @@ export type ChartRendererHostOptions<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartRendererHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type ChartHostOptions<
@@ -307,7 +395,7 @@ export type ChartHostOptions<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export interface ChartHost<

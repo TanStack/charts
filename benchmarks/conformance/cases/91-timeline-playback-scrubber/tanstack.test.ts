@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartScene } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { initialPlaybackIndex, selectPlaybackRows } from './model'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { mount, playbackDefinition } from './tanstack'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartDefinition, ChartSpecDatum } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -44,7 +45,10 @@ describe('definition-owned playback handle', () => {
     try {
       const container = document.createElement('div')
       document.body.append(container)
-      const handle = mount(container, input)
+      let handle!: ReturnType<typeof mount>
+      act(() => {
+        handle = mount(container, input)
+      })
       const driver = handle.driver
       const surface = container.querySelector<SVGElement>(
         '[data-chart-handle-surface]',
@@ -62,40 +66,52 @@ describe('definition-owned playback handle', () => {
       })
 
       surface.focus()
-      surface.dispatchEvent(
-        new KeyboardEvent('keydown', {
-          key: 'End',
-          bubbles: true,
-          cancelable: true,
-        }),
-      )
+      act(() => {
+        surface.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key: 'End',
+            bubbles: true,
+            cancelable: true,
+          }),
+        )
+      })
       expect(driver.readState()).toMatchObject({
         playhead: { index: 7, date: '2018-01-11' },
         interaction: { scrubCount: 1, playing: false },
       })
       expect(document.activeElement).toBe(surface)
 
-      play.click()
+      act(() => {
+        play.click()
+      })
       expect(driver.readState()).toMatchObject({
         playhead: { index: 0, date: '2018-01-02' },
         interaction: { playing: true },
       })
-      vi.advanceTimersByTime(700)
+      act(() => {
+        vi.advanceTimersByTime(700)
+      })
       expect(driver.readState()).toMatchObject({
         playhead: { index: 1, date: '2018-01-03' },
         interaction: { playing: true },
       })
-      play.click()
+      act(() => {
+        play.click()
+      })
       expect(driver.readState()).toMatchObject({
         interaction: { playing: false },
       })
 
-      handle.update({ ...input, revision: 1 })
+      act(() => {
+        handle.update({ ...input, revision: 1 })
+      })
       expect(driver.readState()).toMatchObject({
         playhead: { index: 1, date: '2018-01-03' },
       })
 
-      handle.destroy()
+      act(() => {
+        handle.destroy()
+      })
       expect(container.childElementCount).toBe(0)
       container.remove()
     } finally {
@@ -108,7 +124,8 @@ describe('definition-owned playback handle', () => {
       process.cwd(),
       'benchmarks/conformance/cases/91-timeline-playback-scrubber',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     expect(existsSync(resolve(directory, 'overlay.ts'))).toBe(true)
     for (const forbidden of [
@@ -130,6 +147,7 @@ describe('definition-owned playback handle', () => {
     expect(source).toContain('handleX({')
     expect(source).toContain('controlledSignal<')
     expect(source).toContain('(next, { reason }) => onChange(next, reason)')
-    expect(source).toContain('setInterval(')
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('setInterval(')
   })
 })

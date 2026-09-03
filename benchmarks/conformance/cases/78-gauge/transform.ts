@@ -27,4 +27,4 @@ export function agreementPercent(
     ? 0
     : Math.round((agreements.length / responses.length) * 100)
 }
-import type { SurveyRow } from '@charts-poc/demo-data/survey'
+import type { SurveyRow } from '@tanstack/charts-data/survey'

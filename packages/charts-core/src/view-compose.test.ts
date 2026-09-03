@@ -65,6 +65,44 @@ const sliceRows: readonly SliceRow[] = [
 ]
 
 describe('composed views', () => {
+  it('resolves responsive children against their allocated frames', () => {
+    const contexts: Array<{
+      width: number
+      height: number
+      foreground: string
+    }> = []
+    const responsive = defineChart(({ width, height, defaultTheme }) => {
+      contexts.push({
+        width,
+        height,
+        foreground: defaultTheme.foreground,
+      })
+      return {
+        marks: [dot([{ x: width, y: height }], { x: 'x', y: 'y' })],
+        scales: {
+          x: { scale: scaleLinear().domain([0, width]) },
+          y: { scale: scaleLinear().domain([0, height]) },
+        },
+        guides: false,
+        margin: 0,
+      }
+    })
+    const definition = composeViews({
+      views: { responsive },
+      layout: fill('responsive'),
+    })
+
+    const scene = createChartScene(
+      { ...definition, theme: { foreground: '#123456' } },
+      { width: 120, height: 80 },
+    )
+
+    expect(contexts).toEqual([
+      { width: 120, height: 80, foreground: '#123456' },
+    ])
+    expect(scene.points).toHaveLength(1)
+  })
+
   it('layers a polar donut inset over a Cartesian view with one stable scene', () => {
     const { definition, arcs } = mixedDefinition()
     type Datum = ChartSpecDatum<typeof definition>
@@ -226,8 +264,10 @@ describe('composed views', () => {
       views: {
         main: defineChart({
           marks: [dot([centerRow], { id: 'center-dot', x: 'x', y: 'y' })],
-          x: { scale: scaleLinear().domain([0, 10]) },
-          y: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
           guides: false,
           margin: 0,
         }),
@@ -241,10 +281,13 @@ describe('composed views', () => {
                   innerRadius: ({ radius }) => radius * 0.55,
                 }),
               ],
+              scales: { angle: null, radius: null },
             }),
           ],
-          x: null,
-          y: null,
+          scales: {
+            x: null,
+            y: null,
+          },
           guides: false,
           margin: 0,
         }),
@@ -506,54 +549,57 @@ describe('composed views', () => {
 
   it('rejects child-owned host state, backgrounds, and compiled controls', () => {
     const child = linearChild([0, 10])
-    const selectionChild: typeof child = {
+    const selectionChild = {
       ...child,
       selection: { type: 'keyed', change: () => undefined },
-    }
-    const behaviorChild: typeof child = {
+    } as unknown as StaticChartDefinition
+    const behaviorChild = {
       ...child,
-      behaviors: [{ id: 'child-behavior', resolve: () => ({}) }],
-    }
-    const cursorChild: typeof child = {
+      controls: [{ id: 'child-behavior', resolve: () => ({}) }],
+    } as unknown as StaticChartDefinition
+    const cursorChild = {
       ...child,
       cursor: {
         use: cursorHost,
         controller: createChartCursor<number, number>(),
         mode: 'focus',
       },
-    }
-    const pointerChild: typeof child = { ...child, pointer: false }
-    const backgroundChild: typeof child = {
+    } as unknown as StaticChartDefinition
+    const pointerChild = {
+      ...child,
+      pointer: false,
+    } as unknown as StaticChartDefinition
+    const backgroundChild = {
       ...child,
       theme: { background: '#fff' },
-    }
+    } as unknown as StaticChartDefinition
 
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: selectionChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "selection"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: behaviorChild },
         layout: fill('child'),
       }),
-    ).toThrow(/host option "behaviors"/)
+    ).toThrow(/host option "controls"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: cursorChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "cursor"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: pointerChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "pointer"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: backgroundChild },
         layout: fill('child'),
       }),
@@ -607,10 +653,12 @@ function mixedDefinition(rows: readonly MainRow[] = mainRows) {
         key: 'id',
       }),
     ],
-    x: {
-      scale: scaleUtc().domain(rows.map((row) => row.at)),
+    scales: {
+      x: {
+        scale: scaleUtc().domain(rows.map((row) => row.at)),
+      },
+      y: { scale: scaleLinear().domain([0, 10]) },
     },
-    y: { scale: scaleLinear().domain([0, 10]) },
     guides: false,
     margin: 0,
   })
@@ -627,10 +675,13 @@ function mixedDefinition(rows: readonly MainRow[] = mainRows) {
             innerRadius: ({ radius }) => radius * 0.55,
           }),
         ],
+        scales: { angle: null, radius: null },
       }),
     ],
-    x: null,
-    y: null,
+    scales: {
+      x: null,
+      y: null,
+    },
     guides: false,
     margin: 0,
   })
@@ -713,8 +764,10 @@ function linearChild(domain: readonly [number, number]) {
         key: 'id',
       }),
     ],
-    x: { scale: scaleLinear().domain(domain) },
-    y: { scale: scaleLinear().domain([0, 2]) },
+    scales: {
+      x: { scale: scaleLinear().domain(domain) },
+      y: { scale: scaleLinear().domain([0, 2]) },
+    },
     guides: false,
     margin: 0,
   })
@@ -742,14 +795,16 @@ function controlledLegendChild() {
         color: 'series',
       }),
     ],
-    x: { scale: scaleLinear().domain([0, 2]) },
-    y: { scale: scaleLinear().domain([0, 2]) },
+    scales: {
+      x: { scale: scaleLinear().domain([0, 2]) },
+      y: { scale: scaleLinear().domain([0, 2]) },
+    },
     color: { legend },
   })
 }
 
 const unsafeCompose = composeViews as unknown as (
-  options: ComposeViewsOptions,
+  options: object,
 ) => StaticChartDefinition
 
 function forgedLink(value: unknown): ViewScaleLink {

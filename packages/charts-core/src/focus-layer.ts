@@ -370,9 +370,6 @@ export function matchesFocusAnchor(
   return sameFocusedPoint(candidate, focus.primary)
 }
 
-/** @deprecated Use `matchesFocusAnchor`; points are valid focus anchors. */
-export const matchesFocusPoint = matchesFocusAnchor
-
 function sameFocusedPoint(left: ChartFocusAnchor, right: ChartFocusAnchor) {
   if (left === right || left.key === right.key) return true
   if (!Object.is(left.datum, right.datum)) return false

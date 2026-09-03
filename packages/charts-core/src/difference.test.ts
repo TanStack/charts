@@ -84,8 +84,10 @@ describe('difference marks', () => {
           comparisonStroke: '#475569',
         }),
       ],
-      x: { scale: scaleLinear().domain([0, 3]) },
-      y: { scale: scaleLinear().domain([-1, 2]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([-1, 2]) },
+      },
     })
     const scene = createChartScene(definition, { width: 600, height: 360 })
     const nodes = flatten(scene.nodes)
@@ -144,8 +146,10 @@ describe('difference marks', () => {
           key: 'id',
         }),
       ],
-      x: { scale: scaleUtc().domain([rows[0]!.at, rows[1]!.at]) },
-      y: { scale: scaleLinear().domain([0, 2]) },
+      scales: {
+        x: { scale: scaleUtc().domain([rows[0]!.at, rows[1]!.at]) },
+        y: { scale: scaleLinear().domain([0, 2]) },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
     const crossingDate = new Date('2026-01-02T00:00:00Z')
@@ -187,8 +191,10 @@ describe('difference marks', () => {
           },
         }),
       ],
-      x: { scale: scaleLog().domain([1, 100]) },
-      y: { scale: scaleLog().domain([1, 100]) },
+      scales: {
+        x: { scale: scaleLog().domain([1, 100]) },
+        y: { scale: scaleLog().domain([1, 100]) },
+      },
     })
     const scene = createChartScene(definition, { width: 480, height: 280 })
     const crossingValue = 100 ** (1 / 3)
@@ -226,8 +232,10 @@ describe('difference marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLog().domain([1, 100]) },
-        y: { scale: scaleLog().domain([1, 100]) },
+        scales: {
+          x: { scale: scaleLog().domain([1, 100]) },
+          y: { scale: scaleLog().domain([1, 100]) },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -264,8 +272,10 @@ describe('difference marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLog().domain([1, 100]) },
-        y: { scale: scaleLog().domain([1, 100]) },
+        scales: {
+          x: { scale: scaleLog().domain([1, 100]) },
+          y: { scale: scaleLog().domain([1, 100]) },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -297,8 +307,10 @@ describe('difference marks', () => {
       createChartScene(
         defineChart({
           marks: [vertical],
-          x: { scale: scaleBand<number>().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 2]) },
+          scales: {
+            x: { scale: scaleBand<number>().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 2]) },
+          },
         }),
         { width: 480, height: 280 },
       ),
@@ -307,8 +319,10 @@ describe('difference marks', () => {
       createChartScene(
         defineChart({
           marks: [horizontal],
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleBand<number>().domain([0, 1]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleBand<number>().domain([0, 1]) },
+          },
         }),
         { width: 480, height: 280 },
       ),
@@ -331,8 +345,10 @@ describe('difference marks', () => {
               ...(negativeFill !== undefined ? { negativeFill } : {}),
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 2]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 2]) },
+          },
         }),
         { width: 480, height: 280 },
       )
@@ -370,8 +386,10 @@ describe('difference marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([-1, 3]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([-1, 3]) },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -411,8 +429,10 @@ describe('difference marks', () => {
             y2: 'primary',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([-1, 1]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([-1, 1]) },
+        },
       }),
       { width: 480, height: 280 },
     )
@@ -448,8 +468,10 @@ describe('difference marks', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleLinear().domain([-2, 4]) },
-          y: { scale: scaleLinear().domain([-1, 3]) },
+          scales: {
+            x: { scale: scaleLinear().domain([-2, 4]) },
+            y: { scale: scaleLinear().domain([-1, 3]) },
+          },
         }),
         { width: 480, height: 280 },
       )
@@ -484,8 +506,10 @@ describe('difference marks', () => {
           },
         }),
       ],
-      x: { scale: scaleLinear().domain([0, 2]) },
-      y: { scale: scaleUtc().domain([rows[0]!.at, rows[1]!.at]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleUtc().domain([rows[0]!.at, rows[1]!.at]) },
+      },
     })
     const mark = definition.marks[0]!
     const scene = createChartScene(definition, { width: 480, height: 280 })
@@ -496,7 +520,7 @@ describe('difference marks', () => {
       scene.scales.y.map(new Date('2026-01-02T00:00:00Z')),
     ]
 
-    expectTypeOf(mark).toEqualTypeOf<
+    expectTypeOf(mark).toMatchTypeOf<
       ChartMark<DifferenceDatum<Row, Date>, number, Date>
     >()
     expect(nodes.filter(isArea)).toHaveLength(2)
@@ -537,8 +561,10 @@ describe('difference marks', () => {
             key: 'id',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 3]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 3]) },
+        },
       }),
       { width: 480, height: 280 },
     )

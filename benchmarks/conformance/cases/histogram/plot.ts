@@ -1,4 +1,4 @@
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

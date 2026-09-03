@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { miserables } from '@charts-poc/demo-data/miserables'
+import { miserables } from '@tanstack/charts-data/miserables'
 import { networkLayout } from './layout'
 import { forceNetworkData } from './transform'
 import { mountObservablePlot } from '../../shared/mount'

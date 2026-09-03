@@ -18,7 +18,9 @@ import {
 } from './cursor-host-contract'
 import type {
   ChartInteractionController,
+  ChartLayerRenderer,
   ChartPointerResolution,
+  ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
   ChartHostControlExtension,
@@ -42,8 +44,67 @@ import type {
   ChartTooltipInput,
   ChartTooltipOptions,
   ChartTooltipPosition,
+  ChartMotionTransition,
   ChartValue,
+  SceneNode,
+  ChartMarkRenderer,
 } from './types'
+
+export function resolveChartRenderer(
+  scene: ChartScene<any, any, any>,
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartRenderer<any, any, any> {
+  const renderer =
+    findLayerRenderer(scene.nodes, defaultRenderer) ??
+    findGuideLayerRenderer(scene.focusGuides, defaultRenderer)
+  return renderer?.compose(defaultRenderer) ?? defaultRenderer
+}
+
+function findGuideLayerRenderer(
+  guides: ChartScene['focusGuides'],
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartLayerRenderer<any, any, any> | undefined {
+  for (const guide of guides ?? []) {
+    if (
+      guide.renderer !== undefined &&
+      guide.renderer !== (defaultRenderer as unknown)
+    ) {
+      return requiredCompositor(guide.renderer)
+    }
+  }
+  return undefined
+}
+
+function findLayerRenderer(
+  nodes: readonly SceneNode[],
+  defaultRenderer: ChartRenderer<any, any, any>,
+): ChartLayerRenderer<any, any, any> | undefined {
+  for (const node of nodes) {
+    if (
+      node.renderer !== undefined &&
+      node.renderer !== (defaultRenderer as unknown)
+    ) {
+      return requiredCompositor(node.renderer)
+    }
+    if (node.kind === 'group') {
+      const renderer = findLayerRenderer(node.children, defaultRenderer)
+      if (renderer) return renderer
+    }
+  }
+  return undefined
+}
+
+function requiredCompositor(
+  renderer: ChartMarkRenderer,
+): ChartLayerRenderer<any, any, any> {
+  const candidate = renderer as unknown as Partial<ChartLayerRenderer>
+  if (typeof candidate.compose !== 'function') {
+    throw new TypeError(
+      `Mark renderer "${renderer.id}" cannot compose chart layers`,
+    )
+  }
+  return renderer as unknown as ChartLayerRenderer<any, any, any>
+}
 
 type HostRenderReason = 'update' | 'resize' | 'layout'
 type FocusOwner = 'pointer' | 'keyboard' | 'controlled'
@@ -66,6 +127,7 @@ export function mountChartRenderer<
     TYValue
   >(),
 ): ChartRendererHost<TDatum, TXValue, TYValue> {
+  resolveTooltipInput(initialOptions.definition.tooltip)
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
@@ -123,17 +185,18 @@ export function mountChartRenderer<
     const previousCursorBinding = renderedCursorBinding
     scene = createHostedScene(createScene())
     interactionScene = scene
+    const renderer = resolveChartRenderer(scene, options.renderer)
     if (!surface) {
-      surface = options.renderer.mount(container, scheduleRender)
+      surface = renderer.mount(container, scheduleRender)
       subscribeToPresentation()
-    } else if (surface.renderer !== options.renderer) {
+    } else if (surface.renderer !== renderer) {
       unsubscribePresentation?.()
       unsubscribePresentation = undefined
       destroyTooltip()
       destroyHostControls()
       surface.destroy()
       container.replaceChildren()
-      surface = options.renderer.mount(container, scheduleRender)
+      surface = renderer.mount(container, scheduleRender)
       subscribeToPresentation()
       hasRendered = false
     }
@@ -149,7 +212,7 @@ export function mountChartRenderer<
         ),
         idPrefix: options.idPrefix,
         animation: hasRendered
-          ? resolveAnimation(options.definition.animate, container, reason)
+          ? resolveAnimation(options.definition.svgAnimation, container, reason)
           : undefined,
       })
     } finally {
@@ -616,6 +679,29 @@ export function mountChartRenderer<
     }
   }
 
+  const dismissPinnedInteractionOutside = (event: PointerEvent) => {
+    if (
+      options.definition.pointer === false ||
+      pinnedKey === null ||
+      cursorIsPinned()
+    ) {
+      return
+    }
+    const path = event.composedPath()
+    if (
+      path.includes(container) ||
+      path.some(
+        (target) =>
+          view &&
+          target instanceof view.Node &&
+          tooltipInstance?.contains(target),
+      )
+    ) {
+      return
+    }
+    dismissTooltip()
+  }
+
   const handleClick = (event: MouseEvent) => {
     if (controlContains(event.target)) return
     if (options.definition.pointer === false) return
@@ -767,11 +853,17 @@ export function mountChartRenderer<
   configureCursorController()
   render()
   configureObserver()
+  container.ownerDocument.addEventListener(
+    'pointerdown',
+    dismissPinnedInteractionOutside,
+    true,
+  )
 
   return {
     interaction,
     update(nextOptions) {
       if (destroyed) return
+      resolveTooltipInput(nextOptions.definition.tooltip)
       const fontChanged =
         nextOptions.measureText === undefined && domText.refresh()
       const definitionChanged = options.definition !== nextOptions.definition
@@ -855,6 +947,11 @@ export function mountChartRenderer<
       container.removeEventListener('keydown', handleKeyDown)
       container.removeEventListener('focusin', handleFocus)
       container.removeEventListener('focusout', clearKeyboardFocus)
+      container.ownerDocument.removeEventListener(
+        'pointerdown',
+        dismissPinnedInteractionOutside,
+        true,
+      )
       container.replaceChildren()
       if (ownsPosition && container.style.position === 'relative') {
         container.style.position = previousPosition
@@ -874,7 +971,10 @@ export function mountChartRenderer<
             ? width / options.aspectRatio
             : 320),
       },
-      { measureText: options.measureText ?? domText.measureText },
+      {
+        measureText: options.measureText ?? domText.measureText,
+        typography: domText.typography(),
+      },
     )
   }
 
@@ -1015,8 +1115,17 @@ export function mountChartRenderer<
     if (tooltipExtension !== input.extension || !tooltipInstance) {
       destroyTooltip()
       tooltipExtension = input.extension
+      const tooltipMotionCapability =
+        surface.renderer.capabilities?.tooltipMotion
       tooltipInstance = input.extension.create({
         container,
+        motion:
+          tooltipMotionCapability?.protocol === 1
+            ? tooltipMotionCapability.createController({
+                container,
+                transition: resolveTooltipMotion,
+              })
+            : undefined,
         dismiss: dismissTooltip,
         bodyChange: () => options.onTooltipBodyChange,
       })
@@ -1037,6 +1146,12 @@ export function mountChartRenderer<
       },
       pinned: interactionIsPinned(),
     })
+  }
+
+  function resolveTooltipMotion(): false | ChartMotionTransition | undefined {
+    const definition = options.definition.motion
+    if (definition === false) return false
+    return typeof definition === 'function' ? undefined : definition?.transition
   }
 
   function syncTooltip() {
@@ -1118,13 +1233,20 @@ function resolveTooltipInput<
   options: ChartTooltipOptions<TDatum, TXValue, TYValue>
 } | null {
   if (!input) return null
+  const extension = 'create' in input ? input : input.use
+  if (extension.__chartTooltipHost !== 'dom') {
+    throw new TypeError(
+      'DOM chart hosts require a tooltip extension from @tanstack/charts/tooltip.',
+    )
+  }
+  const domExtension = extension as ChartTooltipExtension
   return 'create' in input
     ? {
-        extension: input as ChartTooltipExtension,
+        extension: domExtension,
         options: emptyTooltipOptions,
       }
     : {
-        extension: input.use as ChartTooltipExtension,
+        extension: domExtension,
         options: input,
       }
 }

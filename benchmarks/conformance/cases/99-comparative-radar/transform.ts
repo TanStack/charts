@@ -1,5 +1,5 @@
 import { extent } from 'd3-array'
-import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
+import type { DecathlonRow } from '@tanstack/charts-data/decathlon'
 import { radarCountries, radarEvents, timedEvents } from './selection'
 import type { RadarCountry, RadarEvent } from './selection'
 

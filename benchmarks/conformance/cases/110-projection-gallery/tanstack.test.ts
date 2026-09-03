@@ -3,10 +3,10 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { geoPath } from 'd3-geo'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import { worldLand, worldSphere } from '@tanstack/charts-data/country-atlas'
 import { projectionGalleryData } from './projection'
-import { projectionGalleryDefinition } from './tanstack'
-import type { LandFeature } from '../../shared/fixtures/country-atlas'
+import { createExampleChart } from './tanstack'
+import type { LandFeature } from '@tanstack/charts-data/country-atlas'
 import type {
   ChartScene,
   ChartSpecDatum,
@@ -94,7 +94,7 @@ describe('declarative projection gallery', () => {
 
   it('preserves child geo datum types and identity through the facet', () => {
     const scene = render(640, 400, 0)
-    type Datum = ChartSpecDatum<ReturnType<typeof projectionGalleryDefinition>>
+    type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
     expectTypeOf<Datum>().toEqualTypeOf<GeoSphere | LandFeature>()
     expect(
@@ -106,7 +106,7 @@ describe('declarative projection gallery', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/110-projection-gallery/tanstack.ts',
+        'benchmarks/conformance/cases/110-projection-gallery/example.tsx',
       ),
       'utf8',
     )
@@ -118,7 +118,7 @@ describe('declarative projection gallery', () => {
       'utf8',
     )
 
-    expect(source).toContain("import { facetChart } from '@tanstack/charts'")
+    expect(source).toContain('facetChart(projections, {')
     expect(source).toContain("fit: 'sphere'")
     expect(source).toContain('inset: 8')
     expect(source).toContain('columns: 2')
@@ -136,7 +136,7 @@ describe('declarative projection gallery', () => {
 
 function render(width: number, height: number, revision: number) {
   const input = { width, height, revision } satisfies ConformanceInput
-  return createChartRuntime().render(projectionGalleryDefinition(input), input)
+  return createChartRuntime().render(createExampleChart(input), input)
 }
 
 function facetCells(scene: ChartScene): SceneGroup[] {

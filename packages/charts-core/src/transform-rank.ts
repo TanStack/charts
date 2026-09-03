@@ -44,8 +44,8 @@ export function rank<
     const sorted = indexes
       .filter((index) => isFiniteNumber(values[index]))
       .sort((left, right) => {
-        const difference = (values[left] as number) - (values[right] as number)
-        return difference === 0 ? left - right : difference * direction
+        const delta = (values[left] as number) - (values[right] as number)
+        return delta === 0 ? left - right : delta * direction
       })
     let dense = 0
     let previous: number | undefined

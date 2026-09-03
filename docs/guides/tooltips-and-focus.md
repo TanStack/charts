@@ -15,7 +15,7 @@ Use that path until the product needs richer interaction.
 
 ## Default nearest point
 
-Import the native tooltip extension and add it to the definition:
+Import the built-in tooltip extension and add it to the definition:
 
 ```ts
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -48,6 +48,29 @@ category. A sparse snapped cursor can opt into
 `maxFocusDistance: Number.POSITIVE_INFINITY`; keep the finite default when
 empty space should mean no focus.
 
+## Angular focus
+
+Use `focusGroupAngle` for the radial equivalent of `group-x`:
+
+```ts
+import { defineChart, type ChartDefinition } from '@tanstack/charts'
+import { focusGroupAngle } from '@tanstack/charts/polar'
+import { tooltip } from '@tanstack/charts/tooltip'
+
+declare const radialDefinition: ChartDefinition
+
+const interactiveDefinition = defineChart(radialDefinition, {
+  focus: focusGroupAngle,
+  tooltip,
+})
+```
+
+The nearest radial ray selects the semantic angle, the closest radius becomes
+primary, and the tooltip receives one point per series at that angle. The
+strategy uses the same finite `maxFocusDistance` policy as axis grouping.
+Ordinary pie and donut charts can keep default nearest focus: `radialArc`
+attaches the exact painted slice geometry, including the donut hole.
+
 Default `primary` and `group` presentation follows the canonical focused scene
 points. Equal x/y/series values in another facet do not implicitly paint a
 second focus marker. To synchronize a visual cursor across facets without
@@ -70,50 +93,50 @@ stable band between values.
 Use the data-less `crosshair` mark when one renderer-native guide should follow
 the active focus instead of revealing authored geometry for a matching datum:
 
-```ts
+```ts group=focused-crosshair env=charts file=/src/chart.ts entry
+import { defineChart, lineY } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { rows } from './data'
 
-const definition = defineChart({
+export default defineChart({
   marks: [
-    crosshair({
-      x: {
-        band: {
-          inset: 0,
-          radius: 3,
-          fill: '#64748b',
-          fillOpacity: 0.16,
-        },
-        label: true,
-      },
-      y: false,
-    }),
-    barY(rows, {
-      x: 'period',
+    lineY(rows, {
+      x: 'week',
       y: 'value',
-      color: 'series',
-      inset: 4,
+      points: true,
+      stroke: '#2563eb',
+      strokeWidth: 2.5,
     }),
-    crosshair({
-      x: false,
-      y: { strokeDasharray: '4 4', label: true },
-    }),
+    crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleBand },
-  y: { scale: scaleLinear },
-  focus: 'group-x',
-  focusRing: false,
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Active users' } },
+  },
+
+  focus: 'nearest-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
   tooltip,
 })
 ```
 
-The x band follows the focused x value for pointer and keyboard focus. It uses
-the categorical scale bandwidth, then applies `inset` to both edges. A bar
-inset of 4 and band inset of 0 makes the cursor 4 pixels wider on each side.
-Its label shows the focused period. The dotted y rule and its label follow the
-primary stacked segment endpoint, while the tooltip still receives the
-complete x group. Keep the finite distance default when empty space should
-clear focus; Infinity is an explicit continuous-snapping policy.
+```ts group=focused-crosshair file=/src/data.ts collapsed
+export const rows = [
+  { week: 'May 4', value: 820 },
+  { week: 'May 11', value: 960 },
+  { week: 'May 18', value: 1_140 },
+  { week: 'May 25', value: 1_280 },
+  { week: 'Jun 1', value: 1_210 },
+  { week: 'Jun 8', value: 1_390 },
+]
+```
+
+The vertical rule follows pointer and keyboard focus. The infinite distance is
+an explicit continuous-snapping policy; keep the finite default when empty
+space should clear focus.
 
 `crosshair` defaults to both axis rules with no labels or marker. Setting
 `band: true` or a band options object replaces that axis rule; axes with zero
@@ -124,12 +147,7 @@ cursor geometry deliberately replaces the ring. See
 [Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
 for the complete band paint contract and controlled cursor behavior.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/119-stacked-bar-band-cursor/?theme=system&height=480"
-  title="Stacked bars with a categorical x cursor band and dotted y rule"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+[Open the stacked cursor-band catalog case](https://tanstack.com/charts/catalog/119-stacked-bar-band-cursor/).
 
 ## Automatic tooltip mapping
 
@@ -148,8 +166,11 @@ point:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   tooltip: {
     use: tooltip,
     items: [
@@ -240,6 +261,62 @@ transient tooltip. Click, Enter, or Space can still pin the focused point; only
 the pinned surface and adapter body are mounted. The default is
 `visibility: 'focus'`.
 
+## Tooltip motion
+
+The built-in tooltip uses the active motion renderer's transition for entry,
+movement between points, retargeting, and exit:
+
+```ts
+import { motion } from '@tanstack/charts/motion'
+
+const renderer = motion({
+  transition: {
+    type: 'spring',
+    stiffness: 170,
+    damping: 18,
+    mass: 1,
+  },
+})
+
+const definition = defineChart({
+  marks,
+  scales: {
+    x: null,
+    y: null,
+  },
+  tooltip,
+})
+
+mountChartRenderer(container, {
+  definition,
+  renderer,
+  width: 640,
+  height: 360,
+  ariaLabel: 'Monthly visitors',
+})
+```
+
+A static chart-level transition can refine the renderer fallback:
+
+```ts
+const definition = defineChart({
+  marks,
+  scales: {
+    x: null,
+    y: null,
+  },
+  motion: {
+    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+  },
+  tooltip,
+})
+```
+
+Set `tooltip.motion` to another transition to override both, or set it to
+`false` to keep the tooltip immediate. These options customize the active
+motion renderer; a static renderer stays immediate and does not import spring
+physics. The renderer's reduced-motion policy also applies to the tooltip.
+
 ## Application-owned pointer timing
 
 Set definition `pointer: false` when the application decides when inspection
@@ -291,8 +368,11 @@ group's bounding-box center:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   focus: 'group-x',
   tooltip: {
     use: tooltip,
@@ -347,8 +427,11 @@ import { portal } from '@tanstack/charts/tooltip/portal'
 
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   focus: 'group-x',
   tooltip: {
     use: tooltip,
@@ -418,7 +501,7 @@ continues to own focus, ordering, anchoring, placement, portal coordinates,
 and dismissal. This React example places a nested pie beside the native rows:
 
 ```tsx
-import { Chart as TooltipChart } from '@tanstack/react-charts/tooltip'
+import { Chart as TooltipChart } from '@tanstack/charts/react/tooltip'
 
 export function RevenueChart() {
   return (
@@ -455,7 +538,7 @@ The nested component is an ordinary chart built from the focused group:
 import * as React from 'react'
 import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { pie } from 'd3-shape'
 
 interface RevenueRow {
@@ -482,11 +565,18 @@ function SeriesPie({ points }: { points: readonly RevenuePoint[] }) {
               fill: (slice) => slice.data.color ?? 'CanvasText',
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
       guides: false,
-      x: null,
-      y: null,
+      scales: {
+        x: null,
+        y: null,
+      },
+
       keyboard: false,
     })
   }, [points])
@@ -565,7 +655,7 @@ search over every raw point.
 
 ## Ownership checklist
 
-- Use native focus for datum inspection.
+- Use chart-owned focus for datum inspection.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
 - Use `crosshair` for a single focus-driven guide; use `whenFocused` to reveal

@@ -1,4 +1,4 @@
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 import { nestedFlareDonut } from './transform'

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1980,
+  "id": "197-shadcn-tooltip-label-none",
+  "title": "shadcn Tooltip - No Label",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-label-none example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "label none", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-label-none",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-none"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-label-none card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip label none treatment, card dimensions, and light and dark tokens."
+  }
+}

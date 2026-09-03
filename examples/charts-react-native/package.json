@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*",
-    "@tanstack/react-native-charts": "workspace:*",
     "d3-scale": "4.0.2",
     "react": "19.2.3",
     "react-native": "0.86.2",

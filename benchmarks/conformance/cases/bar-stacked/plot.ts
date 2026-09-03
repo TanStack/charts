@@ -1,4 +1,4 @@
-import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
+import { crimeanWar } from '@tanstack/charts-data/crimean-war'
 import * as Plot from '@observablehq/plot'
 import type { ConformanceMount } from '../../types'
 import { mountObservablePlot } from '../../shared/mount'

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1600,
+  "id": "159-shadcn-line-linear",
+  "title": "shadcn Line Chart - Linear",
+  "family": "line",
+  "intent": "Reproduce shadcn/ui's chart-line-linear example with TanStack Charts.",
+  "support": "native",
+  "features": ["line chart", "linear", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "line",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-line-linear",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-linear"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-line-linear card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, line linear treatment, card dimensions, and light and dark tokens."
+  }
+}

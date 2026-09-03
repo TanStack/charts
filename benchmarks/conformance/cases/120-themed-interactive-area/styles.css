@@ -1,0 +1,78 @@
+.themed-area-card {
+  --themed-area-surface: light-dark(#ffffff, #09090b);
+  --themed-area-foreground: light-dark(#18181b, #fafafa);
+  --themed-area-muted: light-dark(#71717a, #a1a1aa);
+  --themed-area-grid: light-dark(#64748b, #94a3b8);
+  --themed-area-border: light-dark(
+    rgba(15, 23, 42, 0.11),
+    rgba(255, 255, 255, 0.1)
+  );
+  --themed-area-accent: light-dark(#2563eb, #60a5fa);
+  --ts-chart-tooltip-background: color-mix(
+    in srgb,
+    var(--themed-area-surface) 94%,
+    transparent
+  );
+  --ts-chart-tooltip-color: var(--themed-area-foreground);
+  --ts-chart-tooltip-border: 1px solid var(--themed-area-border);
+  --ts-chart-tooltip-border-radius: 8px;
+  --ts-chart-tooltip-shadow: 0 8px 24px rgba(15, 23, 42, 0.13);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  color: var(--themed-area-foreground);
+  background: var(--themed-area-surface);
+  border: 1px solid var(--themed-area-border);
+  border-radius: 16px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.themed-area-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 8px;
+}
+
+.themed-area-card__title {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.themed-area-card__description {
+  margin: 4px 0 0;
+  color: var(--themed-area-muted);
+  font-size: 11px;
+}
+
+.themed-area-card__ranges {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--themed-area-border);
+  border-radius: 9px;
+}
+
+.themed-area-card__range {
+  min-width: 38px;
+  min-height: 30px;
+  padding: 0 9px;
+  color: var(--themed-area-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font:
+    600 10px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+.themed-area-card__range[aria-pressed='true'] {
+  color: var(--themed-area-foreground);
+  background: var(--themed-area-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.11);
+}

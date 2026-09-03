@@ -20,6 +20,8 @@ import type {
 } from './resolved-layout-position'
 import type {
   Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartBounds,
   ChartKey,
   ChartMark,
@@ -29,12 +31,15 @@ import type {
   ChartNumericScale,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   ResolvedScale,
   SceneNode,
 } from './types'
 
-export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface DotOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -52,59 +57,97 @@ export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   states?: readonly ChartMarkState<TDatum, ChartDotStateStyle<TDatum>>[]
 }
 
-type DotOptionLayout<TOptions> = TOptions extends {
-  readonly layout?: infer TLayout
-}
-  ? NonNullable<TLayout>
-  : never
+type DotCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TLayout,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DotOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    y?: TYChannel
+    layout?: TLayout
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
 
-type DotPointX<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'x', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'x', infer TAnchor>
+type DotPointX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x', infer TAnchor>
     ? TAnchor
-    : OptionChannelOutput<TDatum, TOptions, 'x', number>
+    : MarkChannelOutput<TDatum, TXChannel, number>
 
-type DotPointY<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'y', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'y', infer TAnchor>
+type DotPointY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y', infer TAnchor>
     ? TAnchor
-    : OptionChannelOutput<TDatum, TOptions, 'y', number>
+    : MarkChannelOutput<TDatum, TYChannel, number>
 
-type DotScaleX<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'x', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'x'>
+type DotScaleX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x'>
     ? never
-    : OptionChannelOutput<TDatum, TOptions, 'x', number>
+    : MarkChannelOutput<TDatum, TXChannel, number>
 
-type DotScaleY<TDatum, TOptions> = [DotOptionLayout<TOptions>] extends [never]
-  ? OptionChannelOutput<TDatum, TOptions, 'y', number>
-  : DotOptionLayout<TOptions> extends DotLayout<'y'>
+type DotScaleY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y'>
     ? never
-    : OptionChannelOutput<TDatum, TOptions, 'y', number>
+    : MarkChannelOutput<TDatum, TYChannel, number>
 
 export function dot<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function dot<
   TDatum,
-  const TOptions extends DotOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TLayout extends DotLayout | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options:
+    | DotCallOptions<
+        TDatum,
+        TXChannel,
+        TYChannel,
+        TLayout,
+        TXScaleId,
+        TYScaleId
+      >
+    | undefined,
+): CartesianChartMark<
   TDatum,
-  DotPointX<TDatum, TOptions>,
-  DotPointY<TDatum, TOptions>,
-  DotScaleX<TDatum, TOptions>,
-  DotScaleY<TDatum, TOptions>
+  DotPointX<TDatum, TXChannel, TLayout>,
+  DotPointY<TDatum, TYChannel, TLayout>,
+  DotScaleX<TDatum, TXChannel, TLayout>,
+  DotScaleY<TDatum, TYChannel, TLayout>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function dot<TDatum>(
   source: Iterable<TDatum>,
   options: DotOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any, any, any> {
+): CartesianChartMark<TDatum, any, any, any, any, DotOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMarkWithScaleValues<TDatum, any, any, any, any>(
+  return createMarkWithScaleValues<TDatum, any, any, any, any, string, string>(
     ({ markIndex }) => {
       const id = options.id ?? `dot-${markIndex}`
       const layout = options.layout
@@ -237,10 +280,10 @@ export function dot<TDatum>(
 
       const channels = {
         ...(layout?.axis !== 'x'
-          ? { x: { scale: 'x', values: xValues.filter(isChartValue) } }
+          ? { x: { scale: xScale, values: xValues.filter(isChartValue) } }
           : {}),
         ...(layout?.axis !== 'y'
-          ? { y: { scale: 'y', values: yValues.filter(isChartValue) } }
+          ? { y: { scale: yScale, values: yValues.filter(isChartValue) } }
           : {}),
         color: {
           scale: 'color',
@@ -258,12 +301,12 @@ export function dot<TDatum>(
         return {
           ...initialized,
           render: ({ scales, color: resolveColor }) => {
-            const xScale = requiredScale(scales.x, 'x')
-            const yScale = requiredScale(scales.y, 'y')
+            const resolvedXScale = requiredScale(scales[xScale], xScale)
+            const resolvedYScale = requiredScale(scales[yScale], yScale)
             const positions = projectLayoutY(
-              projectLayoutX(sourceRows, xValues, xScale),
+              projectLayoutX(sourceRows, xValues, resolvedXScale),
               yValues,
-              yScale,
+              resolvedYScale,
             )
             return renderPositions(positions, resolveColor)
           },
@@ -277,7 +320,7 @@ export function dot<TDatum>(
             const measured = projectLayoutX(
               sourceRows,
               xValues,
-              requiredScale(scales.x, 'x'),
+              requiredScale(scales[xScale], xScale),
             ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
             const crossPositions = resolveCrossPositions(
               layout,
@@ -301,7 +344,7 @@ export function dot<TDatum>(
           const measured = projectLayoutY(
             sourceRows,
             yValues,
-            requiredScale(scales.y, 'y'),
+            requiredScale(scales[yScale], yScale),
           ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
           const crossPositions = resolveCrossPositions(
             layout,
@@ -325,14 +368,15 @@ export function dot<TDatum>(
       }
     },
     options.motion,
+    options.renderer,
   )
 }
 
 function requiredScale(
   scale: ResolvedScale | undefined,
-  axis: 'x' | 'y',
+  id: string,
 ): ResolvedScale {
-  if (!scale) throw new TypeError(`dot: missing ${axis} scale`)
+  if (!scale) throw new TypeError(`dot: missing ${id} scale`)
   return scale
 }
 

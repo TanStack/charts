@@ -1,1 +1,1 @@
-export { Chart } from '@tanstack/react-charts/canvas'
+export { Chart } from '@tanstack/charts/react/canvas'

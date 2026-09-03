@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1210,
+  "id": "120-themed-interactive-area",
+  "title": "Themed interactive area card",
+  "family": "theme",
+  "intent": "Present a polished traffic card whose inherited light and dark tokens, focused tooltip, and keyed range transitions work without application-specific chart drawing.",
+  "support": "native",
+  "features": [
+    "inherited light and dark CSS tokens",
+    "gradient area fill",
+    "monotone line",
+    "sparse responsive guides",
+    "segmented range controls",
+    "keyed range motion",
+    "reduced-motion preference",
+    "grouped focus and tooltip",
+    "288 by 192 preview"
+  ],
+  "geometry": [
+    { "role": "area", "count": 1 },
+    { "role": "line", "count": 1 },
+    { "role": "dot", "count": 30 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "range-motion-and-focus",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:7d" }
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "range", "equals": "7d" },
+            { "path": "rowCount", "equals": 7 },
+            { "path": "expectedDays", "equals": 7 },
+            { "path": "firstId", "equals": "2026-06-24" },
+            { "path": "lastId", "equals": "2026-06-30" },
+            { "path": "motionState", "equals": "finished" }
+          ]
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "date:2026-06-29" }
+        },
+        { "type": "wait", "durationMs": 240 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focusedId", "equals": "2026-06-29" },
+            { "path": "tooltip.visible", "equals": true }
+          ]
+        },
+        { "type": "screenshot", "name": "themed-area-seven-days" },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:90d" }
+        },
+        { "type": "wait", "durationMs": 1400 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "range", "equals": "90d" },
+            { "path": "rowCount", "equals": 90 },
+            { "path": "expectedDays", "equals": 90 },
+            { "path": "firstId", "equals": "2026-04-02" },
+            { "path": "lastId", "equals": "2026-06-30" },
+            { "path": "motionState", "equals": "finished" }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focusedId", "equals": null },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui Area Chart - Interactive",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-interactive"
+  },
+  "ai": {
+    "create": "Create a polished daily-traffic area card with inherited light and dark tokens, a blue vertical gradient, sparse guides, selectable 7, 30, and 90 day windows, and a compact focused tooltip.",
+    "maintain": "Preserve stable date keys across range changes, motion with reduced-motion fallback, three-label 288 by 192 preview readability, and complete visual ownership through theme tokens rather than custom SVG overlays."
+  }
+}

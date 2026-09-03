@@ -64,12 +64,15 @@ export function createColorScale(
       kind,
       domain,
       range,
-      map: (value) =>
-        value == null ? (range[0] ?? 'currentColor') : String(scale(value)),
+      map: (value) => {
+        if (value == null) return range[0] ?? 'currentColor'
+        const output = scale(value)
+        return output == null ? 'currentColor' : String(output)
+      },
     }
   }
-  if (options?.type) {
-    return options.type.resolve({
+  if (options?.resolver) {
+    return options.resolver.resolve({
       values,
       domain: options.domain,
       range: options.range,

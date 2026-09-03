@@ -4,7 +4,7 @@ import type {
   ChartSvgRenderer,
   ChartTextMeasurer,
   ChartValue,
-  ChartDefinition,
+  DomChartDefinition,
 } from '@tanstack/charts'
 import type { OctaneNode } from 'octane'
 import type { ChartTooltipBodyRenderContext } from './renderer-types'
@@ -46,5 +46,5 @@ export type ChartProps<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }

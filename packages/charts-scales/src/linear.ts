@@ -122,10 +122,12 @@ function pair(
 ): [number, number] {
   const resolved = Array.from(values, Number)
   if (
-    resolved.length < 2 ||
+    resolved.length !== 2 ||
     resolved.some((value) => !Number.isFinite(value))
   ) {
-    throw new TypeError(`A linear scale ${name} requires two finite numbers`)
+    throw new TypeError(
+      `A linear scale ${name} requires exactly two finite numbers`,
+    )
   }
-  return [resolved[0]!, resolved[resolved.length - 1]!]
+  return [resolved[0]!, resolved[1]!]
 }

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1880,
+  "id": "187-shadcn-radial-shape",
+  "title": "shadcn Radial Chart - Shape",
+  "family": "radial",
+  "intent": "Reproduce shadcn/ui's chart-radial-shape example with TanStack Charts.",
+  "support": "native",
+  "features": ["radial chart", "shape", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 5,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radial-shape",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-shape"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radial-shape card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radial shape treatment, card dimensions, and light and dark tokens."
+  }
+}

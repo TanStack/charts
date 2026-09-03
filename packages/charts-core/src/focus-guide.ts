@@ -12,6 +12,7 @@ import { valueKey } from './scales'
 import type {
   Channel,
   ChannelOutput,
+  CartesianScaleBindings,
   ChartFocusMatch,
   ChartKey,
   ChartMark,
@@ -78,7 +79,8 @@ export interface FocusGuideOptions<
   TDatum,
   TXChannel extends FocusGuideChannel<TDatum>,
   TYChannel extends FocusGuideChannel<TDatum>,
-> extends ChartMarkMotionOptions<TDatum> {
+>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x: TXChannel
   y: TYChannel
@@ -110,47 +112,84 @@ export function focusGuideX<
   TDatum,
   const TXChannel extends FocusGuideChannel<NoInfer<TDatum>>,
   const TYChannel extends FocusGuideChannel<NoInfer<TDatum>>,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: FocusGuideOptions<NoInfer<TDatum>, TXChannel, TYChannel>,
+  options: FocusGuideOptions<NoInfer<TDatum>, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   ChannelOutput<TDatum, TXChannel, number>,
-  ChannelOutput<TDatum, TYChannel, number>
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  TXScaleId,
+  TYScaleId
 > {
-  return focusGuide(source, options, 'x')
+  return focusGuide<TDatum, TXChannel, TYChannel, TXScaleId, TYScaleId>(
+    source,
+    options,
+    'x',
+  )
 }
 
 export function focusGuideY<
   TDatum,
   const TXChannel extends FocusGuideChannel<NoInfer<TDatum>>,
   const TYChannel extends FocusGuideChannel<NoInfer<TDatum>>,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
 >(
   source: Iterable<TDatum>,
-  options: FocusGuideOptions<NoInfer<TDatum>, TXChannel, TYChannel>,
+  options: FocusGuideOptions<NoInfer<TDatum>, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
 ): ChartMark<
   TDatum,
   ChannelOutput<TDatum, TXChannel, number>,
-  ChannelOutput<TDatum, TYChannel, number>
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  TXScaleId,
+  TYScaleId
 > {
-  return focusGuide(source, options, 'y')
+  return focusGuide<TDatum, TXChannel, TYChannel, TXScaleId, TYScaleId>(
+    source,
+    options,
+    'y',
+  )
 }
 
 function focusGuide<
   TDatum,
   TXChannel extends FocusGuideChannel<TDatum>,
   TYChannel extends FocusGuideChannel<TDatum>,
+  TXScaleId extends string,
+  TYScaleId extends string,
 >(
   source: Iterable<TDatum>,
-  options: FocusGuideOptions<TDatum, TXChannel, TYChannel>,
+  options: FocusGuideOptions<TDatum, TXChannel, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
   orientation: 'x' | 'y',
 ): ChartMark<
   TDatum,
   ChannelOutput<TDatum, TXChannel, number>,
-  ChannelOutput<TDatum, TYChannel, number>
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  TXScaleId,
+  TYScaleId
 > {
   type TXValue = ChannelOutput<TDatum, TXChannel, number>
   type TYValue = ChannelOutput<TDatum, TYChannel, number>
+  const xScale = (options.xScale ?? 'x') as TXScaleId
+  const yScale = (options.yScale ?? 'y') as TYScaleId
 
   const data = Array.isArray(source) ? source : Array.from(source)
   const xRule =
@@ -166,129 +205,133 @@ function focusGuide<
         : false
       : options.yRule
 
-  const mark = createMark<TDatum, TXValue, TYValue>(({ markIndex }) => {
-    const id = options.id ?? `focus-guide-${orientation}-${markIndex}`
-    const xValues = channelValues(data, options.x, () => undefined)
-    const yValues = channelValues(data, options.y, () => undefined)
-    const zValues = channelValues(data, options.z, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
-      candidates: [xValues, yValues],
-      markId: id,
-      warningIdentity: options,
-    })
-
-    const renderCandidates = (context: MarkRenderContext) => {
-      const nodes: SceneNode[] = []
-      const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
-      const labels: SceneLabel[] = []
-
-      data.forEach((datum, datumIndex) => {
-        const xValue = xValues[datumIndex]
-        const yValue = yValues[datumIndex]
-        if (!isChartValue(xValue) || !isChartValue(yValue)) return
-
-        const group = zValues[datumIndex]
-        const normalizedGroup = isChartKey(group) ? group : null
-        const candidateKey = `${id}:${valueKey(normalizedGroup)}:${valueKey(keys[datumIndex])}`
-        const color = context.theme.foreground
-        const x = context.scales.x.map(xValue)
-        const y = context.scales.y.map(yValue)
-        if (!Number.isFinite(x) || !Number.isFinite(y)) return
-        const point: ChartPoint<TDatum, TXValue, TYValue> = {
-          key: `${candidateKey}:point`,
-          markId: id,
-          group: normalizedGroup,
-          groupLabel: normalizedGroup === null ? id : String(normalizedGroup),
-          datum,
-          datumIndex,
-          xValue: xValue as TXValue,
-          yValue: yValue as TYValue,
-          x,
-          y,
-          color,
-        }
-        const guide = createGuideNodes({
-          id,
-          classPrefix: 'ts-chart__focus-guide',
-          chart: context.chart,
-          x: point.x,
-          y: point.y,
-          xRule:
-            xRule === false
-              ? false
-              : { style: ruleStyle(xRule, datum, datumIndex, data, context) },
-          yRule:
-            yRule === false
-              ? false
-              : { style: ruleStyle(yRule, datum, datumIndex, data, context) },
-          marker: resolveMarker(
-            options.marker,
-            datum,
-            datumIndex,
-            data,
-            context,
-          ),
-          xLabel: resolveLabel(
-            options.xLabel,
-            point.xValue,
-            point,
-            datum,
-            datumIndex,
-            data,
-            context,
-          ),
-          yLabel: resolveLabel(
-            options.yLabel,
-            point.yValue,
-            point,
-            datum,
-            datumIndex,
-            data,
-            context,
-          ),
-          measureText: context.layout.measureText,
-        })
-        labels.push(...guide.labels)
-
-        nodes.push({
-          kind: 'group',
-          key: candidateKey,
-          className: 'ts-chart__focus-guide-candidate',
-          ariaHidden: true,
-          focusCandidateIndex: points.length,
-          children: guide.nodes,
-        })
-        points.push(point)
+  const mark = createMark<TDatum, TXValue, TYValue, TXScaleId, TYScaleId>(
+    ({ markIndex }) => {
+      const id = options.id ?? `focus-guide-${orientation}-${markIndex}`
+      const xValues = channelValues(data, options.x, () => undefined)
+      const yValues = channelValues(data, options.y, () => undefined)
+      const zValues = channelValues(data, options.z, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: zValues,
+        candidates: [xValues, yValues],
+        markId: id,
+        warningIdentity: options,
       })
 
-      return { nodes, points, labels }
-    }
+      const renderCandidates = (context: MarkRenderContext) => {
+        const nodes: SceneNode[] = []
+        const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
+        const labels: SceneLabel[] = []
 
-    return {
-      id,
-      channels: {
-        x: { scale: 'x', values: xValues.filter(isChartValue) },
-        y: { scale: 'y', values: yValues.filter(isChartValue) },
-      },
-      layoutLabels: (context) => renderCandidates(context).labels,
-      render: (context) => {
-        const rendered = renderCandidates(context)
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: `ts-chart__focus-guide ts-chart__focus-guide-${orientation}`,
-              ariaHidden: true,
-              children: rendered.nodes,
-            },
-          ],
-          points: rendered.points,
-        }
-      },
-    }
-  }, options.motion)
+        data.forEach((datum, datumIndex) => {
+          const xValue = xValues[datumIndex]
+          const yValue = yValues[datumIndex]
+          if (!isChartValue(xValue) || !isChartValue(yValue)) return
+
+          const group = zValues[datumIndex]
+          const normalizedGroup = isChartKey(group) ? group : null
+          const candidateKey = `${id}:${valueKey(normalizedGroup)}:${valueKey(keys[datumIndex])}`
+          const color = context.theme.foreground
+          const x = context.scales[xScale]!.map(xValue)
+          const y = context.scales[yScale]!.map(yValue)
+          if (!Number.isFinite(x) || !Number.isFinite(y)) return
+          const point: ChartPoint<TDatum, TXValue, TYValue> = {
+            key: `${candidateKey}:point`,
+            markId: id,
+            group: normalizedGroup,
+            groupLabel: normalizedGroup === null ? id : String(normalizedGroup),
+            datum,
+            datumIndex,
+            xValue: xValue as TXValue,
+            yValue: yValue as TYValue,
+            x,
+            y,
+            color,
+          }
+          const guide = createGuideNodes({
+            id,
+            classPrefix: 'ts-chart__focus-guide',
+            chart: context.chart,
+            x: point.x,
+            y: point.y,
+            xRule:
+              xRule === false
+                ? false
+                : { style: ruleStyle(xRule, datum, datumIndex, data, context) },
+            yRule:
+              yRule === false
+                ? false
+                : { style: ruleStyle(yRule, datum, datumIndex, data, context) },
+            marker: resolveMarker(
+              options.marker,
+              datum,
+              datumIndex,
+              data,
+              context,
+            ),
+            xLabel: resolveLabel(
+              options.xLabel,
+              point.xValue,
+              point,
+              datum,
+              datumIndex,
+              data,
+              context,
+            ),
+            yLabel: resolveLabel(
+              options.yLabel,
+              point.yValue,
+              point,
+              datum,
+              datumIndex,
+              data,
+              context,
+            ),
+            measureText: context.layout.measureText,
+          })
+          labels.push(...guide.labels)
+
+          nodes.push({
+            kind: 'group',
+            key: candidateKey,
+            className: 'ts-chart__focus-guide-candidate',
+            ariaHidden: true,
+            focusCandidateIndex: points.length,
+            children: guide.nodes,
+          })
+          points.push(point)
+        })
+
+        return { nodes, points, labels }
+      }
+
+      return {
+        id,
+        channels: {
+          x: { scale: xScale, values: xValues.filter(isChartValue) },
+          y: { scale: yScale, values: yValues.filter(isChartValue) },
+        },
+        layoutLabels: (context) => renderCandidates(context).labels,
+        render: (context) => {
+          const rendered = renderCandidates(context)
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: `ts-chart__focus-guide ts-chart__focus-guide-${orientation}`,
+                ariaHidden: true,
+                children: rendered.nodes,
+              },
+            ],
+            points: rendered.points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 
   return whenFocused(mark, {
     match: options.match ?? 'primary',

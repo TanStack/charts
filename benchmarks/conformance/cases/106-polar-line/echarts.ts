@@ -4,7 +4,7 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { echartsMount } from '../../shared/echarts-mount'
 import { dayOfYearAngle, seattleWeatherYear } from './transform'
-import type { WeatherRow } from '@charts-poc/demo-data/weather'
+import type { WeatherRow } from '@tanstack/charts-data/weather'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
 import type {
   ConformanceGeometryQuery,

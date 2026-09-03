@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { basicFlowNodes, basicSankeyData } from './model'
-import { basicSankeyDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   BasicSankeyDatum,
   BasicSankeyLinkRow,
@@ -91,6 +91,30 @@ describe('basic Sankey composition', () => {
     },
   )
 
+  it('uses the full source topology without labels in the catalog preview', () => {
+    const input = {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    } satisfies ConformanceInput
+    const expected = basicSankeyData(input.revision)
+    const scene = render(input)
+    const links = markPoints<BasicSankeyLinkRow>(scene, 'basic-sankey:links')
+    const nodes = markPoints<BasicSankeyNodeRow>(scene, 'basic-sankey:nodes')
+
+    expect(links.map(({ datum }) => datum.data)).toEqual(expected.links)
+    expect(nodes.map(({ datum }) => datum.data)).toEqual(expected.nodes)
+    expect(sceneNodes(scene.nodes, 'label')).toHaveLength(0)
+    for (const { datum } of nodes) {
+      expect(datum.x0).toBeGreaterThanOrEqual(4 - 1e-9)
+      expect(datum.x1).toBeLessThanOrEqual(input.width - 4 + 1e-9)
+      expect(datum.y0).toBeGreaterThanOrEqual(4 - 1e-9)
+      expect(datum.y1).toBeLessThanOrEqual(input.height - 4 + 1e-9)
+      expect(datum.x1 - datum.x0).toBeCloseTo(8, 12)
+    }
+  })
+
   it('retains raw rows, exact lineage, and resolved endpoint identity', () => {
     const scene = render(baseInput)
     const nodes = markPoints<BasicSankeyNodeRow>(
@@ -127,7 +151,7 @@ describe('basic Sankey composition', () => {
     const runtime = createChartRuntime<BasicSankeyDatum, number, number>()
     const renderRevision = (revision: number) => {
       const input = { ...baseInput, revision }
-      return runtime.render(basicSankeyDefinition(input), input)
+      return runtime.render(createExampleChart(input), input)
     }
     const first = renderRevision(0)
     const repeated = renderRevision(0)
@@ -179,11 +203,11 @@ describe('basic Sankey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/111-basic-sankey/tanstack.ts',
+        'benchmarks/conformance/cases/111-basic-sankey/example.tsx',
       ),
       'utf8',
     )
-    type Datum = ChartSpecDatum<ReturnType<typeof basicSankeyDefinition>>
+    type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
     expectTypeOf<Datum>().toEqualTypeOf<BasicSankeyDatum>()
     expect(source).toContain("from '@tanstack/charts/network/sankey'")
@@ -206,7 +230,7 @@ describe('basic Sankey composition', () => {
 
 function render(input: ConformanceInput) {
   return createChartRuntime<BasicSankeyDatum, number, number>().render(
-    basicSankeyDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

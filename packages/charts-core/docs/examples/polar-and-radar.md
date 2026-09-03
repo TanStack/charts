@@ -28,157 +28,73 @@ The package root stays Cartesian-sized when this subpath is not imported.
 ## Pie and donut
 
 Use `pie` to turn totals into flat source-linked angular intervals.
-`radialArc` renders the intervals. A zero inner radius is a pie; a responsive
-nonzero inner radius is a donut.
+`radialArc` renders the intervals. This example uses a responsive inner radius
+for a donut; return `0` instead for a pie.
 
-<!-- docs-example: polar-pie-donut typecheck -->
-
-```ts
+```ts group=polar-pie-donut env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
-import {
-  pie,
-  polar,
-  radialArc,
-  radialRule,
-  radialText,
-} from '@tanstack/charts/polar'
-import { scaleLinear } from 'd3-scale'
+import { pie, polar, radialArc } from '@tanstack/charts/polar'
+import { alphabet } from './data'
 
-interface AlphabetRow {
+const slices = pie(alphabet, { value: 'frequency' })
+const letters = alphabet.map((row) => row.letter)
+
+export default defineChart({
+  marks: [
+    polar({
+      inset: 8,
+      radiusRatio: 0.82,
+      marks: [
+        radialArc(slices, {
+          innerRadius: ({ radius }) => radius * 0.58,
+          cornerRadius: 4,
+          color: 'letter',
+          key: 'letter',
+        }),
+      ],
+      scales: {
+        angle: null,
+        radius: null,
+      },
+    }),
+  ],
+  scales: {
+    x: null,
+    y: null,
+  },
+  color: {
+    domain: letters,
+    range: ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316', '#94a3b8'],
+  },
+})
+```
+
+```ts group=polar-pie-donut file=/src/data.ts collapsed
+export interface AlphabetRow {
   letter: string
   frequency: number
 }
 
-const alphabet: readonly AlphabetRow[] = [
+export const alphabet: readonly AlphabetRow[] = [
   { letter: 'E', frequency: 0.12702 },
   { letter: 'T', frequency: 0.09056 },
   { letter: 'A', frequency: 0.08167 },
   { letter: 'O', frequency: 0.07507 },
   { letter: 'I', frequency: 0.06966 },
+  { letter: 'Other', frequency: 0.55602 },
 ]
-
-const partColors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
-const letters = alphabet.slice(0, 5)
-
-function ring(innerRatio: number) {
-  const slices = pie(letters, { value: 'frequency' })
-  return polar({
-    inset: 8,
-    radiusRatio: 0.82,
-    marks: [
-      radialArc(slices, {
-        innerRadius: ({ radius }) => radius * innerRatio,
-        cornerRadius: 4,
-        color: 'letter',
-        key: 'letter',
-      }),
-    ],
-  })
-}
-
-const pieChart = defineChart({
-  marks: [ring(0)],
-  color: { domain: letters.map((row) => row.letter), range: partColors },
-})
-
-const donutChart = defineChart({
-  marks: [ring(0.58)],
-  color: { domain: letters.map((row) => row.letter), range: partColors },
-})
-
-const labeledSlices = pie(letters, { value: 'frequency' })
-const labeledPie = defineChart({
-  marks: [
-    polar({
-      radiusRatio: 0.72,
-      angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
-      radius: { scale: scaleLinear().domain([0, 1]) },
-      marks: [
-        radialArc(labeledSlices, {
-          color: 'letter',
-          key: 'letter',
-        }),
-        radialRule(labeledSlices, {
-          angle: 'angle',
-          radius1: 1,
-          radius2: 1,
-          radius2Offset: 20,
-          key: 'letter',
-        }),
-        radialText(labeledSlices, {
-          angle: 'angle',
-          radius: 1,
-          radiusOffset: 20,
-          text: 'letter',
-          color: 'letter',
-          key: 'letter',
-          anchor: 'outside',
-        }),
-      ],
-    }),
-  ],
-  color: { domain: letters.map((row) => row.letter), range: partColors },
-})
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=480"
-  title="English letter-frequency pie chart built from native pie intervals and radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=480"
-  title="English letter-frequency donut chart built from native pie intervals and radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
 The same primitives cover labels, center content, padding, rounded corners,
-and concentric rings. Radial offsets are signed pixels applied after scale
-mapping. They do not change the radius domain or reserve outer margin; leave
-space with `radiusRatio`, `inset`, or chart margins.
+and concentric rings. See the catalog examples for a
+[labeled pie](https://tanstack.com/charts/catalog/93-labeled-pie/),
+[center-content donut](https://tanstack.com/charts/catalog/94-center-donut/),
+[rounded donut](https://tanstack.com/charts/catalog/95-rounded-donut/), and
+[nested donut](https://tanstack.com/charts/catalog/96-nested-donut/).
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=480"
-  title="English letter-frequency pie chart with native radial labels and leader rules"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/94-center-donut/?theme=system&height=480"
-  title="English letter-frequency donut chart with native center value"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=480"
-  title="Rounded English letter-frequency donut chart with angular gaps and rounded arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/96-nested-donut/?theme=system&height=480"
-  title="Nested Flare package-size donut chart"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+Radial offsets are signed pixels applied after scale mapping. They do not
+change the radius domain or reserve outer margin; leave space with
+`radiusRatio`, `inset`, or chart margins.
 
 Source order is the default. Use `orderBy` and `order` only for an explicit
 angular sort. Stable arc keys must come from the original row, not the
@@ -191,121 +107,133 @@ the same names. `gapAngle` materializes direct empty space; the returned
 
 ## Partial-circle gauge
 
-A gauge is the same composition over a restricted pie interval. It is not
-a separate geometry implementation.
+A gauge is the same composition over a restricted pie interval. It is not a
+separate geometry implementation.
 
-<!-- docs-example: polar-partial-gauge typecheck -->
-
-```ts
+```ts group=polar-partial-gauge env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
-import { pie, polar, radialArc } from '@tanstack/charts/polar'
+import { pie, polar, radialArc, radialText } from '@tanstack/charts/polar'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-interface SurveyRow {
-  Question: string
-  ID: number
-  Response: string
-}
-
-const survey: readonly SurveyRow[] = [
-  { Question: 'Q1', ID: 1, Response: 'Strongly Agree' },
-  { Question: 'Q1', ID: 2, Response: 'Agree' },
-  { Question: 'Q1', ID: 3, Response: 'Agree' },
-  { Question: 'Q1', ID: 4, Response: 'Neutral' },
-  { Question: 'Q1', ID: 5, Response: 'Disagree' },
-  { Question: 'Q2', ID: 1, Response: 'Neutral' },
-]
-
-interface GaugePart {
-  id: 'agreement' | 'other'
-  value: number
-}
-
-function agreementPercent(rows: readonly SurveyRow[], question: string) {
-  const responses = rows.filter((row) => row.Question === question)
-  const agreements = responses.filter(
-    (row) => row.Response === 'Agree' || row.Response === 'Strongly Agree',
-  )
-  return responses.length === 0
-    ? 0
-    : Math.round((agreements.length / responses.length) * 100)
-}
-
-const agreement = agreementPercent(survey, 'Q1')
-const gaugeParts: GaugePart[] = [
-  { id: 'agreement', value: agreement },
-  { id: 'other', value: 100 - agreement },
-]
-const gaugeSlices = pie(gaugeParts, {
+const value = Math.max(0, Math.min(100, 72))
+const reading = { id: 'complete', value } as const
+const parts = [reading, { id: 'remaining', value: 100 - value }] as const
+const slices = pie(parts, {
   value: 'value',
   startAngle: -Math.PI * 0.75,
   endAngle: Math.PI * 0.75,
 })
 
-const gauge = defineChart({
+export default defineChart({
   marks: [
     polar({
       radiusRatio: 0.84,
+      scales: {
+        angle: { scale: scaleLinear().domain([0, 1]) },
+        radius: { scale: scaleLinear().domain([0, 1]) },
+      },
+
       marks: [
-        radialArc(gaugeSlices, {
+        radialArc(slices, {
           innerRadius: ({ radius }) => radius * 0.72,
           cornerRadius: 999,
           color: 'id',
           key: 'id',
         }),
+        radialText([reading], {
+          angle: 0,
+          radius: 0,
+          text: (row) => `${row.value}%`,
+          key: 'id',
+          fill: 'currentColor',
+          fontSize: 20,
+          fontWeight: 700,
+        }),
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   color: {
-    domain: ['agreement', 'other'],
+    domain: ['complete', 'remaining'],
     range: ['#ef4444', '#e2e8f0'],
   },
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=480"
-  title="Survey agreement gauge composed from native pie intervals and TanStack radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/98-needle-gauge/?theme=system&height=480"
-  title="County unemployment gauge with radial ticks, needle, hub, and value label"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
 Bound the input before layout and expose the exact value outside the arc. Arc
-length is useful for a compact status summary, not fine comparison.
+length is useful for a compact status summary, not fine comparison. Add ticks,
+a needle, and a center label only when they carry meaning; see the
+[needle gauge](https://tanstack.com/charts/catalog/98-needle-gauge/) for that
+composition.
 
 ## Radar profile
 
 Radar combines an inferred angle factory and a fixed radius instance with
-polar guides and radial marks. TanStack supplies both responsive ranges.
+polar guides and radial marks. TanStack supplies both responsive ranges. The
+normalization remains visible in a separate source file because it determines
+the meaning of every radius.
 
-<!-- docs-example: polar-radar typecheck -->
-
-```ts
-import { defineChart, normalize, select } from '@tanstack/charts'
-import { fold } from '@tanstack/charts/transform/fold'
+```ts group=polar-radar env=charts file=/src/chart.ts entry
+import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
   polar,
   radialArea,
-  radialDot,
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { curveLinearClosed } from 'd3-shape'
+import { events } from './data'
+import { profile } from './normalize'
 
-interface DecathlonRow {
+export default defineChart({
+  marks: [
+    polar({
+      radiusRatio: 0.72,
+      scales: {
+        angle: { scale: scalePoint<string>().domain(events), wrap: true },
+        radius: { scale: scaleLinear().domain([0, 1]) },
+      },
+
+      guides: [
+        radialGrid({
+          values: [0.25, 0.5, 0.75, 1],
+          shape: 'polygon',
+        }),
+        angleGrid({ labels: true }),
+      ],
+      marks: [
+        radialArea(profile, {
+          angle: 'event',
+          radius: 'relativePerformance',
+          curve: curveLinearClosed,
+          fill: '#7c3aed',
+          fillOpacity: 0.22,
+        }),
+        radialLine(profile, {
+          angle: 'event',
+          radius: 'relativePerformance',
+          curve: curveLinearClosed,
+          stroke: '#8b5cf6',
+          strokeWidth: 2,
+        }),
+      ],
+    }),
+  ],
+  scales: {
+    x: null,
+    y: null,
+  },
+})
+```
+
+```ts group=polar-radar file=/src/data.ts collapsed
+export interface DecathlonRow {
   Country: string
   '100 Meters': number
   'Long Jump': number
@@ -313,7 +241,7 @@ interface DecathlonRow {
   '100 Meter Hurdles': number
 }
 
-const decathlon: readonly DecathlonRow[] = [
+export const decathlon: readonly DecathlonRow[] = [
   {
     Country: 'United States',
     '100 Meters': 10.35,
@@ -344,13 +272,21 @@ const decathlon: readonly DecathlonRow[] = [
   },
 ]
 
-const events = [
+export const events = [
   '100 Meters',
   'Long Jump',
   'High Jump',
   '100 Meter Hurdles',
 ] as const
-type RadarEvent = (typeof events)[number]
+
+export type RadarEvent = (typeof events)[number]
+```
+
+```ts group=polar-radar file=/src/normalize.ts collapsed
+import { normalize, select } from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
+import { decathlon, events } from './data'
+import type { RadarEvent } from './data'
 
 const timedEvents = new Set<RadarEvent>(['100 Meters', '100 Meter Hurdles'])
 const folded = fold(decathlon, {
@@ -359,182 +295,48 @@ const folded = fold(decathlon, {
 })
 const normalized = normalize(folded, {
   by: 'event',
-  value: ({ datum }) =>
+  value: (datum) =>
     timedEvents.has(datum.event) ? -datum.result : datum.result,
   basis: 'extent',
   as: 'relativePerformance',
 })
-const profile = select(normalized, { by: 'event', select: 'first' })
-const percent = new Intl.NumberFormat('en-US', {
-  style: 'percent',
-  maximumFractionDigits: 0,
-})
 
-const radar = defineChart({
-  marks: [
-    polar({
-      radiusRatio: 0.72,
-      angle: { scale: scalePoint<string>().domain(events), wrap: true },
-      radius: { scale: scaleLinear().domain([0, 1]) },
-      guides: [
-        radialGrid({
-          values: [0.25, 0.5, 0.75, 1],
-          shape: 'polygon',
-          labels: true,
-          format: (value) => percent.format(Number(value)),
-        }),
-        angleGrid({
-          labels: true,
-          labelDx: ({ x }) => (x < -1 ? -3 : x > 1 ? 3 : 0),
-          labelDy: ({ y }) => (y < -1 ? -2 : y > 1 ? 2 : 0),
-        }),
-      ],
-      marks: [
-        radialArea(profile, {
-          angle: 'event',
-          radius: 'relativePerformance',
-          curve: curveLinearClosed,
-          fill: '#7c3aed',
-          fillOpacity: 0.22,
-        }),
-        radialLine(profile, {
-          angle: 'event',
-          radius: 'relativePerformance',
-          curve: curveLinearClosed,
-          stroke: '#8b5cf6',
-          strokeWidth: 2,
-        }),
-        radialDot(profile, {
-          angle: 'event',
-          radius: 'relativePerformance',
-          key: 'event',
-          r: 3,
-          fill: '#8b5cf6',
-        }),
-      ],
-    }),
-  ],
+export const profile = select(normalized, {
+  by: 'event',
+  select: 'first',
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/75-radar/?theme=system&height=480"
-  title="Normalized decathlon radar profile with polygon guides built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/99-comparative-radar/?theme=system&height=480"
-  title="Normalized USA and Great Britain decathlon radar profiles"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
 Use radar for a small, fixed set of compatible dimensions. Keep every domain
-and direction explicit, and do not rank profiles by apparent filled area.
+and direction explicit, and do not rank profiles by apparent filled area. See
+the [comparative radar](https://tanstack.com/charts/catalog/99-comparative-radar/)
+when multiple profiles are the point of the chart.
 
-## Numeric polar line and scatter
+## Numeric polar line
 
-Lightweight linear scales map numeric angle and radius values without changing the
-mark API. A visible transform can derive angle and radius from existing source
-measurements without renaming those measurements into chart fields.
+Lightweight linear scales map numeric angle and radius values without changing
+the mark API. Here a visible transform maps observation dates to angles while
+preserving the source temperature field.
 
-<!-- docs-example: polar-line-scatter typecheck -->
-
-```ts
+```ts group=polar-line env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
   polar,
-  radialDot,
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { dayOfYearAngle, seattle2012 } from './weather'
 
-interface WeatherRow {
-  location: string
-  date: Date
-  temp_max: number
-}
-
-const weather: readonly WeatherRow[] = [
-  {
-    location: 'Seattle',
-    date: new Date('2012-01-15T00:00:00Z'),
-    temp_max: 8.3,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2012-03-15T00:00:00Z'),
-    temp_max: 12.2,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2012-05-15T00:00:00Z'),
-    temp_max: 18.9,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2012-07-15T00:00:00Z'),
-    temp_max: 25.6,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2012-09-15T00:00:00Z'),
-    temp_max: 21.1,
-  },
-  {
-    location: 'Seattle',
-    date: new Date('2012-11-15T00:00:00Z'),
-    temp_max: 11.7,
-  },
-]
-
-interface WindRow {
-  latitude: number
-  u: number
-  v: number
-}
-
-const wind: readonly WindRow[] = [
-  { latitude: 48.125, u: 4.2, v: 1.6 },
-  { latitude: 48.125, u: 2.1, v: 5.8 },
-  { latitude: 48.125, u: -3.4, v: 6.2 },
-  { latitude: 48.125, u: -5.1, v: -2.3 },
-  { latitude: 48.125, u: 1.8, v: -4.7 },
-]
-
-const seattle2012 = weather.filter(
-  (row) => row.location === 'Seattle' && row.date.getUTCFullYear() === 2012,
-)
-const latitudeBand = wind.filter((row) => row.latitude === 48.125)
-
-function dayOfYearAngle(row: WeatherRow) {
-  const year = row.date.getUTCFullYear()
-  const start = Date.UTC(year, 0, 1)
-  const end = Date.UTC(year + 1, 0, 1)
-  return ((row.date.getTime() - start) / (end - start)) * 360
-}
-
-function windDirection(row: WindRow) {
-  return (Math.atan2(row.v, row.u) * (180 / Math.PI) + 360) % 360
-}
-
-function windSpeed(row: WindRow) {
-  return Math.hypot(row.u, row.v)
-}
-
-const polarLineChart = defineChart({
+export default defineChart({
   marks: [
     polar({
-      angle: { scale: scaleLinear().domain([0, 360]) },
-      radius: { scale: scaleLinear().domain([-10, 40]) },
+      scales: {
+        angle: { scale: scaleLinear().domain([0, 360]) },
+        radius: { scale: scaleLinear().domain([-10, 40]) },
+      },
+
       guides: [
         radialGrid({ values: [0, 10, 20, 30, 40] }),
         angleGrid({ values: [0, 90, 180, 270], labels: false }),
@@ -548,13 +350,63 @@ const polarLineChart = defineChart({
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
+```
 
-const polarScatterChart = defineChart({
+```ts group=polar-line file=/src/weather.ts collapsed
+export interface WeatherRow {
+  location: string
+  date: Date
+  temp_max: number
+}
+
+const weather: readonly WeatherRow[] = [
+  { location: 'Seattle', date: new Date('2012-01-15'), temp_max: 8.3 },
+  { location: 'Seattle', date: new Date('2012-03-15'), temp_max: 12.2 },
+  { location: 'Seattle', date: new Date('2012-05-15'), temp_max: 18.9 },
+  { location: 'Seattle', date: new Date('2012-07-15'), temp_max: 25.6 },
+  { location: 'Seattle', date: new Date('2012-09-15'), temp_max: 21.1 },
+  { location: 'Seattle', date: new Date('2012-11-15'), temp_max: 11.7 },
+]
+
+export const seattle2012 = weather.filter(
+  (row) => row.location === 'Seattle' && row.date.getUTCFullYear() === 2012,
+)
+
+export function dayOfYearAngle(row: WeatherRow) {
+  const year = row.date.getUTCFullYear()
+  const start = Date.UTC(year, 0, 1)
+  const end = Date.UTC(year + 1, 0, 1)
+  return ((row.date.getTime() - start) / (end - start)) * 360
+}
+```
+
+The [full-year polar line](https://tanstack.com/charts/catalog/106-polar-line/)
+uses the same transform with the complete weather series.
+
+## Numeric polar scatter
+
+The same coordinate accepts independent points. Wind direction and speed stay
+as explicit transforms over source `u` and `v` measurements.
+
+```ts group=polar-scatter env=charts file=/src/chart.ts entry
+import { defineChart } from '@tanstack/charts'
+import { angleGrid, polar, radialDot, radialGrid } from '@tanstack/charts/polar'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { latitudeBand, windDirection, windSpeed } from './wind'
+
+export default defineChart({
   marks: [
     polar({
-      angle: { scale: scaleLinear().domain([0, 360]) },
-      radius: { scale: scaleLinear().domain([0, 13]) },
+      scales: {
+        angle: { scale: scaleLinear().domain([0, 360]) },
+        radius: { scale: scaleLinear().domain([0, 13]) },
+      },
+
       guides: [
         radialGrid({ values: [3, 6, 9, 12] }),
         angleGrid({ values: [0, 90, 180, 270], labels: false }),
@@ -569,65 +421,70 @@ const polarScatterChart = defineChart({
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/106-polar-line/?theme=system&height=480"
-  title="Seattle daily high temperatures through 2012 on a polar line"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+```ts group=polar-scatter file=/src/wind.ts collapsed
+export interface WindRow {
+  latitude: number
+  u: number
+  v: number
+}
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/107-polar-scatter/?theme=system&height=480"
-  title="Surface wind observations by derived direction and speed"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+const wind: readonly WindRow[] = [
+  { latitude: 48.125, u: 4.2, v: 1.6 },
+  { latitude: 48.125, u: 2.1, v: 5.8 },
+  { latitude: 48.125, u: -3.4, v: 6.2 },
+  { latitude: 48.125, u: -5.1, v: -2.3 },
+  { latitude: 48.125, u: 1.8, v: -4.7 },
+]
+
+export const latitudeBand = wind.filter((row) => row.latitude === 48.125)
+
+export function windDirection(row: WindRow) {
+  return (Math.atan2(row.v, row.u) * (180 / Math.PI) + 360) % 360
+}
+
+export function windSpeed(row: WindRow) {
+  return Math.hypot(row.u, row.v)
+}
+```
+
+The [catalog polar scatter](https://tanstack.com/charts/catalog/107-polar-scatter/)
+uses a denser sample from the same latitude band.
 
 ## Radial bars
 
 Choose the mark by the quantitative direction. A rose extends one bar through
 radius for each angle band. Concentric radial bars extend through angle for
-each radius band. D3 band padding controls the categorical occupancy.
+each radius band. Band padding controls categorical occupancy.
 
-<!-- docs-example: polar-radial-bars typecheck -->
-
-```ts
+```ts group=polar-radial-bars env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
-import { polar, radialBarAngle, radialBarRadius } from '@tanstack/charts/polar'
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { polar, radialBarRadius } from '@tanstack/charts/polar'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { frequencies } from './data'
 
-interface FrequencyRow {
-  letter: string
-  frequency: number
-}
-
-const frequencies: readonly FrequencyRow[] = [
-  { letter: 'E', frequency: 0.12702 },
-  { letter: 'T', frequency: 0.09056 },
-  { letter: 'A', frequency: 0.08167 },
-  { letter: 'O', frequency: 0.07507 },
-  { letter: 'I', frequency: 0.06966 },
-]
 const letters = frequencies.map((row) => row.letter)
 const maximum = Math.max(...frequencies.map((row) => row.frequency))
-const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a']
 
-const rose = defineChart({
+export default defineChart({
   marks: [
     polar({
       radiusRatio: 0.8,
-      angle: { scale: () => scaleBand<string>() },
-      radius: {
-        scale: scaleLinear().domain([0, maximum]),
-        range: [({ radius }) => radius * 0.3, ({ radius }) => radius],
+      scales: {
+        angle: { scale: () => scaleBand<string>().padding(0.12) },
+        radius: {
+          scale: scaleLinear().domain([0, maximum]),
+          range: [({ radius }) => radius * 0.3, ({ radius }) => radius],
+        },
       },
+
       marks: [
         radialBarRadius(frequencies, {
           angle: 'letter',
@@ -638,70 +495,55 @@ const rose = defineChart({
       ],
     }),
   ],
-  color: { domain: letters, range: colors },
+  scales: {
+    x: null,
+    y: null,
+  },
+  color: {
+    domain: letters,
+    range: ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a'],
+  },
 })
+```
 
-const concentricBars = defineChart({
-  marks: [
-    polar({
-      radiusRatio: 0.84,
-      angle: { scale: scaleLinear().domain([0, maximum]) },
-      radius: {
-        scale: () => scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
-        range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
-      },
-      marks: [
-        radialBarAngle(frequencies, {
-          angle: 'frequency',
-          radius: 'letter',
-          color: 'letter',
-          cornerRadius: 'full',
-          key: 'letter',
-        }),
-      ],
-    }),
-  ],
-  color: { domain: letters, range: colors },
-})
+```ts group=polar-radial-bars file=/src/data.ts collapsed
+export interface FrequencyRow {
+  letter: string
+  frequency: number
+}
+
+export const frequencies: readonly FrequencyRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 ```
 
 An omitted radius baseline in `radialBarRadius` starts at the physical center;
 the responsive radius range controls the quantitative endpoints. Supply
 `radius1` when both endpoints are semantic values. Signed radius data should
-use `radius1: 0` so semantic zero maps through the scale. `radialBarAngle` maps
-its default angle baseline from semantic zero.
+use `radius1: 0` so semantic zero maps through the scale.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=480"
-  title="English letter-frequency rose with equal angles and variable radii"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/100-radial-bars/?theme=system&height=480"
-  title="Concentric English letter-frequency radial bars"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+Use `radialBarAngle` when values should extend around the circle instead. See
+the [concentric radial-bar example](https://tanstack.com/charts/catalog/100-radial-bars/).
 
 ## Polar hierarchy
 
 The optional `sunburst` mark accepts flat hierarchy rows and owns value
-aggregation, partitioning, responsive rings, and sector geometry:
+aggregation, partitioning, responsive rings, and sector geometry.
 
-```ts
+```ts group=polar-sunburst env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
 import { polar } from '@tanstack/charts/polar'
+import { rows } from './data'
 
-const chart = defineChart({
+export default defineChart({
   marks: [
     polar({
+      radiusRatio: 0.88,
       startAngle: Math.PI / 2,
       endAngle: Math.PI / 2 - Math.PI * 2,
       marks: [
@@ -715,9 +557,35 @@ const chart = defineChart({
           stroke: '#fff',
         }),
       ],
+      scales: {
+        angle: null,
+        radius: null,
+      },
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
+  color: { range: ['#7c3aed', '#0ea5e9', '#14b8a6'] },
 })
+```
+
+```ts group=polar-sunburst file=/src/data.ts collapsed
+export interface PackageRow {
+  name: string
+  size: number | null
+}
+
+export const rows: readonly PackageRow[] = [
+  { name: 'app', size: null },
+  { name: 'app.ui', size: null },
+  { name: 'app.ui.button', size: 8 },
+  { name: 'app.ui.dialog', size: 5 },
+  { name: 'app.data', size: null },
+  { name: 'app.data.cache', size: 6 },
+  { name: 'app.data.client', size: 11 },
+]
 ```
 
 Use `nodeId` and `parentId` for explicit parent-reference rows. Responsive
@@ -725,16 +593,8 @@ Use `nodeId` and `parentId` for explicit parent-reference rows. Responsive
 `ringPadding` remains a fixed pixel gap. Every `SunburstNode` retains its
 direct row and source index, while `branchId` gives descendants the color of
 their first ancestor below the root. See the
-[Sunburst Mark reference](../reference/marks/sunburst.md).
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=480"
-  title="Flare analytics hierarchy sunburst rendered with native sectors"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+[Sunburst Mark reference](../reference/marks/sunburst.md) and the
+[full Flare hierarchy](https://tanstack.com/charts/catalog/101-sunburst/).
 
 ## Coordinate and bundle boundary
 

@@ -37,8 +37,10 @@ describe('embedded chart scenes', () => {
             { match: 'x', retarget: true },
           ),
         ],
-        x: { scale: scaleLinear().domain([0, 4]) },
-        y: { scale: scaleLinear().domain([0, 5]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
       }),
       { width: 240, height: 180 },
     )

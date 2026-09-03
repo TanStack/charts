@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1850,
+  "id": "184-shadcn-radar-radius",
+  "title": "shadcn Radar Chart - Radius Axis",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-radius example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "radius", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-radius",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-radius"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-radius card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar radius treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,4 +1,4 @@
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import { findContainingScenePoint } from './nearest'
 import type {
   ChartFocusMode,
@@ -24,9 +24,9 @@ export function resolveChartFocusStrategy<
     case 'nearest-y':
       return focusNearestY
     case 'group-x':
-      return focusX
+      return focusGroupX
     case 'group-y':
-      return focusY
+      return focusGroupY
     case 'nearest':
       return undefined
   }
@@ -55,8 +55,8 @@ export function resolveChartPointerFocus<
     points === scene.points &&
     (strategy === focusNearestX ||
       strategy === focusNearestY ||
-      strategy === focusX ||
-      strategy === focusY)
+      strategy === focusGroupX ||
+      strategy === focusGroupY)
   ) {
     const contained = findContainingScenePoint(scene, x, y)
     if (contained) {

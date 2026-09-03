@@ -1,4 +1,4 @@
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const scale = scaleLinear([0.2, 9.8], [0, 100]).clamp(true).nice(5)
 

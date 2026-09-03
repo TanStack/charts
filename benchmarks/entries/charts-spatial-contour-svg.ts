@@ -16,6 +16,10 @@ const definition = defineChart({
       strokeWidth: 0.75,
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
 })
 

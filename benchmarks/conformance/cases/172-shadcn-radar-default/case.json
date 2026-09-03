@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1730,
+  "id": "172-shadcn-radar-default",
+  "title": "shadcn Radar Chart",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-default example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-default",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-default"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-default card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar default treatment, card dimensions, and light and dark tokens."
+  }
+}

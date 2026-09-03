@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { morley } from '@charts-poc/demo-data/morley'
+import { morley } from '@tanstack/charts-data/morley'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

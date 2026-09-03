@@ -1,4 +1,4 @@
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 
 export function selectHierarchyData(rows: readonly FlareRow[], revision = 0) {
   return revision % 2 === 0

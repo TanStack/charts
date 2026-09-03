@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { selectPieData } from './selection'
-import { pieDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
@@ -60,7 +60,7 @@ describe('native pie allocation', () => {
 
   it('keeps allocation in the public polar definition surface', () => {
     const source = readFileSync(
-      resolve(process.cwd(), 'benchmarks/conformance/cases/76-pie/tanstack.ts'),
+      resolve(process.cwd(), 'benchmarks/conformance/cases/76-pie/example.tsx'),
       'utf8',
     )
 
@@ -74,7 +74,7 @@ describe('native pie allocation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(pieDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function piePoints(points: readonly ChartPoint<unknown>[]) {

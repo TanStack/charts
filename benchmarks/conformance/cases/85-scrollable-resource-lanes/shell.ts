@@ -1,14 +1,22 @@
 import { timelineStatusColors } from './colors'
 import { resourceLanes, timelineStatuses } from './scenario'
+import {
+  timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
+  timelineLaneRailWidth,
+  timelineMargin,
+} from './layout'
 import type { ConformanceInput } from '../../types'
 import type { ResourceLane, ResourceTask } from './scenario'
 
-export const timelineMargin = {
-  top: 18,
-  right: 24,
-  bottom: 50,
-  left: 12,
-} as const
+export {
+  timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
+  timelineLaneRailWidth,
+  timelineMargin,
+} from './layout'
 
 const headerHeight = 42
 const focusScrollPadding = 32
@@ -118,22 +126,6 @@ export function sizeResourceTimelineShell(
   shell.chartSurface.style.width = `${timelineContentWidth(viewportWidth)}px`
   shell.chartSurface.style.height = `${timelineChartHeight(bodyHeight)}px`
   renderSchedule(shell.schedule, rows)
-}
-
-export function timelineBodyHeight(height: number) {
-  return Math.max(220, height - headerHeight)
-}
-
-export function timelineContentWidth(viewportWidth: number) {
-  return Math.max(960, viewportWidth * 2)
-}
-
-export function timelineChartHeight(viewportHeight: number) {
-  return Math.max(240, viewportHeight - 16)
-}
-
-export function timelineLaneRailWidth(width: number) {
-  return Math.round(Math.max(96, Math.min(128, width * 0.28)))
 }
 
 export function updateTimelineTaskDetails(

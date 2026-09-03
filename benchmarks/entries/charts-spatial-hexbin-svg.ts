@@ -17,8 +17,11 @@ const definition = defineChart({
       binWidth: 20,
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 100]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 100]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
+
   color: {
     scale: scaleLinear<string>,
     range: ['#dbeafe', '#1d4ed8'],

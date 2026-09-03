@@ -1,4 +1,4 @@
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 import { gaugeBands, gaugeMaximum, gaugeTicks } from './transform'

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Chart from '../src/Chart.svelte'
-  import type { ChartDefinition } from '@tanstack/charts'
+  import type { DomChartDefinition } from '@tanstack/charts'
   import type { ChartTooltipBodySnippetContext } from '../src/types'
 
   interface Row {
@@ -13,8 +13,8 @@
     definition,
     nestedDefinition,
   }: {
-    definition: ChartDefinition<Row, number, number>
-    nestedDefinition: ChartDefinition<Row, number, number>
+    definition: DomChartDefinition<Row, number, number>
+    nestedDefinition: DomChartDefinition<Row, number, number>
   } = $props()
 </script>
 

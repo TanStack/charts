@@ -15,7 +15,7 @@ import type {
   TooltipComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
-import { industries } from '@charts-poc/demo-data/industries'
+import { industries } from '@tanstack/charts-data/industries'
 import { clientPointBounds } from '../../shared/driver-geometry'
 import { echartsMount } from '../../shared/echarts-mount'
 import { axisPointerColors } from './colors'

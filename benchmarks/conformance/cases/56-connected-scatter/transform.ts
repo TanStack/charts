@@ -1,4 +1,4 @@
-import type { DrivingRow } from '@charts-poc/demo-data/driving'
+import type { DrivingRow } from '@tanstack/charts-data/driving'
 
 export interface DirectionSegment {
   fromYear: number

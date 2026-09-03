@@ -1,5 +1,5 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import { industries } from '@charts-poc/demo-data/industries'
+import { cars } from '@tanstack/charts-data/cars'
+import { industries } from '@tanstack/charts-data/industries'
 import {
   areaY,
   barX,
@@ -19,8 +19,8 @@ import {
   stackOffsetWiggle,
   stackOrderInsideOut,
 } from 'd3-shape'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { CarsRow } from '@tanstack/charts-data/cars'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 
 export type IndustryHistoryMode = 'line' | 'stacked' | 'share' | 'stream'
 export type { IndustriesRow }
@@ -103,29 +103,32 @@ export function createIndustryHistoryChart(
               curve: d3Curve(curveMonotoneX),
             }),
           ],
-    x: {
-      scale:
-        zoomed && zoomStart && zoomEnd
-          ? scaleUtc().domain([zoomStart, zoomEnd])
-          : scaleUtc,
-      axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Month' },
-    },
-    y: {
-      scale:
-        mode === 'share' ? scaleLinear().domain([0, 1]).nice(5) : scaleLinear,
-      nice: 5,
-      grid: true,
-      axis: {
-        ticks: {
-          count: 5,
-          format: mode === 'share' ? formatPercent : formatNumber,
+    scales: {
+      x: {
+        scale:
+          zoomed && zoomStart && zoomEnd
+            ? scaleUtc().domain([zoomStart, zoomEnd])
+            : scaleUtc,
+        axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Month' },
+      },
+      y: {
+        scale:
+          mode === 'share' ? scaleLinear().domain([0, 1]).nice(5) : scaleLinear,
+        nice: 5,
+        grid: true,
+        axis: {
+          ticks: {
+            count: 5,
+            format: mode === 'share' ? formatPercent : formatNumber,
+          },
+          label:
+            mode === 'share'
+              ? 'Share of selected industries'
+              : 'Unemployed (thousands)',
         },
-        label:
-          mode === 'share'
-            ? 'Share of selected industries'
-            : 'Unemployed (thousands)',
       },
     },
+
     color: {
       scale: scaleOrdinal<string, string>()
         .domain([...trackedIndustries])
@@ -163,21 +166,24 @@ export function createRankingChart(metric: RankingMetric, accent: string) {
           inset: width < 420 ? 2 : 3,
         }),
       ],
-      x: {
-        scale: scaleLinear,
-        nice: ticks,
-        grid: true,
-        axis: {
-          label:
-            width < 420
-              ? undefined
-              : metric === 'economy (mpg)'
-                ? 'Fuel economy (mpg)'
-                : 'Power (hp)',
+      scales: {
+        x: {
+          scale: scaleLinear,
+          nice: ticks,
+          grid: true,
+          axis: {
+            label:
+              width < 420
+                ? undefined
+                : metric === 'economy (mpg)'
+                  ? 'Fuel economy (mpg)'
+                  : 'Power (hp)',
+          },
         },
-      },
-      y: {
-        scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),
+        y: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),
+        },
       },
     }
   })

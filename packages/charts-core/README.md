@@ -10,22 +10,22 @@ TanStack Charts is an independent implementation for typed application
 infrastructure. Project lineage is recorded in the repository
 [`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).
 
-Install the grammar and compact scales for the common path:
+Install the chart package:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
-The scale package has no root export. Import only the required `/linear`,
-`/band`, `/point`, or `/ordinal` entry.
+Import compact scales and framework adapters from exact subpaths. This keeps
+unrelated frameworks and capabilities out of the application bundle.
 
 <!-- docs-example: core-readme-definition typecheck -->
 
 ```ts
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 
 interface DownloadRow {
@@ -70,19 +70,21 @@ const downloads = defineChart({
       z: 'package',
     }),
   ],
-  x: { scale: () => scalePoint<string>().padding(0.4) },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Monthly downloads' },
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.4) },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Monthly downloads' },
+    },
   },
   color: {
     scale: () =>
       scaleOrdinal<string, string>().range(['#0ea5e9', '#f97316', '#10b981']),
     legend: colorLegend({ label: 'Package' }),
   },
-  animate: true,
+  svgAnimation: true,
   tooltip,
 })
 ```
@@ -103,7 +105,7 @@ pnpm add -D @types/d3-scale
 
 ```ts
 import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const history = [
@@ -113,8 +115,10 @@ const history = [
 
 const historicalDownloads = defineChart({
   marks: [lineY(history, { x: 'date', y: 'downloads' })],
-  x: { scale: scaleUtc, nice: true },
-  y: { scale: scaleLinear, nice: true },
+  scales: {
+    x: { scale: scaleUtc, nice: true },
+    y: { scale: scaleLinear, nice: true },
+  },
 })
 ```
 
@@ -151,10 +155,10 @@ const host = mountCanvasChart(element, options)
 `@tanstack/charts/svg/renderer` exposes the default SVG surface. Canvas,
 renderer-neutral, and SVG implementations remain separate bundle boundaries.
 
-Or use a thin framework adapter:
+Or use a framework adapter from the same package:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 ;<Chart
   definition={downloads}
@@ -162,6 +166,11 @@ import { Chart } from '@tanstack/react-charts'
   ariaLabel="Monthly package downloads"
 />
 ```
+
+React also exposes exact `/react/canvas`, `/react/core`, and
+`/react/tooltip` entries. The other adapters are available from `/preact`,
+`/vue`, `/solid`, `/svelte`, `/angular`, `/lit`, `/alpine`, `/octane`, and
+`/react-native`. Install only the framework peer used by your application.
 
 ## Type inference
 
@@ -227,8 +236,8 @@ but marks render once against the final plot rectangle.
 
 ```ts
 import { barX, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const rankingRows = [
   { package: 'Query', downloads: 1_480_000 },
@@ -238,13 +247,15 @@ const rankingRows = [
 
 const chart = defineChart({
   marks: [barX(rankingRows, { x: 'downloads', y: 'package' })],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    axis: { label: 'Weekly downloads' },
-  },
-  y: {
-    scale: () => scaleBand<string>().padding(0.1),
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      axis: { label: 'Weekly downloads' },
+    },
+    y: {
+      scale: () => scaleBand<string>().padding(0.1),
+    },
   },
 })
 ```
@@ -262,8 +273,10 @@ Static scenes use deterministic text estimates. The DOM host and browser
 framework adapters measure the painted glyph bounds with the inherited
 container font and relayout after web fonts load. Advanced renderers can
 supply `measureText` on the host, adapter, runtime, or `createChartScene`
-layout options. Its returned `x` and `y` are the painted box offsets relative
-to the requested anchor and baseline.
+layout options. The synchronous callback receives resolved family, style,
+stretch, spacing, direction, locale, and font scale. Its returned `x` and `y`
+are the painted box offsets relative to the requested anchor and baseline.
+Hosts own font readiness and render again when metrics change.
 
 Definitions accept scale factories for inferred domains and configured
 instances for application-owned domains. `createChartScene` rejects missing
@@ -272,13 +285,15 @@ range, and centers band output without mutating the source:
 
 ```ts
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const values = [32, 48, 41, 57]
 const definition = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear().domain([0, values.length - 1]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, values.length - 1]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
 })
 
 const scene = createChartScene(definition, { width: 640, height: 320 })

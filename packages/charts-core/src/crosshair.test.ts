@@ -102,8 +102,10 @@ describe('crosshair', () => {
             inset: 4,
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -165,8 +167,10 @@ describe('crosshair', () => {
             layout: group(),
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -188,8 +192,10 @@ describe('crosshair', () => {
             layout: group(),
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 100]) },
-        y: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 100]) },
+          y: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -297,8 +303,10 @@ describe('crosshair', () => {
             y: { label: { format: (value) => `y=${value}` } },
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -370,8 +378,10 @@ describe('crosshair', () => {
             y: false,
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 100]) },
-        y: { scale: scaleBand<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 100]) },
+          y: { scale: scaleBand<string>().domain(['A']) },
+        },
         guides: false,
         focusRing: false,
       }),
@@ -411,8 +421,10 @@ describe('crosshair', () => {
             }),
           }),
         ],
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 420, height: 180 },
     )
@@ -472,11 +484,13 @@ describe('crosshair', () => {
           dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' }),
           crosshair({ y: false }),
         ],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate: 20 },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate: 20 },
+          },
+          y: { scale: scaleLinear().domain([0, 2]) },
         },
-        y: { scale: scaleLinear().domain([0, 2]) },
         guides: false,
       }),
       { width: 240, height: 160 },
@@ -529,21 +543,25 @@ describe('crosshair', () => {
                   y: false,
                 }),
               ],
-              x: {
-                scale: scaleLinear().domain([0, 1]),
-                axis: {
-                  ticks: {
-                    count: 2,
-                    format: (value) => `${data[0]!.facet}:${value}`,
+              scales: {
+                x: {
+                  scale: scaleLinear().domain([0, 1]),
+                  axis: {
+                    ticks: {
+                      count: 2,
+                      format: (value) => `${data[0]!.facet}:${value}`,
+                    },
                   },
                 },
+                y: { scale: scaleLinear().domain([0, 3]) },
               },
-              y: { scale: scaleLinear().domain([0, 3]) },
             }),
           }),
         ],
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 420, height: 180 },
     )

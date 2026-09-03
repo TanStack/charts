@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1900,
+  "id": "189-shadcn-radial-stacked",
+  "title": "shadcn Radial Chart - Stacked",
+  "family": "radial",
+  "intent": "Reproduce shadcn/ui's chart-radial-stacked example with TanStack Charts.",
+  "support": "native",
+  "features": ["radial chart", "stacked", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 5,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radial-stacked",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-stacked"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radial-stacked card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radial stacked treatment, card dimensions, and light and dark tokens."
+  }
+}

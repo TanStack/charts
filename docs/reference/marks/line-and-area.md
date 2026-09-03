@@ -255,8 +255,10 @@ const definition = defineChart({
       z: 'series',
     }),
   ],
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
 })
 ```
 

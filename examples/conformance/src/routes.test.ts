@@ -5,6 +5,7 @@ describe('catalog routes', () => {
   it.each([
     ['/', { view: 'index' }],
     ['/all/', { view: 'all' }],
+    ['/collections/shadcn/', { view: 'collection', collectionId: 'shadcn' }],
     ['/charts/01-line/', { view: 'case', caseId: '01-line' }],
     ['/embed/01-line/', { view: 'embed', caseId: '01-line' }],
     ['/unknown/', { view: 'not-found' }],
@@ -28,6 +29,12 @@ describe('catalog routes', () => {
         '/catalog',
       ),
     ).toBe('/catalog/charts/chart%20with%20spaces/')
+    expect(
+      catalogRouteHref(
+        { view: 'collection', collectionId: 'shadcn charts' },
+        '/catalog',
+      ),
+    ).toBe('/catalog/collections/shadcn%20charts/')
   })
 
   it('preserves the production catalog base for direct embed routes', () => {

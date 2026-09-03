@@ -9,7 +9,7 @@ import {
 } from './interaction-range-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
-  ChartBehavior,
+  ChartControl,
   ChartBounds,
   ChartHostControl,
   ChartScene,
@@ -97,7 +97,7 @@ const defaultAriaLabel = 'Zoomable horizontal chart region'
  */
 export function zoomX<TValue extends ZoomXValue>(
   options: ZoomXOptions<TValue>,
-): ChartBehavior<TValue, any> {
+): ChartControl<TValue, any> {
   const id = options.id?.trim() || defaultId
   if (options.id !== undefined && !options.id.trim()) {
     throw new TypeError('zoomX id cannot be empty')

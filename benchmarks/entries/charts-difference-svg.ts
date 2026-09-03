@@ -20,8 +20,10 @@ const definition = defineChart({
     }),
   ],
   guides: false,
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
 })
 
 export function render(width: number, height: number) {

@@ -1,6 +1,5 @@
 import {
   stack as d3Stack,
-  stackOffsetDiverging,
   stackOffsetExpand,
   stackOffsetNone,
   stackOffsetSilhouette,
@@ -81,7 +80,7 @@ export function stackExtents(
         ? stackOffsetSilhouette
         : options.offset === 'wiggle'
           ? stackOffsetWiggle
-          : stackOffsetDiverging
+          : stackOffsetDivergingZeroAware
   const generator = d3Stack<Record<string, number>, string>()
     .keys(identities)
     .value((row, key) => row[key] ?? 0)
@@ -109,6 +108,56 @@ export function stackExtents(
     })
   })
   return output
+}
+
+/**
+ * D3 parks exact zeros at the axis. That is invisible for bars, but an area or
+ * line interpolates through the zero and cuts across the layers below it.
+ * Keep a zero on the running baseline for the side its series occupies.
+ */
+function stackOffsetDivergingZeroAware(
+  series: Series<Record<string, number>, string>[],
+  order: number[],
+): void {
+  if (series.length === 0) return
+
+  // A zero has no sign. Treat only exclusively negative series as negative;
+  // positive, mixed, and all-zero series use the positive baseline.
+  const negativeSide = series.map((values) => {
+    let negative = false
+    let positive = false
+    for (const [start, end] of values) {
+      const value = end - start
+      if (value < 0) negative = true
+      else if (value > 0) positive = true
+    }
+    return negative && !positive
+  })
+
+  const positionCount = series[order[0]!]!.length
+  for (let position = 0; position < positionCount; position += 1) {
+    let positiveBaseline = 0
+    let negativeBaseline = 0
+    for (const seriesIndex of order) {
+      const extent = series[seriesIndex]![position]!
+      const value = extent[1] - extent[0]
+      if (value > 0) {
+        extent[0] = positiveBaseline
+        extent[1] = positiveBaseline += value
+      } else if (value < 0) {
+        extent[1] = negativeBaseline
+        extent[0] = negativeBaseline += value
+      } else if (value === 0) {
+        extent[0] = extent[1] = negativeSide[seriesIndex]
+          ? negativeBaseline
+          : positiveBaseline
+      } else {
+        // Preserve D3's non-finite behavior so downstream marks keep the gap.
+        extent[0] = 0
+        extent[1] = value
+      }
+    }
+  }
 }
 
 function resolveAnchorFraction(options: Readonly<StackOptions>) {

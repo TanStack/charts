@@ -1,4 +1,4 @@
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { describe, expect, it } from 'vitest'
 import { agreementPercent, gaugeSegments } from './transform'
 

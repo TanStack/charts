@@ -54,6 +54,7 @@ describe('scalar-grid contours', () => {
     const scene = createChartScene(
       defineChart({
         marks: [mark],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         margin: { top: 11, right: 13, bottom: 17, left: 19 },
@@ -204,6 +205,7 @@ function renderNumericContour(
           smooth: options.smooth,
         }),
       ],
+      scales: { x: null, y: null },
       guides: false,
       focusRing: false,
       margin: 0,

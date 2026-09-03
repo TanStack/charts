@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { createChartRuntime } from '@tanstack/charts'
 import { arc } from 'd3-shape'
 import { describe, expect, it } from 'vitest'
 import { nestedFlareDonut } from './transform'
-import { nestedDonutDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { FlareDonutDetail, FlareDonutSlice } from './transform'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
@@ -127,7 +127,7 @@ describe('native nested-donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/96-nested-donut/tanstack.ts',
+        'benchmarks/conformance/cases/96-nested-donut/example.tsx',
       ),
       'utf8',
     )
@@ -148,10 +148,7 @@ describe('native nested-donut allocation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    nestedDonutDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function familyPoints(points: readonly ChartPoint<unknown>[]) {

@@ -56,21 +56,23 @@ Use `aspectRatio` when height should follow width:
 
 Set a fixed `width` only for an intentionally fixed graphic such as export, print, or email.
 
-Dynamic definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
+Responsive definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
 
 ```ts
 const chart = defineChart(({ width }) => ({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: {
-    scale: xScale,
-    axis: {
-      ticks: { count: width < 420 ? 4 : 8 },
-      tickLabels: { rotate: width < 520 ? -30 : undefined },
+  scales: {
+    x: {
+      scale: xScale,
+      axis: {
+        ticks: { count: width < 420 ? 4 : 8 },
+        tickLabels: { rotate: width < 520 ? -30 : undefined },
+      },
     },
-  },
-  y: {
-    scale: yScale,
-    axis: { label: width < 480 ? undefined : 'Weekly downloads' },
+    y: {
+      scale: yScale,
+      axis: { label: width < 480 ? undefined : 'Weekly downloads' },
+    },
   },
 }))
 ```
@@ -96,8 +98,11 @@ Explicit margins lock only the sides you provide:
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   margin: { left: 80 },
 })
 ```
@@ -110,8 +115,11 @@ Here the left margin is exactly `80`; top, right, and bottom remain automatic.
 const sparkline = defineChart({
   marks: [lineY(values)],
   guides: false,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   margin: 0,
 })
 ```
@@ -201,14 +209,48 @@ Hide every axis and grid while keeping scales for marks:
 const chart = defineChart({
   marks,
   guides: false,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
 })
 ```
 
-Marks encode whether they materialize each positional dimension. Omit an unused
-axis; for example, a `ruleY`-only chart needs `y` but no `x`. Explicit `null`
-is accepted only for an unused dimension.
+Set a reserved scale to `null` only when no mark uses that dimension. For
+example, a `ruleY`-only chart uses `scales: { x: null, y: { scale: yScale } }`.
+
+## Multiple axes
+
+Add a named scale when one coordinate system needs an independent mapping.
+Declare whether it maps x or y, choose its axis side, then bind the relevant
+mark to its ID:
+
+```ts
+const chart = defineChart({
+  marks: [
+    lineY(revenue, { x: 'date', y: 'value' }),
+    lineY(margin, {
+      x: 'date',
+      y: 'percent',
+      yScale: 'margin',
+    }),
+  ],
+  scales: {
+    x: { scale: dateScale },
+    y: { scale: revenueScale, axis: { label: 'Revenue' } },
+    margin: {
+      channel: 'y',
+      scale: marginScale,
+      side: 'right',
+      axis: { label: 'Margin' },
+    },
+  },
+})
+```
+
+`xScale` and `yScale` bind marks to scale IDs, not axis IDs. Axes visualize the
+scale registry entries. Multiple axes on one side stack outward and take part
+in automatic margin measurement.
 
 ## Scale ranges and coordinate direction
 
@@ -300,16 +342,16 @@ import { polar, radialArc } from '@tanstack/charts/polar'
 import { geoShape } from '@tanstack/charts/geo'
 ```
 
-`polar` copies configured angle and radius scales, assigns responsive angular
-and radial ranges, and renders guide backgrounds, child marks, then guide
-foregrounds around one resolved center. `geoShape` calls an
+`polar` copies entries from its own `scales` registry, assigns responsive
+angular and radial ranges, and renders guide backgrounds, child marks, then
+guide foregrounds around one resolved center. `geoShape` calls an
 application-supplied D3 projection callback or fits a projection descriptor to
 data, a sphere, or explicit geometry.
 
 Both paths emit the same keyed scene nodes and interaction points as ordinary
 marks. SVG rendering, DOM reconciliation, focus, export, and adapters do not
-need a coordinate-system branch. Their outer chart omits `x` and `y`; no
-Cartesian guides are created.
+need a coordinate-system branch. Their outer chart uses
+`scales: { x: null, y: null }`; no Cartesian guides are created.
 
 These capabilities stay behind separate package subpaths so their D3 geometry
 does not enter a Cartesian consumer. See
@@ -361,7 +403,7 @@ const overlayStyle = {
 ```
 
 DOM pointer coordinates must first be converted into scene coordinates using
-the rendered surface bounds. Native focus and the first-party brush, cursor,
+the rendered surface bounds. Chart-owned focus and the first-party brush, cursor,
 and zoom behaviors do this automatically against resolved scales. A custom
 gesture can use the resolved scale's optional `invert` operation.
 
@@ -372,8 +414,11 @@ gesture can use the resolved scale's optional `invert` operation.
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   clip: true,
 })
 ```
@@ -382,26 +427,11 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 
 ## Complete horizontal ranking
 
-```ts
+```ts group=horizontal-ranking env=charts file=/src/chart.ts entry
 import { barX, defineChart, ruleX } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-
-interface MetroPopulation {
-  Metro: string
-  POP_2015: number
-}
-
-const citywages: readonly MetroPopulation[] = [
-  { Metro: 'New York–Newark–Jersey City', POP_2015: 20_182_305 },
-  { Metro: 'Los Angeles–Long Beach–Anaheim', POP_2015: 13_340_068 },
-  { Metro: 'Chicago–Naperville–Elgin', POP_2015: 9_532_569 },
-  { Metro: 'Dallas–Fort Worth–Arlington', POP_2015: 7_206_144 },
-  { Metro: 'Houston–The Woodlands–Sugar Land', POP_2015: 6_656_947 },
-  { Metro: 'Washington–Arlington–Alexandria', POP_2015: 6_097_684 },
-  { Metro: 'Philadelphia–Camden–Wilmington', POP_2015: 6_069_875 },
-  { Metro: 'Miami–Fort Lauderdale–West Palm Beach', POP_2015: 6_012_331 },
-]
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { citywages } from './data'
 
 const rows = [...citywages]
   .sort((left, right) => right.POP_2015 - left.POP_2015)
@@ -412,7 +442,7 @@ const compact = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 1,
 })
 
-const rankingChart = defineChart({
+export default defineChart({
   marks: [
     ruleX([0], { stroke: '#94a3b8', strokeOpacity: 0.6 }),
     barX(rows, {
@@ -423,30 +453,41 @@ const rankingChart = defineChart({
       radius: 3,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: {
-      label: '2015 population',
-      ticks: { format: (value) => compact.format(value) },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: {
+        label: '2015 population',
+        ticks: { format: (value) => compact.format(value) },
+      },
     },
-  },
-  y: {
-    scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),
+    y: {
+      scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),
+    },
   },
 })
 ```
 
-This chart needs only the lightweight linear and band scale entries.
+```ts group=horizontal-ranking file=/src/data.ts collapsed
+export interface MetroPopulation {
+  Metro: string
+  POP_2015: number
+}
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-horizontal-ranking/?theme=system&height=480"
-  title="Metropolitan population ranking with long source labels and automatic axis margins"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+export const citywages: readonly MetroPopulation[] = [
+  { Metro: 'New York–Newark–Jersey City', POP_2015: 20_182_305 },
+  { Metro: 'Los Angeles–Long Beach–Anaheim', POP_2015: 13_340_068 },
+  { Metro: 'Chicago–Naperville–Elgin', POP_2015: 9_532_569 },
+  { Metro: 'Dallas–Fort Worth–Arlington', POP_2015: 7_206_144 },
+  { Metro: 'Houston–The Woodlands–Sugar Land', POP_2015: 6_656_947 },
+  { Metro: 'Washington–Arlington–Alexandria', POP_2015: 6_097_684 },
+  { Metro: 'Philadelphia–Camden–Wilmington', POP_2015: 6_069_875 },
+  { Metro: 'Miami–Fort Lauderdale–West Palm Beach', POP_2015: 6_012_331 },
+]
+```
+
+This chart needs only the lightweight linear and band scale entries.
 
 For responsive layout recipes, see [Responsive Charts](../guides/responsive-charts.md). For the exact shape of scenes and resolved bounds, see [Runtime and Scene Reference](../reference/runtime-and-scene.md).

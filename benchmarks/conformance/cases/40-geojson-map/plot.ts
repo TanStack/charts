@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { westportHouse } from '@charts-poc/demo-data/westport-house'
+import { westportHouse } from '@tanstack/charts-data/westport-house'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

@@ -53,6 +53,10 @@ const chart = defineChart({
         ] as const,
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
 })
 ```

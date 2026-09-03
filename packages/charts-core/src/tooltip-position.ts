@@ -1,18 +1,14 @@
+import {
+  resolveChartTooltipPlacement,
+  type TooltipBounds,
+} from './tooltip-placement'
 import type { ChartTooltipPlacement, ChartTooltipPosition } from './types'
 
-export interface TooltipBounds {
-  left: number
-  top: number
-  right: number
-  bottom: number
-}
-
-const defaultPlacements: readonly ChartTooltipPlacement[] = [
-  'top',
-  'bottom',
-  'right',
-  'left',
-]
+export {
+  resolveChartTooltipPlacement,
+  type TooltipBounds,
+  type TooltipSize,
+} from './tooltip-placement'
 
 export function placeTooltip(
   tooltip: HTMLElement,
@@ -26,42 +22,18 @@ export function placeTooltip(
     | undefined,
   offset: number | undefined,
 ) {
-  const edge = 8
-  const gap =
-    offset !== undefined && Number.isFinite(offset) ? Math.max(0, offset) : 10
   const width = tooltip.offsetWidth
   const height = tooltip.offsetHeight
-  const minimumLeft = boundary.left + edge
-  const minimumTop = boundary.top + edge
-  const maxLeft = Math.max(minimumLeft, boundary.right - edge - width)
-  const maxTop = Math.max(minimumTop, boundary.bottom - edge - height)
-  const placements =
-    placement === undefined || placement === 'auto'
-      ? defaultPlacements
-      : Array.isArray(placement)
-        ? placement.length
-          ? placement
-          : defaultPlacements
-        : [placement as ChartTooltipPlacement]
-  const candidates = placements.map((candidate) =>
-    tooltipPlacement(candidate, anchorX, anchorY, width, height, gap),
+  const resolved = resolveChartTooltipPlacement(
+    { x: anchorX, y: anchorY },
+    { width, height },
+    boundary,
+    placement,
+    offset,
   )
-  let selected = candidates[0]!
-  let selectedOverflow = overflow(selected, width, height, boundary, edge)
-  for (const candidate of candidates) {
-    const candidateOverflow = overflow(candidate, width, height, boundary, edge)
-    if (candidateOverflow === 0) {
-      selected = candidate
-      break
-    }
-    if (candidateOverflow < selectedOverflow) {
-      selected = candidate
-      selectedOverflow = candidateOverflow
-    }
-  }
-  tooltip.style.left = `${clamp(selected.left, minimumLeft, maxLeft)}px`
-  tooltip.style.top = `${clamp(selected.top, minimumTop, maxTop)}px`
-  tooltip.dataset.placement = selected.placement
+  tooltip.style.left = `${resolved.left}px`
+  tooltip.style.top = `${resolved.top}px`
+  tooltip.dataset.placement = resolved.placement
 }
 
 export function sceneToClient(
@@ -106,50 +78,4 @@ export function pointInBounds(
     point.y >= bounds.top &&
     point.y <= bounds.bottom
   )
-}
-
-function tooltipPlacement(
-  placement: ChartTooltipPlacement,
-  anchorX: number,
-  anchorY: number,
-  width: number,
-  height: number,
-  gap: number,
-) {
-  const xDirection =
-    placement.endsWith('right') || placement === 'right'
-      ? 1
-      : placement.endsWith('left') || placement === 'left'
-        ? -1
-        : 0
-  const yDirection =
-    placement.startsWith('bottom') || placement === 'bottom'
-      ? 1
-      : placement.startsWith('top') || placement === 'top'
-        ? -1
-        : 0
-  return {
-    placement,
-    left: anchorX + ((xDirection - 1) * width) / 2 + xDirection * gap,
-    top: anchorY + ((yDirection - 1) * height) / 2 + yDirection * gap,
-  }
-}
-
-function overflow(
-  position: { left: number; top: number },
-  width: number,
-  height: number,
-  boundary: TooltipBounds,
-  edge: number,
-) {
-  return (
-    Math.max(0, boundary.left + edge - position.left) +
-    Math.max(0, position.left + width + edge - boundary.right) +
-    Math.max(0, boundary.top + edge - position.top) +
-    Math.max(0, position.top + height + edge - boundary.bottom)
-  )
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.max(minimum, Math.min(maximum, value))
 }

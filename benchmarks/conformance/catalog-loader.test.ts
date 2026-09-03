@@ -147,7 +147,7 @@ describe('loadCatalogSourceClosure', () => {
       './cases/example/tanstack.ts': async () =>
         "import { rows } from './data'\nexport { rows }\n",
       './cases/example/data.ts': async () =>
-        "import { aapl } from '@charts-poc/demo-data/aapl'\nimport type { AaplRow } from '@charts-poc/demo-data/aapl'\nexport const rows: readonly AaplRow[] = aapl\n",
+        "import { aapl } from '@tanstack/charts-data/aapl'\nimport type { AaplRow } from '@tanstack/charts-data/aapl'\nexport const rows: readonly AaplRow[] = aapl\n",
     }
 
     const closure = await loadCatalogSourceClosure(
@@ -159,7 +159,7 @@ describe('loadCatalogSourceClosure', () => {
     expect(closure.datasets[0]).toMatchObject({
       id: 'aapl',
       title: 'Apple daily stock prices',
-      specifier: '@charts-poc/demo-data/aapl',
+      specifier: '@tanstack/charts-data/aapl',
       records: 1_260,
       fields: ['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume'],
       observablePackage: '@observablehq/sample-datasets@1.0.1',
@@ -235,6 +235,28 @@ describe('loadCatalogSourceClosure', () => {
     ])
     expect(closure.roles.support.files).toBe(1)
     expect(closure.roles.fixture.files).toBe(1)
+  })
+
+  it('includes reusable shared chart primitives and their data', async () => {
+    const modules = {
+      './cases/example/tanstack.ts': async () =>
+        "import { example } from '../../shared/transforms/chart-primitives'\nexport { example }\n",
+      './shared/transforms/chart-primitives.ts': async () =>
+        "import { rows } from '../fixtures/chart-data'\nexport const example = rows\n",
+      './shared/fixtures/chart-data.ts': async () =>
+        'export const rows = [1, 2, 3]\n',
+    }
+
+    const closure = await loadCatalogSourceClosure(
+      modules,
+      './cases/example/tanstack.ts',
+    )
+
+    expect(closure.files.map(({ kind, path }) => ({ kind, path }))).toEqual([
+      { kind: 'entry', path: 'tanstack.ts' },
+      { kind: 'support', path: 'shared/transforms/chart-primitives.ts' },
+      { kind: 'fixture', path: 'shared/fixtures/chart-data.ts' },
+    ])
   })
 
   it('includes case-local model modules as authored support', async () => {

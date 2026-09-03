@@ -11,11 +11,14 @@ const rows = [
 const radiusDefinition = defineChart({
   marks: [
     polar({
-      angle: { scale: () => scaleBand<string>().padding(0.08) },
-      radius: {
-        scale: scaleLinear().domain([0, 8]),
-        range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+      scales: {
+        angle: { scale: () => scaleBand<string>().padding(0.08) },
+        radius: {
+          scale: scaleLinear().domain([0, 8]),
+          range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+        },
       },
+
       marks: [
         radialBarRadius(rows, {
           angle: 'id',
@@ -26,16 +29,23 @@ const radiusDefinition = defineChart({
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 const angleDefinition = defineChart({
   marks: [
     polar({
-      angle: { scale: scaleLinear().domain([0, 8]) },
-      radius: {
-        scale: () => scaleBand<string>().paddingInner(0.3).paddingOuter(0.15),
-        range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+      scales: {
+        angle: { scale: scaleLinear().domain([0, 8]) },
+        radius: {
+          scale: () => scaleBand<string>().paddingInner(0.3).paddingOuter(0.15),
+          range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+        },
       },
+
       marks: [
         radialBarAngle(rows, {
           angle: 'value',
@@ -47,6 +57,10 @@ const angleDefinition = defineChart({
       ],
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 export function render(width: number, height: number) {

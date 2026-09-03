@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1240,
+  "id": "123-active-donut-metric",
+  "title": "Active donut metric",
+  "family": "theme",
+  "intent": "Keep one browser share selected across pointer and button input while its wedge, detached ring, center value, and legend state move together.",
+  "support": "native",
+  "features": [
+    "native pie allocation",
+    "rounded donut arcs",
+    "expanded active wedge",
+    "detached active ring",
+    "animated center metric",
+    "persistent accessible selection",
+    "CSS-variable palette",
+    "spring transitions"
+  ],
+  "geometry": [
+    { "role": "arc", "count": 7 },
+    { "role": "text", "count": 2 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "select-chart-then-legend",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "wedge:firefox" }
+        },
+        { "type": "wait", "durationMs": 240 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "activeId", "equals": "firefox" },
+            { "path": "focusedId", "equals": "firefox" },
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.id", "equals": "firefox" },
+            { "path": "tooltip.label", "equals": "Firefox" },
+            { "path": "tooltip.text", "includes": "Firefox" }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "browser:edge" }
+        },
+        { "type": "wait", "durationMs": 900 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "activeId", "equals": "edge" },
+            { "path": "focusedId", "equals": null },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        },
+        { "type": "screenshot", "name": "edge-legend-active" }
+      ]
+    }
+  ],
+  "source": {
+    "title": "shadcn Pie Chart — Interactive",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-interactive"
+  },
+  "ai": {
+    "create": "Create a polished browser-share donut with rounded source-linked arcs, an expanded selected wedge, a detached selected ring, a two-line center metric, and accessible persistent selection from either the chart or legend.",
+    "maintain": "Preserve stable browser identities, native pie allocation, CSS-variable colors, the seven-arc composition, synchronized center and legend state, spring continuity, and reduced-motion behavior without custom SVG paths."
+  }
+}

@@ -33,13 +33,16 @@ describe('polar radial bars', () => {
       .range([7, 9])
     const sourceRadius = scaleLinear().domain([0, 8]).range([7, 9])
     const definition = defineChart({
+      scales: { x: null, y: null },
       marks: [
         polar({
           radiusRatio: 0.8,
-          angle: { scale: sourceAngle },
-          radius: {
-            scale: sourceRadius,
-            range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+          scales: {
+            angle: { scale: sourceAngle },
+            radius: {
+              scale: sourceRadius,
+              range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+            },
           },
           marks: [
             radialBarRadius(rows, {
@@ -97,12 +100,15 @@ describe('polar radial bars', () => {
   it('maps explicit radial baselines through the configured radius range', () => {
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleBand<string>().domain(['A', 'B']) },
-            radius: {
-              scale: scaleLinear().domain([0, 8]),
-              range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+              radius: {
+                scale: scaleLinear().domain([0, 8]),
+                range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+              },
             },
             marks: [
               radialBarRadius(rows, {
@@ -137,12 +143,15 @@ describe('polar radial bars', () => {
     const datum = { id: 'negative', category: 'A', value: -4 }
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleBand<string>().domain(['A']) },
-            radius: {
-              scale: scaleLinear().domain([-8, 8]),
-              range: [20, 100],
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A']) },
+              radius: {
+                scale: scaleLinear().domain([-8, 8]),
+                range: [20, 100],
+              },
             },
             marks: [
               radialBarRadius([datum], {
@@ -182,12 +191,15 @@ describe('polar radial bars', () => {
       .paddingInner(0.38)
       .paddingOuter(0.19)
     const definition = defineChart({
+      scales: { x: null, y: null },
       marks: [
         polar({
-          angle: { scale: scaleLinear().domain([0, 8]) },
-          radius: {
-            scale: radiusScale,
-            range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 8]) },
+            radius: {
+              scale: radiusScale,
+              range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+            },
           },
           marks: [
             radialBarAngle(rows, {
@@ -254,12 +266,15 @@ describe('polar radial bars', () => {
     ]
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 8]) },
-            radius: {
-              scale: scaleBand<string>().domain(['A', 'B']),
-              range: [20, 100],
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 8]) },
+              radius: {
+                scale: scaleBand<string>().domain(['A', 'B']),
+                range: [20, 100],
+              },
             },
             marks: [
               radialBarAngle(data, {
@@ -293,12 +308,15 @@ describe('polar radial bars', () => {
     const datum = { id: 'rounded', ring: 'A', value: 1 }
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 4]) },
-            radius: {
-              scale: scaleBand<string>().domain(['A']),
-              range: [20, 40],
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 4]) },
+              radius: {
+                scale: scaleBand<string>().domain(['A']),
+                range: [20, 40],
+              },
             },
             marks: [
               radialBarAngle([datum], {
@@ -325,12 +343,15 @@ describe('polar radial bars', () => {
     const datum = { id: 'reversed-angle', ring: 'A', start: 3, end: 1 }
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleLinear().domain([0, 4]) },
-            radius: {
-              scale: scaleBand<string>().domain(['A']),
-              range: [20, 40],
+            scales: {
+              angle: { scale: scaleLinear().domain([0, 4]) },
+              radius: {
+                scale: scaleBand<string>().domain(['A']),
+                range: [20, 40],
+              },
             },
             marks: [
               radialBarAngle([datum], {
@@ -363,10 +384,13 @@ describe('polar radial bars', () => {
     expect(() =>
       createChartScene(
         defineChart({
+          scales: { x: null, y: null },
           marks: [
             polar({
-              angle: { scale: scalePoint<string>().domain(['A', 'B']) },
-              radius: { scale: scaleLinear().domain([0, 8]) },
+              scales: {
+                angle: { scale: scalePoint<string>().domain(['A', 'B']) },
+                radius: { scale: scaleLinear().domain([0, 8]) },
+              },
               marks: [
                 radialBarRadius(rows, {
                   angle: 'category',
@@ -383,10 +407,13 @@ describe('polar radial bars', () => {
     expect(() =>
       createChartScene(
         defineChart({
+          scales: { x: null, y: null },
           marks: [
             polar({
-              angle: { scale: scaleLinear().domain([0, 8]) },
-              radius: { scale: scaleLinear().domain([0, 1]) },
+              scales: {
+                angle: { scale: scaleLinear().domain([0, 8]) },
+                radius: { scale: scaleLinear().domain([0, 1]) },
+              },
               marks: [
                 radialBarAngle(
                   rows.map((row, index) => ({ ...row, ring: index })),
@@ -403,12 +430,15 @@ describe('polar radial bars', () => {
     expect(() =>
       createChartScene(
         defineChart({
+          scales: { x: null, y: null },
           marks: [
             polar({
-              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
-              radius: {
-                scale: scaleLinear().domain([0, 8]),
-                range: [Number.NaN, 100],
+              scales: {
+                angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+                radius: {
+                  scale: scaleLinear().domain([0, 8]),
+                  range: [Number.NaN, 100],
+                },
               },
               marks: [
                 radialBarRadius(rows, {
@@ -426,12 +456,15 @@ describe('polar radial bars', () => {
     expect(() =>
       createChartScene(
         defineChart({
+          scales: { x: null, y: null },
           marks: [
             polar({
-              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
-              radius: {
-                scale: scaleLinear().domain([0, 8]),
-                range: [] as unknown as [number, number],
+              scales: {
+                angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+                radius: {
+                  scale: scaleLinear().domain([0, 8]),
+                  range: [] as unknown as [number, number],
+                },
               },
               marks: [
                 radialBarRadius(rows, {
@@ -450,16 +483,19 @@ describe('polar radial bars', () => {
   it('re-resolves responsive ranges without mutating the source scale', () => {
     const radius = scaleLinear().domain([0, 8]).range([11, 13])
     const definition = defineChart({
+      scales: { x: null, y: null },
       marks: [
         polar({
           radiusRatio: 0.8,
-          angle: { scale: scaleBand<string>().domain(['A', 'B']) },
-          radius: {
-            scale: radius,
-            range: [
-              ({ radius: resolved }) => resolved * 0.25,
-              ({ radius: resolved }) => resolved,
-            ],
+          scales: {
+            angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+            radius: {
+              scale: radius,
+              range: [
+                ({ radius: resolved }) => resolved * 0.25,
+                ({ radius: resolved }) => resolved,
+              ],
+            },
           },
           marks: [
             radialBarRadius(rows, {
@@ -483,12 +519,15 @@ describe('polar radial bars', () => {
     const datum = { id: 'reversed', category: 'A', value: 6, low: 2 }
     const scene = createChartScene(
       defineChart({
+        scales: { x: null, y: null },
         marks: [
           polar({
-            angle: { scale: scaleBand<string>().domain(['A']) },
-            radius: {
-              scale: scaleLinear().domain([0, 8]),
-              range: [100, 20],
+            scales: {
+              angle: { scale: scaleBand<string>().domain(['A']) },
+              radius: {
+                scale: scaleLinear().domain([0, 8]),
+                range: [100, 20],
+              },
             },
             marks: [
               radialBarRadius([datum], {

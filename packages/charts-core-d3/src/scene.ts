@@ -1,8 +1,8 @@
 import { createColorScale, createScale, valueKey } from './scales'
 import { nearestPoint } from './nearest'
 import type {
-  DynamicChartConfig,
-  DynamicChartDefinition,
+  ResponsiveChartConfig,
+  ResponsiveChartDefinition,
   InitializedMark,
   ChartAxisOptions,
   ChartBounds,
@@ -44,14 +44,18 @@ export function defineChart<TInput>(): {
     const TMarks extends readonly ChartMark<unknown>[] =
       readonly ChartMark<unknown>[],
   >(
-    config: DynamicChartConfig<TInput, TPrepared, TMarks>,
-  ): DynamicChartDefinition<TInput, TPrepared, ChartMarkDatum<TMarks[number]>>
+    config: ResponsiveChartConfig<TInput, TPrepared, TMarks>,
+  ): ResponsiveChartDefinition<
+    TInput,
+    TPrepared,
+    ChartMarkDatum<TMarks[number]>
+  >
   <
     const TMarks extends readonly ChartMark<unknown>[] =
       readonly ChartMark<unknown>[],
   >(
     chart: (context: ChartBuildContext<TInput, TInput>) => ChartSpec<TMarks>,
-  ): DynamicChartDefinition<TInput, TInput, ChartMarkDatum<TMarks[number]>>
+  ): ResponsiveChartDefinition<TInput, TInput, ChartMarkDatum<TMarks[number]>>
 }
 export function defineChart<
   TInput,
@@ -59,25 +63,25 @@ export function defineChart<
   const TMarks extends readonly ChartMark<unknown>[] =
     readonly ChartMark<unknown>[],
 >(
-  config: DynamicChartConfig<TInput, TPrepared, TMarks>,
-): DynamicChartDefinition<TInput, TPrepared, ChartMarkDatum<TMarks[number]>>
+  config: ResponsiveChartConfig<TInput, TPrepared, TMarks>,
+): ResponsiveChartDefinition<TInput, TPrepared, ChartMarkDatum<TMarks[number]>>
 export function defineChart<
   TInput,
   const TMarks extends readonly ChartMark<unknown>[] =
     readonly ChartMark<unknown>[],
 >(
   chart: (context: ChartBuildContext<TInput, TInput>) => ChartSpec<TMarks>,
-): DynamicChartDefinition<TInput, TInput, ChartMarkDatum<TMarks[number]>>
+): ResponsiveChartDefinition<TInput, TInput, ChartMarkDatum<TMarks[number]>>
 export function defineChart(definition?: any): any {
   if (definition === undefined) {
     return (dynamicDefinition: any) =>
       (typeof dynamicDefinition === 'function'
         ? { chart: dynamicDefinition }
-        : dynamicDefinition) as DynamicChartDefinition
+        : dynamicDefinition) as ResponsiveChartDefinition
   }
   return (
     typeof definition === 'function' ? { chart: definition } : definition
-  ) as StaticChartDefinition | DynamicChartDefinition
+  ) as StaticChartDefinition | ResponsiveChartDefinition
 }
 
 export function createChartScene<TDatum>(

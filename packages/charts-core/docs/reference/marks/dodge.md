@@ -90,7 +90,10 @@ defineChart({
       layout: dodgeY({ anchor: 'middle' }),
     }),
   ],
-  x: { scale: scaleLinear().domain([5, 50]) },
+  scales: {
+    x: { scale: scaleLinear().domain([5, 50]) },
+    y: null,
+  },
 })
 ```
 

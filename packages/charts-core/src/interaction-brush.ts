@@ -9,7 +9,7 @@ import {
 } from './interaction-range-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
-  ChartBehavior,
+  ChartControl,
   ChartBounds,
   ChartHostControl,
   ChartScene,
@@ -100,16 +100,16 @@ const defaultId = 'brush-x'
 
 export function brushX<TValue extends ChartValue>(
   options: BrushXValuesOptions<TValue>,
-): ChartBehavior<TValue, any>
+): ChartControl<TValue, any>
 export function brushX<TValue extends number | Date>(
   options: BrushXContinuousOptions<TValue>,
-): ChartBehavior<TValue, any>
+): ChartControl<TValue, any>
 export function brushX<TValue extends ChartValue>(
   options: BrushXBaseOptions<TValue> & {
     values?: readonly TValue[]
     keyboard?: boolean
   },
-): ChartBehavior<TValue, any> {
+): ChartControl<TValue, any> {
   const id = options.id ?? defaultId
   const handleSize = finitePositive(options.handleSize ?? 24, 'handleSize')
   const keyboard =
