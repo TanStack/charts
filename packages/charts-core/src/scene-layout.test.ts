@@ -6,6 +6,7 @@ import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
 import { text } from './text'
 import type {
+  ChartAxisLabelOptions,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelValue,
@@ -238,6 +239,140 @@ describe('automatic scene guide layout', () => {
     })
     expect(second.fontWeight).toBeUndefined()
     expect(yLabels.every(({ anchor }) => anchor === 'end')).toBe(true)
+  })
+
+  it('applies axis-title typography and paint while preserving string-label defaults', () => {
+    const xLabel = {
+      text: 'Styled horizontal title',
+      fontSize: 18,
+      fontWeight: 700,
+      fill: '#7c3aed',
+      opacity: 0.45,
+    } satisfies ChartAxisLabelOptions
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([0, 1])],
+        margin: 0,
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: { label: xLabel },
+          },
+          y: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: { label: 'Default vertical title' },
+          },
+        },
+      }),
+      { width: 480, height: 240 },
+      { measureText },
+    )
+    const labels = flatten(scene.nodes).filter(
+      (node): node is SceneLabel => node.kind === 'label',
+    )
+    const styled = labels.find(({ key }) => key === 'x-label')
+    const defaulted = labels.find(({ key }) => key === 'y-label')
+
+    expect(styled).toMatchObject({
+      text: xLabel.text,
+      fontSize: 18,
+      fontWeight: 700,
+      style: { fill: '#7c3aed', opacity: 0.45 },
+    })
+    expect(defaulted).toMatchObject({
+      text: 'Default vertical title',
+      fontSize: 11,
+      fontWeight: 600,
+      style: { fill: 'currentColor', fillOpacity: 0.76 },
+    })
+    expect(styled?.style).toStrictEqual({
+      fill: '#7c3aed',
+      opacity: 0.45,
+    })
+    expect(defaulted?.style).toStrictEqual({
+      fill: 'currentColor',
+      fillOpacity: 0.76,
+    })
+
+    const xTitle = (label: string | ChartAxisLabelOptions) => {
+      const titleScene = createChartScene(
+        defineChart({
+          marks: [lineY([0, 1])],
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: { label },
+            },
+            y: { scale: scaleLinear().domain([0, 1]), axis: false },
+          },
+        }),
+        { width: 480, height: 240 },
+        { measureText },
+      )
+      const title = flatten(titleScene.nodes).find(
+        (node): node is SceneLabel =>
+          node.kind === 'label' && node.key === 'x-label',
+      )
+      if (!title) throw new Error('Expected an x-axis title')
+      return title
+    }
+    const defaultStringTitle = xTitle('Default horizontal title')
+    const defaultObjectTitle = xTitle({ text: 'Default horizontal title' })
+    const transparentTitle = xTitle({
+      text: 'Transparent horizontal title',
+      opacity: 0,
+    })
+
+    expect(defaultObjectTitle).toStrictEqual(defaultStringTitle)
+    expect(transparentTitle.style).toStrictEqual({
+      fill: 'currentColor',
+      opacity: 0,
+    })
+  })
+
+  it('measures configured axis-title typography into automatic margins', () => {
+    const definition = (fontSize: number, fontWeight: number) =>
+      defineChart({
+        marks: [lineY([0, 1])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: false,
+              label: {
+                text: 'Average order value',
+                fontSize,
+                fontWeight,
+              },
+            },
+          },
+        },
+      })
+    const measured = vi.fn(measureText)
+    const regular = createChartScene(
+      definition(11, 600),
+      { width: 480, height: 240 },
+      { measureText: measured },
+    )
+    const enlarged = createChartScene(
+      definition(24, 750),
+      { width: 480, height: 240 },
+      { measureText: measured },
+    )
+
+    expect(enlarged.margin.left).toBeGreaterThan(regular.margin.left)
+    expect(measured).toHaveBeenCalledWith(
+      'Average order value',
+      expect.objectContaining({ fontSize: 24, fontWeight: 750 }),
+    )
+    const title = flatten(enlarged.nodes).find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key === 'y-label',
+    )
+    if (!title) throw new Error('Expected a y-axis title')
+    const bounds = measureSceneLabelBounds(title, measureText)
+    expect(bounds.x).toBeGreaterThanOrEqual(3.99)
   })
 
   it('measures accessor-resolved tick-label bounds into automatic margins', () => {

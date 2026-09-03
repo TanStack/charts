@@ -27,7 +27,11 @@ import type {
   SceneNode,
   StaticChartDefinition,
 } from './types'
-import type { ComposeViewsOptions, ViewScaleLink } from './view'
+import type {
+  ComposableResponsiveChartDefinition,
+  ComposeViewsOptions,
+  ViewScaleLink,
+} from './view'
 import type { PieDatum } from './polar'
 
 interface MainRow {
@@ -71,26 +75,34 @@ describe('composed views', () => {
       height: number
       foreground: string
     }> = []
-    const responsive = defineChart(({ width, height, defaultTheme }) => {
-      contexts.push({
-        width,
-        height,
-        foreground: defaultTheme.foreground,
-      })
-      return {
-        marks: [dot([{ x: width, y: height }], { x: 'x', y: 'y' })],
-        scales: {
-          x: { scale: scaleLinear().domain([0, width]) },
-          y: { scale: scaleLinear().domain([0, height]) },
-        },
-        guides: false,
-        margin: 0,
-      }
+    const responsive = defineChart({
+      chart: ({ width, height, defaultTheme }) => {
+        contexts.push({
+          width,
+          height,
+          foreground: defaultTheme.foreground,
+        })
+        return {
+          marks: [dot([{ x: width, y: height }], { x: 'x', y: 'y' })],
+          scales: {
+            x: { scale: scaleLinear().domain([0, width]) },
+            y: { scale: scaleLinear().domain([0, height]) },
+          },
+          guides: false,
+          margin: 0,
+        }
+      },
     })
     const definition = composeViews({
       views: { responsive },
       layout: fill('responsive'),
     })
+    expectTypeOf<ChartSpecDatum<typeof definition>>().toEqualTypeOf<{
+      x: number
+      y: number
+    }>()
+    expectTypeOf<ChartSpecXValue<typeof definition>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartSpecYValue<typeof definition>>().toEqualTypeOf<number>()
 
     const scene = createChartScene(
       { ...definition, theme: { foreground: '#123456' } },
@@ -573,6 +585,20 @@ describe('composed views', () => {
       ...child,
       theme: { background: '#fff' },
     } as unknown as StaticChartDefinition
+    const focusThemeChild = {
+      ...child,
+      theme: { focusRing: false },
+    } as unknown as StaticChartDefinition
+    const responsiveFocusThemeChild = defineChart(() => ({
+      marks: [dot([{ id: 'point', x: 0, y: 1 }], { x: 'x', y: 'y' })],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 2]) },
+      },
+      guides: false,
+      margin: 0,
+      theme: { focusRing: false },
+    }))
 
     expect(() =>
       unsafeCompose({
@@ -604,6 +630,21 @@ describe('composed views', () => {
         layout: fill('child'),
       }),
     ).toThrow(/cannot own a scene background/)
+    expect(() =>
+      unsafeCompose({
+        views: { child: focusThemeChild },
+        layout: fill('child'),
+      }),
+    ).toThrow(/cannot own a focus ring theme/)
+    expect(() =>
+      createChartScene(
+        unsafeCompose({
+          views: { child: responsiveFocusThemeChild },
+          layout: fill('child'),
+        }),
+        { width: 300, height: 200 },
+      ),
+    ).toThrow(/cannot own a focus ring theme/)
 
     const controlled = composeViews({
       views: { child: controlledLegendChild() },
@@ -620,6 +661,38 @@ describe('composed views', () => {
       summary: linearChild([0, 10]),
     }
     if (false) {
+      const focusThemeChild = {
+        ...linearChild([0, 10]),
+        theme: { focusRing: false as const },
+      }
+      const responsiveFocusThemeChild = defineChart(() => ({
+        ...linearChild([0, 10]),
+        theme: { focusRing: false as const },
+      }))
+      const annotatedResponsiveFocusThemeChild: ComposableResponsiveChartDefinition =
+        {
+          chart: () => ({
+            marks: [],
+            scales: { x: null, y: null },
+            theme: {
+              // @ts-expect-error A composable responsive child cannot resolve an outer focus ring theme.
+              focusRing: false,
+            },
+          }),
+        }
+      void annotatedResponsiveFocusThemeChild
+      composeViews({
+        // @ts-expect-error A composed child cannot own the outer focus ring theme.
+        views: { child: focusThemeChild },
+        // @ts-expect-error A composed child cannot own the outer focus ring theme.
+        layout: fill('child'),
+      })
+      composeViews({
+        // @ts-expect-error A responsive child cannot return the outer focus ring theme.
+        views: { child: responsiveFocusThemeChild },
+        // @ts-expect-error The rejected responsive child cannot be placed.
+        layout: fill('child'),
+      })
       composeViews({
         views,
         // @ts-expect-error "ghost" is not a named view
@@ -639,6 +712,22 @@ describe('composed views', () => {
     }
 
     expect(Object.keys(views)).toEqual(['main', 'summary'])
+  })
+
+  it('uses the outer focus ring theme for composed points', () => {
+    const definition = composeViews({
+      views: { child: linearChild([0, 10]) },
+      layout: fill('child'),
+    })
+    const scene = createChartScene(
+      { ...definition, theme: { focusRing: { radius: 9 } } },
+      { width: 300, height: 200 },
+    )
+    const focusDots = flatten(scene.nodes).filter(
+      (node) => node.kind === 'dot' && node.radius === 9,
+    )
+
+    expect(focusDots).toHaveLength(1)
   })
 })
 

@@ -69,6 +69,11 @@ export function createExampleChart({ revision = 0 }: ChartOptions = {}) {
       },
     },
     {
+      focusRing: {
+        radius: 4,
+        strokeWidth: 2,
+        fill: '#ffffff',
+      },
       keyboard: true,
       tooltip: { use: tooltip, ...interactiveTooltip },
     },

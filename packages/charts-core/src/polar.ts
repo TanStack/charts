@@ -24,6 +24,7 @@ import {
 } from './polar-sector-internal'
 import { resolveNumericScale, resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
+import { physicalTextAnchor } from './guide-layout'
 import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
 import type {
   Channel,
@@ -280,8 +281,13 @@ export function polar(
             values: marks.flatMap((mark) => mark.colorValues),
           },
         },
-        render: ({ chart, color, theme }) => {
-          const layout = resolvePolarLayout(options, chart, marks)
+        render: ({ chart, color, theme, layout: chartLayout }) => {
+          const layout = resolvePolarLayout(
+            options,
+            chart,
+            marks,
+            chartLayout.typography?.direction,
+          )
           for (const mark of marks) {
             if (mark.angleScale) {
               requiredPolarScale(
@@ -1720,7 +1726,7 @@ export function radialText<TDatum>(
               text: String(textValue),
               anchor:
                 authoredAnchor === 'outside'
-                  ? outsideRadialAnchor(anglePosition)
+                  ? outsideRadialAnchor(anglePosition, layout.direction)
                   : authoredAnchor,
               baseline: visualValue(
                 options.baseline,
@@ -2408,7 +2414,7 @@ export function angleGrid(options: AngleGridOptions = {}): PolarGuide {
             anchor: guideLabelOption(
               options.labelAnchor,
               labelContext,
-              outsideRadialAnchor(position),
+              outsideRadialAnchor(position, layout.direction),
             ),
             baseline: guideLabelOption(
               options.labelBaseline,
@@ -2452,6 +2458,7 @@ function resolvePolarLayout(
   options: PolarOptions,
   chart: ChartBounds,
   marks: readonly InitializedPolarMark[],
+  direction: PolarLayoutContext['direction'],
 ): PolarLayoutContext {
   const startAngle = finite(options.startAngle, 0)
   const endAngle = finite(options.endAngle, tau)
@@ -2468,6 +2475,7 @@ function resolvePolarLayout(
     radius,
     startAngle,
     endAngle,
+    direction,
     scales,
   }
 
@@ -2794,13 +2802,13 @@ function isCompleteRevolution(startAngle: number, endAngle: number): boolean {
   return Math.abs(Math.abs(endAngle - startAngle) - tau) <= 1e-12
 }
 
-function outsideRadialAnchor(angle: number): 'start' | 'middle' | 'end' {
+function outsideRadialAnchor(
+  angle: number,
+  direction: PolarLayoutContext['direction'],
+): 'start' | 'middle' | 'end' {
   const horizontal = Math.sin(angle)
-  return Math.abs(horizontal) <= 1e-6
-    ? 'middle'
-    : horizontal < 0
-      ? 'end'
-      : 'start'
+  if (Math.abs(horizontal) <= 1e-6) return 'middle'
+  return physicalTextAnchor(horizontal < 0 ? 'right' : 'left', direction)
 }
 
 function guideLabelOption<TValue>(

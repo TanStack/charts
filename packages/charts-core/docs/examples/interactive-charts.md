@@ -49,6 +49,21 @@ dot(rows, {
 })
 ```
 
+The same definition can make the built-in indicator smaller while retaining
+its series-colored outline:
+
+```ts
+const definition = defineChart({
+  marks,
+  scales,
+  focusRing: {
+    radius: 4,
+    strokeWidth: 2,
+    fill: '#ffffff',
+  },
+})
+```
+
 <!-- ::chart-example id=34-pointer-tooltip height=480 -->
 
 A focused band emphasizes the shared x value for every series. Its position

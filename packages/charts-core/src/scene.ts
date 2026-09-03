@@ -2,6 +2,7 @@ import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import {
   measureSceneLabelBounds,
+  physicalTextAnchor,
   withChartTextTypography,
 } from './guide-layout'
 import { nearestScenePoint } from './nearest'
@@ -118,16 +119,28 @@ type ChartDefinitionWithOptions<TDefinition, TOptions> = Omit<
 > &
   TOptions
 
+declare const definedResponsiveChart: unique symbol
+
 type DefinedResponsiveChart<TSpec extends ErasedChartSpec> = Omit<
   ResponsiveChartDefinition<
     ChartSpecDatum<TSpec>,
     ChartSpecXValue<TSpec>,
     ChartSpecYValue<TSpec>
   >,
-  keyof ChartDefinitionOptions
+  keyof ChartDefinitionOptions | 'chart'
 > & {
-  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
+  readonly [definedResponsiveChart]: TSpec
+  chart: (context: ChartBuildContext) => TSpec
 }
+
+type ValidResponsiveDefinitionInput<
+  TDefinition extends ResponsiveChartDefinition<any, any, any>,
+> =
+  ErasedChartSpec extends ReturnType<TDefinition['chart']>
+    ? unknown
+    : typeof definedResponsiveChart extends keyof TDefinition
+      ? unknown
+      : never
 
 export function defineChart<
   const TMarks extends readonly ChartMark<any, any, any, any, any, any, any>[],
@@ -141,18 +154,11 @@ export function defineChart<
 ): DefinedStaticChart<TMarks, TSpec>
 export function defineChart<
   const TSpec extends ErasedChartSpec,
-  TTooltipHost extends string = never,
+  TTooltipHost extends string,
+  const TConfig extends ResponsiveChartConfig<TSpec, TTooltipHost>,
 >(
-  config: ResponsiveChartConfig<TSpec, TTooltipHost>,
-): Omit<
-  ResponsiveChartDefinition<
-    ChartSpecDatum<TSpec>,
-    ChartSpecXValue<TSpec>,
-    ChartSpecYValue<TSpec>
-  >,
-  keyof ChartDefinitionOptions
-> &
-  ResponsiveChartConfig<TSpec, TTooltipHost>
+  config: ResponsiveChartConfig<TSpec, TTooltipHost> & TConfig,
+): DefinedResponsiveChart<ReturnType<TConfig['chart']>> & Omit<TConfig, 'chart'>
 export function defineChart<const TSpec extends ErasedChartSpec>(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DefinedResponsiveChart<TSpec>
@@ -231,9 +237,7 @@ export function defineChart<
   >,
 >(
   definition: TDefinition &
-    (ErasedChartSpec extends ReturnType<TDefinition['chart']>
-      ? unknown
-      : never),
+    ValidResponsiveDefinitionInput<NoInfer<TDefinition>>,
   options: TOptions,
 ): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart(definition?: any, options?: any): any {
@@ -512,6 +516,7 @@ function createChartSceneWithScaleResolver<
       theme,
       width,
       height,
+      direction: layoutOptions.typography?.direction,
     }
     nodes.push(legend.render(legendContext))
     if (legend.control) controls.push(legend.control(legendContext))
@@ -524,11 +529,14 @@ function createChartSceneWithScaleResolver<
     }
     hostControlIds.add(identity)
   }
-  if (
-    definition.focus !== false &&
-    definition.focusRing !== false &&
-    points.length
-  ) {
+  const focusRing = definition.focusRing ?? theme.focusRing
+  if (definition.focus !== false && focusRing !== false && points.length) {
+    const focusRingOptions =
+      typeof focusRing === 'object' ? focusRing : undefined
+    const radius = finiteNonNegative(focusRingOptions?.radius, 5)
+    const fill = focusRingOptions?.fill ?? 'var(--ts-chart-focus-fill, Canvas)'
+    const stroke = focusRingOptions?.stroke
+    const strokeWidth = finiteNonNegative(focusRingOptions?.strokeWidth, 2.5)
     for (const entry of defaultFocusEntries) {
       nodes.push({
         kind: 'group',
@@ -547,11 +555,11 @@ function createChartSceneWithScaleResolver<
           key: point.key,
           x: point.x,
           y: point.y,
-          radius: 5,
+          radius,
           style: {
-            fill: 'var(--ts-chart-focus-fill, Canvas)',
-            stroke: point.color,
-            strokeWidth: 2.5,
+            fill,
+            stroke: stroke ?? point.color,
+            strokeWidth,
           },
         })),
       })
@@ -569,6 +577,9 @@ function createChartSceneWithScaleResolver<
     colors,
     gradients: definition.gradients ?? [],
     theme,
+    ...(layoutOptions.typography?.direction === undefined
+      ? {}
+      : { direction: layoutOptions.typography.direction }),
     ...(controls.length ? { controls } : {}),
     ...(focusGuides.length ? { focusGuides } : {}),
     [chartSceneSource]: [definition, initialized],
@@ -1077,6 +1088,7 @@ function resolveSceneLayout(
       theme,
       width,
       height,
+      direction: layout.typography?.direction,
     })
     const legendBounds =
       legend && legendHeight !== undefined
@@ -1097,6 +1109,7 @@ function resolveSceneLayout(
       theme,
       width,
       layout.measureText,
+      layout.typography?.direction === 'rtl',
     )
     return {
       margin,
@@ -1131,6 +1144,7 @@ function resolveSceneLayout(
           theme,
           width,
           height,
+          direction: layout.typography?.direction,
         },
       )
       if (resolved.legend.placement === 'bottom') {
@@ -1274,6 +1288,15 @@ function finiteMargin(value: number | undefined): number {
   return value !== undefined && Number.isFinite(value) ? Math.max(0, value) : 0
 }
 
+function finiteNonNegative(
+  value: number | undefined,
+  fallback: number,
+): number {
+  return value !== undefined && Number.isFinite(value) && value >= 0
+    ? value
+    : fallback
+}
+
 function uniformMargin(value: number): ChartMargin {
   return { top: value, right: value, bottom: value, left: value }
 }
@@ -1355,6 +1378,7 @@ function createAxes(
   theme: ChartTheme,
   width: number,
   measureText?: ChartTextMeasurer,
+  rightToLeft = false,
 ): ResolvedAxes {
   const children: SceneNode[] = []
   const inset = guides.length ? automaticGuideInset : 0
@@ -1469,6 +1493,7 @@ function createAxes(
             width,
             theme,
             measureText,
+            rightToLeft,
           )
     const visibleLabels =
       tickLabels === false
@@ -1501,9 +1526,12 @@ function createAxes(
       children.push(candidate.label)
     }
 
-    const labelText = axisLabelText(presentation)
+    const axisLabel = presentation?.label
+    const labelText =
+      typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
     if (!labelText) return
-    const labelOffset = axisLabelOffset(presentation)
+    const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
+    const labelOffset = labelOptions?.offset ?? 'auto'
     const explicitOffset = labelOffset !== 'auto'
     const label: SceneLabel = {
       kind: 'label',
@@ -1515,9 +1543,14 @@ function createAxes(
       text: labelText,
       anchor: 'middle',
       baseline: bottom && !explicitOffset ? 'hanging' : 'auto',
-      fontSize: width < 360 ? 10 : 11,
-      fontWeight: 600,
-      style: { fill: theme.foreground, fillOpacity: 0.76 },
+      fontSize: labelOptions?.fontSize ?? (width < 360 ? 10 : 11),
+      fontWeight: labelOptions?.fontWeight ?? 600,
+      style: {
+        fill: labelOptions?.fill ?? theme.foreground,
+        ...(labelOptions?.opacity === undefined
+          ? { fillOpacity: 0.76 }
+          : { opacity: labelOptions.opacity }),
+      },
     }
     includeOutward(measureSceneLabelBounds(label, measureText))
     children.push(label)
@@ -1564,6 +1597,7 @@ function createAxes(
             width,
             theme,
             measureText,
+            rightToLeft,
           )
     const visibleLabels =
       tickLabels === false ? [] : thinTickLabels(candidates, tickLabels, false)
@@ -1594,8 +1628,11 @@ function createAxes(
       children.push(candidate.label)
     }
 
-    const labelText = axisLabelText(presentation)
+    const axisLabel = presentation?.label
+    const labelText =
+      typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
     if (!labelText) return
+    const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
     const label: SceneLabel = {
       kind: 'label',
       key: `${guide.id}-label`,
@@ -1605,11 +1642,16 @@ function createAxes(
       anchor: 'middle',
       baseline: 'middle',
       rotate: right ? 90 : -90,
-      fontSize: 11,
-      fontWeight: 600,
-      style: { fill: theme.foreground, fillOpacity: 0.76 },
+      fontSize: labelOptions?.fontSize ?? 11,
+      fontWeight: labelOptions?.fontWeight ?? 600,
+      style: {
+        fill: labelOptions?.fill ?? theme.foreground,
+        ...(labelOptions?.opacity === undefined
+          ? { fillOpacity: 0.76 }
+          : { opacity: labelOptions.opacity }),
+      },
     }
-    const labelOffset = axisLabelOffset(presentation)
+    const labelOffset = labelOptions?.offset ?? 'auto'
     if (labelOffset !== 'auto') {
       label.x = axisX + direction * Math.max(0, finiteMargin(labelOffset))
     } else {
@@ -1676,20 +1718,6 @@ function tickLabelPresentation(
   return axis?.tickLabels ?? {}
 }
 
-function axisLabelText(
-  axis: ChartAxisPresentationOptions | undefined,
-): string | undefined {
-  return typeof axis?.label === 'string' ? axis.label : axis?.label?.text
-}
-
-function axisLabelOffset(
-  axis: ChartAxisPresentationOptions | undefined,
-): number | 'auto' {
-  return typeof axis?.label === 'object'
-    ? (axis.label.offset ?? 'auto')
-    : 'auto'
-}
-
 interface TickLabelCandidate {
   value: ChartValue
   label: SceneLabel
@@ -1737,6 +1765,7 @@ function createTickLabelCandidates(
   width: number,
   theme: ChartTheme,
   measureText: ChartTextMeasurer | undefined,
+  rightToLeft = false,
 ): TickLabelCandidate[] {
   const defaultFontSize = width < 360 ? 10 : 11
   const positiveSide = guide.side === 'bottom' || guide.side === 'right'
@@ -1755,18 +1784,20 @@ function createTickLabelCandidates(
     const opacity = resolveTickLabelValue(options.opacity, context)
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
-    const defaultAnchor =
+    // Automatic anchors preserve a physical placement outside the plot.
+    // Authored anchors remain logical SVG start/end values.
+    const automaticAnchor: NonNullable<SceneLabel['anchor']> =
       guide.channel === 'y'
         ? positiveSide
-          ? 'start'
-          : 'end'
+          ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
+          : physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
         : (rotate ?? 0) < 0
-          ? 'end'
+          ? physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
           : (rotate ?? 0) > 0
-            ? 'start'
+            ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
             : 'middle'
     const anchor =
-      resolveTickLabelValue(options.anchor, context) ?? defaultAnchor
+      resolveTickLabelValue(options.anchor, context) ?? automaticAnchor
     const label: SceneLabel =
       guide.channel === 'x'
         ? {

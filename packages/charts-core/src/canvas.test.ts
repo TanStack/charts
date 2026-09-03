@@ -37,6 +37,13 @@ import type { ChartScene, SceneNode } from './types'
 interface FakeCanvasContext {
   operations: string[]
   gradientStops: Array<[number, string]>
+  textPaints: Array<{
+    text: string
+    globalAlpha: number
+    font: string
+    direction: CanvasDirection
+    textAlign: CanvasTextAlign
+  }>
   context: CanvasRenderingContext2D
 }
 
@@ -77,6 +84,79 @@ afterEach(() => {
 })
 
 describe('Canvas renderer', () => {
+  it('paints authored caps and joins for both line directions', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([4, 9], { lineCap: 'butt', lineJoin: 'bevel' }),
+          lineX([4, 9], { lineCap: 'square', lineJoin: 'miter' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+        guides: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(scene, renderOptions())
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.operations).toEqual(
+      expect.arrayContaining([
+        'lineCap:butt',
+        'lineJoin:bevel',
+        'lineCap:square',
+        'lineJoin:miter',
+      ]),
+    )
+
+    surface.destroy()
+  })
+
+  it('paints round caps and joins by default for both line directions', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([4, 9]), lineX([4, 9])],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+        guides: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(scene, renderOptions())
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(
+      painted.operations.filter((operation) =>
+        operation.startsWith('lineCap:'),
+      ),
+    ).toEqual(['lineCap:round', 'lineCap:round'])
+    expect(
+      painted.operations.filter((operation) =>
+        operation.startsWith('lineJoin:'),
+      ),
+    ).toEqual(['lineJoin:round', 'lineJoin:round'])
+
+    surface.destroy()
+  })
+
   it('composes renderer-tagged marks in source order', () => {
     const data = [
       { id: 'a', category: 'A', value: 3 },
@@ -986,6 +1066,127 @@ describe('Canvas renderer', () => {
       expect.arrayContaining([expect.stringMatching(/^stroke:.*:2\.5:1$/)]),
     )
     surface.destroy()
+  })
+
+  it('paints Cartesian axis-title typography and paint', () => {
+    const definition = defineChart({
+      marks: [lineY([1, 2, 3])],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]), axis: false },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          axis: {
+            ticks: false,
+            label: {
+              text: 'Revenue',
+              fontSize: 17,
+              fontWeight: 650,
+              fill: '#0f766e',
+              opacity: 0.6,
+            },
+          },
+        },
+      },
+    })
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const generated = createChartScene(definition, {
+      width: 480,
+      height: 260,
+    })
+    const title = generated.nodes
+      .flatMap((node) => (node.kind === 'group' ? node.children : [node]))
+      .find((node) => node.key === 'y-label')
+
+    expect(title?.style?.fill).toBe('#0f766e')
+    surface.render(generated, { ariaLabel: 'Revenue chart' })
+
+    const painted = contexts
+      .get(surface.sceneCanvas)
+      ?.textPaints.find(({ text }) => text === 'Revenue')
+    expect(painted).toMatchObject({
+      globalAlpha: 0.6,
+    })
+    expect(painted?.font).toMatch(/650 17px/)
+    surface.destroy()
+  })
+
+  it('paints start and end as logical anchors in right-to-left hosts', () => {
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    surface.element.style.direction = 'rtl'
+    surface.render(
+      scene([
+        {
+          kind: 'label',
+          key: 'start',
+          x: 20,
+          y: 20,
+          text: 'Start',
+          anchor: 'start',
+        },
+        {
+          kind: 'label',
+          key: 'end',
+          x: 80,
+          y: 40,
+          text: 'End',
+          anchor: 'end',
+        },
+      ]),
+      renderOptions(),
+    )
+
+    expect(contexts.get(surface.sceneCanvas)?.textPaints).toMatchObject([
+      { text: 'Start', direction: 'rtl', textAlign: 'start' },
+      { text: 'End', direction: 'rtl', textAlign: 'end' },
+    ])
+    surface.destroy()
+  })
+
+  it('paints configured focus-ring geometry and paint on Canvas', () => {
+    const chart = createChartScene(
+      defineChart({
+        marks: [dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' })],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
+        guides: false,
+        focusRing: {
+          radius: 4,
+          strokeWidth: 1.5,
+          fill: '#ffffff',
+          stroke: '#0f172a',
+        },
+      }),
+      { width: 200, height: 120 },
+    )
+    const point = chart.points[0]
+    if (!point) throw new Error('Expected a focus point')
+    const container = document.createElement('div')
+    document.body.append(container)
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(chart, renderOptions())
+    const focus = contexts.get(surface.focusCanvas)
+    if (!focus) throw new Error('Expected a Canvas focus layer')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(focus.operations).toContain(`arc:${point.x},${point.y},4`)
+    expect(focus.operations).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^stroke:.*:1\.5:1$/)]),
+    )
+    expect(focus.operations).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^fill:.*(?:ffffff|255)/)]),
+    )
+    surface.destroy()
+    container.remove()
   })
 
   it('snaps retargeting focus candidates without adding interaction points', () => {
@@ -2432,6 +2633,7 @@ function renderOptions(): ChartSurfaceRenderOptions {
 function fakeContext(): FakeCanvasContext {
   const operations: string[] = []
   const gradientStops: Array<[number, string]> = []
+  const textPaints: FakeCanvasContext['textPaints'] = []
   let fillStyle: string | CanvasGradient = '#000000'
   let strokeStyle: string | CanvasGradient = '#000000'
   let lineWidth = 1
@@ -2466,22 +2668,32 @@ function fakeContext(): FakeCanvasContext {
       operations.push(`translate:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
     clip: () => operations.push('clip'),
-    fill: (pathOrRule?: Path2D | CanvasFillRule) =>
+    fill: (pathOrRule?: Path2D | CanvasFillRule) => {
       operations.push(
         pathOrRule === 'evenodd'
           ? 'fill:evenodd'
           : pathOrRule
             ? 'fill:path'
             : 'fill:current',
-      ),
+      )
+      operations.push(`fill:${String(fillStyle)}:${globalAlpha}`)
+    },
     stroke: (path?: Path2D) => {
       operations.push(path ? 'stroke:path' : 'stroke:current')
       operations.push(
         `stroke:${String(strokeStyle)}:${lineWidth}:${globalAlpha}`,
       )
     },
-    fillText: (text: string, x: number, y: number) =>
-      operations.push(`fillText:${text},${x},${y}`),
+    fillText: (text: string, x: number, y: number) => {
+      operations.push(`fillText:${text},${x},${y}`)
+      textPaints.push({
+        text,
+        globalAlpha,
+        font: context.font,
+        direction: context.direction,
+        textAlign: context.textAlign,
+      })
+    },
     strokeText: (text: string, x: number, y: number) =>
       operations.push(`strokeText:${text},${x},${y}`),
     setLineDash: (values: number[]) =>
@@ -2537,5 +2749,5 @@ function fakeContext(): FakeCanvasContext {
     textAlign: 'left',
     textBaseline: 'alphabetic',
   } as unknown as CanvasRenderingContext2D
-  return { operations, gradientStops, context }
+  return { operations, gradientStops, textPaints, context }
 }

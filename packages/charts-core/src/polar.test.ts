@@ -687,40 +687,46 @@ describe('polar marks', () => {
       angle,
       radius: 1,
     }))
-    const scene = createChartScene(
-      defineChart({
-        scales: { x: null, y: null },
-        marks: [
-          polar({
-            scales: {
-              angle: { scale: scaleLinear().domain([0, tau]) },
-              radius: { scale: scaleLinear().domain([0, 1]) },
-            },
-            guides: [
-              angleGrid({ values }),
-              angleGrid({
-                id: 'authored-anchor',
-                values: [Math.PI / 2],
-                labelAnchor: 'end',
-              }),
-            ],
-            marks: [
-              radialText(rows, {
-                id: 'outside-labels',
-                angle: 'angle',
-                radius: 'radius',
-                text: 'id',
-                key: 'id',
-                radiusOffset: 8,
-                anchor: 'outside',
-              }),
-            ],
-          }),
-        ],
-        margin: 0,
-      }),
-      { width: 200, height: 200 },
-    )
+    const definition = defineChart({
+      scales: { x: null, y: null },
+      marks: [
+        polar({
+          scales: {
+            angle: { scale: scaleLinear().domain([0, tau]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+          },
+          guides: [
+            angleGrid({ values }),
+            angleGrid({
+              id: 'authored-anchor',
+              values: [Math.PI / 2],
+              labelAnchor: 'end',
+            }),
+          ],
+          marks: [
+            radialText(rows, {
+              id: 'outside-labels',
+              angle: 'angle',
+              radius: 'radius',
+              text: 'id',
+              key: 'id',
+              radiusOffset: 8,
+              anchor: 'outside',
+            }),
+            radialText([{ id: 'authored', angle: Math.PI / 2, radius: 1 }], {
+              id: 'authored-text-anchor',
+              angle: 'angle',
+              radius: 'radius',
+              text: 'id',
+              key: 'id',
+              anchor: 'start',
+            }),
+          ],
+        }),
+      ],
+      margin: 0,
+    })
+    const scene = createChartScene(definition, { width: 200, height: 200 })
     const labels = flatten(scene.nodes).filter((node) => node.kind === 'label')
     const textAnchors = rows.map((row) =>
       labels.find((node) =>
@@ -743,6 +749,45 @@ describe('polar marks', () => {
     expect(labels.every((node) => node.anchor !== ('outside' as never))).toBe(
       true,
     )
+
+    const rtlScene = createChartScene(
+      definition,
+      { width: 200, height: 200 },
+      { typography: { direction: 'rtl' } },
+    )
+    const rtlLabels = flatten(rtlScene.nodes).filter(
+      (node) => node.kind === 'label',
+    )
+    const rtlExpected = expected.map((anchor) =>
+      anchor === 'start' ? 'end' : anchor === 'end' ? 'start' : anchor,
+    )
+    expect(
+      rows.map(
+        (row) =>
+          rtlLabels.find((node) =>
+            node.key.endsWith(`string:${row.id.length}:${row.id}`),
+          )?.anchor,
+      ),
+    ).toEqual(rtlExpected)
+    expect(
+      values.map(
+        (value) =>
+          rtlLabels.find((node) => node.key === `angle-label:number:${value}`)
+            ?.anchor,
+      ),
+    ).toEqual(rtlExpected)
+    const authoredGroup = flatten(rtlScene.nodes).find(
+      (node) => node.kind === 'group' && node.key === 'authored-anchor:labels',
+    )
+    expect(
+      authoredGroup?.kind === 'group'
+        ? authoredGroup.children.find((node) => node.kind === 'label')?.anchor
+        : undefined,
+    ).toBe('end')
+    expect(
+      rtlLabels.find((node) => node.key.startsWith('authored-text-anchor:'))
+        ?.anchor,
+    ).toBe('start')
   })
 
   it('omits every nonfinite radial offset before paint callbacks', () => {

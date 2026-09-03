@@ -114,7 +114,8 @@ The exported theme contains:
 - six CSS-variable-backed palette entries
 
 Definitions merge partial overrides into this value. A supplied palette
-replaces the default palette. See [Chart spec](./chart-spec.md#theme).
+replaces the default palette. An omitted focus ring defaults to enabled. See
+[Chart spec](./chart-spec.md#theme).
 
 ## `findNearestPoint`
 

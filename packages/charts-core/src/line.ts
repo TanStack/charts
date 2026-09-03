@@ -13,6 +13,7 @@ import type {
   Channel,
   CartesianChartMark,
   CartesianScaleBindings,
+  ChartCurve,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -24,7 +25,7 @@ import type {
   MarkChannelOutput,
   MarkScaleBindings,
   SceneNode,
-  ChartCurve,
+  SceneStyle,
   VisualChannel,
 } from './types'
 
@@ -38,6 +39,8 @@ interface LineOptions<TDatum>
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
+  lineCap?: SceneStyle['lineCap']
+  lineJoin?: SceneStyle['lineJoin']
   points?: boolean
   curve?: ChartCurve
   states?: readonly ChartMarkState<TDatum, ChartLineStateStyle<TDatum>>[]
@@ -299,8 +302,8 @@ function createLineMark<TDatum>(
                   strokeOpacity: options.strokeOpacity,
                   strokeWidth: options.strokeWidth ?? 2.25,
                   strokeDasharray: options.strokeDasharray,
-                  lineCap: 'round',
-                  lineJoin: 'round',
+                  lineCap: options.lineCap || 'round',
+                  lineJoin: options.lineJoin || 'round',
                 },
               })
               segment = []

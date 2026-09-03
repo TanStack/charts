@@ -29,6 +29,10 @@ export function renderChartSvgWithHooks(
     ? `<desc>${escapeText(options.ariaDescription)}</desc>`
     : ''
   const definitions = hooks?.renderDefinitions?.(scene, idPrefix) ?? ''
+  const direction =
+    scene.direction === 'ltr' || scene.direction === 'rtl'
+      ? ` direction="${scene.direction}"`
+      : ''
   const background =
     scene.theme.background === 'transparent'
       ? ''
@@ -46,7 +50,7 @@ export function renderChartSvgWithHooks(
           idPrefix,
         )
 
-  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks)}</svg>`
+  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}"${direction} style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks)}</svg>`
 }
 
 export function renderSceneNodes(

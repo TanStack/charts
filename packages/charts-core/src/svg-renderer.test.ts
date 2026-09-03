@@ -1,4 +1,7 @@
+import { scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
+import { lineY } from './line'
+import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import type { ChartScene } from './types'
 
@@ -12,6 +15,61 @@ describe('SVG scene renderer', () => {
       'd="M0,0L20,0L20,20L0,20ZM5,5L15,5L15,15L5,15ZM30,0L40,0L40,10L30,10Z"',
     )
     expect(svg).not.toContain('M99,99Z')
+  })
+
+  it('serializes Cartesian axis-title typography and paint', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            axis: {
+              ticks: false,
+              label: {
+                text: 'Revenue',
+                fontSize: 17,
+                fontWeight: 650,
+                fill: '#0f766e',
+                opacity: 0.6,
+              },
+            },
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const svg = renderChartSvg(scene, { ariaLabel: 'Revenue chart' })
+
+    expect(svg).toMatch(
+      /<text data-ts-key="y-label"[^>]* fill="#0f766e" opacity="0\.6"[^>]* font-size="17" font-weight="650"/,
+    )
+  })
+
+  it('serializes right-to-left scene direction on the root SVG', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            side: 'right',
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+      { typography: { direction: 'rtl' } },
+    )
+
+    const svg = renderChartSvg(scene, { ariaLabel: 'RTL chart' })
+
+    expect(scene.direction).toBe('rtl')
+    expect(svg).toMatch(/^<svg [^>]* direction="rtl"[^>]*>/)
+    expect(svg).toMatch(
+      /data-ts-key="y-tick-label:[^"]+"[^>]*text-anchor="end"/,
+    )
   })
 })
 

@@ -218,7 +218,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartAxisTickLabelContext`     | Semantic value, stable candidate index, pixel position, and bandwidth |
 | `ChartAxisTickLabelValue`       | Constant or context accessor for one tick-label property              |
 | `ChartAxisTickLabelThinOptions` | Minimum gap, end priority, and labels that must be kept               |
-| `ChartAxisLabelOptions`         | Axis title text and explicit or measured offset                       |
+| `ChartAxisLabelOptions`         | Axis title text, typography, paint, motion, and offset                |
 | `ChartScaleFactory`             | Creates a positional scale with a mark-inferred domain                |
 | `ChartScaleInput`               | Factory or configured positional scale instance                       |
 | `InferableScaleLike`            | Domain-configurable scale returned by a factory                       |
@@ -247,7 +247,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `CrosshairBandOptions`          | Categorical cursor-band inset, radius, fill, stroke, and opacity      |
 | `CrosshairLabelOptions`         | Guide label formatting, spacing, text, and halo paint                 |
 | `CrosshairMarkerOptions`        | Primary-coordinate marker geometry and paint                          |
-| `ChartTheme`                    | Foreground, muted, grid, background, and palette                      |
+| `ChartTheme`                    | Foreground, muted, grid, background, palette, and focus ring defaults |
 | `ChartLinearGradient`           | Named linear-gradient resource                                        |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                          |
 | `ChartCurve`                    | Line and y-area path generation                                       |

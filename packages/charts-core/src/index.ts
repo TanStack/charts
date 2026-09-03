@@ -336,6 +336,7 @@ export type {
   ChartFocusAnchor,
   ChartFocusCursorBinding,
   ChartFocusPresentation,
+  ChartFocusRingOptions,
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusAffinity,
