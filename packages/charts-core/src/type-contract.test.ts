@@ -418,6 +418,39 @@ const facetedMark = facet(rows, {
     return categoricalSpec
   },
 })
+if (false) {
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Facet cell focus rings belong to the outer theme.
+    chart: () => ({ ...categoricalSpec, theme: { focusRing: false } }),
+  })
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Facet cells cannot override the outer focus ring.
+    chart: () => ({ ...categoricalSpec, focusRing: false }),
+  })
+  const storedFocusRingChild = defineChart({
+    ...categoricalSpec,
+    focusRing: false,
+  })
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Stored facet children cannot own the outer focus ring.
+    chart: () => storedFocusRingChild,
+  })
+  const mixedFocusRingChild = Math.random()
+    ? { ...categoricalSpec, kind: 'valid' as const }
+    : {
+        ...categoricalSpec,
+        kind: 'invalid' as const,
+        theme: { focusRing: false as const },
+      }
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Every possible facet child must leave the focus ring to the outer chart.
+    chart: () => mixedFocusRingChild,
+  })
+}
 const customMark = createMark<Row>(() => ({
   id: 'custom',
   channels: {},

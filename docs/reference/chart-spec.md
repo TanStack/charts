@@ -178,11 +178,14 @@ interface ChartTheme {
   grid: string
   background: string
   palette: readonly string[]
+  focusRing?: boolean | ChartFocusRingOptions
 }
 ```
 
 `theme` is partial. The palette is replaced as one value rather than merged by
-index. The default palette uses CSS custom-property fallbacks:
+index. `focusRing` supplies the default built-in focus ring presentation for
+every chart using the theme. A definition-level `focusRing` value overrides it.
+The default palette uses CSS custom-property fallbacks:
 
 ```css
 .dashboard {

@@ -61,12 +61,17 @@ const definition = defineChart({
 | `stroke`      | The focused point's resolved series color |
 
 The object form still enables the ring. `true` keeps every default and `false`
-removes only the built-in ring. The definition compiles this presentation into
-ordinary scene dots, so SVG, Canvas, React Native, facets, polar marks, custom
-mark renderers, and the optional motion renderer share the same values. The
-ring remains hidden from the accessibility tree; the chart root continues to
-report focus and values. `radius` and `strokeWidth` accept finite nonnegative
-numbers, including zero. Invalid values use their defaults.
+removes only the built-in ring. Set the same value on `theme.focusRing` to
+provide a theme default. An explicitly supplied definition-level `focusRing`
+value takes precedence, including `true` or `false`. Composed views and facet
+cells share the outer chart's focus layer, so configure their focus ring on
+the outer definition or theme. Their child specs reject both `focusRing` and
+`theme.focusRing`. The definition compiles this presentation into ordinary
+scene dots, so SVG, Canvas, React Native, facets, polar marks, custom mark
+renderers, and the optional motion renderer share the same values. The ring
+remains hidden from the accessibility tree; the chart root continues to report
+focus and values. `radius` and `strokeWidth` accept finite nonnegative numbers,
+including zero. Invalid values use their defaults.
 
 Use `focusGuideX` or `focusGuideY` from `@tanstack/charts/focus/guide` for
 datum-bound rules, markers, and axis labels. Their active geometry uses stable

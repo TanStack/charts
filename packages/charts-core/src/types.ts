@@ -585,6 +585,8 @@ export interface ChartTheme {
   grid: string
   background: string
   palette: readonly string[]
+  /** Default presentation for the built-in primary-point focus ring. */
+  focusRing?: boolean | ChartFocusRingOptions
 }
 
 /** Paint and geometry for the built-in primary-point focus indicator. */
@@ -894,7 +896,7 @@ export interface ChartDefinitionOptions<
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  /** Shows and optionally styles the built-in primary-point focus ring. Defaults to true. */
+  /** Shows and optionally styles the built-in primary-point focus ring. Overrides the theme default. */
   focusRing?: boolean | ChartFocusRingOptions
   /** Optional app-owned cursor shared by one or more chart definitions. */
   cursor?: ChartCursorBinding<

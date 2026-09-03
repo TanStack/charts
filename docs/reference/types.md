@@ -247,7 +247,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `CrosshairBandOptions`          | Categorical cursor-band inset, radius, fill, stroke, and opacity      |
 | `CrosshairLabelOptions`         | Guide label formatting, spacing, text, and halo paint                 |
 | `CrosshairMarkerOptions`        | Primary-coordinate marker geometry and paint                          |
-| `ChartTheme`                    | Foreground, muted, grid, background, and palette                      |
+| `ChartTheme`                    | Foreground, muted, grid, background, palette, and focus ring defaults |
 | `ChartLinearGradient`           | Named linear-gradient resource                                        |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                          |
 | `ChartCurve`                    | Line and y-area path generation                                       |

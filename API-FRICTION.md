@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-27
+Last updated: 2026-09-03
 
 ## Triage rule
 
@@ -7199,7 +7199,7 @@ Each entry records:
   threshold generators, and consumer-called service methods as classified
   exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 778
+  functions, and values into nested package-owned types. It classifies all 799
   reachable callable surfaces, including Alpine's external directive protocol,
   Vue's nested tooltip slot, live-chart interaction and presentation service
   handles, cursor controllers and host sessions, focus-guide resolvers, the
@@ -7232,6 +7232,10 @@ Each entry records:
   supplies one stable context shape and all first-party examples use it.
 - Follow-up verification: transform regressions cover datum, index, and complete
   data; the public callback inventory and root TypeScript pass.
+- Follow-up verification: narrowing the public composable-responsive chart
+  callback exposed it as a separately reachable surface. It is classified as an
+  application callback with one `ChartBuildContext` object, and the full
+  799-surface inventory passes.
 
 ### F-239 — Example keys collapsed distinct source rows
 
@@ -8563,15 +8567,21 @@ Each entry records:
   reduce the fixed 5-pixel radius, tying application styling to generated SVG
   structure and leaving Canvas and React Native without the same control.
 - Decision: extend `focusRing` to accept a reusable `ChartFocusRingOptions`
-  object with radius, stroke width, fill, and stroke. Preserve `true`, `false`,
-  and every existing default. An omitted stroke keeps each point's resolved
-  series color.
+  object with radius, stroke width, fill, and stroke on both chart definitions
+  and themes. Preserve `true`, `false`, and every existing default. An omitted
+  stroke keeps each point's resolved series color. An explicitly supplied
+  definition value takes precedence over the theme default. Composed views and
+  facets take that default from their outer host and reject child ownership
+  instead of silently discarding it while rebuilding the shared focus layer.
 - Verification: scene, SVG, Canvas, and React Native tests cover configured
-  geometry and paint, series-color fallback, keyboard focus, and hidden
-  accessibility presentation. The catalog's pointer-tooltip case uses the
-  object form, and the reference docs record the complete contract. Locked
-  universal consumers add 65-79 minified bytes and 25-36 gzip bytes; the
-  reviewed bundle baselines and budgets pass.
+  geometry and paint, theme defaults, definition override and disable behavior,
+  invalid theme geometry, outer view propagation, rejected child ownership,
+  series-color fallback, keyboard focus, and hidden accessibility presentation.
+  The catalog's pointer-tooltip case uses the object form, and the reference
+  docs record the complete contract. Against the reviewed feature baseline,
+  theme fallback adds 7 minified bytes and 5 gzip bytes to the locked D3 line
+  scene. The isolated facet entry adds 0.09 KiB gzip for explicit child
+  ownership validation.
 
 ### F-298 - Physical axis sides depended on logical text direction
 

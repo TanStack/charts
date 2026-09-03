@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { bandX, bandY } from './band'
 import { barY } from './bar'
-import { facet, facetChart } from './facet'
+import { facet, facetChart, type FacetOptions } from './facet'
 import { whenFocused } from './focus-mark'
 import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
@@ -113,6 +113,74 @@ describe('facets', () => {
     expect(svg).toContain('transform="translate(')
     expect(svg).toContain('Alpha')
     expect(svg).toContain('Beta')
+  })
+
+  it('rejects focus ring options owned by a facet cell', () => {
+    type Row = { group: string; value: number }
+    const data: Row[] = [{ group: 'Alpha', value: 2 }]
+    const definition = (
+      childOptions: { focusRing: false } | { theme: { focusRing: false } },
+    ) => {
+      const options = {
+        by: 'group',
+        chart: (rows: readonly [Row, ...Row[]]) => ({
+          marks: [lineY(rows, { y: 'value' })],
+          ...linearAxes([0, 1], [0, 2]),
+          ...childOptions,
+        }),
+      } as unknown as FacetOptions<Row>
+      return facetChart(data, options)
+    }
+
+    expect(() =>
+      createChartScene(definition({ focusRing: false }), {
+        width: 320,
+        height: 180,
+      }),
+    ).toThrow(/host option "focusRing"/)
+    expect(() =>
+      createChartScene(definition({ theme: { focusRing: false } }), {
+        width: 320,
+        height: 180,
+      }),
+    ).toThrow(/cannot own a focus ring theme/)
+  })
+
+  it('uses the outer focus ring theme for faceted points', () => {
+    const data = [{ id: 'a', group: 'Alpha', x: 0, y: 2 }]
+    const definition = facetChart(data, {
+      by: 'group',
+      label: false,
+      chart: (rows) => ({
+        marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+        ...linearAxes([0, 1], [0, 2]),
+      }),
+    })
+    const scene = createChartScene(
+      {
+        ...definition,
+        theme: {
+          focusRing: {
+            radius: 9,
+            strokeWidth: 1,
+            fill: '#f8fafc',
+            stroke: '#0f172a',
+          },
+        },
+      },
+      { width: 320, height: 180 },
+    )
+    const focusDots = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'dot' &&
+        node.radius === 9 &&
+        scene.points.some((point) => point.key === node.key),
+    )
+
+    expect(focusDots).toHaveLength(1)
+    expect(focusDots[0]).toMatchObject({
+      style: { fill: '#f8fafc', stroke: '#0f172a', strokeWidth: 1 },
+    })
   })
 
   it('stacks panels when the available width is narrow', () => {

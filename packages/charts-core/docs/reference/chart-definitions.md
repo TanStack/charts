@@ -105,7 +105,9 @@ do not override them.
 
 `focusRing` accepts `true`, `false`, or a `ChartFocusRingOptions` object with
 `radius`, `strokeWidth`, `fill`, and `stroke`. Omitted fields keep the built-in
-defaults, including the focused point's resolved color for `stroke`. See
+defaults, including the focused point's resolved color for `stroke`. The same
+value on `theme.focusRing` provides a default, while an explicitly supplied
+definition-level value takes precedence. See
 [Focus and interaction](./focus-and-interaction.md#built-in-focus-ring).
 
 Each `ChartControl` resolves after final scales and plot bounds exist. It can

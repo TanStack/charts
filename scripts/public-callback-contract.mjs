@@ -371,6 +371,10 @@ const callbackInventory = {
     ['@tanstack/charts:src/types.ts:ResponsiveChartConfig', 'chart'],
     ['@tanstack/charts:src/types.ts:ResponsiveChartDefinition', 'chart'],
     ['@tanstack/charts:src/scene.ts:DefinedResponsiveChart', 'chart'],
+    [
+      '@tanstack/charts:src/view.ts:ComposableResponsiveChartDefinition',
+      'chart',
+    ],
     ['@tanstack/charts:src/types.ts:InitializedMark', 'render resolveLayout'],
     [
       '@tanstack/charts:src/types.ts:InitializedMarkBase',

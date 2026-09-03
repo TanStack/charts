@@ -359,6 +359,150 @@ describe('native mark and channel scene', () => {
     expectTypeOf(scene).toMatchTypeOf<ChartScene<(typeof rows)[number]>>()
   })
 
+  it('uses the theme focus ring unless the definition overrides it', () => {
+    const spec = {
+      marks: [lineY([1, 2])],
+      ...linearAxes([0, 1], [0, 2]),
+    } as const
+    const focusDots = (scene: ChartScene) =>
+      flatten(scene.nodes).filter(
+        (node): node is SceneDot =>
+          node.kind === 'dot' &&
+          scene.points.some((point) => point.key === node.key),
+      )
+
+    const themed = createChartScene(
+      defineChart({
+        ...spec,
+        theme: {
+          focusRing: {
+            radius: 8,
+            strokeWidth: 4,
+            fill: '#f8fafc',
+            stroke: '#0f172a',
+          },
+        },
+      }),
+      { width: 320, height: 180 },
+    )
+
+    expect(themed.theme.focusRing).toEqual({
+      radius: 8,
+      strokeWidth: 4,
+      fill: '#f8fafc',
+      stroke: '#0f172a',
+    })
+    expect(
+      focusDots(themed).map((node) => ({
+        radius: node.radius,
+        style: node.style,
+      })),
+    ).toEqual([
+      {
+        radius: 8,
+        style: {
+          fill: '#f8fafc',
+          stroke: '#0f172a',
+          strokeWidth: 4,
+        },
+      },
+      {
+        radius: 8,
+        style: {
+          fill: '#f8fafc',
+          stroke: '#0f172a',
+          strokeWidth: 4,
+        },
+      },
+    ])
+
+    const themeDisabled = createChartScene(
+      defineChart({ ...spec, theme: { focusRing: false } }),
+      { width: 320, height: 180 },
+    )
+    expect(focusDots(themeDisabled)).toHaveLength(0)
+
+    const definitionOptions = createChartScene(
+      defineChart({
+        ...spec,
+        theme: { focusRing: false },
+        focusRing: { radius: 3, strokeWidth: 1 },
+      }),
+      { width: 320, height: 180 },
+    )
+    expect(
+      focusDots(definitionOptions).map((node) => ({
+        radius: node.radius,
+        style: node.style,
+      })),
+    ).toEqual([
+      {
+        radius: 3,
+        style: {
+          fill: 'var(--ts-chart-focus-fill, Canvas)',
+          stroke: 'var(--ts-chart-1, #2563eb)',
+          strokeWidth: 1,
+        },
+      },
+      {
+        radius: 3,
+        style: {
+          fill: 'var(--ts-chart-focus-fill, Canvas)',
+          stroke: 'var(--ts-chart-1, #2563eb)',
+          strokeWidth: 1,
+        },
+      },
+    ])
+
+    const definitionDisabled = createChartScene(
+      defineChart({
+        ...spec,
+        theme: { focusRing: { radius: 8 } },
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    expect(focusDots(definitionDisabled)).toHaveLength(0)
+
+    const definitionEnabled = createChartScene(
+      defineChart({
+        ...spec,
+        theme: { focusRing: false },
+        focusRing: true,
+      }),
+      { width: 320, height: 180 },
+    )
+    expect(focusDots(definitionEnabled).map((node) => node.radius)).toEqual([
+      5, 5,
+    ])
+
+    for (const invalid of [
+      -1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]) {
+      const invalidTheme = createChartScene(
+        defineChart({
+          ...spec,
+          theme: {
+            focusRing: { radius: invalid, strokeWidth: invalid },
+          },
+        }),
+        { width: 320, height: 180 },
+      )
+      expect(
+        focusDots(invalidTheme).map((node) => ({
+          radius: node.radius,
+          strokeWidth: node.style?.strokeWidth,
+        })),
+      ).toEqual([
+        { radius: 5, strokeWidth: 2.5 },
+        { radius: 5, strokeWidth: 2.5 },
+      ])
+    }
+  })
+
   it('rejects duplicate control ids', () => {
     const behavior = { id: 'duplicate', resolve: () => ({}) }
 

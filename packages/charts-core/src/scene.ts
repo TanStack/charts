@@ -119,16 +119,28 @@ type ChartDefinitionWithOptions<TDefinition, TOptions> = Omit<
 > &
   TOptions
 
+declare const definedResponsiveChart: unique symbol
+
 type DefinedResponsiveChart<TSpec extends ErasedChartSpec> = Omit<
   ResponsiveChartDefinition<
     ChartSpecDatum<TSpec>,
     ChartSpecXValue<TSpec>,
     ChartSpecYValue<TSpec>
   >,
-  keyof ChartDefinitionOptions
+  keyof ChartDefinitionOptions | 'chart'
 > & {
-  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
+  readonly [definedResponsiveChart]: TSpec
+  chart: (context: ChartBuildContext) => TSpec
 }
+
+type ValidResponsiveDefinitionInput<
+  TDefinition extends ResponsiveChartDefinition<any, any, any>,
+> =
+  ErasedChartSpec extends ReturnType<TDefinition['chart']>
+    ? unknown
+    : typeof definedResponsiveChart extends keyof TDefinition
+      ? unknown
+      : never
 
 export function defineChart<
   const TMarks extends readonly ChartMark<any, any, any, any, any, any, any>[],
@@ -142,18 +154,11 @@ export function defineChart<
 ): DefinedStaticChart<TMarks, TSpec>
 export function defineChart<
   const TSpec extends ErasedChartSpec,
-  TTooltipHost extends string = never,
+  TTooltipHost extends string,
+  const TConfig extends ResponsiveChartConfig<TSpec, TTooltipHost>,
 >(
-  config: ResponsiveChartConfig<TSpec, TTooltipHost>,
-): Omit<
-  ResponsiveChartDefinition<
-    ChartSpecDatum<TSpec>,
-    ChartSpecXValue<TSpec>,
-    ChartSpecYValue<TSpec>
-  >,
-  keyof ChartDefinitionOptions
-> &
-  ResponsiveChartConfig<TSpec, TTooltipHost>
+  config: ResponsiveChartConfig<TSpec, TTooltipHost> & TConfig,
+): DefinedResponsiveChart<ReturnType<TConfig['chart']>> & Omit<TConfig, 'chart'>
 export function defineChart<const TSpec extends ErasedChartSpec>(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DefinedResponsiveChart<TSpec>
@@ -232,9 +237,7 @@ export function defineChart<
   >,
 >(
   definition: TDefinition &
-    (ErasedChartSpec extends ReturnType<TDefinition['chart']>
-      ? unknown
-      : never),
+    ValidResponsiveDefinitionInput<NoInfer<TDefinition>>,
   options: TOptions,
 ): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart(definition?: any, options?: any): any {
@@ -526,19 +529,14 @@ function createChartSceneWithScaleResolver<
     }
     hostControlIds.add(identity)
   }
-  if (
-    definition.focus !== false &&
-    definition.focusRing !== false &&
-    points.length
-  ) {
-    const focusRing =
-      typeof definition.focusRing === 'object'
-        ? definition.focusRing
-        : undefined
-    const radius = finiteNonNegative(focusRing?.radius, 5)
-    const fill = focusRing?.fill ?? 'var(--ts-chart-focus-fill, Canvas)'
-    const stroke = focusRing?.stroke
-    const strokeWidth = finiteNonNegative(focusRing?.strokeWidth, 2.5)
+  const focusRing = definition.focusRing ?? theme.focusRing
+  if (definition.focus !== false && focusRing !== false && points.length) {
+    const focusRingOptions =
+      typeof focusRing === 'object' ? focusRing : undefined
+    const radius = finiteNonNegative(focusRingOptions?.radius, 5)
+    const fill = focusRingOptions?.fill ?? 'var(--ts-chart-focus-fill, Canvas)'
+    const stroke = focusRingOptions?.stroke
+    const strokeWidth = finiteNonNegative(focusRingOptions?.strokeWidth, 2.5)
     for (const entry of defaultFocusEntries) {
       nodes.push({
         kind: 'group',

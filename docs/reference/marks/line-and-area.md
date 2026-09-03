@@ -97,6 +97,13 @@ input order remains path order. Grouping, paint, points, curves, states, and
 motion use the same contract. Line interaction follows y affinity so keyboard
 and pointer traversal match the longitudinal axis.
 
+`lineX` inherits these stroke-shape options from the shared line contract:
+
+| Option     | Type                     | Default   | Meaning               |
+| ---------- | ------------------------ | --------- | --------------------- |
+| `lineCap`  | `SceneStyle["lineCap"]`  | `"round"` | Stroke endpoint shape |
+| `lineJoin` | `SceneStyle["lineJoin"]` | `"round"` | Stroke corner shape   |
+
 ## `areaY`
 
 `areaY` fills between a numeric upper channel and a numeric lower baseline
