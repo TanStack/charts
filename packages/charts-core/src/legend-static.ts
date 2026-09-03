@@ -15,6 +15,7 @@ import type {
   ChartKey,
   ChartLegendPlacement,
   ChartTextMeasureOptions,
+  ChartTextMetrics,
   ResolvedColorScaleKind,
   SceneLabel,
   SceneNode,
@@ -90,7 +91,8 @@ export interface ColorGradientLegendOptions {
 type ResolvedColorLegendItems<TValue extends ChartKey> = (
   context: Parameters<ChartColorLegend['height']>[1],
   minimumItemWidth: number,
-  labelOffset?: number,
+  label?: string,
+  render?: true,
 ) => number | readonly SceneNode[]
 
 export function colorLegendItems<TValue extends ChartKey = ChartKey>(
@@ -99,25 +101,39 @@ export function colorLegendItems<TValue extends ChartKey = ChartKey>(
   const items: ResolvedColorLegendItems<TValue> = (
     context,
     minimumItemWidth,
-    labelOffset,
+    label,
+    render,
   ) => {
+    const title = resolveLegendTitleLayout(label, context)
     const presentation = resolveCategoricalLegendPresentation(
       options,
       context,
       minimumItemWidth,
     )
-    if (labelOffset === undefined) {
-      return presentation.rows * presentation.rowHeight
+    if (!render) {
+      return title.offset + presentation.rows * presentation.rowHeight
     }
     const { bounds, theme, direction } = context
     const children: SceneNode[] = []
+    if (label) {
+      children.push({
+        kind: 'label',
+        key: 'legend-label',
+        x: bounds.x,
+        y: bounds.y + title.y,
+        text: label,
+        anchor: physicalTextAnchor('left', direction),
+        fontSize: 11,
+        fontWeight: 600,
+        style: { fill: theme.foreground, fillOpacity: 0.78 },
+      })
+    }
     presentation.items.forEach(({ item, row, width, x }) => {
-      const firstRowCenter = Math.max(
-        10,
-        Math.max(presentation.labelHeight, presentation.indicatorHeight) / 2,
-      )
       const y =
-        bounds.y + firstRowCenter + labelOffset + row * presentation.rowHeight
+        bounds.y +
+        presentation.firstRowBaseline +
+        title.offset +
+        row * presentation.rowHeight
       const indicatorWidth = Math.min(presentation.indicatorWidth, width)
       const indicatorGap = Math.min(
         presentation.indicatorGap,
@@ -184,8 +200,7 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         return gradient.height(itemCount, context)
       }
       if (items) {
-        const title = resolveLegendTitleLayout(options.label, context, true)
-        return 18 + title.offset + (items(context, minimumItemWidth) as number)
+        return 18 + (items(context, minimumItemWidth, options.label) as number)
       }
       const labelOffset = options.label ? 13 : 0
       const layout = layoutCategoricalLegendItems(
@@ -203,38 +218,39 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         return renderSteppedLegend(options, context)
       }
       const { bounds, theme, direction } = context
-      const title = resolveLegendTitleLayout(
-        options.label,
-        context,
-        items !== undefined,
-      )
       const children: SceneNode[] = []
-      if (options.label) {
-        children.push({
-          kind: 'label',
-          key: 'legend-label',
-          x: bounds.x,
-          y: bounds.y + title.y,
-          text: options.label,
-          anchor: physicalTextAnchor('left', direction),
-          fontSize: 11,
-          fontWeight: 600,
-          style: { fill: theme.foreground, fillOpacity: 0.78 },
-        })
+      if (items) {
+        children.push(
+          ...(items(
+            context,
+            minimumItemWidth,
+            options.label,
+            true,
+          ) as readonly SceneNode[]),
+        )
+      } else {
+        const labelOffset = options.label ? 13 : 0
+        if (options.label) {
+          children.push({
+            kind: 'label',
+            key: 'legend-label',
+            x: bounds.x,
+            y: bounds.y + 11,
+            text: options.label,
+            anchor: physicalTextAnchor('left', direction),
+            fontSize: 11,
+            fontWeight: 600,
+            style: { fill: theme.foreground, fillOpacity: 0.78 },
+          })
+        }
+        children.push(
+          ...renderDefaultCategoricalLegend(
+            context,
+            labelOffset,
+            minimumItemWidth,
+          ),
+        )
       }
-      children.push(
-        ...(items
-          ? (items(
-              context,
-              minimumItemWidth,
-              title.offset,
-            ) as readonly SceneNode[])
-          : renderDefaultCategoricalLegend(
-              context,
-              title.offset,
-              minimumItemWidth,
-            )),
-      )
 
       return {
         kind: 'group',
@@ -250,10 +266,8 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
 function resolveLegendTitleLayout(
   label: string | undefined,
   context: Parameters<ChartColorLegend['height']>[1],
-  measure: boolean,
 ): { offset: number; y: number } {
   if (!label) return { offset: 0, y: 11 }
-  if (!measure) return { offset: 13, y: 11 }
 
   const measureOptions = {
     fontSize: 11,
@@ -271,14 +285,13 @@ function resolveLegendTitleLayout(
     estimateSceneText,
     context.layout?.typography,
   )(label, measureOptions)
-  const measured =
+  const candidate =
     context.layout?.measureText?.(label, measureOptions) ?? fallback
-  const measuredY = finiteNumber(measured.y, fallback.y)
-  const measuredHeight = measuredDimension(measured.height, fallback.height)
-  const y = Math.max(11, -measuredY)
+  const measured = validTextMetrics(candidate) ? candidate : fallback
+  const y = Math.max(11, -measured.y)
 
   return {
-    offset: y + measuredY + measuredHeight + 2,
+    offset: y + measured.y + measured.height + 2,
     y,
   }
 }
@@ -348,12 +361,12 @@ interface PositionedCategoricalLegendItem<TValue extends ChartKey> {
 interface CategoricalLegendPresentation<TValue extends ChartKey> {
   rows: number
   rowHeight: number
+  firstRowBaseline: number
   indicatorWidth: number
   indicatorHeight: number
   indicatorGap: number
   fontSize: number
   fontWeight: number | undefined
-  labelHeight: number
   items: readonly PositionedCategoricalLegendItem<TValue>[]
 }
 
@@ -380,7 +393,8 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
     estimateSceneText,
     context.layout?.typography,
   )
-  let labelHeight = fontSize
+  let rowTop = indicatorHeight / 2
+  let rowBottom = indicatorHeight / 2
   const items = resolvedItems.map((item, index) => {
     const itemContext = { color: item.color, index, label: item.label }
     const measureOptions = {
@@ -396,20 +410,19 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
       baseline: 'middle',
     } satisfies ChartTextMeasureOptions
     const fallback = estimateText(item.label, measureOptions)
-    const measured =
+    const candidate =
       context.layout?.measureText?.(item.label, measureOptions) ?? fallback
-    const measuredWidth = measuredDimension(measured.width, fallback.width)
-    labelHeight = Math.max(
-      labelHeight,
-      measuredDimension(measured.height, fallback.height),
-    )
+    const measured = validTextMetrics(candidate) ? candidate : fallback
+    rowTop = Math.max(rowTop, -measured.y, 0)
+    rowBottom = Math.max(rowBottom, measured.y + measured.height, 0)
     return {
       ...item,
       context: itemContext,
-      width: indicatorWidth + indicatorGap + measuredWidth,
+      width: indicatorWidth + indicatorGap + measured.width,
     }
   })
-  const rowHeight = Math.max(labelHeight, indicatorHeight) + rowGap
+  const rowHeight = rowTop + rowBottom + rowGap
+  const firstRowBaseline = Math.max(10, rowTop)
   const justify = options.justify ?? 'stretch'
   if (justify === 'stretch') {
     const layout = layoutCategoricalLegendItems(
@@ -420,12 +433,12 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
     return {
       rows: layout.rows,
       rowHeight,
+      firstRowBaseline,
       indicatorWidth,
       indicatorHeight,
       indicatorGap,
       fontSize,
       fontWeight,
-      labelHeight,
       items: items.map((item, index) => ({
         item,
         row: Math.floor(index / layout.columns),
@@ -444,12 +457,12 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
   return {
     rows: layout.rows,
     rowHeight,
+    firstRowBaseline,
     indicatorWidth,
     indicatorHeight,
     indicatorGap,
     fontSize,
     fontWeight,
-    labelHeight,
     items: layout.items.map(({ index, row, width, x }) => ({
       item: items[index]!,
       row,
@@ -546,12 +559,15 @@ function finiteNonnegative(value: number | undefined, fallback: number) {
     : fallback
 }
 
-function measuredDimension(value: number, fallback: number) {
-  return Number.isFinite(value) && value >= 0 ? value : fallback
-}
-
-function finiteNumber(value: number, fallback: number) {
-  return Number.isFinite(value) ? value : fallback
+function validTextMetrics(metrics: ChartTextMetrics) {
+  return (
+    Number.isFinite(metrics.x) &&
+    Number.isFinite(metrics.y) &&
+    Number.isFinite(metrics.width) &&
+    metrics.width >= 0 &&
+    Number.isFinite(metrics.height) &&
+    metrics.height >= 0
+  )
 }
 
 function isContinuousLegend(kind: ResolvedColorScaleKind | undefined): boolean {

@@ -188,6 +188,7 @@ describe('categorical color legend presentation', () => {
       height: Number.POSITIVE_INFINITY,
     }))
     const legend = colorLegend({
+      label: 'Series',
       items: colorLegendItems({ justify: 'center', label: { fontSize: 14 } }),
     })
     const typography = { fontScale: 2, letterSpacing: 1 }
@@ -230,6 +231,38 @@ describe('categorical color legend presentation', () => {
     expect(titleBounds.y).toBeGreaterThanOrEqual(context.bounds.y)
     expect(titleBounds.y + titleBounds.height).toBeLessThanOrEqual(itemBounds.y)
     expect(itemBounds.y + itemBounds.height).toBeLessThanOrEqual(
+      context.bounds.y + legend.height(colors.domain.length, context),
+    )
+  })
+
+  it('uses asymmetric label extents to separate the title and rows', () => {
+    const measureText = vi.fn((text: string) =>
+      text === 'Series'
+        ? { x: 0, y: -18, width: 40, height: 22 }
+        : { x: 0, y: -24, width: 45, height: 28 },
+    )
+    const legend = colorLegend({
+      label: 'Series',
+      items: colorLegendItems({ justify: 'start', rowGap: 2 }),
+    })
+    const context = legendContext({
+      chart: { x: 40, y: 60, width: 80, height: 200 },
+      bounds: { x: 40, y: 0, width: 80, height: 140 },
+      layout: { measureText },
+    })
+    const labels = renderLegend(legend, context).children.filter(
+      (node) => node.kind === 'label',
+    )
+    const bounds = labels.map((label) =>
+      measureSceneLabelBounds(label, measureText),
+    )
+
+    expect(bounds).toHaveLength(4)
+    bounds.slice(1).forEach((current, index) => {
+      const previous = bounds[index]!
+      expect(previous.y + previous.height).toBeLessThanOrEqual(current.y)
+    })
+    expect(bounds.at(-1)!.y + bounds.at(-1)!.height).toBeLessThanOrEqual(
       context.bounds.y + legend.height(colors.domain.length, context),
     )
   })
