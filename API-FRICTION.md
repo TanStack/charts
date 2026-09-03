@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-26
+Last updated: 2026-09-03
 
 ## Triage rule
 
@@ -2285,9 +2285,10 @@ Each entry records:
   touch previews, controlled pinning, leave/cancel cleanup, toggle/Escape
   clearing, and host teardown without importing brush or D3 policy.
   Exact-subpath `zoomX` now binds a controlled semantic window to the final x
-  scale and owns focus-gated wheel capture, pointer-anchored zoom, drag and
-  horizontal-wheel pan, touch and keyboard input, clamping, cancellation, and
-  teardown. D3 Zoom remains private to that optional DOM control. Exact-subpath
+  scale and owns configurable focus, modifier-gated, or unconditional wheel
+  capture, pointer-anchored zoom, drag and horizontal-wheel pan, touch and
+  keyboard input, clamping, cancellation, and teardown. D3 Zoom remains private
+  to that optional DOM control. Exact-subpath
   `handleX` binds one controlled semantic x value to ordered candidates and
   owns final-scale track, rule and handle paint, nearest snapping, pointer and
   touch capture, cancellation, keyboard slider semantics, and teardown without
@@ -2357,8 +2358,9 @@ Each entry records:
   update, and strict type gate at 98.7% diagnostic geometry.
 - Zoom follow-up: case 90 now uses exact-subpath `zoomX` in one ordinary
   definition. The behavior owns final-scale inversion, wheel normalization and
-  focus gating, pointer-anchored zoom, drag and horizontal-wheel pan, touch and
-  keyboard input, clamping, cancellation, controlled updates, and teardown.
+  activation policy, pointer-anchored zoom, drag and horizontal-wheel pan,
+  touch and keyboard input, clamping, cancellation, controlled updates, and
+  teardown.
   The case retains the accepted semantic window, visible-row and y-domain
   policy, live status, Reset control, persistence, and conformance observation.
   The React effect, second SVG, D3 imports, copied scale, transform conversion,
@@ -2367,12 +2369,23 @@ Each entry records:
   limits, responsive replacement, teardown, and source ownership. The exact
   optional bundle fixture isolates D3 Zoom and Selection from root, universal,
   ordinary DOM, brush, cursor, legend, and selection consumers. It adds 20,429
-  bytes, or 19.95 KiB gzip, over the ordinary DOM host under its 20 KiB cap.
+  bytes, or 19.95 KiB gzip, over the ordinary DOM host under its original 20
+  KiB cap.
   The quick paired browser matrix passes unfocused page scrolling, focus-gated
   pixel/line/page wheel zoom, horizontal-wheel pan, pointer drag, touch
   activation and pan, keyboard, Reset, revisions, visual, and strict type
   scenarios at 98.6% diagnostic geometry. TanStack uses 512 authored lines and
   51.59 kB gzip versus ECharts' 727 lines and 172.82 kB.
+- Wheel-policy follow-up: `zoomX` now accepts `wheelActivation: 'modifier'` for
+  immediate Control+wheel or Command+wheel input without focus while plain
+  wheel events remain page-owned. The existing focus policy remains the
+  default, and an explicit `always` policy supports chart-owned wheel surfaces.
+  Focused tests cover both modifier keys, unmodified passthrough while focused,
+  horizontal-wheel pan, unconditional capture, bounds and zero deltas, grouped
+  commits, cancellation, controlled updates, and mode-specific instructions.
+  The added policy and instructions bring the exact optional bundle to 20,957
+  bytes, or 20.47 KiB gzip, under a narrow 20.55 KiB cap without changing root
+  or universal consumers.
 - Scale-handle follow-up: cases 91 and 92 now use exact-subpath `handleX` in
   their ordinary definitions. The behavior maps ordered semantic candidates
   through the final x scale, paints the track, optional rule and handle, and

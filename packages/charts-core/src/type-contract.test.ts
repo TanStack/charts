@@ -26,7 +26,12 @@ import {
   type HandleXOptions,
 } from './interaction-handle'
 import { controlledSignal } from './interaction-signal'
-import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
+import {
+  zoomX,
+  type ZoomXChange,
+  type ZoomXWheelActivation,
+  type ZoomXWindow,
+} from './interaction-zoom'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
@@ -145,12 +150,14 @@ const dateStringHandle = handleX({
 })
 // @ts-expect-error Horizontal handles require explicit ordered values.
 handleX({ value: dateHandleSignal, cross: { edge: 'bottom' } })
+const wheelActivation: ZoomXWheelActivation = 'modifier'
 const dateZoom = zoomX({
   window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
     { start: rows[0]!.date, end: new Date('2025-01-02T00:00:00Z') },
     () => {},
   ),
   extent: [rows[0]!.date, new Date('2025-01-03T00:00:00Z')],
+  wheelActivation,
   format: (value) => {
     expectTypeOf(value).toEqualTypeOf<Date>()
     return value.toISOString()

@@ -457,7 +457,8 @@ their behavior:
   `ContinuousCursorLabelOptions`, and `ContinuousCursorOptions`. See
   [Continuous cursor](./focus-and-interaction.md#continuous-cursor).
 - `@tanstack/charts/interaction/zoom`: `ZoomXValue`, `ZoomXWindow`,
-  `ZoomXSource`, `ZoomXAction`, `ZoomXChange`, and `ZoomXOptions`. See
+  `ZoomXSource`, `ZoomXAction`, `ZoomXWheelActivation`, `ZoomXChange`, and
+  `ZoomXOptions`. See
   [Horizontal zoom](./focus-and-interaction.md#horizontal-zoom).
 - `@tanstack/charts/polar`: `PolarOptions`, `PolarScales`, `PolarMark`,
   `PolarGuide`, `PolarGuideScene`, `PolarAngleOptions`,
