@@ -2,9 +2,12 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
+import { catalogLocaleProblems } from './catalog-locale.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const casesRoot = path.join(root, 'benchmarks', 'conformance', 'cases')
+const conformanceRoot = path.join(root, 'benchmarks', 'conformance')
+const casesRoot = path.join(conformanceRoot, 'cases')
+const catalogAppRoot = path.join(root, 'examples', 'conformance', 'src')
 const demoDataRoot = path.join(root, 'packages', 'charts-demo-data', 'src')
 const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css']
 const browserModuleExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
@@ -21,6 +24,20 @@ const directories = (await fs.readdir(casesRoot, { withFileTypes: true }))
 const failures = []
 const closureSizes = []
 const publicTypeScriptPaths = new Set()
+
+const catalogLocalePaths = [
+  ...(await catalogLocaleSourcePaths(conformanceRoot)),
+  ...(await catalogLocaleSourcePaths(catalogAppRoot)),
+]
+for (const sourcePath of catalogLocalePaths) {
+  const source = await fs.readFile(sourcePath, 'utf8')
+  const relativePath = path.relative(root, sourcePath)
+  for (const problem of catalogLocaleProblems(source, sourcePath)) {
+    failures.push(
+      `${relativePath}:${problem.line}:${problem.column}: ${problem.message}`,
+    )
+  }
+}
 
 for (const directory of directories) {
   const caseRoot = path.join(casesRoot, directory)
@@ -296,6 +313,23 @@ function importSpecifiers(source, sourcePath) {
     }
   }
   return specifiers
+}
+
+async function catalogLocaleSourcePaths(directory) {
+  const entries = (await fs.readdir(directory, { withFileTypes: true })).sort(
+    (left, right) =>
+      left.name < right.name ? -1 : left.name > right.name ? 1 : 0,
+  )
+  const sourcePaths = []
+  for (const entry of entries) {
+    const entryPath = path.join(directory, entry.name)
+    if (entry.isDirectory()) {
+      sourcePaths.push(...(await catalogLocaleSourcePaths(entryPath)))
+    } else if (entry.isFile() && /\.(?:ts|tsx|js|jsx|mjs)$/u.test(entry.name)) {
+      sourcePaths.push(entryPath)
+    }
+  }
+  return sourcePaths
 }
 
 async function resolveImport(parent, specifier, extensions = sourceExtensions) {

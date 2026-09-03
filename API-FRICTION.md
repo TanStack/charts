@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-26
+Last updated: 2026-09-03
 
 ## Triage rule
 
@@ -331,6 +331,7 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
+| F-295 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
 
 ## Findings
 
@@ -8505,3 +8506,30 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+
+### F-295 - Catalog formatting inherited the host locale
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: updating pull request 68 after the source catalog and checked
+  previews replaced the old published catalog package
+- Friction: 42 number and date formatting calls plus 11 string collation calls
+  across 34 source files in 13 catalog cases, the catalog app shell, and its
+  conformance runtime and tests omitted the locale or passed `undefined`. UTC options kept the
+  date boundary stable, but presentation and tie-breaking order still followed
+  the machine locale. A Korean process rendered October 6 as `10월 6일`, and a
+  German process rendered `HP 1,234.5` as `HP 1.234,5`. That made checked
+  previews and visible catalog output differ by contributor or CI host.
+- Decision: pass the fixed `en-US` locale at every affected catalog formatter
+  and pin the Playwright preview context to the same locale. Check every
+  TypeScript and JavaScript file in the conformance tree and catalog app shell
+  through the compiler AST so multiline calls, optional chains, computed
+  properties, `localeCompare`, and both forms of `Intl` formatter construction
+  cannot silently return to the host default. Keep the library's general-purpose
+  formatting behavior unchanged.
+- Verification: AST unit tests cover omitted, `undefined`, multiline,
+  optional-chain, computed-property, collation, and `Intl` constructor forms. The
+  catalog-wide example contract validates all 188 cases. Representative date
+  and number output tests pass under Korean and German process locales, and
+  regenerated checked previews pass the preview integrity contract.

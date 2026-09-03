@@ -20,7 +20,7 @@ const interactiveTooltip: ChartTooltipOptions<AaplRow> = {
       channel: 'y',
       label: 'Apple',
       text: (point) =>
-        point.datum.Close.toLocaleString(undefined, {
+        point.datum.Close.toLocaleString('en-US', {
           maximumFractionDigits: 2,
         }),
     },

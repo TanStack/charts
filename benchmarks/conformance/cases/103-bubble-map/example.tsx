@@ -64,7 +64,7 @@ export const createExampleChart = (input: ChartOptions) =>
         ...{
           format: ({ datum }) =>
             'properties' in datum && 'population' in datum.properties
-              ? `${datum.properties['Country Name']} · ${datum.properties.population.toLocaleString()} people`
+              ? `${datum.properties['Country Name']} · ${datum.properties.population.toLocaleString('en-US')} people`
               : 'World land',
         },
       },

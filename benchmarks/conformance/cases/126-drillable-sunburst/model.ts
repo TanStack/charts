@@ -120,7 +120,7 @@ function treeNode(
 function compareNodes(left: string, right: string): number {
   return (
     flareAggregateValue(right) - flareAggregateValue(left) ||
-    flareLabel(left).localeCompare(flareLabel(right))
+    flareLabel(left).localeCompare(flareLabel(right), 'en-US')
   )
 }
 
