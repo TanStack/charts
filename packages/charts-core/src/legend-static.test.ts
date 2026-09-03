@@ -1,12 +1,17 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
-import { estimateSceneText } from './guide-layout'
+import {
+  estimateSceneText,
+  measureSceneLabelBounds,
+  withChartTextTypography,
+} from './guide-layout'
 import { colorLegend, colorLegendItems } from './legend-static'
 import { lineY } from './line'
 import { createChartScene, defaultChartTheme, defineChart } from './scene'
 import type {
   ChartColorLegendContext,
+  ChartTextMeasureOptions,
   ResolvedColorScale,
   SceneGroup,
 } from './types'
@@ -114,6 +119,121 @@ describe('categorical color legend presentation', () => {
     ])
   })
 
+  it.each([
+    { direction: 'ltr' as const, anchor: 'start' },
+    { direction: 'rtl' as const, anchor: 'end' },
+  ])(
+    'keeps configured labels on their physical left edge in $direction',
+    ({ direction, anchor }) => {
+      const measureText = vi.fn(
+        (text: string, options: ChartTextMeasureOptions) =>
+          estimateSceneText(text, options),
+      )
+      const legend = colorLegend({
+        items: colorLegendItems({ justify: 'center' }),
+      })
+      const context = legendContext({
+        direction,
+        layout: { measureText },
+      })
+      const labels = renderLegend(legend, context).children.filter(
+        (node) => node.kind === 'label',
+      )
+
+      expect(labels.map((label) => label.anchor)).toEqual([
+        anchor,
+        anchor,
+        anchor,
+      ])
+      expect(measureText).toHaveBeenCalledWith(
+        'Alpha',
+        expect.objectContaining({ direction, anchor }),
+      )
+    },
+  )
+
+  it('reserves measured label height for every wrapped row', () => {
+    const measureText = vi.fn(() => ({
+      x: 0,
+      y: -16,
+      width: 45,
+      height: 32,
+    }))
+    const legend = colorLegend({
+      items: colorLegendItems({
+        justify: 'start',
+        rowGap: 4,
+        label: { fontSize: 12 },
+      }),
+    })
+    const context = legendContext({
+      chart: { x: 40, y: 60, width: 80, height: 200 },
+      bounds: { x: 40, y: 0, width: 80, height: 126 },
+      layout: { measureText },
+    })
+
+    expect(legend.height(colors.domain.length, context)).toBe(126)
+    expect(
+      renderLegend(legend, context)
+        .children.filter((node) => node.kind === 'label')
+        .map((label) => label.y),
+    ).toEqual([16, 52, 88])
+  })
+
+  it('falls back from invalid host measurements', () => {
+    const measureText = vi.fn(() => ({
+      x: 0,
+      y: 0,
+      width: Number.NaN,
+      height: Number.POSITIVE_INFINITY,
+    }))
+    const legend = colorLegend({
+      items: colorLegendItems({ justify: 'center', label: { fontSize: 14 } }),
+    })
+    const typography = { fontScale: 2, letterSpacing: 1 }
+    const measuredContext = legendContext({
+      layout: { measureText, typography },
+    })
+    const fallbackContext = legendContext({ layout: { typography } })
+    const positions = (context: ChartColorLegendContext) =>
+      renderLegend(legend, context)
+        .children.filter((node) => node.kind === 'label')
+        .map(({ x, y }) => [x, y])
+
+    expect(legend.height(colors.domain.length, measuredContext)).toBe(
+      legend.height(colors.domain.length, fallbackContext),
+    )
+    expect(positions(measuredContext)).toEqual(positions(fallbackContext))
+    expect(positions(measuredContext).flat().every(Number.isFinite)).toBe(true)
+    expect(
+      legend.height(colors.domain.length, measuredContext),
+    ).toBeGreaterThan(18 + colors.domain.length * 14)
+  })
+
+  it('keeps a scaled title above configured item rows', () => {
+    const typography = { fontScale: 2, letterSpacing: 1 }
+    const legend = colorLegend({
+      label: 'Series',
+      items: colorLegendItems(),
+    })
+    const context = legendContext({ layout: { typography } })
+    const labels = renderLegend(legend, context).children.filter(
+      (node) => node.kind === 'label',
+    )
+    const title = labels.find((label) => label.key === 'legend-label')
+    const firstItem = labels.find((label) => label.key !== 'legend-label')
+    if (!title || !firstItem) throw new Error('Expected title and item labels')
+    const measureText = withChartTextTypography(estimateSceneText, typography)
+    const titleBounds = measureSceneLabelBounds(title, measureText)
+    const itemBounds = measureSceneLabelBounds(firstItem, measureText)
+
+    expect(titleBounds.y).toBeGreaterThanOrEqual(context.bounds.y)
+    expect(titleBounds.y + titleBounds.height).toBeLessThanOrEqual(itemBounds.y)
+    expect(itemBounds.y + itemBounds.height).toBeLessThanOrEqual(
+      context.bounds.y + legend.height(colors.domain.length, context),
+    )
+  })
+
   it('renders per-series symbols and label colors from resolved items', () => {
     const legend = colorLegend<'Alpha' | 'Beta' | 'Gamma'>({
       items: colorLegendItems<'Alpha' | 'Beta' | 'Gamma'>({
@@ -206,6 +326,28 @@ describe('categorical color legend presentation', () => {
       expect.objectContaining({ y: context.bounds.y, height: 24 }),
     )
     expect(labels[0]).toEqual(expect.objectContaining({ y: 12 }))
+  })
+
+  it('clamps indicator width to its allocated column', () => {
+    const legend = colorLegend({
+      items: colorLegendItems({
+        indicator: { width: 400, height: 12, shape: 'line' },
+      }),
+    })
+    const context = legendContext()
+    const children = renderLegend(legend, context).children
+    const indicators = children.filter((node) => node.kind === 'rule')
+    const labels = children.filter((node) => node.kind === 'label')
+
+    expect(indicators[0]).toEqual(
+      expect.objectContaining({
+        x1: context.bounds.x,
+        x2: context.bounds.x + context.bounds.width,
+      }),
+    )
+    expect(labels[0]).toEqual(
+      expect.objectContaining({ x: context.bounds.x + context.bounds.width }),
+    )
   })
 
   it('supports mixed marks with one resolved categorical legend', () => {

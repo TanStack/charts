@@ -6,7 +6,7 @@ export * from './example'
 export const mount = tanstackExampleMount(
   createExampleChart,
   exampleAriaLabel,
-  { guides: true, margin: true },
+  { guides: true, legend: true, margin: true },
 )
 
 export const catalogCase = mount

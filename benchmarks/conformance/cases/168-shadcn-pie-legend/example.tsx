@@ -80,7 +80,7 @@ export function createExampleChart() {
           }),
         }),
       },
-      margin: 0,
+      margin: { top: 0, right: 0, left: 0 },
     },
     {
       svgAnimation: false,

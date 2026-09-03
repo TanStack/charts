@@ -177,7 +177,6 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
   })
   const items = options.items as ResolvedColorLegendItems<TValue> | undefined
   const minimumItemWidth = Math.max(64, options.itemWidth ?? 110)
-  const labelOffset = options.label ? 13 : 0
   return {
     placement: options.placement,
     height(itemCount, context) {
@@ -185,8 +184,10 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         return gradient.height(itemCount, context)
       }
       if (items) {
-        return 18 + labelOffset + (items(context, minimumItemWidth) as number)
+        const title = resolveLegendTitleLayout(options.label, context, true)
+        return 18 + title.offset + (items(context, minimumItemWidth) as number)
       }
+      const labelOffset = options.label ? 13 : 0
       const layout = layoutCategoricalLegendItems(
         itemCount,
         context.chart.width,
@@ -202,13 +203,18 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         return renderSteppedLegend(options, context)
       }
       const { bounds, theme, direction } = context
+      const title = resolveLegendTitleLayout(
+        options.label,
+        context,
+        items !== undefined,
+      )
       const children: SceneNode[] = []
       if (options.label) {
         children.push({
           kind: 'label',
           key: 'legend-label',
           x: bounds.x,
-          y: bounds.y + 11,
+          y: bounds.y + title.y,
           text: options.label,
           anchor: physicalTextAnchor('left', direction),
           fontSize: 11,
@@ -221,11 +227,11 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
           ? (items(
               context,
               minimumItemWidth,
-              labelOffset,
+              title.offset,
             ) as readonly SceneNode[])
           : renderDefaultCategoricalLegend(
               context,
-              labelOffset,
+              title.offset,
               minimumItemWidth,
             )),
       )
@@ -238,6 +244,42 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
         children,
       }
     },
+  }
+}
+
+function resolveLegendTitleLayout(
+  label: string | undefined,
+  context: Parameters<ChartColorLegend['height']>[1],
+  measure: boolean,
+): { offset: number; y: number } {
+  if (!label) return { offset: 0, y: 11 }
+  if (!measure) return { offset: 13, y: 11 }
+
+  const measureOptions = {
+    fontSize: 11,
+    fontWeight: 600,
+    fontFamily: 'sans-serif',
+    fontStyle: 'normal',
+    fontStretch: 'normal',
+    letterSpacing: 0,
+    direction: context.direction ?? 'inherit',
+    fontScale: 1,
+    anchor: physicalTextAnchor('left', context.direction),
+    baseline: 'auto',
+  } satisfies ChartTextMeasureOptions
+  const fallback = withChartTextTypography(
+    estimateSceneText,
+    context.layout?.typography,
+  )(label, measureOptions)
+  const measured =
+    context.layout?.measureText?.(label, measureOptions) ?? fallback
+  const measuredY = finiteNumber(measured.y, fallback.y)
+  const measuredHeight = measuredDimension(measured.height, fallback.height)
+  const y = Math.max(11, -measuredY)
+
+  return {
+    offset: y + measuredY + measuredHeight + 2,
+    y,
   }
 }
 
@@ -506,6 +548,10 @@ function finiteNonnegative(value: number | undefined, fallback: number) {
 
 function measuredDimension(value: number, fallback: number) {
   return Number.isFinite(value) && value >= 0 ? value : fallback
+}
+
+function finiteNumber(value: number, fallback: number) {
+  return Number.isFinite(value) ? value : fallback
 }
 
 function isContinuousLegend(kind: ResolvedColorScaleKind | undefined): boolean {

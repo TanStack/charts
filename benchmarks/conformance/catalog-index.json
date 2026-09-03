@@ -2396,7 +2396,8 @@
         "daily observations",
         "monotone curves",
         "butt line cap",
-        "resolved maximum bar thickness"
+        "resolved maximum bar thickness",
+        "mixed-mark color legend"
       ],
       "geometry": [
         {

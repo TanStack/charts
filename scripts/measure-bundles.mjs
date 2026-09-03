@@ -1417,7 +1417,7 @@ const entries = [
     'Categorical legend item presentation',
     'benchmarks/entries/charts-categorical-legend-items.ts',
     'Categorical legend',
-    1.15,
+    1.75,
     {
       rendererBoundary: 'neutral',
       inputBoundary: {

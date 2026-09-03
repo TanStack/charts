@@ -105,6 +105,28 @@ describe('native composed-chart bar sizing', () => {
     )
   })
 
+  it('renders one native legend item for every mixed mark series', () => {
+    const scene = render(input)
+    const legend = scene.nodes.find(
+      (node) => node.kind === 'group' && node.key === 'legend',
+    )
+    if (legend?.kind !== 'group') throw new Error('Expected a legend group')
+
+    expect(
+      legend.children
+        .filter((node) => node.kind === 'label')
+        .map(({ text }) => text),
+    ).toEqual(['High temperature', 'Precipitation', 'Low temperature', 'Wind'])
+    expect(legend.children.map(({ key }) => key)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^legend-square:.*High temperature$/),
+        expect.stringMatching(/^legend-square:.*Precipitation$/),
+        expect.stringMatching(/^legend-line-dot:.*Low temperature$/),
+        expect.stringMatching(/^legend-dot:.*Wind$/),
+      ]),
+    )
+  })
+
   it('does not hide responsive bar geometry outside the definition', async () => {
     const closure = await loadTanStackSources('70-composed-chart')
     const source = closure.files.map((file) => file.source).join('\n')
