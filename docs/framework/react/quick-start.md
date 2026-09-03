@@ -159,8 +159,8 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
 }
 ```
 
-TanStack Charts owns rebuilding the chart when its definition changes. The
-application owns when that definition changes through the dependency list. See
+The application owns invalidation through the dependency list. A new
+definition identity tells TanStack Charts to rebuild the chart. See
 [Chart Definition API](../../reference/chart-definitions.md).
 
 ## Interaction callbacks
