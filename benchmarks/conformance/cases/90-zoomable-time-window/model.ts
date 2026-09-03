@@ -5,6 +5,11 @@ export interface ZoomWindow {
   end: Date
 }
 
+export interface ZoomLineRow {
+  readonly Date: Date
+  readonly Close: number
+}
+
 export const zoomFullDomain: readonly [Date, Date] = [
   new Date(Date.UTC(2018, 0, 2)),
   new Date(Date.UTC(2018, 0, 18)),
@@ -42,6 +47,74 @@ export function visibleZoomData(rows: readonly AaplRow[], window: ZoomWindow) {
     const timestamp = row.Date.getTime()
     return timestamp >= start && timestamp <= end
   })
+}
+
+export function visibleZoomLineData(
+  rows: readonly AaplRow[],
+  window: ZoomWindow,
+): readonly ZoomLineRow[] {
+  const start = window.start.getTime()
+  const end = window.end.getTime()
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return []
+
+  const ordered = rows
+    .map((row, index) => ({ row, index, timestamp: row.Date.getTime() }))
+    .filter(({ timestamp }) => Number.isFinite(timestamp))
+    .sort(
+      (left, right) =>
+        left.timestamp - right.timestamp || left.index - right.index,
+    )
+  const visible: typeof ordered = []
+  let before: (typeof ordered)[number] | undefined
+  let after: (typeof ordered)[number] | undefined
+
+  for (const entry of ordered) {
+    if (entry.timestamp < start) {
+      before = entry
+      continue
+    }
+    if (entry.timestamp > end) {
+      after = entry
+      break
+    }
+    visible.push(entry)
+  }
+
+  if (!visible.length) {
+    if (!before || !after) return []
+    if (start === end) {
+      return [interpolateZoomLineRow(before.row, after.row, start)]
+    }
+    return [
+      interpolateZoomLineRow(before.row, after.row, start),
+      interpolateZoomLineRow(before.row, after.row, end),
+    ]
+  }
+
+  const lineRows: ZoomLineRow[] = visible.map(({ row }) => row)
+  const first = visible[0]!
+  const last = visible.at(-1)!
+  if (before && first.timestamp > start) {
+    lineRows.unshift(interpolateZoomLineRow(before.row, first.row, start))
+  }
+  if (after && last.timestamp < end) {
+    lineRows.push(interpolateZoomLineRow(last.row, after.row, end))
+  }
+  return lineRows
+}
+
+function interpolateZoomLineRow(
+  left: AaplRow,
+  right: AaplRow,
+  timestamp: number,
+): ZoomLineRow {
+  const leftTime = left.Date.getTime()
+  const span = right.Date.getTime() - leftTime
+  const ratio = span === 0 ? 0 : (timestamp - leftTime) / span
+  return {
+    Date: new Date(timestamp),
+    Close: left.Close + (right.Close - left.Close) * ratio,
+  }
 }
 
 export function zoomSpanDays(window: ZoomWindow) {

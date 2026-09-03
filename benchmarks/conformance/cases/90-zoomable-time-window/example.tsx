@@ -16,6 +16,7 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
   selectZoomRows,
   visibleZoomData,
+  visibleZoomLineData,
   zoomDateKey,
   zoomFullDomain,
   zoomSpanDays,
@@ -49,11 +50,12 @@ export function zoomTimeWindowDefinition(
   onChange: (window: ZoomXWindow<Date>, reason: ZoomXChange<Date>) => void,
   onActiveChange?: (active: boolean) => void,
 ) {
-  const rows = visibleZoomData(zoomRows, window)
+  const visibleRows = visibleZoomData(zoomRows, window)
+  const lineRows = visibleZoomLineData(zoomRows, window)
   return defineChart({
     marks: [
       decorative(
-        lineY(rows, {
+        lineY(lineRows, {
           id: 'zoom-series-line',
           x: 'Date',
           y: 'Close',
@@ -61,7 +63,7 @@ export function zoomTimeWindowDefinition(
           strokeWidth: 2.5,
         }),
       ),
-      dot(rows, {
+      dot(visibleRows, {
         id: 'zoom-series-points',
         x: 'Date',
         y: 'Close',
@@ -71,6 +73,7 @@ export function zoomTimeWindowDefinition(
         strokeWidth: 1,
       }),
     ],
+    clip: true,
     scales: {
       x: {
         scale: scaleUtc().domain([window.start, window.end]),
