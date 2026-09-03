@@ -196,17 +196,21 @@ tooltip entry:
 ```tsx
 import { Chart } from '@tanstack/charts/react/tooltip'
 
-<Chart
-  definition={letterFrequencyChart}
-  height={320}
-  ariaLabel="English letter frequencies"
-  renderTooltipBody={({ defaultBody, pinned, dismiss }) => (
-    <>
-      {defaultBody}
-      {pinned ? <button onClick={dismiss}>Close</button> : null}
-    </>
-  )}
-/>
+export function ChartWithCustomTooltip() {
+  return (
+    <Chart
+      definition={letterFrequencyChart}
+      height={320}
+      ariaLabel="English letter frequencies"
+      renderTooltipBody={({ defaultBody, pinned, dismiss }) => (
+        <>
+          {defaultBody}
+          {pinned ? <button onClick={dismiss}>Close</button> : null}
+        </>
+      )}
+    />
+  )
+}
 ```
 
 Existing `renderTooltipBody` users should migrate the component import from
