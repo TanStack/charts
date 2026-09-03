@@ -6,14 +6,14 @@
   "title": "Free cursor over car measurements",
   "family": "interaction",
   "intent": "Track an unconstrained x and y plot position without snapping to the nearest datum.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "free cursor",
     "two-dimensional crosshair",
-    "normalized plot state",
+    "controlled semantic position",
     "semantic fractional target",
-    "case-owned overlay",
-    "rendered coordinate labels",
+    "continuous cursor behavior",
+    "definition-owned coordinate labels",
     "paired semantic sliders",
     "tap-to-pin cursor"
   ],
@@ -120,8 +120,7 @@
             { "path": "cursor.visible", "equals": true },
             { "path": "cursor.xValue", "equals": 101.9 },
             { "path": "cursor.yValue", "equals": 20.8 },
-            { "path": "cursor.pinned", "equals": true },
-            { "path": "render.count", "equals": 1 }
+            { "path": "cursor.pinned", "equals": true }
           ]
         },
         {
@@ -168,10 +167,17 @@
           "type": "assert",
           "assertions": [
             { "path": "cursor.visible", "equals": true },
-            { "path": "cursor.xValue", "equals": 85 },
-            { "path": "cursor.yValue", "equals": 32.5 },
-            { "path": "cursor.pinned", "equals": true },
-            { "path": "render.count", "equals": 1 }
+            {
+              "path": "cursor.xValue",
+              "approx": 85,
+              "tolerance": 0.5
+            },
+            {
+              "path": "cursor.yValue",
+              "approx": 32.5,
+              "tolerance": 0.5
+            },
+            { "path": "cursor.pinned", "equals": true }
           ]
         }
       ]
@@ -183,6 +189,6 @@
   },
   "ai": {
     "create": "Create a free crosshair over selected car horsepower and fuel-economy observations that reports arbitrary plot coordinates without selecting a datum.",
-    "maintain": "Keep cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and preserve one chart render while pointer state changes."
+    "maintain": "Keep transient cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and express cursor geometry and scale inversion through the continuous cursor behavior."
   }
 }

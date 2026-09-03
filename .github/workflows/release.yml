@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      recover_published_release:
+        description: Finalize the current published version despite later changesets
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -15,7 +22,7 @@ concurrency:
 jobs:
   release:
     name: Release
-    if: github.repository_owner == 'TanStack'
+    if: github.repository_owner == 'TanStack' && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -35,6 +42,7 @@ jobs:
 
       - name: Create version pull request or publish
         id: changesets
+        if: github.event_name != 'workflow_dispatch' || inputs.recover_published_release != true
         uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
           branch: main
@@ -49,17 +57,17 @@ jobs:
 
       - name: Determine release finalization
         id: status
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.hasChangesets == 'false' || (github.event_name == 'workflow_dispatch' && inputs.recover_published_release == true)
         env:
+          ALLOW_PUBLISHED_RECOVERY: ${{ github.event_name == 'workflow_dispatch' && inputs.recover_published_release }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_REVISION: ${{ github.sha }}
         run: node scripts/release-status.mjs
 
       - name: Create annotated release tag
         if: steps.status.outputs.create_tag == 'true'
         env:
           RELEASE_TAG: ${{ steps.status.outputs.tag }}
-          RELEASE_REVISION: ${{ github.sha }}
+          RELEASE_REVISION: ${{ steps.status.outputs.revision }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

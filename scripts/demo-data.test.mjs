@@ -4,11 +4,35 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { build } from 'esbuild'
 import { describe, expect, it } from 'vitest'
-import { demoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import { demoDatasetMetadata } from '@tanstack/charts-data/metadata'
+import {
+  autoTypeValue,
+  parseCsvRows,
+} from '../packages/charts-demo-data/src/parse-csv.js'
 
 const workspace = resolve(import.meta.dirname, '..')
+const supportExports = [
+  './country-atlas',
+  './learning-poverty-geography',
+  './shadcn',
+  './shadcn-area-interactive-data',
+  './simplify-geo',
+]
 
 describe('demo data', () => {
+  it('parses quoted CSV rows without code generation', () => {
+    expect(
+      parseCsvRows('name,note\r\nalpha,"one,two"\r\nbeta,"line\n""two"""'),
+    ).toEqual([
+      ['name', 'note'],
+      ['alpha', 'one,two'],
+      ['beta', 'line\n"two"'],
+    ])
+    expect(
+      ['', '42', 'true', '2026-08-02', ' text '].map(autoTypeValue),
+    ).toEqual([null, 42, true, new Date('2026-08-02'), ' text '])
+  })
+
   it('records a reproducible schema and provenance for every exact export', async () => {
     const packageJson = JSON.parse(
       await readFile(
@@ -16,11 +40,20 @@ describe('demo data', () => {
         'utf8',
       ),
     )
-    const datasetExports = Object.keys(packageJson.exports)
-      .filter((specifier) => specifier !== './metadata')
+    const exactExports = Object.keys(packageJson.exports)
+    const datasetExports = exactExports
+      .filter(
+        (specifier) =>
+          specifier !== './metadata' && !supportExports.includes(specifier),
+      )
       .map((specifier) => specifier.slice(2))
       .sort()
 
+    expect(
+      exactExports
+        .filter((specifier) => supportExports.includes(specifier))
+        .sort(),
+    ).toEqual([...supportExports].sort())
     expect(demoDatasetMetadata.map(({ id }) => id).sort()).toEqual(
       datasetExports,
     )
@@ -30,7 +63,7 @@ describe('demo data', () => {
       expect(dataset.schema.map(({ name }) => name)).toEqual(dataset.fields)
       expect(dataset.sha256).toMatch(/^[a-f0-9]{64}$/u)
       expect(dataset.observableRevision).toMatch(/^[a-f0-9]{40}$/u)
-      expect(dataset.specifier).toBe(`@charts-poc/demo-data/${dataset.id}`)
+      expect(dataset.specifier).toBe(`@tanstack/charts-data/${dataset.id}`)
     }
   })
 
@@ -39,7 +72,7 @@ describe('demo data', () => {
       absWorkingDir: workspace,
       stdin: {
         contents:
-          "import { alphabet } from '@charts-poc/demo-data/alphabet'; console.log(alphabet.length)",
+          "import { alphabet } from '@tanstack/charts-data/alphabet'; console.log(alphabet.length)",
         resolveDir: workspace,
       },
       bundle: true,
@@ -62,12 +95,12 @@ describe('demo data', () => {
     expect(inputs.some((path) => path.includes('d3-dsv'))).toBe(false)
   })
 
-  it('keeps a complete large CSV snapshot below the catalog asset limit', async () => {
+  it('keeps a complete large CSV snapshot worker-safe and below the catalog asset limit', async () => {
     const result = await build({
       absWorkingDir: workspace,
       stdin: {
         contents:
-          "import { olympians } from '@charts-poc/demo-data/olympians'; console.log(olympians.length)",
+          "import { olympians } from '@tanstack/charts-data/olympians'; console.log(olympians.length)",
         resolveDir: workspace,
       },
       bundle: true,
@@ -83,7 +116,10 @@ describe('demo data', () => {
       Object.keys(result.metafile.inputs).some((path) =>
         path.includes('d3-dsv'),
       ),
-    ).toBe(true)
+    ).toBe(false)
+    const output = new TextDecoder().decode(result.outputFiles[0]?.contents)
+    expect(output).not.toContain('new Function')
+    expect(output).not.toMatch(/\beval\s*\(/u)
     expect(result.outputFiles[0]?.contents.byteLength).toBeLessThan(1024 * 1024)
   })
 })

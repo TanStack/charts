@@ -1,94 +1,33 @@
-import {
-  bandX,
-  defineChart,
-  dot,
-  lineY,
-  mountChart,
-  whenFocused,
-} from '@tanstack/charts'
+import { mountChart } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
-import { tooltip } from '@tanstack/charts/tooltip'
-import { portal } from '@tanstack/charts/tooltip/portal'
-import { scaleLinear, scaleUtc } from 'd3-scale'
-import { industries } from '@charts-poc/demo-data/industries'
 import type {
   ConformanceHandle,
   ConformanceInput,
   ConformanceTestDriver,
 } from '../../types'
-import { industryNames, selectGroupedTooltipData } from './selection'
+import { industryNames } from './selection'
 import type { GroupedTooltipDatum } from './selection'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const colors = ['#2563eb', '#f97316', '#10b981']
+export * from './example'
 
-const definition = (input: ConformanceInput) => {
-  const rows = selectGroupedTooltipData(industries, input.revision)
-  const dates = rows.filter((row) => row.industry === industryNames[0])
-  return defineChart({
-    marks: [
-      whenFocused(
-        bandX(dates, {
-          x: 'date',
-          fill: '#64748b',
-          fillOpacity: 0.14,
-          inset: 3,
-          radius: 4,
-        }),
-        { match: 'x' },
-      ),
-      lineY(rows, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-      }),
-      dot(rows, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-        r: 2.5,
-        states: [
-          {
-            when: { focus: 'group' },
-            style: { r: 5, stroke: 'Canvas', strokeWidth: 1.5 },
-            transition: {
-              type: 'tween',
-              duration: 140,
-              easing: 'ease-out',
-            },
-          },
-          {
-            when: { focus: 'unmatched' },
-            style: { opacity: 0.3 },
-          },
-        ],
-      }),
-    ],
-    x: { scale: scaleUtc },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Unemployed (thousands)' },
+export const catalogCase = tanstackExampleMount(
+  createExampleChart,
+  exampleAriaLabel,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'grouped-points' &&
+            point.datum.industry === industryNames[0] &&
+            dateKey(point.datum.date) === '2001-07-01',
+        ) ?? null
+      )
     },
-    color: {
-      domain: industryNames,
-      range: colors,
-    },
-  })
-}
-
-const configuredDefinition = (input: ConformanceInput) =>
-  defineChart(definition(input), {
-    animate: false,
-    keyboard: true,
-    focus: 'group-x',
-    tooltip: {
-      use: tooltip,
-      portal,
-      anchor: 'group-center',
-      placement: ['top', 'right', 'left', 'bottom'],
-      sort: 'color-domain',
-    },
-  })
+  },
+)
 
 export function mount(
   container: HTMLElement,
@@ -96,10 +35,10 @@ export function mount(
 ): ConformanceHandle {
   let focusedRows: string[] = []
   const options: ChartHostOptions<GroupedTooltipDatum> = {
-    definition: configuredDefinition(input),
+    definition: createExampleChart(input),
     width: input.width,
     height: input.height,
-    ariaLabel: 'Grouped industry unemployment tooltip',
+    ariaLabel: exampleAriaLabel,
     onFocusGroupChange(points) {
       focusedRows = points.map(
         (point) => `${dateKey(point.datum.date)}:${point.datum.industry}`,
@@ -147,7 +86,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        definition: configuredDefinition(nextInput),
+        definition: createExampleChart(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

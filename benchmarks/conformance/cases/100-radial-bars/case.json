@@ -9,9 +9,9 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "concentric radial bars",
-    "authored D3 arc generator",
-    "data-driven per-datum radii",
+    "native angle-extending radial bars",
+    "categorical radius bands",
+    "responsive radial range",
     "rounded arc caps",
     "fixed angular domain"
   ],
@@ -23,6 +23,6 @@
   },
   "ai": {
     "create": "Create four concentric radial bars from Observable's alphabet rows using letter and frequency directly against the dataset maximum.",
-    "maintain": "Change the selected letters without changing ring order or the shared angular domain; preserve raw field names, responsive D3 accessors, and exact per-letter fills."
+    "maintain": "Change the selected letters without changing radius-band order or the shared angular domain; preserve raw field names, responsive radius ranges, semantic keys, and exact per-letter fills."
   }
 }

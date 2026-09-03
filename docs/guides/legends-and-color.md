@@ -15,12 +15,11 @@ When marks emit categorical color values and no color scale is supplied,
 TanStack Charts uses the chart theme palette. This is the convenient default
 for a small, stable set of categories.
 
-For persistent product semantics, supply an explicit configured D3 ordinal
-scale:
+For persistent product semantics, supply an explicit configured ordinal scale:
 
 ```ts
-import { scaleOrdinal } from 'd3-scale'
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const series = ['core', 'react', 'octane'] as const
 const color = scaleOrdinal<string, string>()
@@ -35,8 +34,11 @@ const definition = defineChart({
       z: 'series',
     }),
   ],
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   color: {
     scale: color,
     legend: colorLegend({ label: 'Package' }),
@@ -85,10 +87,11 @@ const color = {
 }
 ```
 
-`d3-scale-chromatic` and its matching type package are optional direct
-application dependencies. They are never pulled into charts that do not import
-them. The [D3 integration page](../concepts/scales-and-d3.md) owns the install
-and API-reference links.
+`d3-scale` and `d3-scale-chromatic`, with their matching type packages, are
+optional direct application dependencies for these quantitative mappings.
+They are never pulled into charts that do not import them. The
+[scale guide](../concepts/scales-and-d3.md) owns the install and API-reference
+links.
 
 ## Automatic color legend
 
@@ -103,18 +106,58 @@ Options:
 - `label`: optional legend title;
 - `itemWidth`: minimum categorical item width;
 - `width`: preferred quantitative legend width;
-- `format`: numeric boundary formatter.
+- `format`: numeric boundary formatter;
+- `placement`: `top` by default or `bottom`.
 
 The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-grouped/?theme=system&height=480"
-  title="Grouped bars with a responsive categorical color legend"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+```ts group=automatic-color-legend env=charts file=/src/chart.ts entry
+import { colorLegend, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { rows } from './data'
+
+export default defineChart({
+  marks: [
+    lineY(rows, {
+      x: 'week',
+      y: 'downloads',
+      z: 'package',
+      strokeWidth: 2.5,
+    }),
+  ],
+  scales: {
+    x: {
+      scale: () => scalePoint<string>().padding(0.2),
+      axis: { label: 'Week' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Downloads' },
+    },
+  },
+
+  color: { legend: colorLegend({ label: 'Package' }) },
+})
+```
+
+```ts group=automatic-color-legend file=/src/data.ts collapsed
+export const rows = [
+  { week: 'May 4', package: 'core', downloads: 820 },
+  { week: 'May 11', package: 'core', downloads: 960 },
+  { week: 'May 18', package: 'core', downloads: 1_140 },
+  { week: 'May 25', package: 'core', downloads: 1_280 },
+  { week: 'May 4', package: 'react', downloads: 610 },
+  { week: 'May 11', package: 'react', downloads: 730 },
+  { week: 'May 18', package: 'react', downloads: 810 },
+  { week: 'May 25', package: 'react', downloads: 940 },
+]
+```
+
+[Open the grouped-bar catalog case](https://tanstack.com/charts/catalog/bar-grouped/).
 
 ## Explicit gradient legend
 
@@ -123,11 +166,42 @@ available through direct labels, surrounding HTML, or a table.
 - `label`: optional title;
 - `steps`: rendered color samples, with a minimum of two;
 - `width`: preferred width capped by the chart;
-- `format`: formatter for the domain endpoints.
+- `format`: formatter for the domain endpoints;
+- `placement`: `top` by default or `bottom`.
 
 Use `colorGradientLegend` only when a discrete scale should intentionally be
 shown as a sampled ramp. It requires a numeric domain and does not invent
 units or semantic thresholds.
+
+## Controlled interactive legend
+
+Use `interactiveColorLegend` when a categorical color value is also the series
+identity:
+
+```ts
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { interactiveColorLegend } from '@tanstack/charts/legend'
+
+const color = {
+  domain: ['core', 'react', 'octane'],
+  range: ['#2563eb', '#f97316', '#10b981'],
+  legend: interactiveColorLegend({
+    visible: controlledSignal(visibleSeries, setVisibleSeries),
+    placement: 'bottom',
+    ariaLabel: 'Package visibility',
+  }),
+}
+```
+
+The application stores `visibleSeries`; the legend proposes the next complete
+array in color-domain order. Filtering happens after scale resolution, so a
+hidden series keeps its color and does not change inferred position domains.
+The browser host renders native pressed-state buttons and preserves their focus
+across controlled updates. Static SVG rendering keeps a visual, noninteractive
+fallback.
+
+This behavior applies to marks whose `color` channel defines series identity.
+Keep a separate `z` channel when grouping and color mean different things.
 
 ## Direct labels versus legends
 
@@ -154,7 +228,7 @@ direct labels help with the primary comparison.
   a meaningful center exists.
 - Do not imply order with an unordered rainbow palette.
 - Do not use color as the only signal for selection, status, or error.
-- Use `unknown` behavior on the D3 scale when unexpected categories must not
+- Use `unknown` behavior on the ordinal scale when unexpected categories must not
   silently join the domain.
 
 See [Themes and Styling](./themes-and-styling.md) and

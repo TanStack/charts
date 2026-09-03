@@ -21,39 +21,18 @@ ordinary categorical chart with decorative shapes.
 The application chooses the projection and spatial sampling policy. The
 opt-in `@tanstack/charts/geo` entry uses `d3-geo` to turn GeoJSON into shared
 scene paths and interaction points. See
-[Scales and D3](../concepts/scales-and-d3.md).
+[Scales](../concepts/scales-and-d3.md).
 
 ## Compare regional aggregates
 
 A choropleth joins one value to each named geographic feature and maps that
 value through a color scale.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/102-world-choropleth/?theme=system&height=480"
-  title="World learning-poverty choropleth over Natural Earth land"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=102-world-choropleth height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/108-country-choropleth/?theme=system&height=480"
-  title="World population-density choropleth for 95 matched countries"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=108-country-choropleth height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/109-us-state-choropleth/?theme=system&height=480"
-  title="Albers USA choropleth of 3,141 county unemployment rates"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=109-us-state-choropleth height=480 -->
 
 The join is part of data preparation. Match features through stable IDs, report
 unmatched records, and distinguish missing values from zero. Keep the color
@@ -108,16 +87,37 @@ Give `geoShape` a projection factory and an explicit fit target. This
 self-contained example uses a small planar floor plan. The mark fits the
 projection to the final plot bounds again whenever the chart resizes.
 
-<!-- docs-example: geo-shape-responsive typecheck -->
-
-```ts
+```ts group=floor-plan env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
 import { geoIdentity } from 'd3-geo'
+import { floorPlan } from './data'
 
+export default defineChart({
+  marks: [
+    geoShape(floorPlan.features, {
+      key: (feature) => feature.properties.id,
+      projection: {
+        type: geoIdentity,
+        fit: floorPlan,
+      },
+      fill: '#dbeafe',
+      stroke: '#2563eb',
+      strokeWidth: 1.5,
+    }),
+  ],
+  scales: {
+    x: null,
+    y: null,
+  },
+  margin: 12,
+})
+```
+
+```ts group=floor-plan file=/src/data.ts collapsed
 interface FloorPlanFeature {
   type: 'Feature'
-  properties: { id: number }
+  properties: { id: number; name: string }
   geometry: {
     type: 'Polygon'
     coordinates: [number, number][][]
@@ -129,12 +129,12 @@ interface FloorPlan {
   features: FloorPlanFeature[]
 }
 
-const westportHouse: FloorPlan = {
+export const floorPlan: FloorPlan = {
   type: 'FeatureCollection',
   features: [
     {
       type: 'Feature',
-      properties: { id: 1 },
+      properties: { id: 1, name: 'Studio' },
       geometry: {
         type: 'Polygon',
         coordinates: [
@@ -150,7 +150,7 @@ const westportHouse: FloorPlan = {
     },
     {
       type: 'Feature',
-      properties: { id: 2 },
+      properties: { id: 2, name: 'Office' },
       geometry: {
         type: 'Polygon',
         coordinates: [
@@ -166,21 +166,6 @@ const westportHouse: FloorPlan = {
     },
   ],
 }
-
-const map = defineChart({
-  marks: [
-    geoShape(westportHouse.features, {
-      key: (feature) => feature.properties.id,
-      projection: {
-        type: geoIdentity,
-        fit: westportHouse,
-      },
-      fill: 'none',
-      stroke: '#2563eb',
-      strokeWidth: 1,
-    }),
-  ],
-})
 ```
 
 `geoShape` uses `geoPath` for each feature and D3 centroids for focus. The
@@ -189,78 +174,36 @@ only when a geographic feature needs a different semantic longitude/latitude
 than its spherical centroid. The complete option contract is in
 [Geo Shape Mark](../reference/marks/geo.md).
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=480"
-  title="Westport House floor plan from 121 published GeoJSON polygons"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+[Open the complete 121-polygon Westport House catalog example](https://tanstack.com/charts/catalog/40-geojson-map/).
 
 ## Project points by magnitude
 
 Point and MultiPoint features use D3 `geoPath().pointRadius()`. The `r`
 channel can carry pixels directly; `rScale` maps a quantitative value first.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/103-bubble-map/?theme=system&height=480"
-  title="World population bubbles for 95 atlas-matched countries"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=103-bubble-map height=480 -->
 
 ## Change the projection
 
 The same GeoJSON can use any D3 projection factory. Sphere and graticule
 geometry are ordinary `geoShape` layers.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/104-orthographic-globe/?theme=system&height=480"
-  title="Orthographic globe with sphere and graticule layers"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=104-orthographic-globe height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/110-projection-gallery/?theme=system&height=520"
-  title="Two-by-two gallery comparing four standard world projections"
-  loading="lazy"
-  width="100%"
-  height="520"
-  style="width:100%;height:520px;border:0;"
-></iframe>
+<!-- ::chart-example id=110-projection-gallery height=520 -->
 
 ## Layer routes over geography
 
 Polygon, LineString, and Point features can share one responsive projection.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/105-route-map/?theme=system&height=480"
-  title="Recorded HMS Beagle voyage projected over 50m world land"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=105-route-map height=480 -->
 
 ## Show direction and magnitude
 
 A vector field places an arrow at each sampled position. Direction uses angle;
 magnitude can use length, color, or both.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/42-vector-field/?theme=system&height=480"
-  title="Surface-wind vectors derived from longitude, latitude, u, and v"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=42-vector-field height=480 -->
 
 Choose a sampling density that remains legible at the smallest container. More
 arrows can obscure the flow instead of adding evidence. When pixel length

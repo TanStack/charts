@@ -22,6 +22,10 @@
           "to": "installation"
         },
         {
+          "label": "Alpha Stability",
+          "to": "stability"
+        },
+        {
           "label": "Quick Start",
           "to": "quick-start"
         }
@@ -134,7 +138,7 @@
           "to": "concepts/data-and-channels"
         },
         {
-          "label": "Scales and D3",
+          "label": "Scales",
           "to": "concepts/scales-and-d3"
         },
         {
@@ -229,11 +233,16 @@
       ]
     },
     {
-      "label": "Examples",
+      "label": "Chart Guides",
       "children": [
         {
-          "label": "Example Gallery",
+          "label": "Overview",
           "to": "examples/index"
+        },
+        {
+          "label": "shadcn/ui Charts",
+          "to": "/charts/catalog/collections/shadcn",
+          "tab": "examples"
         },
         {
           "label": "Lines and Areas",
@@ -286,6 +295,770 @@
         {
           "label": "Interactive Charts",
           "to": "examples/interactive-charts"
+        },
+        {
+          "label": "Themes and Motion",
+          "to": "examples/themes-and-motion"
+        }
+      ]
+    },
+    {
+      "label": "Individual Charts",
+      "tab": "examples",
+      "collapsible": true,
+      "defaultCollapsed": true,
+      "children": [
+        {
+          "label": "Apple stock line with seasonal gaps",
+          "to": "/charts/catalog/charts/01-line-gaps/"
+        },
+        {
+          "label": "Industry unemployment with end labels",
+          "to": "/charts/catalog/charts/02-multi-line-end-labels/"
+        },
+        {
+          "label": "San Francisco temperature range band",
+          "to": "/charts/catalog/charts/03-temperature-range-band/"
+        },
+        {
+          "label": "Industry unemployment stacked area",
+          "to": "/charts/catalog/charts/04-stacked-time-area/"
+        },
+        {
+          "label": "Sorted vertical bars",
+          "to": "/charts/catalog/charts/bar-vertical-sorted/"
+        },
+        {
+          "label": "Horizontal ranking with long labels",
+          "to": "/charts/catalog/charts/bar-horizontal-ranking/"
+        },
+        {
+          "label": "Grouped bars",
+          "to": "/charts/catalog/charts/bar-grouped/"
+        },
+        {
+          "label": "Stacked bars",
+          "to": "/charts/catalog/charts/bar-stacked/"
+        },
+        {
+          "label": "Bubble scatterplot",
+          "to": "/charts/catalog/charts/scatter-bubble/"
+        },
+        {
+          "label": "Histogram",
+          "to": "/charts/catalog/charts/histogram/"
+        },
+        {
+          "label": "Labeled ordinal heatmap",
+          "to": "/charts/catalog/charts/heatmap-labeled/"
+        },
+        {
+          "label": "Anscombe quartet small multiples",
+          "to": "/charts/catalog/charts/facets-anscombe/"
+        },
+        {
+          "label": "Open-to-close price intervals",
+          "to": "/charts/catalog/charts/13-interval-timeline/"
+        },
+        {
+          "label": "Point estimates with error bars",
+          "to": "/charts/catalog/charts/14-error-bars/"
+        },
+        {
+          "label": "Grouped boxplot",
+          "to": "/charts/catalog/charts/15-boxplot/"
+        },
+        {
+          "label": "Ranked lollipop chart",
+          "to": "/charts/catalog/charts/16-lollipop/"
+        },
+        {
+          "label": "Dumbbell comparison",
+          "to": "/charts/catalog/charts/17-dumbbell/"
+        },
+        {
+          "label": "Cumulative histogram",
+          "to": "/charts/catalog/charts/18-cumulative-histogram/"
+        },
+        {
+          "label": "San Francisco temperature moving averages",
+          "to": "/charts/catalog/charts/19-moving-average-line/"
+        },
+        {
+          "label": "Industry share of unemployment",
+          "to": "/charts/catalog/charts/20-normalized-stacked-area/"
+        },
+        {
+          "label": "Streamgraph",
+          "to": "/charts/catalog/charts/21-streamgraph/"
+        },
+        {
+          "label": "Bollinger band",
+          "to": "/charts/catalog/charts/22-bollinger-band/"
+        },
+        {
+          "label": "Quantitative binned heatmap",
+          "to": "/charts/catalog/charts/24-quantitative-binned-heatmap/"
+        },
+        {
+          "label": "Precipitation calendar heatmap",
+          "to": "/charts/catalog/charts/25-calendar-heatmap/"
+        },
+        {
+          "label": "Diverging Likert responses",
+          "to": "/charts/catalog/charts/26-diverging-likert/"
+        },
+        {
+          "label": "Parallel coordinates",
+          "to": "/charts/catalog/charts/27-parallel-coordinates/"
+        },
+        {
+          "label": "Candlestick chart",
+          "to": "/charts/catalog/charts/28-candlestick/"
+        },
+        {
+          "label": "Annual gasoline-price waterfall",
+          "to": "/charts/catalog/charts/29-waterfall/"
+        },
+        {
+          "label": "Two-period slopegraph",
+          "to": "/charts/catalog/charts/30-slopegraph/"
+        },
+        {
+          "label": "Scatterplot with linear regression",
+          "to": "/charts/catalog/charts/31-linear-regression/"
+        },
+        {
+          "label": "Metro inequality change arrows",
+          "to": "/charts/catalog/charts/32-change-arrows/"
+        },
+        {
+          "label": "Apple close versus moving average",
+          "to": "/charts/catalog/charts/33-difference-chart/"
+        },
+        {
+          "label": "Pointer-selected tooltip",
+          "to": "/charts/catalog/charts/34-pointer-tooltip/"
+        },
+        {
+          "label": "Grouped X tooltip",
+          "to": "/charts/catalog/charts/35-grouped-tooltip/"
+        },
+        {
+          "label": "Tidy hierarchy tree",
+          "to": "/charts/catalog/charts/36-hierarchy-tree/"
+        },
+        {
+          "label": "Delaunay spatial network",
+          "to": "/charts/catalog/charts/37-delaunay-network/"
+        },
+        {
+          "label": "Filled wind-speed contours",
+          "to": "/charts/catalog/charts/38-contour-topography/"
+        },
+        {
+          "label": "Point density contours",
+          "to": "/charts/catalog/charts/39-density-contours/"
+        },
+        {
+          "label": "Westport House floor plan",
+          "to": "/charts/catalog/charts/40-geojson-map/"
+        },
+        {
+          "label": "Les Misérables character network",
+          "to": "/charts/catalog/charts/40-force-directed-network/"
+        },
+        {
+          "label": "English letter frequency waffle",
+          "to": "/charts/catalog/charts/41-waffle-unit-chart/"
+        },
+        {
+          "label": "Two-dimensional vector field",
+          "to": "/charts/catalog/charts/42-vector-field/"
+        },
+        {
+          "label": "Hexagonally binned density",
+          "to": "/charts/catalog/charts/43-hexbin-density/"
+        },
+        {
+          "label": "Framed guide-free scatterplot",
+          "to": "/charts/catalog/charts/44-framed-scatter/"
+        },
+        {
+          "label": "Empirical cumulative distribution",
+          "to": "/charts/catalog/charts/50-empirical-cdf/"
+        },
+        {
+          "label": "Faceted distributions",
+          "to": "/charts/catalog/charts/51-faceted-distributions/"
+        },
+        {
+          "label": "Beeswarm distribution",
+          "to": "/charts/catalog/charts/52-beeswarm-dodge/"
+        },
+        {
+          "label": "Log-scale Flare class sizes",
+          "to": "/charts/catalog/charts/53-log-scale-scatter/"
+        },
+        {
+          "label": "Industry unemployment bump chart",
+          "to": "/charts/catalog/charts/54-bump-ranking/"
+        },
+        {
+          "label": "Indexed industry unemployment",
+          "to": "/charts/catalog/charts/55-indexed-multi-line/"
+        },
+        {
+          "label": "Directed connected scatterplot",
+          "to": "/charts/catalog/charts/56-connected-scatter/"
+        },
+        {
+          "label": "Scatterplot with marginal histograms",
+          "to": "/charts/catalog/charts/57-scatter-marginal-histograms/"
+        },
+        {
+          "label": "Annotated AAPL extrema",
+          "to": "/charts/catalog/charts/58-select-extrema/"
+        },
+        {
+          "label": "Mean penguin mass reducer bars",
+          "to": "/charts/catalog/charts/59-grouped-reducer-bars/"
+        },
+        {
+          "label": "AAPL lag-one autocorrelation",
+          "to": "/charts/catalog/charts/60-lag-autocorrelation/"
+        },
+        {
+          "label": "Industry unemployment percentile ribbon",
+          "to": "/charts/catalog/charts/61-quantile-ribbon/"
+        },
+        {
+          "label": "Ridgeline density comparison",
+          "to": "/charts/catalog/charts/62-ridgeline-density/"
+        },
+        {
+          "label": "Violin distribution comparison",
+          "to": "/charts/catalog/charts/63-violin-distributions/"
+        },
+        {
+          "label": "Marimekko survey composition",
+          "to": "/charts/catalog/charts/64-marimekko-mosaic/"
+        },
+        {
+          "label": "Voronoi nearest-point interaction",
+          "to": "/charts/catalog/charts/65-voronoi-nearest-tooltip/"
+        },
+        {
+          "label": "Seattle weather with three y axes",
+          "to": "/charts/catalog/charts/70-composed-chart/"
+        },
+        {
+          "label": "Palmer penguins by species and sex",
+          "to": "/charts/catalog/charts/71-recharts-population-pyramid/"
+        },
+        {
+          "label": "Stacked and adjacent Seattle weather bars",
+          "to": "/charts/catalog/charts/72-recharts-mixed-bars/"
+        },
+        {
+          "label": "Automobile specifications scatter",
+          "to": "/charts/catalog/charts/73-many-point-scatter/"
+        },
+        {
+          "label": "Flare analytics treemap",
+          "to": "/charts/catalog/charts/74-recharts-treemap/"
+        },
+        {
+          "label": "Simple radar chart",
+          "to": "/charts/catalog/charts/75-radar/"
+        },
+        {
+          "label": "English letter frequency pie",
+          "to": "/charts/catalog/charts/76-pie/"
+        },
+        {
+          "label": "English letter frequency donut",
+          "to": "/charts/catalog/charts/77-donut/"
+        },
+        {
+          "label": "Survey agreement share gauge",
+          "to": "/charts/catalog/charts/78-gauge/"
+        },
+        {
+          "label": "Snapped axis pointer with grouped tooltip",
+          "to": "/charts/catalog/charts/80-echarts-axis-pointer/"
+        },
+        {
+          "label": "Interactive series legend",
+          "to": "/charts/catalog/charts/81-recharts-interactive-legend/"
+        },
+        {
+          "label": "Linked chart and data table selection",
+          "to": "/charts/catalog/charts/82-chart-table-selection/"
+        },
+        {
+          "label": "Focus and context time window",
+          "to": "/charts/catalog/charts/83-focus-context-window/"
+        },
+        {
+          "label": "Expanding pinned energy tooltip",
+          "to": "/charts/catalog/charts/84-pinned-nested-chart-tooltip/"
+        },
+        {
+          "label": "Scrollable resource timeline lanes",
+          "to": "/charts/catalog/charts/85-scrollable-resource-lanes/"
+        },
+        {
+          "label": "Streaming window preservation",
+          "to": "/charts/catalog/charts/86-streaming-window-preservation/"
+        },
+        {
+          "label": "Synchronized cursors across views",
+          "to": "/charts/catalog/charts/87-echarts-synchronized-cursors/"
+        },
+        {
+          "label": "Free cursor over car measurements",
+          "to": "/charts/catalog/charts/88-echarts-free-cursor/"
+        },
+        {
+          "label": "Observed monthly AAPL brush selection",
+          "to": "/charts/catalog/charts/89-brush-range-selection/"
+        },
+        {
+          "label": "Wheel zoom and pan over AAPL closes",
+          "to": "/charts/catalog/charts/90-zoomable-time-window/"
+        },
+        {
+          "label": "AAPL close playback scrubber",
+          "to": "/charts/catalog/charts/91-timeline-playback-scrubber/"
+        },
+        {
+          "label": "Editable event range",
+          "to": "/charts/catalog/charts/92-editable-event-range/"
+        },
+        {
+          "label": "Letter frequency pie with labels",
+          "to": "/charts/catalog/charts/93-labeled-pie/"
+        },
+        {
+          "label": "Letter frequency donut with total",
+          "to": "/charts/catalog/charts/94-center-donut/"
+        },
+        {
+          "label": "Rounded letter frequency donut",
+          "to": "/charts/catalog/charts/95-rounded-donut/"
+        },
+        {
+          "label": "Nested Flare package sizes",
+          "to": "/charts/catalog/charts/96-nested-donut/"
+        },
+        {
+          "label": "English letter frequency rose",
+          "to": "/charts/catalog/charts/97-rose/"
+        },
+        {
+          "label": "County unemployment gauge",
+          "to": "/charts/catalog/charts/98-needle-gauge/"
+        },
+        {
+          "label": "Comparative radar chart",
+          "to": "/charts/catalog/charts/99-comparative-radar/"
+        },
+        {
+          "label": "Concentric letter frequency bars",
+          "to": "/charts/catalog/charts/100-radial-bars/"
+        },
+        {
+          "label": "Flare analytics sunburst",
+          "to": "/charts/catalog/charts/101-sunburst/"
+        },
+        {
+          "label": "World learning-poverty choropleth",
+          "to": "/charts/catalog/charts/102-world-choropleth/"
+        },
+        {
+          "label": "World population bubble map",
+          "to": "/charts/catalog/charts/103-bubble-map/"
+        },
+        {
+          "label": "Orthographic globe with graticule",
+          "to": "/charts/catalog/charts/104-orthographic-globe/"
+        },
+        {
+          "label": "HMS Beagle voyage",
+          "to": "/charts/catalog/charts/105-route-map/"
+        },
+        {
+          "label": "Seattle daily high-temperature polar line",
+          "to": "/charts/catalog/charts/106-polar-line/"
+        },
+        {
+          "label": "Surface wind polar scatter",
+          "to": "/charts/catalog/charts/107-polar-scatter/"
+        },
+        {
+          "label": "World population-density choropleth",
+          "to": "/charts/catalog/charts/108-country-choropleth/"
+        },
+        {
+          "label": "United States county unemployment choropleth",
+          "to": "/charts/catalog/charts/109-us-state-choropleth/"
+        },
+        {
+          "label": "Standard world projection gallery",
+          "to": "/charts/catalog/charts/110-projection-gallery/"
+        },
+        {
+          "label": "Basic Sankey",
+          "to": "/charts/catalog/charts/111-basic-sankey/"
+        },
+        {
+          "label": "Sankey",
+          "to": "/charts/catalog/charts/111-sankey-flow/"
+        },
+        {
+          "label": "Staggered entrance motion",
+          "to": "/charts/catalog/charts/112-motion-entrance/"
+        },
+        {
+          "label": "Interrupted spring updates",
+          "to": "/charts/catalog/charts/113-motion-updates/"
+        },
+        {
+          "label": "Spring line updates",
+          "to": "/charts/catalog/charts/114-spring-line-motion/"
+        },
+        {
+          "label": "Definition-owned motion",
+          "to": "/charts/catalog/charts/115-definition-motion/"
+        },
+        {
+          "label": "Cross-chart geometry morph",
+          "to": "/charts/catalog/charts/116-geometry-morph/"
+        },
+        {
+          "label": "Focus and crosshair motion",
+          "to": "/charts/catalog/charts/117-focus-cursor-motion/"
+        },
+        {
+          "label": "Token use calendar heatmap",
+          "to": "/charts/catalog/charts/118-token-usage-calendar/"
+        },
+        {
+          "label": "Stacked bars with band and rule cursors",
+          "to": "/charts/catalog/charts/119-stacked-bar-band-cursor/"
+        },
+        {
+          "label": "Themed interactive area card",
+          "to": "/charts/catalog/charts/120-themed-interactive-area/"
+        },
+        {
+          "label": "Active bar dashboard",
+          "to": "/charts/catalog/charts/121-active-bar-dashboard/"
+        },
+        {
+          "label": "Premium KPI sparklines",
+          "to": "/charts/catalog/charts/122-premium-kpi-sparklines/"
+        },
+        {
+          "label": "Active donut metric",
+          "to": "/charts/catalog/charts/123-active-donut-metric/"
+        },
+        {
+          "label": "Theme palette matrix",
+          "to": "/charts/catalog/charts/124-theme-palette-matrix/"
+        },
+        {
+          "label": "Sales conversion funnel",
+          "to": "/charts/catalog/charts/125-sales-funnel/"
+        },
+        {
+          "label": "Drillable Flare sunburst",
+          "to": "/charts/catalog/charts/126-drillable-sunburst/"
+        },
+        {
+          "label": "shadcn dashboard",
+          "to": "/charts/catalog/charts/127-shadcn-dashboard/"
+        },
+        {
+          "label": "shadcn Bar Chart - Multiple",
+          "to": "/charts/catalog/charts/128-shadcn-bar-multiple/"
+        },
+        {
+          "label": "shadcn Pie Chart - Donut with Text",
+          "to": "/charts/catalog/charts/129-shadcn-pie-donut-text/"
+        },
+        {
+          "label": "shadcn Radar Chart - Multiple",
+          "to": "/charts/catalog/charts/130-shadcn-radar-multiple/"
+        },
+        {
+          "label": "shadcn Radial Chart - Text",
+          "to": "/charts/catalog/charts/131-shadcn-radial-text/"
+        },
+        {
+          "label": "shadcn Tooltip - Advanced",
+          "to": "/charts/catalog/charts/132-shadcn-tooltip-advanced/"
+        },
+        {
+          "label": "shadcn Area Chart - Axes",
+          "to": "/charts/catalog/charts/133-shadcn-area-axes/"
+        },
+        {
+          "label": "shadcn Area Chart",
+          "to": "/charts/catalog/charts/134-shadcn-area-default/"
+        },
+        {
+          "label": "shadcn Area Chart - Gradient",
+          "to": "/charts/catalog/charts/135-shadcn-area-gradient/"
+        },
+        {
+          "label": "shadcn Area Chart - Icons",
+          "to": "/charts/catalog/charts/136-shadcn-area-icons/"
+        },
+        {
+          "label": "shadcn Area Chart - Interactive",
+          "to": "/charts/catalog/charts/137-shadcn-area-interactive/"
+        },
+        {
+          "label": "shadcn Area Chart - Legend",
+          "to": "/charts/catalog/charts/138-shadcn-area-legend/"
+        },
+        {
+          "label": "shadcn Area Chart - Linear",
+          "to": "/charts/catalog/charts/139-shadcn-area-linear/"
+        },
+        {
+          "label": "shadcn Area Chart - Stacked Expanded",
+          "to": "/charts/catalog/charts/140-shadcn-area-stacked-expand/"
+        },
+        {
+          "label": "shadcn Area Chart - Stacked",
+          "to": "/charts/catalog/charts/141-shadcn-area-stacked/"
+        },
+        {
+          "label": "shadcn Area Chart - Step",
+          "to": "/charts/catalog/charts/142-shadcn-area-step/"
+        },
+        {
+          "label": "shadcn Bar Chart - Active",
+          "to": "/charts/catalog/charts/143-shadcn-bar-active/"
+        },
+        {
+          "label": "shadcn Bar Chart",
+          "to": "/charts/catalog/charts/144-shadcn-bar-default/"
+        },
+        {
+          "label": "shadcn Bar Chart - Horizontal",
+          "to": "/charts/catalog/charts/145-shadcn-bar-horizontal/"
+        },
+        {
+          "label": "shadcn Bar Chart - Interactive",
+          "to": "/charts/catalog/charts/146-shadcn-bar-interactive/"
+        },
+        {
+          "label": "shadcn Bar Chart - Custom Label",
+          "to": "/charts/catalog/charts/147-shadcn-bar-label-custom/"
+        },
+        {
+          "label": "shadcn Bar Chart - Label",
+          "to": "/charts/catalog/charts/148-shadcn-bar-label/"
+        },
+        {
+          "label": "shadcn Bar Chart - Mixed",
+          "to": "/charts/catalog/charts/149-shadcn-bar-mixed/"
+        },
+        {
+          "label": "shadcn Bar Chart - Negative",
+          "to": "/charts/catalog/charts/150-shadcn-bar-negative/"
+        },
+        {
+          "label": "shadcn Bar Chart - Stacked + Legend",
+          "to": "/charts/catalog/charts/151-shadcn-bar-stacked/"
+        },
+        {
+          "label": "shadcn Line Chart",
+          "to": "/charts/catalog/charts/152-shadcn-line-default/"
+        },
+        {
+          "label": "shadcn Line Chart - Dots Colors",
+          "to": "/charts/catalog/charts/153-shadcn-line-dots-colors/"
+        },
+        {
+          "label": "shadcn Line Chart - Custom Dots",
+          "to": "/charts/catalog/charts/154-shadcn-line-dots-custom/"
+        },
+        {
+          "label": "shadcn Line Chart - Dots",
+          "to": "/charts/catalog/charts/155-shadcn-line-dots/"
+        },
+        {
+          "label": "shadcn Line Chart - Interactive",
+          "to": "/charts/catalog/charts/156-shadcn-line-interactive/"
+        },
+        {
+          "label": "shadcn Line Chart - Custom Label",
+          "to": "/charts/catalog/charts/157-shadcn-line-label-custom/"
+        },
+        {
+          "label": "shadcn Line Chart - Label",
+          "to": "/charts/catalog/charts/158-shadcn-line-label/"
+        },
+        {
+          "label": "shadcn Line Chart - Linear",
+          "to": "/charts/catalog/charts/159-shadcn-line-linear/"
+        },
+        {
+          "label": "shadcn Line Chart - Multiple",
+          "to": "/charts/catalog/charts/160-shadcn-line-multiple/"
+        },
+        {
+          "label": "shadcn Line Chart - Step",
+          "to": "/charts/catalog/charts/161-shadcn-line-step/"
+        },
+        {
+          "label": "shadcn Pie Chart - Donut Active",
+          "to": "/charts/catalog/charts/162-shadcn-pie-donut-active/"
+        },
+        {
+          "label": "shadcn Pie Chart - Donut",
+          "to": "/charts/catalog/charts/163-shadcn-pie-donut/"
+        },
+        {
+          "label": "shadcn Pie Chart - Interactive",
+          "to": "/charts/catalog/charts/164-shadcn-pie-interactive/"
+        },
+        {
+          "label": "shadcn Pie Chart - Custom Label",
+          "to": "/charts/catalog/charts/165-shadcn-pie-label-custom/"
+        },
+        {
+          "label": "shadcn Pie Chart - Label List",
+          "to": "/charts/catalog/charts/166-shadcn-pie-label-list/"
+        },
+        {
+          "label": "shadcn Pie Chart - Label",
+          "to": "/charts/catalog/charts/167-shadcn-pie-label/"
+        },
+        {
+          "label": "shadcn Pie Chart - Legend",
+          "to": "/charts/catalog/charts/168-shadcn-pie-legend/"
+        },
+        {
+          "label": "shadcn Pie Chart - Separator None",
+          "to": "/charts/catalog/charts/169-shadcn-pie-separator-none/"
+        },
+        {
+          "label": "shadcn Pie Chart",
+          "to": "/charts/catalog/charts/170-shadcn-pie-simple/"
+        },
+        {
+          "label": "shadcn Pie Chart - Stacked",
+          "to": "/charts/catalog/charts/171-shadcn-pie-stacked/"
+        },
+        {
+          "label": "shadcn Radar Chart",
+          "to": "/charts/catalog/charts/172-shadcn-radar-default/"
+        },
+        {
+          "label": "shadcn Radar Chart - Dots",
+          "to": "/charts/catalog/charts/173-shadcn-radar-dots/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle Filled",
+          "to": "/charts/catalog/charts/174-shadcn-radar-grid-circle-fill/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle - No lines",
+          "to": "/charts/catalog/charts/175-shadcn-radar-grid-circle-no-lines/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle",
+          "to": "/charts/catalog/charts/176-shadcn-radar-grid-circle/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Custom",
+          "to": "/charts/catalog/charts/177-shadcn-radar-grid-custom/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Filled",
+          "to": "/charts/catalog/charts/178-shadcn-radar-grid-fill/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid None",
+          "to": "/charts/catalog/charts/179-shadcn-radar-grid-none/"
+        },
+        {
+          "label": "shadcn Radar Chart - Icons",
+          "to": "/charts/catalog/charts/180-shadcn-radar-icons/"
+        },
+        {
+          "label": "shadcn Radar Chart - Custom Label",
+          "to": "/charts/catalog/charts/181-shadcn-radar-label-custom/"
+        },
+        {
+          "label": "shadcn Radar Chart - Legend",
+          "to": "/charts/catalog/charts/182-shadcn-radar-legend/"
+        },
+        {
+          "label": "shadcn Radar Chart - Lines Only",
+          "to": "/charts/catalog/charts/183-shadcn-radar-lines-only/"
+        },
+        {
+          "label": "shadcn Radar Chart - Radius Axis",
+          "to": "/charts/catalog/charts/184-shadcn-radar-radius/"
+        },
+        {
+          "label": "shadcn Radial Chart - Grid",
+          "to": "/charts/catalog/charts/185-shadcn-radial-grid/"
+        },
+        {
+          "label": "shadcn Radial Chart - Label",
+          "to": "/charts/catalog/charts/186-shadcn-radial-label/"
+        },
+        {
+          "label": "shadcn Radial Chart - Shape",
+          "to": "/charts/catalog/charts/187-shadcn-radial-shape/"
+        },
+        {
+          "label": "shadcn Radial Chart",
+          "to": "/charts/catalog/charts/188-shadcn-radial-simple/"
+        },
+        {
+          "label": "shadcn Radial Chart - Stacked",
+          "to": "/charts/catalog/charts/189-shadcn-radial-stacked/"
+        },
+        {
+          "label": "shadcn Tooltip - Default",
+          "to": "/charts/catalog/charts/190-shadcn-tooltip-default/"
+        },
+        {
+          "label": "shadcn Tooltip - Formatter",
+          "to": "/charts/catalog/charts/191-shadcn-tooltip-formatter/"
+        },
+        {
+          "label": "shadcn Tooltip - Icons",
+          "to": "/charts/catalog/charts/192-shadcn-tooltip-icons/"
+        },
+        {
+          "label": "shadcn Tooltip - Line Indicator",
+          "to": "/charts/catalog/charts/193-shadcn-tooltip-indicator-line/"
+        },
+        {
+          "label": "shadcn Tooltip - No Indicator",
+          "to": "/charts/catalog/charts/194-shadcn-tooltip-indicator-none/"
+        },
+        {
+          "label": "shadcn Tooltip - Custom label",
+          "to": "/charts/catalog/charts/195-shadcn-tooltip-label-custom/"
+        },
+        {
+          "label": "shadcn Tooltip - Label Formatter",
+          "to": "/charts/catalog/charts/196-shadcn-tooltip-label-formatter/"
+        },
+        {
+          "label": "shadcn Tooltip - No Label",
+          "to": "/charts/catalog/charts/197-shadcn-tooltip-label-none/"
         }
       ]
     },
@@ -303,6 +1076,10 @@
         {
           "label": "Chart Spec",
           "to": "reference/chart-spec"
+        },
+        {
+          "label": "View Composition",
+          "to": "reference/view-composition"
         },
         {
           "label": "Data Transforms",
@@ -439,12 +1216,76 @@
           "to": "reference/marks/line-and-area"
         },
         {
+          "label": "Difference Marks",
+          "to": "reference/marks/difference"
+        },
+        {
+          "label": "Linear Regression Marks",
+          "to": "reference/marks/regression"
+        },
+        {
           "label": "Bar and Rect Marks",
           "to": "reference/marks/bar-and-rect"
         },
         {
+          "label": "Box Marks",
+          "to": "reference/marks/box"
+        },
+        {
           "label": "Dot and Hexagon Marks",
           "to": "reference/marks/dot-and-hexagon"
+        },
+        {
+          "label": "Dodge Layouts",
+          "to": "reference/marks/dodge"
+        },
+        {
+          "label": "Waffle Marks",
+          "to": "reference/marks/waffle"
+        },
+        {
+          "label": "Ridgeline Marks",
+          "to": "reference/marks/ridgeline"
+        },
+        {
+          "label": "Violin Marks",
+          "to": "reference/marks/violin"
+        },
+        {
+          "label": "Focus Guide Marks",
+          "to": "reference/marks/focus-guide"
+        },
+        {
+          "label": "Treemap Mark",
+          "to": "reference/marks/treemap"
+        },
+        {
+          "label": "Sunburst Mark",
+          "to": "reference/marks/sunburst"
+        },
+        {
+          "label": "Sankey Diagram Mark",
+          "to": "reference/marks/sankey"
+        },
+        {
+          "label": "Hexbin Mark",
+          "to": "reference/marks/hexbin"
+        },
+        {
+          "label": "Contour Mark",
+          "to": "reference/marks/contour"
+        },
+        {
+          "label": "Density Contour Mark",
+          "to": "reference/marks/density"
+        },
+        {
+          "label": "Delaunay Link Mark",
+          "to": "reference/marks/delaunay"
+        },
+        {
+          "label": "Voronoi Mark",
+          "to": "reference/marks/voronoi"
         },
         {
           "label": "Rules, Links, Arrows, Vectors, and Ticks",

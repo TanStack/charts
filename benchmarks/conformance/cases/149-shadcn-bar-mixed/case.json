@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1500,
+  "id": "149-shadcn-bar-mixed",
+  "title": "shadcn Bar Chart - Mixed",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-mixed example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "mixed", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-mixed",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-mixed"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-mixed card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar mixed treatment, card dimensions, and light and dark tokens."
+  }
+}

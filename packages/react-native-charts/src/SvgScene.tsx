@@ -13,9 +13,11 @@ import {
   Svg,
   Text,
 } from 'react-native-svg'
-import type { CommonPathProps, Linejoin } from 'react-native-svg'
+import type { CommonPathProps, Linejoin, SvgProps } from 'react-native-svg'
 import type {
+  ChartFocusPresentation,
   ChartScene,
+  ChartTextTypography,
   SceneGroup,
   SceneNode,
   SceneStyle,
@@ -26,16 +28,67 @@ export interface NativeChartSceneProps {
   scene: ChartScene
   color: ColorValue
   fontFamily?: string
+  fontStyle?: SvgProps['fontStyle']
+  fontStretch?: SvgProps['fontStretch']
+  letterSpacing?: number
+  direction?: ChartTextTypography['direction']
+  fontScale?: number
   idPrefix: string
   resolvePaint: NativePaintResolver
+  focusFill?: ColorValue
+  focusPresentation?: ChartFocusPresentation
+}
+
+export interface NativeChartSceneNodesProps extends NativeChartSceneProps {
+  nodes: readonly SceneNode[]
+}
+
+export function NativeChartSceneNodes({
+  scene,
+  nodes,
+  color,
+  focusFill,
+  fontScale,
+  idPrefix,
+  resolvePaint,
+}: NativeChartSceneNodesProps) {
+  const gradientIds = React.useMemo(
+    () => new Set(scene.gradients.map((gradient) => gradient.id)),
+    [scene.gradients],
+  )
+  const paint = React.useCallback(
+    (value: string) =>
+      resolveScenePaint(
+        value,
+        gradientIds,
+        idPrefix,
+        resolvePaint,
+        color,
+        focusFill,
+      ),
+    [color, focusFill, gradientIds, idPrefix, resolvePaint],
+  )
+  return (
+    <>
+      {nodes.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
+    </>
+  )
 }
 
 export const NativeChartScene = React.memo(function NativeChartScene({
   scene,
   color,
   fontFamily,
+  fontStyle,
+  fontStretch,
+  letterSpacing,
+  fontScale,
   idPrefix,
   resolvePaint,
+  focusFill,
+  focusPresentation,
 }: NativeChartSceneProps) {
   const gradientIds = React.useMemo(
     () => new Set(scene.gradients.map((gradient) => gradient.id)),
@@ -43,8 +96,15 @@ export const NativeChartScene = React.memo(function NativeChartScene({
   )
   const paint = React.useCallback(
     (value: string) =>
-      resolveScenePaint(value, gradientIds, idPrefix, resolvePaint, color),
-    [color, gradientIds, idPrefix, resolvePaint],
+      resolveScenePaint(
+        value,
+        gradientIds,
+        idPrefix,
+        resolvePaint,
+        color,
+        focusFill,
+      ),
+    [color, focusFill, gradientIds, idPrefix, resolvePaint],
   )
 
   return (
@@ -54,6 +114,13 @@ export const NativeChartScene = React.memo(function NativeChartScene({
       viewBox={`0 0 ${scene.width} ${scene.height}`}
       color={color}
       fontFamily={fontFamily}
+      fontStyle={fontStyle}
+      fontStretch={fontStretch}
+      letterSpacing={
+        letterSpacing === undefined
+          ? undefined
+          : letterSpacing * positiveFinite(fontScale, 1)
+      }
       pointerEvents="none"
       accessible={false}
     >
@@ -89,7 +156,15 @@ export const NativeChartScene = React.memo(function NativeChartScene({
           fill={paint(scene.theme.background)}
         />
       )}
-      {scene.nodes.map((node) => renderSceneNode(node, idPrefix, paint))}
+      {focusPresentation?.under.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
+      {scene.nodes.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
+      {focusPresentation?.over.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
     </Svg>
   )
 })
@@ -98,13 +173,14 @@ function renderSceneNode(
   node: SceneNode,
   idPrefix: string,
   paint: (value: string) => ColorValue,
+  fontScale: number,
 ): React.ReactNode {
   if (node.kind === 'group' && node.focus) return null
   const style = nativeSceneStyle(node.style, paint)
 
   switch (node.kind) {
     case 'group':
-      return renderGroup(node, idPrefix, paint, style)
+      return renderGroup(node, idPrefix, paint, style, fontScale)
     case 'rule':
       return (
         <Line
@@ -130,7 +206,12 @@ function renderSceneNode(
         <Path
           key={node.key}
           {...style}
-          d={node.path ?? pointsPath(node.points, true)}
+          d={
+            node.polygons !== undefined
+              ? polygonsPath(node.polygons)
+              : (node.path ?? pointsPath(node.points, true))
+          }
+          fillRule={node.polygons === undefined ? undefined : 'evenodd'}
           vectorEffect="non-scaling-stroke"
         />
       )
@@ -172,7 +253,7 @@ function renderSceneNode(
               ? undefined
               : `rotate(${node.rotate} ${node.x} ${node.y})`
           }
-          fontSize={node.fontSize}
+          fontSize={(node.fontSize ?? 16) * fontScale}
           fontWeight={node.fontWeight}
         >
           {node.text}
@@ -186,6 +267,7 @@ function renderGroup(
   idPrefix: string,
   paint: (value: string) => ColorValue,
   style: ReturnType<typeof nativeSceneStyle>,
+  fontScale: number,
 ) {
   const clipId = node.clip
     ? scopedId(idPrefix, `clip-${stableId(node.key)}`)
@@ -214,7 +296,9 @@ function renderGroup(
           </ClipPath>
         </Defs>
       ) : null}
-      {node.children.map((child) => renderSceneNode(child, idPrefix, paint))}
+      {node.children.map((child) =>
+        renderSceneNode(child, idPrefix, paint, fontScale),
+      )}
     </G>
   )
 }
@@ -251,13 +335,14 @@ function resolveScenePaint(
   idPrefix: string,
   resolvePaint: NativePaintResolver,
   color: ColorValue,
+  canvas: ColorValue | undefined,
 ) {
   const match = /^url\(#([\s\S]*)\)$/.exec(value)
   const id = match?.[1]
   if (id !== undefined && gradientIds.has(id)) {
     return `url(#${scopedId(idPrefix, id)})`
   }
-  return resolvePaint(value, { color })
+  return resolvePaint(value, { color, canvas })
 }
 
 function pointsPath(
@@ -267,6 +352,16 @@ function pointsPath(
   return `${points
     .map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x},${y}`)
     .join('')}${close ? 'Z' : ''}`
+}
+
+function polygonsPath(
+  polygons: readonly (readonly (readonly (readonly [number, number])[])[])[],
+) {
+  return polygons
+    .flatMap((polygon) => polygon)
+    .filter((ring) => ring.length > 0)
+    .map((ring) => pointsPath(ring, true))
+    .join('')
 }
 
 function scopedId(prefix: string, id: string) {
@@ -293,4 +388,10 @@ function stableId(value: string) {
 
 function percent(value: number) {
   return `${Math.max(0, Math.min(1, value)) * 100}%`
+}
+
+function positiveFinite(value: number | undefined, fallback: number) {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? value
+    : fallback
 }

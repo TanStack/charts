@@ -6,14 +6,15 @@
   "title": "Editable event range",
   "family": "interaction",
   "intent": "Edit a keyed schedule event by dragging its end handle while preserving the event start, lane, and identity.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "editable timeline",
     "interval rectangle",
     "drag handle",
     "controlled event range",
     "stable data keys",
-    "native semantic range input",
+    "first-party scale handle",
+    "resolved-scale candidate snapping",
     "native date input",
     "keyboard editing",
     "44 pixel hit target",
@@ -181,17 +182,23 @@
               "equals": "false"
             },
             {
-              "target": { "selector": ".ts-conformance-event-handle" },
+              "target": {
+                "selector": "[data-chart-handle=\"release-end\"]"
+              },
               "property": "width",
               "equals": 20
             },
             {
-              "target": { "selector": ".ts-conformance-event-handle" },
+              "target": {
+                "selector": "[data-chart-handle=\"release-end\"]"
+              },
               "property": "height",
               "equals": 20
             },
             {
-              "target": { "selector": ".ts-conformance-event-track" },
+              "target": {
+                "selector": "[data-chart-handle-track=\"release-end\"]"
+              },
               "property": "height",
               "equals": 4
             },
@@ -337,7 +344,7 @@
     "url": "https://echarts.apache.org/handbook/en/how-to/chart-types/custom-series/"
   },
   "ai": {
-    "create": "Create a keyed resource schedule with interval rectangles, a native semantic range aligned to the release end, a date input, keyboard editing, and a live duration summary.",
-    "maintain": "Preserve event IDs and lane assignment, clamp the end after the start, roll cancelled edits back to their origin, and update renderer input from application-owned state instead of mutating scene output."
+    "create": "Create a keyed resource schedule with interval rectangles, the first-party handleX behavior aligned to the release lane, a date input, keyboard editing, and a live duration summary.",
+    "maintain": "Keep scale-resolved placement, candidate snapping, direct manipulation, cancellation, and slider semantics in handleX; keep event IDs, date constraints, validation, and duration status in application-owned state."
   }
 }

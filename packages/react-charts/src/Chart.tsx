@@ -9,7 +9,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipBodyTarget,
   ChartValue,
-  ChartDefinition,
+  DomChartDefinition,
 } from '@tanstack/charts'
 import {
   RendererChartImplementation,
@@ -50,7 +50,7 @@ export type ChartProps<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type ChartImplementationProps<
@@ -84,7 +84,7 @@ export function ChartImplementation<
   const onRender = React.useMemo(() => {
     if (!props.onRender) return undefined
     return (context: ChartRendererRenderContext<TDatum, TXValue, TYValue>) => {
-      const svg = context.surface.element
+      const svg = context.surface.defaultElement ?? context.surface.element
       const SvgElement =
         context.container.ownerDocument.defaultView?.SVGSVGElement
       if (!SvgElement || !(svg instanceof SvgElement)) {
@@ -93,7 +93,9 @@ export function ChartImplementation<
       props.onRender?.({
         container: context.container,
         scene: context.scene,
+        surface: context.surface,
         svg,
+        interaction: context.interaction,
       })
     }
   }, [props.onRender])

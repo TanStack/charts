@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
+import {
+  streamingStatus,
+  streamingViewportForMode,
+  visibleStreamingData,
+} from './model'
 import { streamingData } from './selection'
 
 describe('streaming package downloads', () => {
@@ -14,4 +19,43 @@ describe('streaming package downloads', () => {
       expect(downloads).toContain(row)
     }
   })
+
+  it('derives locked, latest, and complete viewports from one policy helper', () => {
+    const rows = streamingData(downloads, 0, 1)
+
+    expect(dateKeys(streamingViewportForMode(rows, 'locked'))).toEqual([
+      '2018-10-05',
+      '2018-10-12',
+    ])
+    expect(dateKeys(streamingViewportForMode(rows, 'latest'))).toEqual([
+      '2018-10-06',
+      '2018-10-13',
+    ])
+    expect(dateKeys(streamingViewportForMode(rows, 'all'))).toEqual([
+      '2018-10-01',
+      '2018-10-13',
+    ])
+  })
+
+  it('keeps viewport filtering and status copy shared across both renderers', () => {
+    const rows = streamingData(downloads, 0, 1)
+    const viewport = streamingViewportForMode(rows, 'latest')
+
+    expect(visibleStreamingData(rows, viewport)).toHaveLength(8)
+    expect(
+      streamingStatus({ rows, viewport, viewportMode: 'latest' }),
+    ).toContain('Following latest')
+    expect(
+      streamingStatus({
+        rows,
+        viewport,
+        viewportMode: 'latest',
+        announcement: 'Added one visible sample.',
+      }),
+    ).toBe('Added one visible sample.')
+  })
 })
+
+function dateKeys(domain: readonly [Date, Date]) {
+  return domain.map((date) => date.toISOString().slice(0, 10))
+}

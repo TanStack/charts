@@ -91,6 +91,7 @@ export function createPlaybackOverlay(
   const track = document.createElement('div')
   track.className = 'ts-conformance-playback-track'
   track.dataset.conformancePlaybackRule = 'track'
+  track.dataset.chartHandleTrack = 'playback-frame'
   track.style.position = 'absolute'
   track.style.height = '4px'
   track.style.borderRadius = '999px'
@@ -99,6 +100,7 @@ export function createPlaybackOverlay(
   const playhead = document.createElement('div')
   playhead.className = 'ts-conformance-playback-playhead'
   playhead.dataset.conformancePlaybackRule = 'playhead'
+  playhead.dataset.chartHandleRule = 'playback-frame'
   playhead.style.position = 'absolute'
   playhead.style.width = '2px'
   playhead.style.borderRadius = '999px'
@@ -107,6 +109,7 @@ export function createPlaybackOverlay(
   const range = document.createElement('input')
   range.className = 'ts-conformance-playback-range'
   range.type = 'range'
+  range.dataset.chartHandleSurface = 'playback-frame'
   range.min = '0'
   range.step = '1'
   range.setAttribute('aria-label', 'Timeline frame')
@@ -117,6 +120,7 @@ export function createPlaybackOverlay(
   const handle = document.createElement('div')
   handle.className = 'ts-conformance-playback-handle'
   handle.dataset.conformancePlaybackHandle = ''
+  handle.dataset.chartHandle = 'playback-frame'
   handle.style.position = 'absolute'
   handle.style.boxSizing = 'border-box'
   handle.style.width = '20px'

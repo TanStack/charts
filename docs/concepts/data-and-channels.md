@@ -42,14 +42,16 @@ dot(rows, {
 Every accessor receives:
 
 ```ts
-;(datum, index, data) => value
+;(datum, { index, data }) => value
 ```
 
-`datum` has the exact source type, `index` is the zero-based position, and `data` is the readonly materialized source array. Accessors are evaluated when the mark initializes; keep expensive cross-row transforms in application code.
+`datum` has the exact source type. The context contains the zero-based `index`
+and readonly materialized `data` array. Accessors are evaluated when the mark
+initializes; keep expensive cross-row transforms in application code.
 
 ## Positional channels
 
-The x and y channels feed the chart’s positional scale factories or instances:
+The x and y channels feed the reserved scales with the same names:
 
 ```ts
 barX(rows, {
@@ -57,6 +59,10 @@ barX(rows, {
   y: 'region',
 })
 ```
+
+Use `xScale` or `yScale` when a mark should feed another named entry in the
+chart's `scales` registry. Channel names continue to describe geometry; scale
+IDs select the mapping.
 
 Positional values are also retained in each interaction `ChartPoint`:
 
@@ -103,9 +109,13 @@ There are two common paths:
 - `fill` and `stroke` are final paint overrides and bypass scale mapping for
   that paint.
 
-The default categorical palette is useful for quick distinctions. Use an explicit D3 ordinal scale when a category must always map to the same color across charts, filters, and sessions.
+The default categorical palette is useful for quick distinctions. Use an
+explicit ordinal scale when a category must always map to the same color across
+charts, filters, and sessions.
 
 ```ts
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
+
 const segmentColor = scaleOrdinal(
   ['Consumer', 'Enterprise', 'Public'],
   ['#2563eb', '#f97316', '#10b981'],
@@ -119,8 +129,11 @@ const chart = defineChart({
       z: 'segment',
     }),
   ],
-  x: { scale: revenueScale },
-  y: { scale: retentionScale },
+  scales: {
+    x: { scale: revenueScale },
+    y: { scale: retentionScale },
+  },
+
   color: {
     scale: segmentColor,
     legend: colorLegend({ label: 'Segment' }),
@@ -128,7 +141,9 @@ const chart = defineChart({
 })
 ```
 
-This snippet directly imports `scaleOrdinal` from `d3-scale` and uses `colorLegend` from `@tanstack/charts`. Install `d3-scale` and `@types/d3-scale` as direct dependencies. [Legends and Color](../guides/legends-and-color.md) covers continuous color, gradients, and application-wide palettes.
+The lightweight ordinal scale owns the stable category mapping. [Legends and
+Color](../guides/legends-and-color.md) covers continuous color, gradients, and
+application-wide palettes.
 
 ## Radius is explicit
 
@@ -272,18 +287,72 @@ responsive layout work.
 
 ## Complete bubble-scatter example
 
-```ts
-import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
+```ts group=bubble-scatter env=charts file=/src/chart.ts entry
+import { scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
+import { penguins, type PenguinsRow } from './data'
 
-interface PenguinsRow {
+type CompletePenguin = PenguinsRow & {
+  culmen_length_mm: number
+  culmen_depth_mm: number
+  body_mass_g: number
+}
+
+const rows = penguins.filter(
+  (row): row is CompletePenguin =>
+    row.culmen_length_mm !== null &&
+    row.culmen_depth_mm !== null &&
+    row.body_mass_g !== null,
+)
+const species = ['Adelie', 'Chinstrap', 'Gentoo']
+
+export default defineChart({
+  marks: [
+    dot(rows, {
+      x: 'culmen_length_mm',
+      y: 'culmen_depth_mm',
+      color: 'species',
+      r: 'body_mass_g',
+      rScale: {
+        scale: () => scaleSqrt().range([3, 11]),
+      },
+      fillOpacity: 0.78,
+      stroke: 'currentColor',
+      strokeOpacity: 0.28,
+      strokeWidth: 0.75,
+    }),
+  ],
+  scales: {
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Bill length (mm)' },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Bill depth (mm)' },
+    },
+  },
+
+  color: {
+    scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
+    legend: colorLegend({ label: 'Species' }),
+  },
+})
+```
+
+```ts group=bubble-scatter file=/src/data.ts collapsed
+export interface PenguinsRow {
   species: string
   culmen_length_mm: number | null
   culmen_depth_mm: number | null
   body_mass_g: number | null
 }
 
-const penguins: readonly PenguinsRow[] = [
+export const penguins: readonly PenguinsRow[] = [
   {
     species: 'Adelie',
     culmen_length_mm: 39.1,
@@ -327,65 +396,11 @@ const penguins: readonly PenguinsRow[] = [
     body_mass_g: null,
   },
 ]
-
-type CompletePenguin = PenguinsRow & {
-  culmen_length_mm: number
-  culmen_depth_mm: number
-  body_mass_g: number
-}
-
-const rows = penguins.filter(
-  (row): row is CompletePenguin =>
-    row.culmen_length_mm !== null &&
-    row.culmen_depth_mm !== null &&
-    row.body_mass_g !== null,
-)
-const species = ['Adelie', 'Chinstrap', 'Gentoo']
-
-const bubbleChart = defineChart({
-  marks: [
-    dot(rows, {
-      x: 'culmen_length_mm',
-      y: 'culmen_depth_mm',
-      color: 'species',
-      r: 'body_mass_g',
-      rScale: {
-        scale: () => scaleSqrt().range([3, 11]),
-      },
-      fillOpacity: 0.78,
-      stroke: 'currentColor',
-      strokeOpacity: 0.28,
-      strokeWidth: 0.75,
-    }),
-  ],
-  x: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill length (mm)' },
-  },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill depth (mm)' },
-  },
-  color: {
-    scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
-    legend: colorLegend({ label: 'Species' }),
-  },
-})
 ```
 
 The filter only removes observations missing a plotted measurement; the marks
-still use the source dataset's field names. This example imports `d3-scale`
-directly. Install it and `@types/d3-scale`.
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=480"
-  title="Bubble scatterplot with color and radius channels built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+still use the source dataset's field names. The axes and categorical color use
+lightweight scales. Bubble area needs the nonlinear D3 `scaleSqrt`, so install
+`d3-scale` and `@types/d3-scale` for that one mapping.
 
 For every built-in channel, see the relevant [Mark Reference](../reference/marks/line-and-area.md). For inference rules and custom datum unions, see [TypeScript](../guides/typescript.md).

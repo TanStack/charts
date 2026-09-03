@@ -1,8 +1,9 @@
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import countiesAtlasJson from 'us-atlas/counties-10m.json'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
-import type { UsCountyUnemploymentRow } from '@charts-poc/demo-data/us-county-unemployment'
+import { simplifyPolygonGeometry } from '@tanstack/charts-data/simplify-geo'
+import type { UsCountyUnemploymentRow } from '@tanstack/charts-data/us-county-unemployment'
 import type {
   ExtendedFeature,
   ExtendedFeatureCollection,
@@ -105,6 +106,18 @@ export const unemploymentCountyCollection: ExtendedFeatureCollection<Unemploymen
     features: [...projectedUnemploymentCounties],
   }
 
+export const previewUnemploymentCounties: readonly UnemploymentCounty[] =
+  projectedUnemploymentCounties.map((county) => ({
+    ...county,
+    geometry: simplifyPolygonGeometry(county.geometry, 0.08),
+  }))
+
+export const previewUnemploymentCountyCollection: ExtendedFeatureCollection<UnemploymentCounty> =
+  {
+    type: 'FeatureCollection',
+    features: [...previewUnemploymentCounties],
+  }
+
 export function fitUnemploymentProjection({
   x,
   y,
@@ -117,6 +130,21 @@ export function fitUnemploymentProjection({
       [x + width, y + height],
     ],
     unemploymentCountyCollection,
+  )
+}
+
+export function fitPreviewUnemploymentProjection({
+  x,
+  y,
+  width,
+  height,
+}: ProjectionBounds) {
+  return geoAlbersUsa().fitExtent(
+    [
+      [x, y],
+      [x + width, y + height],
+    ],
+    previewUnemploymentCountyCollection,
   )
 }
 

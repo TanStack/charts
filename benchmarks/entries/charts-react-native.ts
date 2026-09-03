@@ -1,1 +1,1 @@
-export { Chart } from '@tanstack/react-native-charts'
+export { Chart } from '@tanstack/charts/react-native'

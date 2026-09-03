@@ -7,4 +7,7 @@ export type {
   ChartTooltipBodyRenderContext,
   ChartTooltipBodyTemplateContext,
 } from './types'
-export type { ChartDefinition, ChartPoint } from '@tanstack/charts'
+export type {
+  DomChartDefinition as ChartDefinition,
+  ChartPoint,
+} from '@tanstack/charts'

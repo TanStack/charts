@@ -13,7 +13,7 @@ path is explicit and repeatable.
 2. Identify each field's semantic type: quantitative, temporal, ordinal, or
    identifier.
 3. Choose the smallest mark composition that answers the question.
-4. Choose explicit scales for positional and color channels.
+4. Choose compact scales for common positional and categorical color channels.
 5. Decide which preparation belongs in application code, D3, SQL, or a server.
 6. Add accessible labeling and the default focus/tooltip behavior.
 7. Verify a static scene before adding animation or interaction.
@@ -22,14 +22,25 @@ path is explicit and repeatable.
 Start at [Choosing a Chart](./choosing-a-chart.md), then use the relevant
 [example family](../examples/index.md).
 
+Put Cartesian scale and axis options under `scales.x` and `scales.y`. The
+pre-Alpha root `x` and `y` form is not part of the Alpha API. Inside `polar()`,
+put position scales under `scales.angle` and `scales.radius`. Use named registry
+entries and mark-level `xScale`, `yScale`, `angleScale`, or `radiusScale`
+selectors when a chart needs more than one mapping on the same channel.
+
+Keep the default SVG renderer unless a measured paint-heavy mark benefits from
+Canvas. To mix surfaces, import `canvasChartRenderer` from the exact
+`@tanstack/charts/canvas` subpath and set that mark's `renderer` option. Do not
+move the complete chart to Canvas when only one dense mark needs raster paint.
+
 ## Canonical sources
 
 Use one documentation owner for each decision:
 
 - grammar and channel semantics:
   [Grammar of Graphics](../concepts/grammar-of-graphics.md);
-- data preparation and D3 ownership:
-  [Scales and D3](../concepts/scales-and-d3.md);
+- compact scales and D3 upgrade ownership:
+  [Scales](../concepts/scales-and-d3.md);
 - responsive layout:
   [Responsive Charts](./responsive-charts.md);
 - focus and tooltip behavior:
@@ -43,6 +54,29 @@ Do not reconstruct an API from an example when the reference owns the
 signature. Do not restate D3 behavior when the D3 bridge links to its
 authoritative documentation.
 
+## Choose the smallest scale
+
+Use this order before adding `d3-scale`:
+
+| Semantic need                                        | First choice                      |
+| ---------------------------------------------------- | --------------------------------- |
+| Numeric two-stop axis                                | `@tanstack/charts/scales/linear`  |
+| Categorical intervals such as bars                   | `@tanstack/charts/scales/band`    |
+| Categorical positions such as dots                   | `@tanstack/charts/scales/point`   |
+| Categorical colors                                   | `@tanstack/charts/scales/ordinal` |
+| Time, UTC, nonlinear, piecewise, or continuous color | Granular `d3-scale` import        |
+
+Pass the compact factory itself when the rendered channels should determine
+the domain. Return a configured scale from a zero-argument factory when it
+needs padding or another option before inference. Pass an instance when the
+domain is application state. Never assign a positional pixel range; Charts
+owns the responsive range.
+
+Upgrade only the scale whose semantics exceed the compact subset. For example,
+a continuous UTC x axis may use D3 while a numeric y axis remains compact.
+Using one D3 scale does not require replacing compact band, point, linear, or
+ordinal scales elsewhere in the chart.
+
 ## Prefer complete, typed examples
 
 Generated code should include:
@@ -55,6 +89,11 @@ Generated code should include:
 - a meaningful `ariaLabel`;
 - stable inferred or explicit identity;
 - empty and constant-domain policies when applicable.
+
+For a compact chart, import exact `@tanstack/charts/scales/*` entries and do not
+add `d3-scale` or `@types/d3-scale`. If an advanced scale requires D3, declare
+the granular runtime and matching type package as direct application
+dependencies and state which missing compact capability required the upgrade.
 
 It should not require readers to invent undeclared variables, hidden imports,
 casts, or CSS needed for correctness.
@@ -86,6 +125,9 @@ Run, in order:
 3. A browser interaction test when the chart is interactive.
 4. Light and dark visual checks.
 5. A narrow production bundle measurement when a new capability is imported.
+
+For compact-scale work, verify that the bundle retains the selected family but
+not `d3-scale`, `d3-format`, `d3-interpolate`, or sibling compact families.
 
 For changing charts, also test reorder, resize, empty data, replacement data,
 and a burst that must settle on the latest definition.

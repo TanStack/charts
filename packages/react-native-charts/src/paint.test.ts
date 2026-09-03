@@ -7,6 +7,18 @@ describe('native paint resolution', () => {
 
     expect(resolveNativePaint('currentColor', context)).toBe('#102030')
     expect(resolveNativePaint('CanvasText', context)).toBe('#102030')
+    expect(
+      resolveNativePaint('Canvas', {
+        color: '#102030',
+        canvas: '#f8fafc',
+      }),
+    ).toBe('#f8fafc')
+    expect(
+      resolveNativePaint('var(--focus-fill, Canvas)', {
+        color: '#102030',
+        canvas: '#f8fafc',
+      }),
+    ).toBe('#f8fafc')
     expect(resolveNativePaint('var(--ts-chart-1, #2563eb)', context)).toBe(
       '#2563eb',
     )

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1710,
+  "id": "170-shadcn-pie-simple",
+  "title": "shadcn Pie Chart",
+  "family": "pie",
+  "intent": "Reproduce shadcn/ui's chart-pie-simple example with TanStack Charts.",
+  "support": "native",
+  "features": ["pie chart", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "arc",
+      "count": 5
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-pie-simple",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-simple"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-pie-simple card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, pie simple treatment, card dimensions, and light and dark tokens."
+  }
+}

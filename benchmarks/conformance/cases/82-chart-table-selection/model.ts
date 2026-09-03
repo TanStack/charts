@@ -1,4 +1,4 @@
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 
 export type CompletePenguin = PenguinsRow & {
   readonly culmen_length_mm: number
@@ -29,6 +29,12 @@ export function penguinSelectionId(row: PenguinsRow): SelectionId | null {
 
 export function penguinSelectionLabel(row: CompletePenguin) {
   return `${row.species} ${row.sex.toLowerCase()} on ${row.island}`
+}
+
+export function selectionRowId(row: CompletePenguin): SelectionId {
+  const id = penguinSelectionId(row)
+  if (!id) throw new TypeError('Expected a chart/table selection row')
+  return id
 }
 
 export function selectionRows(

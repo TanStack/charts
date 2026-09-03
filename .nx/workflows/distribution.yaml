@@ -1,0 +1,9 @@
+distribute-on:
+  default: 3 linux-medium-js
+
+assignment-rules:
+  - projects:
+      - '*'
+    run-on:
+      - agent: linux-medium-js
+        parallelism: 2

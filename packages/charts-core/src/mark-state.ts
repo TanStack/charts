@@ -1,6 +1,10 @@
-import { matchesFocusPoint } from './focus-layer'
+import {
+  createScenePointLookup,
+  sceneNodeOwnedPoints,
+  type ScenePointLookup,
+} from './scene-point-ownership-internal'
+import { matchesFocusAnchor } from './focus-layer'
 import type {
-  ChartAnimationOptions,
   ChartFocusMatch,
   ChartFocusState,
   ChartMarkStateTransition,
@@ -18,6 +22,7 @@ import type {
 export interface ResolvedMarkState<TScene extends ChartScene = ChartScene> {
   scene: TScene
   transition?: ChartMarkStateTransition
+  transitions?: Readonly<Record<string, ChartMarkStateTransition>>
 }
 
 export function resolveMarkStateScene<TScene extends ChartScene>(
@@ -27,22 +32,27 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
 ): ResolvedMarkState<TScene> {
   if (!focus || !sceneHasMarkStates(scene.nodes)) return { scene }
   let transition: ChartMarkStateTransition | undefined
+  const transitions: Record<string, ChartMarkStateTransition> = {}
 
   const visit = (
     nodes: readonly SceneNode[],
     inheritedPoints?: readonly ChartPoint[],
     definitions?: readonly ChartMarkState<any>[],
     data?: readonly unknown[],
-    inheritedLookup?: PointLookup,
+    inheritedLookup?: ScenePointLookup,
   ): readonly SceneNode[] =>
     nodes.map((node) => {
       const state = node.kind === 'group' ? node.states : undefined
       const points = state?.points ?? inheritedPoints
       const nodeDefinitions = state?.definitions ?? definitions
       const nodeData = state?.data ?? data
-      const lookup = state ? createPointLookup(state.points) : inheritedLookup
+      const lookup = state
+        ? createScenePointLookup(state.points)
+        : inheritedLookup
       const candidates = points
-        ? relatedPoints(node.key, points, lookup)
+        ? lookup
+          ? sceneNodeOwnedPoints(node, points, lookup)
+          : points
         : emptyPoints
       const resolved =
         node.kind !== 'group' &&
@@ -60,6 +70,12 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
           : { node }
       if (resolved.transition) {
         transition = mergeTransition(transition, resolved.transition)
+        for (const point of candidates) {
+          transitions[point.markId] = mergeTransition(
+            transitions[point.markId],
+            resolved.transition,
+          )
+        }
       }
       const next = resolved.node
       return next.kind === 'group'
@@ -77,24 +93,11 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
     })
 
   const nodes = visit(scene.nodes)
-  return { scene: { ...scene, nodes } as TScene, transition }
-}
-
-export function resolveMarkStateTransition(
-  transition: ChartMarkStateTransition | undefined,
-  element: Element,
-): ChartAnimationOptions | undefined {
-  if (!transition || transition.type !== 'tween') return undefined
-  if (
-    (transition.respectReducedMotion ?? true) &&
-    element.ownerDocument.defaultView?.matchMedia?.(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
-  ) {
-    return undefined
+  return {
+    scene: { ...scene, nodes } as TScene,
+    transition,
+    ...(Object.keys(transitions).length ? { transitions } : {}),
   }
-  const { type: _type, ...resolved } = transition
-  return resolved
 }
 
 export function sceneHasMarkStates(nodes: readonly SceneNode[]): boolean {
@@ -143,7 +146,7 @@ function matchingContext(
   if (
     typeof definition.when !== 'function' &&
     definition.when.focus === 'unmatched' &&
-    candidates.some((point) => matchesFocusPoint(point, focus, 'group'))
+    candidates.some((point) => matchesFocusAnchor(point, focus, 'group'))
   ) {
     return undefined
   }
@@ -155,7 +158,7 @@ function matchingContext(
       point,
       focus,
       pointer,
-      matches: (match) => matchesFocusPoint(point, focus, match),
+      matches: (match) => matchesFocusAnchor(point, focus, match),
     }
     const matches =
       typeof definition.when === 'function'
@@ -221,8 +224,23 @@ function applyStateStyle(
       }
       break
     case 'rect': {
-      const nextInset = Math.max(0, inset ?? output.inset ?? 0)
-      const amount = nextInset - (output.inset ?? 0)
+      const currentInset = output.inset ?? 0
+      let nextInset = Math.max(0, inset ?? currentInset)
+      if (
+        Number.isFinite(output.maxThickness) &&
+        (output.insetAxis === 'x' || output.insetAxis === 'y')
+      ) {
+        const currentThickness =
+          output.insetAxis === 'x' ? output.width : output.height
+        const bandThickness = currentThickness + currentInset * 2
+        const requestedThickness = Math.max(0, bandThickness - nextInset * 2)
+        const cappedThickness = Math.min(
+          requestedThickness,
+          Math.max(0, output.maxThickness!),
+        )
+        nextInset = (bandThickness - cappedThickness) / 2
+      }
+      const amount = nextInset - currentInset
       const insetX = output.insetAxis !== 'y' ? amount : 0
       const insetY = output.insetAxis !== 'x' ? amount : 0
       output = {
@@ -269,41 +287,7 @@ function resolveValue<TValue>(
     : value
 }
 
-function relatedPoints(
-  key: string,
-  points: readonly ChartPoint[],
-  lookup: PointLookup | undefined,
-): readonly ChartPoint[] {
-  if (!lookup) return points
-  let candidate = key
-  while (candidate) {
-    const related = lookup.get(candidate)
-    if (related) return related
-    const separator = candidate.lastIndexOf(':')
-    if (separator < 0) break
-    candidate = candidate.slice(0, separator)
-  }
-  return points
-}
-
-type PointLookup = ReadonlyMap<string, readonly ChartPoint[]>
-
 const emptyPoints: readonly ChartPoint[] = []
-
-function createPointLookup(points: readonly ChartPoint[]): PointLookup {
-  const lookup = new Map<string, ChartPoint[]>()
-  for (const point of points) {
-    let separator = -1
-    do {
-      separator = point.key.indexOf(':', separator + 1)
-      const prefix = separator < 0 ? point.key : point.key.slice(0, separator)
-      const related = lookup.get(prefix)
-      if (related) related.push(point)
-      else lookup.set(prefix, [point])
-    } while (separator >= 0)
-  }
-  return lookup
-}
 
 function mergeTransition(
   current: ChartMarkStateTransition | undefined,

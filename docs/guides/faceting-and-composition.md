@@ -22,8 +22,10 @@ const definition = defineChart({
     dot(highlights, { x: 'date', y: 'median' }),
     text(labels, { x: 'date', y: 'median', text: 'label' }),
   ],
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
 })
 ```
 
@@ -39,20 +41,51 @@ The canonical grammar is described in
 `facetChart` repeats a mark composition for each group and returns a complete
 guide-free outer definition:
 
-```ts
-const definition = facetChart(rows, {
-  by: 'group',
-  columns: 2,
-  gap: 20,
+```ts group=regional-facets env=charts file=/src/chart.ts entry
+import { dot, facetChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { rows } from './data'
+
+export default facetChart(rows, {
+  by: 'region',
+  columns: 3,
+  gap: 16,
   axes: 'outer',
+  label: (region) => String(region),
   chart(data) {
     return {
-      marks: [dot(data, { x: 'x', y: 'y' })],
-      x: { scale: scaleLinear().domain(sharedX) },
-      y: { scale: scaleLinear().domain(sharedY) },
+      marks: [
+        lineY(data, { x: 'week', y: 'orders', strokeWidth: 2 }),
+        dot(data, { x: 'week', y: 'orders', r: 3.5 }),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([1, 4]) },
+        y: {
+          scale: scaleLinear().domain([0, 80]),
+          grid: true,
+          axis: { label: 'Orders' },
+        },
+      },
     }
   },
 })
+```
+
+```ts group=regional-facets file=/src/data.ts collapsed
+export const rows = [
+  { region: 'North', week: 1, orders: 32 },
+  { region: 'North', week: 2, orders: 46 },
+  { region: 'North', week: 3, orders: 51 },
+  { region: 'North', week: 4, orders: 64 },
+  { region: 'South', week: 1, orders: 45 },
+  { region: 'South', week: 2, orders: 42 },
+  { region: 'South', week: 3, orders: 57 },
+  { region: 'South', week: 4, orders: 61 },
+  { region: 'West', week: 1, orders: 25 },
+  { region: 'West', week: 2, orders: 39 },
+  { region: 'West', week: 3, orders: 48 },
+  { region: 'West', week: 4, orders: 70 },
+]
 ```
 
 Use `facet(rows, options)` instead when the repeated panels need to be one mark
@@ -63,12 +96,7 @@ grid. Use `axes: 'cell'` when each panel needs its own guides. Cell axes and
 incompatible independent scales cannot be presented as one shared outer axis;
 choose the option that matches the comparison.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/facets-anscombe/?theme=system&height=480"
-  title="Anscombe quartet rendered as responsive small multiples"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+[Open the Anscombe quartet catalog case](https://tanstack.com/charts/catalog/facets-anscombe/).
 
 ## Share domains intentionally
 
@@ -79,32 +107,50 @@ Build shared domains once and pass configured scales to every facet. When a
 panel deliberately uses an independent domain, label that policy in the
 surrounding UI.
 
-The [Scales and D3](../concepts/scales-and-d3.md) page owns scale construction
+The [Scales](../concepts/scales-and-d3.md) page owns scale construction
 and responsive range rules.
 
 ## Compose distinct views
 
 Not every composition is a facet. A focus-and-context chart, scatterplot with
-marginal histograms, or chart-plus-table contains views with different roles.
-In that case:
+marginal histograms, or chart with an inset summary contains views with
+different roles. Use `composeViews` when they belong to one accessible figure:
 
-1. Keep each chart definition independent.
-2. Store shared selection or viewport in application state.
-3. Give each view its own accessible name.
-4. Convert semantic state into each view's configured domains.
-5. Align overlays from each resolved `scene.chart`.
+```ts
+import { alignX, composeViews, grid } from '@tanstack/charts/view'
+
+const definition = composeViews({
+  views: {
+    overview: overviewDefinition,
+    detail: detailDefinition,
+  },
+  layout: grid({
+    rows: [
+      { id: 'overview', size: 72 },
+      { id: 'detail', grow: 1 },
+    ],
+    columns: [{ id: 'main', grow: 1 }],
+    cells: {
+      overview: { row: 'overview', column: 'main' },
+      detail: { row: 'detail', column: 'main' },
+    },
+  }),
+  links: [alignX('overview', 'detail')],
+})
+```
+
+Use `fill`, `layer`, and `inset` when views overlap. Later layers paint above
+earlier layers, and every child is clipped to its resolved frame. Use
+`shareX` or `shareY` when linked views must resolve the same scale domain and
+mapping; `alignX` and `alignY` align plot endpoints without sharing domains.
+
+`viewGrid` is convenience syntax for the non-overlapping grid case. Keep
+semantic selection or viewport state in application state; each child
+definition consumes that state as ordinary data or domains. Use separate chart
+hosts when panels need independent tooltips, keyboard behavior, or accessible
+labels.
 
 Do not coordinate charts by querying or mutating their SVG nodes.
-
-## Embedded regions and custom layout
-
-When several plot regions must live inside one SVG, a custom mark can render
-scene groups with explicit translations and clips. Use that only when one
-responsive scene is materially better than several accessible chart hosts.
-
-The [Custom Marks and Renderers](./custom-marks-and-renderers.md) guide explains
-the scene-node protocol. The [Responsive Charts](./responsive-charts.md) guide
-explains how to base region geometry on the final chart bounds.
 
 ## Composition checklist
 
@@ -113,6 +159,8 @@ explains how to base region geometry on the final chart bounds.
   identity.
 - Shared scales are used only where direct positional comparison is intended.
 - Facet axis policy is explicit.
-- Each independently interactive view has its own accessible name.
+- Every named `composeViews` child is placed exactly once.
+- A composed definition has one outer accessible chart label and host behavior.
+- Independently hosted views have independent accessible labels.
 - Shared state is semantic application state, not DOM state.
 - Dense dashboards destroy hosts and listeners when panels unmount.

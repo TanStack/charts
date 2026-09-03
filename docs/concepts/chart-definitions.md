@@ -14,8 +14,9 @@ Pass a complete spec when the chart does not need its resolved surface size:
 <!-- docs-example: static-definition typecheck -->
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 interface AlphabetRow {
   letter: string
@@ -32,14 +33,16 @@ const alphabet: readonly AlphabetRow[] = [
 
 const letterFrequencies = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
-  x: {
-    scale: () => scaleBand<string>().padding(0.12),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Frequency' },
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().padding(0.12),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Frequency' },
+    },
   },
 })
 ```
@@ -56,13 +59,15 @@ const productRanking = defineChart({
   tooltip,
   chart: ({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'product' })],
-    x: {
-      scale: scaleLinear,
-      nice: true,
-      axis: { ticks: { count: width < 480 ? 4 : 7 } },
-    },
-    y: {
-      scale: () => scaleBand<string>().padding(0.1),
+    scales: {
+      x: {
+        scale: scaleLinear,
+        nice: true,
+        axis: { ticks: { count: width < 480 ? 4 : 7 } },
+      },
+      y: {
+        scale: () => scaleBand<string>().padding(0.1),
+      },
     },
   }),
 })
@@ -107,13 +112,15 @@ function ProductRanking({ rows, metric }: Props) {
       tooltip,
       chart: ({ width }) => ({
         marks: [barX(ranked, { x: 'value', y: 'product' })],
-        x: {
-          scale: scaleLinear,
-          nice: true,
-          axis: { ticks: { count: width < 480 ? 4 : 7 } },
-        },
-        y: {
-          scale: () => scaleBand<string>().padding(0.1),
+        scales: {
+          x: {
+            scale: scaleLinear,
+            nice: true,
+            axis: { ticks: { count: width < 480 ? 4 : 7 } },
+          },
+          y: {
+            scale: () => scaleBand<string>().padding(0.1),
+          },
         },
       }),
     })
@@ -135,7 +142,7 @@ Vanilla code makes that boundary explicit:
 const createProductRanking = (rows: readonly ProductRow[], metric: Metric) => {
   const ranked = rankProducts(rows, metric)
   return defineChart({
-    animate: true,
+    svgAnimation: true,
     chart: ({ width }) => buildRankingSpec(ranked, width),
   })
 }

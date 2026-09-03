@@ -6,10 +6,10 @@
   "title": "Interactive series legend",
   "family": "interaction",
   "intent": "Toggle individual series from a legend without changing the chart's quantitative domain.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "interactive legend",
-    "series visibility",
+    "native controlled interactive legend",
+    "post-domain series visibility",
     "fixed domain",
     "accessible controls"
   ],
@@ -175,6 +175,6 @@
   },
   "ai": {
     "create": "Create a two-industry unemployment chart with an accessible legend that toggles each series while retaining an explicit y domain.",
-    "maintain": "Keep series IDs stable, preserve the quantitative domain when a series is hidden, and expose visibility as controlled application state."
+    "maintain": "Keep one grouped line mark over the raw selected rows, stable series IDs, the full categorical and quantitative domains, and application-owned controlled visibility through the native interactive legend."
   }
 }

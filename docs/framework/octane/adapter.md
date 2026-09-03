@@ -3,14 +3,14 @@ title: Octane Adapter
 description: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
 ---
 
-`@tanstack/octane-charts` is the native TSRX lifecycle and SSR adapter around
+`@tanstack/charts/octane` is the native TSRX lifecycle and SSR adapter around
 `@tanstack/charts`. Definitions, scenes, responsive layout, rendering,
 interaction, and animation remain framework-neutral.
 
 ## Public exports
 
 ```ts
-export { Chart } from '@tanstack/octane-charts'
+export { Chart } from '@tanstack/charts/octane'
 
 export type {
   ChartCommonProps,
@@ -18,19 +18,21 @@ export type {
   ChartTooltipBodyRenderContext,
   ChartDefinition,
   ChartPoint,
-} from '@tanstack/octane-charts'
+} from '@tanstack/charts/octane'
 ```
 
 Choose Canvas or an application-supplied renderer through an explicit
 subpath:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/octane-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/octane-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/octane/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/octane/core'
 ```
 
 The default `Chart` remains SVG-based. `CanvasChart` selects the optional
-built-in renderer; `RendererChart` requires a `renderer` prop.
+built-in renderer; `RendererChart` requires a `renderer` prop. A definition
+can still import `canvasChartRenderer` and assign it to selected marks, which
+makes the default component render an ordered mixed surface.
 
 The package export map supplies a browser build for browser bundlers and a
 separate Node build for the `node` condition.
@@ -58,10 +60,16 @@ The default Node target renders the complete `.ts-chart-host`,
 `.ts-chart-surface`, and accessible SVG at `initialWidth`. The browser target
 hydrates the same structure before mounting the host.
 
-The Canvas entry renders a deterministic named root and three `aria-hidden`
-canvases on the server. It paints no server pixels. The browser adopts the
-elements, paints after mount, and attaches the same focus, keyboard, tooltip,
-and selection host.
+The Canvas entry renders a deterministic named root and five `aria-hidden`
+canvases on the server: one hidden stable base bitmap and four live paint
+layers. It paints no server pixels. The browser adopts the elements, paints
+after mount, and attaches the same focus, keyboard, tooltip, and selection
+host.
+
+A default chart with selected Canvas marks emits one mixed root containing
+ordered SVG markup and Canvas shells. SVG marks are visible in the server
+response, Canvas pixels appear after mount, and the browser adopts every child
+surface.
 
 Keep data, definitions, scale domains, custom renderers, and dimensions
 deterministic between server and browser. The adapter generates a sanitized
@@ -70,8 +78,9 @@ resource prefix from Octane's `useId()` when `idPrefix` is absent.
 `tabIndex` defaults to `0` on both targets. `keyboard: false` forces it to
 `-1`.
 
-Pass `renderChartSvgWithResources` on both targets for gradients and clipping;
-see [Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both targets. Custom
+serializers must preserve the same resources; see
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 
@@ -80,7 +89,7 @@ The rendered structure is:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart | div.ts-chart-canvas
+    svg.ts-chart | div.ts-chart-canvas | div.ts-chart-layers
 ```
 
 The outer host uses `position: relative`.
@@ -148,6 +157,6 @@ Octane owns the returned component lifecycle.
 ## Core boundary
 
 The adapter does not redefine chart grammar or data algorithms. Read
-[Scales and D3](../../concepts/scales-and-d3.md) for injected primitives and
+[Scales](../../concepts/scales-and-d3.md) for injected primitives and
 the [core API reference](../../reference/index.md) for marks, interaction,
 renderers, and extension contracts.

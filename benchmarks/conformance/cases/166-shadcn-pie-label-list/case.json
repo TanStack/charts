@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1670,
+  "id": "166-shadcn-pie-label-list",
+  "title": "shadcn Pie Chart - Label List",
+  "family": "pie",
+  "intent": "Reproduce shadcn/ui's chart-pie-label-list example with TanStack Charts.",
+  "support": "native",
+  "features": ["pie chart", "label list", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "arc",
+      "count": 5
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-pie-label-list",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label-list"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-pie-label-list card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, pie label list treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,7 +1,11 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { barX, barY } from './bar'
-import { nearestPoint, nearestScenePoint } from './nearest'
+import {
+  findContainingScenePoint,
+  nearestPoint,
+  nearestScenePoint,
+} from './nearest'
 import { createChartScene, defineChart } from './scene'
 import type {
   ChartFocusAffinity,
@@ -42,6 +46,34 @@ describe('scene interaction geometry', () => {
     )
 
     expect(nearestScenePoint(scene, 100, 100, 48)?.key).toBe('upper')
+    expect(findContainingScenePoint(scene, 100, 100)?.point?.key).toBe('upper')
+  })
+
+  it('does not treat axis-affinity fallback as painted containment', () => {
+    const xAligned = point('x-aligned', 100, 20)
+    const scene = testScene([rect(xAligned, 95, 15, 10, 10, 'x')], [xAligned])
+
+    expect(findContainingScenePoint(scene, 100, 190)).toBeNull()
+    expect(nearestScenePoint(scene, 100, 190, 0)?.key).toBe('x-aligned')
+  })
+
+  it('does not fall through a containing target without a semantic point', () => {
+    const lower = point('lower', 100, 100)
+    const empty = {
+      ...rect(lower, 80, 80, 40, 40),
+      key: 'empty',
+      interaction: { points: [], affinity: 'xy' as const },
+    }
+    const scene = testScene([rect(lower, 80, 80, 40, 40), empty], [lower])
+
+    expect(findContainingScenePoint(scene, 100, 100)).toEqual({ point: null })
+    expect(nearestScenePoint(scene, 100, 100, 48)).toBeNull()
+    expect(
+      findContainingScenePoint(scene, 100, 100, scene.points.slice()),
+    ).toEqual({ point: null })
+    expect(
+      nearestScenePoint(scene, 100, 100, 48, scene.points.slice()),
+    ).toBeNull()
   })
 
   it('falls back along the primitive affinity after missing every shape', () => {
@@ -113,6 +145,91 @@ describe('scene interaction geometry', () => {
 
     expect(nearestScenePoint(scene, 100, 100, 48)?.key).toBe('region')
     expect(nearestScenePoint(scene, 125, 100, 48)).toBeNull()
+  })
+
+  it('uses disconnected polygon exteriors and excludes their holes', () => {
+    const region = point('region', 20, 20)
+    const scene = testScene(
+      [
+        {
+          kind: 'area',
+          key: region.key,
+          points: [
+            [200, 200],
+            [210, 200],
+            [200, 210],
+          ],
+          path: 'M200,200L210,200L200,210Z',
+          polygons: [
+            [
+              [
+                [0, 0],
+                [100, 0],
+                [100, 100],
+                [0, 100],
+              ],
+              [
+                [30, 30],
+                [70, 30],
+                [70, 70],
+                [30, 70],
+              ],
+            ],
+            [
+              [
+                [140, 10],
+                [180, 10],
+                [180, 50],
+                [140, 50],
+              ],
+            ],
+          ],
+          interaction: { point: region, affinity: 'geometry' },
+        },
+      ],
+      [region],
+    )
+
+    expect(nearestScenePoint(scene, 20, 20, 0)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 160, 30, 0)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 50, 50, 48)).toBeNull()
+    expect(nearestScenePoint(scene, 202, 202, 48)).toBeNull()
+  })
+
+  it('measures area fallback distance from every polygon ring', () => {
+    const region = point('region', 20, 20)
+    const scene = testScene(
+      [
+        {
+          kind: 'area',
+          key: region.key,
+          points: [],
+          polygons: [
+            [
+              [
+                [0, 0],
+                [100, 0],
+                [100, 100],
+                [0, 100],
+              ],
+              [
+                [30, 30],
+                [70, 30],
+                [70, 70],
+                [30, 70],
+              ],
+            ],
+          ],
+          interaction: { point: region },
+        },
+      ],
+      [region],
+    )
+
+    expect(nearestScenePoint(scene, 50, 68, 2)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 50, 67, 2)).toBeNull()
+    expect(nearestScenePoint(scene, 102, 50, 2)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 103, 50, 2)).toBeNull()
   })
 
   it('uses the rendered circle radius', () => {
@@ -315,8 +432,10 @@ describe('scene interaction geometry', () => {
             y: 'value',
           }),
         ],
-        x: { scale: scaleBand<string>().domain(['A']) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
         guides: false,
         margin: 0,
       }),
@@ -333,8 +452,10 @@ describe('scene interaction geometry', () => {
             y: 'category',
           }),
         ],
-        x: { scale: scaleLinear().domain([0, 100]) },
-        y: { scale: scaleBand<string>().domain(['A']) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 100]) },
+          y: { scale: scaleBand<string>().domain(['A']) },
+        },
         guides: false,
         margin: 0,
       }),

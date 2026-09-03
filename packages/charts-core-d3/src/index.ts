@@ -29,7 +29,7 @@ export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
 export {
   createChartRuntime,
-  isDynamicChartDefinition,
+  isResponsiveChartDefinition,
   chartInputsEqual,
   shallowInputEqual,
 } from './runtime'
@@ -49,8 +49,8 @@ export type { TextOptions } from './text'
 export type {
   Channel,
   ChannelAccessor,
-  DynamicChartConfig,
-  DynamicChartDefinition,
+  ResponsiveChartConfig,
+  ResponsiveChartDefinition,
   InitializedMark,
   MarkInitializeContext,
   MarkRenderContext,

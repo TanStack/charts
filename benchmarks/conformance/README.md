@@ -8,8 +8,9 @@ behavior select that renderer explicitly without creating a second harness.
 Each case owns:
 
 - one typed raw data fixture and intent;
+- one self-contained public `example.tsx` with the chart definition;
 - one isolated reference implementation;
-- one isolated TanStack implementation;
+- one thin TanStack conformance adapter that imports the public example;
 - official source provenance;
 - semantic geometry expectations;
 - optional renderer-independent interaction scenarios;
@@ -55,11 +56,20 @@ pnpm conformance:quick -- --case=line-gaps,histogram
 # Interactive side-by-side gallery
 pnpm dev:conformance
 
-# Validate publishable case metadata and route uniqueness
-pnpm catalog:check
+# Validate case metadata, source entries, ordering, and index drift
+pnpm catalog:index:check
 
-# Build the standalone authoring app and schema-v3 publication artifact
-pnpm catalog:build
+# Validate every public example and its case-local source closure
+pnpm catalog:examples:check
+
+# Render the checked-in source-derived catalog previews
+pnpm catalog:previews
+
+# Validate preview source and asset drift
+pnpm catalog:previews:check
+
+# Build the standalone authoring app
+pnpm --filter @charts-poc/conformance-example build
 ```
 
 Reports are written to
@@ -79,124 +89,73 @@ review of cases 80–92 and records the implementation follow-through for
 discoverability, rendered feedback, keyboard and touch operation, cancellation,
 accessibility, and edge behavior.
 
-## Published catalog and documentation embeds
+The [custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md) preserves the reviewed
+before-state classification of work outside the declarative chart definition.
+The [definition coverage audit](./DEFINITION-COVERAGE-AUDIT.md) then reviews
+every flagged case and identifies current-API migrations, missing reusable
+primitives, optional algorithm adapters, and justified custom boundaries.
+The [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) tracks the
+capability dependencies, migration status, acceptance criteria, and gates for
+all 109 dispositions. The
+[definition coverage overview](./DEFINITION-COVERAGE-OVERVIEW.md) catalogs the
+current boundary and case-local evidence for every case.
 
-The Vite application remains the local authoring surface at
-`http://localhost:5194/`. Production pages are native `tanstack.com` routes
-rendered from the generated artifact:
+## Source catalog index
 
-| Route                                                      | Purpose                                    |
-| ---------------------------------------------------------- | ------------------------------------------ |
-| `/charts/catalog/`                                         | Searchable case catalog                    |
-| `/charts/catalog/all/`                                     | Every TanStack implementation              |
-| `/charts/catalog/charts/:id/`                              | One implementation, source, and embed code |
-| `/charts/catalog/embed/:id/`                               | Chrome-free responsive chart               |
-| `/charts/catalog/catalog.json`                             | Versioned content and runtime contract     |
-| `/charts/catalog/assets/<artifact-sha>/assets/<module>.js` | Allowlisted module from the exact revision |
+`catalog-index.json` is the checked-in metadata contract for consumers that load
+source directly from the Charts repository. It contains every parsed
+`case.json` field plus the public `example.tsx` entry path. The index does
+not embed compiled modules, source closures, previews, datasets, or assets.
+Every public entry has a default React export and may import only files from its
+own case directory. Conformance code imports the definition from that entry;
+the adapter, driver, tests, and comparison renderer are not published to the
+docs sandbox.
 
-Append the exact `?compare=1` debug flag to the catalog, all-cases, or detail
-route to expose the reference implementation. Comparison modules remain
-separate roots and are marked `visibility: "debug"` in the artifact; the site
-must not serialize, preload, or import them without that flag.
-
-`catalog.json` schema version 3 contains:
-
-- the exact 40-character Charts revision, repository, and source path root;
-- the runtime `mount` export contract;
-- the production origin, route base, and asset base;
-- the versioned embed protocol;
-- parsed case metadata and canonical page/embed routes;
-- immutable repository source paths;
-- per-implementation authored-source totals and entry, support, fixture, and
-  excluded-harness role paths;
-- one TanStack module and one debug-only comparison module per case;
-- a byte count, SHA-256 digest, static imports, and dynamic imports for every
-  allowlisted module.
-
-Only the recursive ESM closure of the 200 case implementations is published.
-The standalone application entry, route code, raw-source wrappers, tests, CSS,
-and unrelated Vite output are excluded. The site resolves code from the
-recorded Charts revision rather than shipping raw-source JavaScript wrappers.
-
-An embed accepts `theme=system|light|dark`, `height=120..1200`, and an optional
-numeric `revision`. Width always follows the iframe container:
-
-```html
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=480"
-  title="Line chart with gaps"
-  width="640"
-  height="480"
-  loading="lazy"
-  referrerpolicy="strict-origin-when-cross-origin"
-  style="display: block; width: 100%; height: 480px; border: 0"
-></iframe>
-```
-
-Embeds have no catalog chrome and are `noindex`. They send versioned status
-messages only to the exact HTTP(S) origin derived from `document.referrer`:
-
-```ts
-{
-  type: 'tanstack-charts:embed',
-  version: 1,
-  status: 'ready' | 'resize' | 'error',
-  caseId: '01-line-gaps',
-  height: 480,
-}
-```
-
-A parent may propagate its explicit theme without reloading an interactive
-chart:
-
-```ts
-iframe.contentWindow?.postMessage(
-  {
-    type: 'tanstack-charts:embed',
-    version: 1,
-    command: 'set-theme',
-    caseId: '01-line-gaps',
-    theme: 'light', // 'system' | 'light' | 'dark'
-  },
-  'https://tanstack.com',
-)
-```
-
-The child accepts that command only from `window.parent` at the exact referrer
-origin. A documentation host that listens for status must likewise validate
-both `event.origin` against the iframe URL and
-`event.source === iframe.contentWindow`. A missing or opaque referrer disables
-both directions of messaging rather than falling back to `*`.
-
-Adding or changing a case updates every catalog surface automatically.
-`catalog:check` uses the same strict metadata parser as the browser and rejects
-invalid schemas, duplicate IDs or orders, and case IDs that drift from their
-directory names.
-
-## Generated content publication
-
-Charts owns the examples and build. TanStack.com owns the page routes, chrome,
-SEO, security headers, and embed response. The repositories meet through a
-generated `catalog-dist` branch containing only `catalog.json` and its
-allowlisted `assets/*.js` closure.
+Every case also has a checked-in source-derived preview at
+`benchmarks/conformance/previews/<caseId>.svg`. The generator mounts the actual
+TanStack case at 288 by 192 pixels with its source data, marks, transforms, and
+light/dark catalog palette. Semantic catalog colors use their paired dark
+tokens. Portable SVGs bind the ShadCN background, foreground, muted surface,
+and muted-foreground tokens inside the asset so retained labels and separators
+follow the selected site theme. Fixed authored paints retain their hue, gain the minimum graphical
+contrast required by the dark catalog surface, and receive a small dark-theme
+tint when they already pass. Preview mode removes axes, grids, margins, and
+legends by default so the data marks fill the card. A case keeps a guide,
+margin, legend, or direct label only when that feature is part of the case's
+purpose. These SVGs are generated views of the canonical implementation, not a
+parallel chart implementation or a renderable npm module.
 
 ```sh
-# Build and validate the exact publication artifact
-pnpm catalog:build
+# Regenerate after adding or changing a case
+pnpm catalog:index
 
-# Prove local authoring isolation and the published module graph
-pnpm catalog:loading:check
+# Validate metadata, entry files, ordering, and checked-in index drift
+pnpm catalog:index:check
+
+# Regenerate previews after a visual source change
+pnpm catalog:previews
+
+# Validate preview coverage, integrity, dimensions, and source drift
+pnpm catalog:previews:check
 ```
 
-Main-branch CI publishes a new generated commit only after the static,
-package, bundle, comparison, and stress gates pass. Conformance runs
-independently as nightly rotating, weekly complete, manual, and labeled-PR
-monitoring. TanStack.com's existing content pipeline reads the generated branch
-and verifies the schema, revision, module allowlist, sizes, and hashes before
-serving it. It composes `site.assetBasePath`, the resolved `catalog-dist` commit
-SHA, and each relative module path into the immutable asset URL. A rollback
-points `catalog-dist` back to a prior generated commit; the catalog has no
-mutable runtime state.
+Consumers resolve the Charts revision independently, then fetch the index and
+its source entries from that same revision.
+
+## Catalog consumers
+
+The Vite application remains the local authoring and conformance surface at
+`http://localhost:5194/`. TanStack.com owns the public catalog routes and chrome.
+It reads `catalog-index.json`, each self-contained example source closure, and the checked-in preview SVGs from
+one pinned Charts revision, then runs full examples in the site notebook
+runtime. The site does not maintain parallel preview implementations or consume
+a generated catalog branch or published renderable-catalog package.
+
+Adding or changing a case requires regenerating the checked-in index and
+previews. The index check uses the same strict metadata parser as the browser
+and rejects invalid schemas, duplicate IDs or orders, missing source entries,
+and IDs that drift from their directory names. The preview check rejects
+missing, stale, incorrectly sized, or integrity-mismatched assets.
 
 ## What is and is not equivalent
 
@@ -251,8 +210,8 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 108 paired cases: 74 sourced from Observable
-Plot, 23 from Recharts, and 11 from Apache ECharts. It spans the common
+The executable corpus contains 112 paired cases: 77 sourced from Observable
+Plot, 24 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 
 - lines, areas, bars, intervals, heatmaps, histograms, facets, and framed
@@ -261,11 +220,11 @@ cartesian vocabulary plus the high-value catalog beyond it:
   moving windows, Bollinger bands, contours, density contours, and hexbins;
 - normalized and wiggle stacks, Likert charts, waterfalls, difference fills,
   rankings, indexed lines, marginal distributions, ridgelines, violins,
-  Marimekko layouts, and waffles;
+  Marimekko layouts, funnels, and waffles;
 - pointer, grouped, and Voronoi-nearest tooltips;
 - pie, labeled pie, basic/centered/rounded/nested donuts, partial and needle
   gauges, single/comparative radar, numeric polar line/scatter, rose, radial
-  bars, and sunburst layouts;
+  bars, and static and drillable sunburst layouts;
 - trees, Delaunay links, force networks, vector fields, and GeoJSON maps.
 - regional and world choropleths, proportional symbols, orthographic globe
   and graticule layers, projected routes, 177 real country boundaries, 51 US
@@ -289,7 +248,7 @@ pointer, native horizontal resource scrolling, streaming-window preservation,
 synchronized multi-view cursors, a free two-dimensional cursor, continuous
 brush selection, wheel zoom and pan, timeline scrubbing, and editable event
 ranges. Focus-plus-context uses Plot as its reference. Together with the
-original tooltip cases, 16 cases carry executable interaction scenarios.
+original tooltip cases, 19 cases carry executable interaction scenarios.
 
 All declared interaction scenarios and the prior 79-case full-corpus visual
 matrix pass across both renderers, initial/revised data, 320/640/960 px, and

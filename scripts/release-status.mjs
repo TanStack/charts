@@ -13,20 +13,13 @@ const registry = 'https://registry.npmjs.org'
 const requestTimeout = 30_000
 
 export function classifyReleaseStatus({
+  allowPublishedRecovery = false,
   expectedRevision,
   hasPendingChangesets,
   packageStates,
   releaseExists,
   tagRevision,
 }) {
-  if (hasPendingChangesets) {
-    return {
-      createTag: false,
-      dispatch: false,
-      reason: 'pending-changesets',
-    }
-  }
-
   const published = packageStates.filter((state) => state === 'published')
   const missing = packageStates.filter((state) => state === 'missing')
   assert.equal(
@@ -34,6 +27,19 @@ export function classifyReleaseStatus({
     packageStates.length,
     'Unknown package release state',
   )
+
+  if (tagRevision !== null) {
+    assert.match(
+      expectedRevision ?? '',
+      /^[0-9a-f]{40}$/,
+      'An existing release tag requires the expected revision',
+    )
+    assert.equal(
+      tagRevision,
+      expectedRevision,
+      'The existing release tag points to a different revision',
+    )
+  }
 
   if (releaseExists) {
     assert.ok(tagRevision, 'A GitHub release requires an annotated tag')
@@ -49,17 +55,12 @@ export function classifyReleaseStatus({
     }
   }
 
-  if (tagRevision !== null) {
-    assert.match(
-      expectedRevision ?? '',
-      /^[0-9a-f]{40}$/,
-      'An existing release tag requires the expected revision',
-    )
-    assert.equal(
-      tagRevision,
-      expectedRevision,
-      'The existing release tag points to a different revision',
-    )
+  if (hasPendingChangesets && (missing.length > 0 || !allowPublishedRecovery)) {
+    return {
+      createTag: false,
+      dispatch: false,
+      reason: 'pending-changesets',
+    }
   }
 
   return {
@@ -76,6 +77,7 @@ export async function releaseStatus({
   const packages = await readReleasePackages(repositoryRoot)
   const version = packages[0].manifest.version
   const tag = releaseTag(version)
+  const revision = await readReleaseRevision(repositoryRoot, version)
   releaseNotes(
     await readFile(resolve(repositoryRoot, 'CHANGELOG.md'), 'utf8'),
     version,
@@ -110,7 +112,8 @@ export async function releaseStatus({
   const tagRevision = await readTagRevision(repositoryRoot, tag)
   const releaseExists = await githubReleaseExists(env, tag)
   const status = classifyReleaseStatus({
-    expectedRevision: env.RELEASE_REVISION,
+    allowPublishedRecovery: env.ALLOW_PUBLISHED_RECOVERY === 'true',
+    expectedRevision: revision,
     hasPendingChangesets: pendingChangesets.length > 0,
     packageStates,
     releaseExists,
@@ -125,6 +128,56 @@ export async function releaseStatus({
     tagRevision,
     totalPackages: packages.length,
     version,
+    revision,
+  }
+}
+
+export async function readReleaseRevision(repositoryRoot, version) {
+  const manifestPath = 'packages/charts-core/package.json'
+  const { stdout } = await execFileAsync(
+    'git',
+    ['log', '--full-history', '--format=%H%x09%s', 'HEAD', '--', manifestPath],
+    {
+      cwd: repositoryRoot,
+      env: { ...process.env },
+      maxBuffer: 5 * 1024 * 1024,
+    },
+  )
+  const revisions = stdout.trim().split('\n').filter(Boolean)
+  for (const entry of revisions) {
+    const [revision, ...subjectParts] = entry.split('\t')
+    const subject = subjectParts.join('\t')
+    if (!revision || !/changeset-release\/main/i.test(subject)) continue
+    const currentVersion = await readManifestVersionAt(
+      repositoryRoot,
+      revision,
+      manifestPath,
+    )
+    if (currentVersion === version) return revision
+  }
+  assert.fail(`Could not find the release merge revision for ${version}`)
+}
+
+async function readManifestVersionAt(repositoryRoot, revision, manifestPath) {
+  try {
+    const { stdout } = await execFileAsync(
+      'git',
+      ['show', `${revision}:${manifestPath}`],
+      {
+        cwd: repositoryRoot,
+        env: { ...process.env },
+        maxBuffer: 5 * 1024 * 1024,
+      },
+    )
+    const manifest = JSON.parse(stdout)
+    assert.ok(
+      semver.valid(manifest.version),
+      `${revision}:${manifestPath} has an invalid version`,
+    )
+    return manifest.version
+  } catch (error) {
+    if (error?.code === 128) return null
+    throw error
   }
 }
 
@@ -229,6 +282,7 @@ async function writeOutputs(status, outputPath) {
     create_tag: status.createTag,
     dispatch: status.dispatch,
     reason: status.reason,
+    revision: status.revision,
     tag: status.tag,
     version: status.version,
   }

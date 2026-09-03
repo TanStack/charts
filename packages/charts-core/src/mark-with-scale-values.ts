@@ -1,10 +1,12 @@
 import type {
   ChartMark,
+  ChartMarkRenderer,
   ChartMotionDefinition,
   ChartValue,
-  InitializedMark,
+  MarkInitialization,
   MarkInitializeContext,
 } from './types'
+import { applyMarkRenderer, normalizeMarkInitialization } from './mark'
 
 export type {
   ChartMarkPointX,
@@ -23,11 +25,36 @@ export function createMarkWithScaleValues<
   TYPointValue extends ChartValue,
   TXScaleValue extends ChartValue,
   TYScaleValue extends ChartValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 >(
   initialize: (
     context: MarkInitializeContext,
-  ) => InitializedMark<TDatum, TXPointValue, TYPointValue>,
+  ) => MarkInitialization<TDatum, TXPointValue, TYPointValue>,
   motion?: ChartMotionDefinition<TDatum>,
-): ChartMark<TDatum, TXPointValue, TYPointValue, TXScaleValue, TYScaleValue> {
-  return motion === undefined ? { initialize } : { initialize, motion }
+  renderer?: ChartMarkRenderer,
+): ChartMark<
+  TDatum,
+  TXPointValue,
+  TYPointValue,
+  TXScaleValue,
+  TYScaleValue,
+  TXScaleId,
+  TYScaleId
+> {
+  const normalizedInitialize = (context: MarkInitializeContext) => {
+    const initialized = normalizeMarkInitialization(initialize(context))
+    const withMotion =
+      motion === undefined || initialized.motion !== undefined
+        ? initialized
+        : { ...initialized, motion }
+    return renderer === undefined
+      ? withMotion
+      : applyMarkRenderer(withMotion, renderer)
+  }
+  return {
+    initialize: normalizedInitialize,
+    ...(motion === undefined ? {} : { motion }),
+    ...(renderer === undefined ? {} : { renderer }),
+  }
 }

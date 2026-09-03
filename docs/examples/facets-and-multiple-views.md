@@ -31,23 +31,35 @@ Faceted distributions give each cohort its own panel while preserving a common
 binning and positional scale. The reader can compare both local shape and
 absolute position without decoding overlapping fills.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/51-faceted-distributions/?theme=system&height=480"
-  title="Shared-scale faceted cohort distributions built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=51-faceted-distributions height=480 -->
 
 Use shared domains when position should be directly comparable. Independent
 domains can make local variation easier to see, but they can also exaggerate
 small differences. If independent scales are intentional, give panels their
 own guides and state the policy.
 
-Prepare reductions independently within each facet. A proportional histogram,
-for example, divides by the cohort's count rather than a global count unless
-the global population is the intended denominator.
+Keep the denominator visible by grouping both transforms:
+
+```ts
+const bins = normalize(
+  binX(rows, {
+    value: 'body_mass_g',
+    by: 'species',
+    thresholds,
+    outputs: { count: { reduce: 'count' } },
+  }),
+  {
+    value: 'count',
+    by: 'species',
+    basis: 'sum',
+    as: 'proportion',
+  },
+)
+```
+
+`binX` owns aggregate lineage and `normalize` divides each species by its own
+count. Omit the second `by` only when the global population is the intended
+denominator.
 
 ## Add marginal context
 
@@ -57,23 +69,51 @@ A scatterplot with marginal histograms combines three roles:
 - The top histogram shows the x distribution.
 - The side histogram shows the y distribution.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/57-scatter-marginal-histograms/?theme=system&height=480"
-  title="Scatterplot with coordinated x and y marginal histograms built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=57-scatter-marginal-histograms height=480 -->
 
 All regions can derive from the same raw observations, but they do not share
-the same marks or plot rectangle. Keep their domains coordinated and their
-accessibility labels distinct.
+the same marks or plot rectangle. This example uses public `binX` and `binY`
+transforms inside three ordinary chart definitions. Place them with
+`composeViews` and `grid`, then use `shareX` and `shareY` to match the
+scatterplot's resolved scales and plot ranges. `viewGrid` is concise syntax for
+the same non-overlapping layout.
 
-Several chart hosts are usually simpler and more accessible. Use one custom
-scene with embedded regions only when exact responsive alignment materially
-improves the product. [Custom Marks and Renderers](../guides/custom-marks-and-renderers.md)
-covers that advanced boundary.
+Use separate chart hosts when each view needs independent interaction or an
+independent accessible label. See
+[View Composition](../reference/view-composition.md) for the single-figure
+layout contract.
+
+## Overlay a summary
+
+An inset can use a different coordinate system from the chart behind it. This
+places a donut summary over a Cartesian detail chart without teaching either
+child about the other:
+
+```ts
+import { composeViews, fill, inset, layer } from '@tanstack/charts/view'
+
+const definition = composeViews({
+  views: {
+    detail: detailDefinition,
+    summary: donutDefinition,
+  },
+  layout: layer(
+    fill('detail'),
+    inset('summary', {
+      relativeTo: 'detail',
+      anchor: 'top-right',
+      width: 160,
+      height: 160,
+      offset: 12,
+    }),
+  ),
+})
+```
+
+The inset is anchored to the complete detail frame. It is clipped to its own
+frame and shrinks proportionally when the host is too small. Because the child
+scenes share one outer interaction model, empty inset space and the donut hole
+leave detail geometry behind them eligible for focus.
 
 ## Pair detail with context
 
@@ -81,14 +121,7 @@ A focus-plus-context layout uses a compact overview to control the explicit
 domain of a larger detail chart. The selection is semantic application state,
 not a rectangle stored inside one renderer.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/83-focus-context-window/?theme=system&height=480"
-  title="Linked overview and detail time windows with a persistent semantic selection"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=83-focus-context-window height=480 -->
 
 The overview should retain the complete domain. The detail should receive the
 selected start and end as its configured scale domain. Pointer, touch, and
@@ -112,9 +145,40 @@ Do not query one SVG for a pixel and apply that pixel directly to another view.
 Different margins, widths, orientations, and scales can represent the same
 semantic value at different coordinates.
 
+For focus-driven cursors, `createChartCursor` provides that application-owned
+state without an overlay or callback relay:
+
+```ts
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
+
+const sharedDate = createChartCursor<Date, number>()
+const cursor = {
+  use: cursorHost,
+  controller: sharedDate,
+  mode: 'focus' as const,
+  match: 'x' as const,
+  pin: true,
+}
+
+const current = defineChart(currentSpec, { cursor })
+const previous = defineChart(previousSpec, { cursor })
+```
+
+Pointer, responder, keyboard, or accessibility focus in either browser or
+React Native chart stores the semantic date. Every subscriber maps that date
+through its own x scale, resolves its local focus group, and paints its own
+`crosshair({ y: false })`. Widths, margins, and y domains can differ. A pinned
+cursor remains shared until another activation, an escape action, or a
+programmatic clear dismisses it.
+
+Use `anchor: 'value'` when setting a controller programmatically for semantic
+sync. Normalized or scene anchors intentionally share relative or local pixel
+coordinates instead.
+
 ## Production checks
 
 - Use one repeated encoding for true facets; use named views when roles differ.
+- Place every named composed view exactly once.
 - Make shared versus independent domains explicit.
 - Keep bin boundaries, group order, color meaning, and units comparable.
 - Give each independently interactive view its own accessible label.

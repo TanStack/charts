@@ -1,7 +1,7 @@
 import { renderToString } from 'octane/server'
 import { describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
-import { Chart } from '@tanstack/octane-charts/canvas'
+import { Chart } from '@tanstack/charts/octane/canvas'
 import { scaleLinear } from 'd3-scale'
 
 const data = [
@@ -17,8 +17,11 @@ const definition = defineChart({
       stroke: '#2563eb',
     }),
   ],
-  x: { scale: scaleLinear().domain([1, 2]) },
-  y: { scale: scaleLinear().domain([8, 12]) },
+  scales: {
+    x: { scale: scaleLinear().domain([1, 2]) },
+    y: { scale: scaleLinear().domain([8, 12]) },
+  },
+
   guides: false,
 })
 
@@ -46,8 +49,10 @@ describe('Octane Canvas adapter', () => {
     expect(html).toContain('aria-label="Revenue"')
     expect(html).toContain('aria-description="Monthly revenue"')
     expect(html).toContain('tabindex="4"')
+    expect(html).toContain('ts-chart-canvas__background')
     expect(html).toContain('ts-chart-canvas__scene')
     expect(html).toContain('ts-chart-canvas__focus')
+    expect(html).toContain('ts-chart-canvas__base')
     expect(html).toContain('<canvas')
     expect(html).not.toContain('<svg')
     expect(getContext).not.toHaveBeenCalled()

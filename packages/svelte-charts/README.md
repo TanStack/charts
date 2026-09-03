@@ -1,16 +1,17 @@
 # `@tanstack/svelte-charts`
 
-Svelte 5 lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Svelte adapter from `@tanstack/charts/svelte`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
+pnpm add @tanstack/charts svelte
 ```
 
 ```svelte
 <script lang="ts">
   import { defineChart } from '@tanstack/charts'
   import { tooltip } from '@tanstack/charts/tooltip'
-  import { Chart } from '@tanstack/svelte-charts'
+  import { Chart } from '@tanstack/charts/svelte'
 
   const interactiveDefinition = defineChart(definition, { tooltip })
 </script>

@@ -1,17 +1,25 @@
-import { scaleBand } from 'd3-scale'
 import { timelineStatusColors } from './colors'
 import { resourceLanes, timelineStatuses } from './scenario'
+import {
+  timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
+  timelineLaneRailWidth,
+  timelineMargin,
+} from './layout'
 import type { ConformanceInput } from '../../types'
-import type { ResourceTask } from './scenario'
+import type { ResourceLane, ResourceTask } from './scenario'
 
-export const timelineMargin = {
-  top: 18,
-  right: 24,
-  bottom: 50,
-  left: 12,
-} as const
+export {
+  timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
+  timelineLaneRailWidth,
+  timelineMargin,
+} from './layout'
 
 const headerHeight = 42
+const focusScrollPadding = 32
 
 export interface ResourceTimelineShell {
   root: HTMLDivElement
@@ -117,24 +125,7 @@ export function sizeResourceTimelineShell(
   shell.viewport.style.height = `${bodyHeight}px`
   shell.chartSurface.style.width = `${timelineContentWidth(viewportWidth)}px`
   shell.chartSurface.style.height = `${timelineChartHeight(bodyHeight)}px`
-  renderLaneRail(shell.laneRail, timelineChartHeight(bodyHeight))
   renderSchedule(shell.schedule, rows)
-}
-
-export function timelineBodyHeight(height: number) {
-  return Math.max(220, height - headerHeight)
-}
-
-export function timelineContentWidth(viewportWidth: number) {
-  return Math.max(960, viewportWidth * 2)
-}
-
-export function timelineChartHeight(viewportHeight: number) {
-  return Math.max(240, viewportHeight - 16)
-}
-
-export function timelineLaneRailWidth(width: number) {
-  return Math.round(Math.max(96, Math.min(128, width * 0.28)))
 }
 
 export function updateTimelineTaskDetails(
@@ -151,8 +142,57 @@ export function updateTimelineTaskDetails(
     : 'Scroll horizontally through the schedule'
 }
 
+export function renderTimelineLaneRail(
+  rail: HTMLDivElement,
+  position: (lane: ResourceLane) => number | null,
+) {
+  const document = rail.ownerDocument
+  rail.replaceChildren(
+    ...resourceLanes.flatMap((lane) => {
+      const centerY = position(lane)
+      if (centerY === null || !Number.isFinite(centerY)) return []
+      const label = document.createElement('span')
+      label.dataset.conformanceLane = lane
+      label.textContent = lane
+      Object.assign(label.style, {
+        position: 'absolute',
+        top: `${centerY}px`,
+        left: '8px',
+        right: '6px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        transform: 'translateY(-50%)',
+        whiteSpace: 'nowrap',
+      })
+      label.title = lane
+      return [label]
+    }),
+  )
+}
+
+export function ensureTimelineFocusVisible(
+  viewport: HTMLDivElement,
+  centerX: number,
+) {
+  const previous = viewport.scrollLeft
+  const visibleStart = previous + focusScrollPadding
+  const visibleEnd = previous + viewport.clientWidth - focusScrollPadding
+  let next = previous
+  if (centerX < visibleStart) {
+    next = centerX - focusScrollPadding
+  } else if (centerX > visibleEnd) {
+    next = centerX - viewport.clientWidth + focusScrollPadding
+  }
+  viewport.scrollLeft = Math.max(
+    0,
+    Math.min(next, viewport.scrollWidth - viewport.clientWidth),
+  )
+  return Math.abs(viewport.scrollLeft - previous) > 1
+}
+
 function createTimelineHeader(document: Document) {
   const header = document.createElement('div')
+  header.dataset.conformanceTimelineLegend = ''
   header.setAttribute('aria-label', 'Task status legend')
   Object.assign(header.style, {
     display: 'flex',
@@ -201,34 +241,6 @@ function createTimelineHeader(document: Document) {
   })
   header.append(taskDetails)
   return { header, taskDetails }
-}
-
-function renderLaneRail(rail: HTMLDivElement, height: number) {
-  const scale = scaleBand<string>()
-    .domain(resourceLanes)
-    .range([timelineMargin.top, height - timelineMargin.bottom])
-    .paddingInner(0.08)
-    .paddingOuter(0.04)
-  const document = rail.ownerDocument
-  rail.replaceChildren(
-    ...resourceLanes.map((lane) => {
-      const label = document.createElement('span')
-      label.dataset.conformanceLane = lane
-      label.textContent = lane
-      Object.assign(label.style, {
-        position: 'absolute',
-        top: `${(scale(lane) ?? 0) + scale.bandwidth() / 2}px`,
-        left: '8px',
-        right: '6px',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        transform: 'translateY(-50%)',
-        whiteSpace: 'nowrap',
-      })
-      label.title = lane
-      return label
-    }),
-  )
 }
 
 function renderSchedule(

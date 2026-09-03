@@ -21,7 +21,8 @@ describe('link and tick marks', () => {
           y2: 'y2',
           key: 'id',
           stroke: '#2563eb',
-          strokeOpacity: (_datum, index) => 0.25 + index * 0.25,
+          strokeOpacity: (_datum, { index, data: rows }) =>
+            0.25 + index * (0.5 / rows.length),
           strokeWidth: (datum) => datum.weight,
           lineCap: 'butt',
         }),

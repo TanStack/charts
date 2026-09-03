@@ -12,6 +12,7 @@ import {
 import { dirname, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { gzipSync } from 'node:zlib'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -51,7 +52,7 @@ export async function verifyPackedReactNativeConsumers({
     bareConsumerConfig(repositoryRoot),
     expoConsumerConfig(repositoryRoot),
   ]
-  const bundles = []
+  const consumers = []
 
   for (const config of consumerConfigs) {
     const consumerRoot = resolve(consumersRoot, config.name)
@@ -64,10 +65,25 @@ export async function verifyPackedReactNativeConsumers({
       repositoryRoot,
     })
     await installConsumer(consumerRoot, repositoryRoot)
-    await verifyInstalledPackage({ consumerRoot, repositoryRoot })
-    await verifyConsumerTypes({ config, consumerRoot, repositoryRoot })
-    bundles.push(...(await bundleConsumer({ config, consumerRoot })))
+    consumers.push({ config, consumerRoot })
   }
+
+  const bundledConsumers = new Array(consumers.length)
+  await runWithConcurrency(
+    consumers,
+    2,
+    async ({ config, consumerRoot }, index) => {
+      await verifyInstalledPackage({ consumerRoot, repositoryRoot })
+      await verifyConsumerTypes({ config, consumerRoot })
+      bundledConsumers[index] = await bundleConsumer({ config, consumerRoot })
+      const cache = await stat(resolve(consumerRoot, '.metro-cache'))
+      assert.ok(
+        cache.isDirectory(),
+        `${config.name} Metro cache was not isolated`,
+      )
+    },
+  )
+  const bundles = bundledConsumers.flat()
 
   console.log(
     'Packed React Native exports, declarations, bare Metro, and Expo Metro gates passed.',
@@ -83,7 +99,7 @@ function bareConsumerConfig(repositoryRoot) {
     writeConfig: async (consumerRoot) => {
       await writeFile(
         resolve(consumerRoot, 'metro.config.cjs'),
-        "const { getDefaultConfig } = require('@react-native/metro-config')\n\nmodule.exports = getDefaultConfig(__dirname)\n",
+        isolatedMetroConfig('@react-native/metro-config'),
       )
     },
     strictTypes: true,
@@ -96,10 +112,19 @@ function expoConsumerConfig(repositoryRoot) {
     name: 'expo',
     importerPath: 'examples/charts-expo',
     sourceDirectory: resolve(repositoryRoot, 'examples/charts-expo'),
-    writeConfig: async () => {},
+    writeConfig: async (consumerRoot) => {
+      await writeFile(
+        resolve(consumerRoot, 'metro.config.cjs'),
+        isolatedMetroConfig('expo/metro-config'),
+      )
+    },
     strictTypes: false,
     bundle: bundleExpoConsumer,
   }
+}
+
+function isolatedMetroConfig(moduleName) {
+  return `const path = require('node:path')\nconst { getDefaultConfig } = require(${JSON.stringify(moduleName)})\n\nconst config = getDefaultConfig(__dirname)\nconfig.cacheStores = ({ FileStore }) => [\n  new FileStore({ root: path.join(__dirname, '.metro-cache') }),\n]\n\nmodule.exports = config\n`
 }
 
 async function deployConsumer({
@@ -265,7 +290,7 @@ async function verifyInstalledPackage({ consumerRoot, repositoryRoot }) {
   const resolutionCheck = resolve(consumerRoot, 'resolve-exports.mjs')
   await writeFile(
     resolutionCheck,
-    `import assert from 'node:assert/strict'\nimport { realpathSync } from 'node:fs'\nimport { fileURLToPath } from 'node:url'\n\nconst expected = process.argv[2]\nfor (const [specifier, filename] of [\n  ['@tanstack/react-native-charts', expected === 'native' ? 'index.native.js' : 'index.js'],\n  ['@tanstack/react-native-charts/tooltip', expected === 'native' ? 'tooltip-entry.native.js' : 'tooltip-entry.js'],\n  ['@tanstack/charts/universal', 'universal.js'],\n]) {\n  const resolved = realpathSync(fileURLToPath(import.meta.resolve(specifier)))\n  assert.ok(resolved.startsWith(realpathSync('./node_modules')), resolved)\n  assert.ok(resolved.endsWith('/dist/' + filename), resolved)\n}\n`,
+    `import assert from 'node:assert/strict'\nimport { realpathSync } from 'node:fs'\nimport { fileURLToPath } from 'node:url'\n\nconst expected = process.argv[2]\nfor (const [specifier, suffix] of [\n  ['@tanstack/react-native-charts', '/@tanstack/react-native-charts/dist/' + (expected === 'native' ? 'index.native.js' : 'index.js')],\n  ['@tanstack/react-native-charts/tooltip', '/@tanstack/react-native-charts/dist/' + (expected === 'native' ? 'tooltip-entry.native.js' : 'tooltip-entry.js')],\n  ['@tanstack/charts/react-native', '/@tanstack/charts/dist/react-native/' + (expected === 'native' ? 'index.native.js' : 'index.js')],\n  ['@tanstack/charts/react-native/tooltip', '/@tanstack/charts/dist/react-native/' + (expected === 'native' ? 'tooltip-entry.native.js' : 'tooltip-entry.js')],\n  ['@tanstack/charts/universal', '/@tanstack/charts/dist/universal.js'],\n]) {\n  const resolved = realpathSync(fileURLToPath(import.meta.resolve(specifier)))\n  assert.ok(resolved.startsWith(realpathSync('./node_modules')), resolved)\n  assert.ok(resolved.endsWith(suffix), resolved)\n}\n`,
   )
   await run('node', [resolutionCheck, 'import'], consumerRoot)
   await run(
@@ -435,15 +460,15 @@ async function readSourceMapSources(sourceMaps) {
 }
 
 function assertPackedNativeBoundary(label, sources, includesTooltip) {
-  const requiredSources = [
-    '/@tanstack/react-native-charts/dist/index.native.js',
-    '/@tanstack/charts/dist/universal.js',
-  ]
+  const requiredSources = ['/@tanstack/charts/dist/universal.js']
   if (includesTooltip) {
     requiredSources.push(
-      '/@tanstack/react-native-charts/dist/tooltip-entry.native.js',
-      '/@tanstack/react-native-charts/dist/Tooltip.js',
+      '/@tanstack/charts/dist/react-native/index.native.js',
+      '/@tanstack/charts/dist/react-native/tooltip-entry.native.js',
+      '/@tanstack/charts/dist/react-native/Tooltip.js',
     )
+  } else {
+    requiredSources.push('/@tanstack/react-native-charts/dist/index.native.js')
   }
   for (const required of requiredSources) {
     assert.ok(
@@ -472,8 +497,18 @@ function assertPackedNativeBoundary(label, sources, includesTooltip) {
       source.includes('/@tanstack/charts/src/'),
   )
   assert.deepEqual(leakedSource, [], `${label} resolved workspace source`)
-  assertSinglePackedPackage(label, sources, '@tanstack/react-native-charts')
   assertSinglePackedPackage(label, sources, '@tanstack/charts')
+  if (includesTooltip) {
+    assert.equal(
+      sources.some((source) =>
+        source.includes('/@tanstack/react-native-charts/'),
+      ),
+      false,
+      `${label} retained the legacy React Native package`,
+    )
+  } else {
+    assertSinglePackedPackage(label, sources, '@tanstack/react-native-charts')
+  }
   const forbidden = sources.filter((source) =>
     forbiddenNativeSources.some((candidate) => source.includes(candidate)),
   )

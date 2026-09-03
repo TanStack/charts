@@ -20,16 +20,11 @@ assert.equal(
 await rm(artifactDirectory, { recursive: true, force: true })
 await mkdir(artifactDirectory, { recursive: true })
 
-for (const script of [
-  'check-packed-consumers.mjs',
-  'check-framework-adapters.mjs',
-]) {
-  await run(process.execPath, [
-    resolve(repositoryRoot, 'scripts', script),
-    '--artifacts-dir',
-    artifactDirectory,
-  ])
-}
+await run(process.execPath, [
+  resolve(repositoryRoot, 'scripts', 'check-release-packages.mjs'),
+  '--artifacts-dir',
+  artifactDirectory,
+])
 
 await createReleaseArtifactManifest(repositoryRoot)
 const { artifacts, version } = await validateReleaseArtifacts(repositoryRoot)

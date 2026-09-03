@@ -13,6 +13,8 @@ const interpolatedAttributes = new Set([
   'cy',
   'd',
   'fill-opacity',
+  'font-size',
+  'font-weight',
   'height',
   'opacity',
   'r',
@@ -54,6 +56,31 @@ export function reconcileChartSvg(
   return animation ? runTweens(container, tweens, animation) : () => {}
 }
 
+/** Reconciles one keyed SVG subtree without reparsing or walking the chart. */
+export function reconcileChartSvgFragment(
+  currentRoot: SVGElement,
+  markup: string,
+  animation?: ChartAnimationOptions,
+): () => void {
+  const template = currentRoot.ownerDocument.createElement('template')
+  template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
+  const wrapper = template.content.firstElementChild
+  const nextRoot = wrapper?.firstElementChild
+  if (!nextRoot) return () => {}
+
+  if (
+    currentRoot.namespaceURI !== nextRoot.namespaceURI ||
+    currentRoot.localName !== nextRoot.localName
+  ) {
+    currentRoot.replaceWith(nextRoot)
+    return () => {}
+  }
+
+  const tweens: AttributeTween[] = []
+  reconcileElement(currentRoot, nextRoot, animation ? tweens : undefined)
+  return animation ? runTweens(currentRoot, tweens, animation) : () => {}
+}
+
 function reconcileElement(
   current: Element,
   next: Element,
@@ -62,7 +89,12 @@ function reconcileElement(
   syncAttributes(current, next, tweens)
 
   if (!next.firstElementChild) {
-    if (current.textContent !== next.textContent) {
+    if (current.firstElementChild) {
+      for (const child of [...current.children]) {
+        if (tweens) addExitTween(child, tweens)
+        else child.remove()
+      }
+    } else if (current.textContent !== next.textContent) {
       current.textContent = next.textContent
     }
     return
@@ -125,7 +157,7 @@ function syncAttributes(
       previous !== null &&
       target !== null &&
       interpolatedAttributes.has(name)
-        ? interpolateAttribute(previous, target)
+        ? interpolateAttribute(name, previous, target)
         : undefined
     if (interpolate && tweens) {
       tweens.push({ element: current, name, interpolate, target })
@@ -166,7 +198,7 @@ function addExitTween(current: Element, tweens: AttributeTween[]) {
 }
 
 function runTweens(
-  container: HTMLElement,
+  container: Element,
   tweens: readonly AttributeTween[],
   options: ChartAnimationOptions,
 ): () => void {
@@ -215,11 +247,13 @@ function finishTweens(tweens: readonly AttributeTween[]) {
 }
 
 function interpolateAttribute(
+  name: string,
   previous: string,
   next: string,
 ): ((progress: number) => string) | undefined {
-  const previousNumbers = extractNumbers(previous)
-  const nextNumbers = extractNumbers(next)
+  const path = name === 'd'
+  const previousNumbers = extractNumbers(previous, path)
+  const nextNumbers = extractNumbers(next, path)
   if (
     previousNumbers.skeleton !== nextNumbers.skeleton ||
     previousNumbers.values.length !== nextNumbers.values.length ||
@@ -228,26 +262,53 @@ function interpolateAttribute(
     return undefined
   }
 
+  const template = nextNumbers.skeleton
   return (progress) => {
     let index = 0
-    return nextNumbers.skeleton.replaceAll('#', () => {
+    return template.replaceAll(/[#!]/g, (placeholder) => {
       const start = previousNumbers.values[index]
       const end = nextNumbers.values[index]
       index += 1
-      return formatNumber(start + (end - start) * progress)
+      return formatNumber(
+        placeholder === '!' ? end : start + (end - start) * progress,
+      )
     })
   }
 }
 
-function extractNumbers(value: string) {
+function extractNumbers(value: string, path = false) {
   const values: number[] = []
-  const skeleton = value.replace(
-    /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi,
-    (match) => {
-      values.push(Number(match))
-      return '#'
-    },
-  )
+  let skeleton = ''
+  let command = ''
+  let argument = 0
+  let index = 0
+
+  while (index < value.length) {
+    const rest = value.slice(index)
+    const arcPosition = argument % 7
+    const arcFlag =
+      path && /a/i.test(command) && arcPosition > 2 && arcPosition < 5
+    const match = arcFlag
+      ? /^[01]/u.exec(rest)
+      : /^-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/iu.exec(rest)
+
+    if (match) {
+      values.push(Number(match[0]))
+      skeleton += arcFlag ? '!' : '#'
+      argument += 1
+      index += match[0].length
+      continue
+    }
+
+    const character = value[index]!
+    skeleton += character
+    if (path && /[a-z]/i.test(character)) {
+      command = character
+      argument = 0
+    }
+    index += 1
+  }
+
   return { skeleton, values }
 }
 

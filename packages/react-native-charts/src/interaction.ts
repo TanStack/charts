@@ -1,10 +1,14 @@
 import {
-  focusNearestX,
-  focusNearestY,
-  focusX,
-  focusY,
-} from '@tanstack/charts/focus'
-import { findNearestPoint } from '@tanstack/charts/scene'
+  resolveChartFocusStrategy,
+  resolveChartPointerFocus,
+  restoreChartFocusPoint,
+  sameChartPointIdentity,
+} from '@tanstack/charts/cursor/host'
+import { focusDisabled } from '@tanstack/charts/focus/disabled'
+import {
+  findNearestPoint,
+  viewportInteractionPoints,
+} from '@tanstack/charts/scene'
 import type {
   ChartDefinition,
   ChartFocusMode,
@@ -40,28 +44,38 @@ export function createNativeChartFocusModel<
   scene: ChartScene<TDatum, TXValue, TYValue>,
   definition: ChartDefinition<TDatum, TXValue, TYValue>,
 ): NativeChartFocusModel<TDatum, TXValue, TYValue> {
+  const points = viewportInteractionPoints(scene)
   const strategy = resolveFocusStrategy(definition.focus)
-  const spatialIndex = definition.spatialIndex?.(scene.points, scene)
+  const spatialIndex =
+    definition.focus === false
+      ? undefined
+      : definition.spatialIndex?.(points, { scene })
   const maxDistance = definition.maxFocusDistance ?? 48
-  const navigation =
-    strategy?.navigation(scene.points) ?? sceneOrder(scene.points)
+  const navigation = strategy?.navigation(points) ?? sceneOrder(points)
 
   return {
     resolve(x, y) {
-      if (strategy) {
-        return strategy.resolve(scene.points, x, y, maxDistance)
-      }
+      const focused = resolveChartPointerFocus(
+        scene,
+        strategy,
+        x,
+        y,
+        maxDistance,
+        points,
+      )
+      if (focused) return focused
       const point = spatialIndex
         ? spatialIndex.findNearest(x, y, maxDistance)
-        : findNearestPoint(scene, x, y, maxDistance)
-      return point ? [point] : []
+        : findNearestPoint(scene, x, y, maxDistance, points)
+      const visible = point ? restoreFocusedPoint(points, point) : null
+      return visible ? [visible] : []
     },
     group(point) {
-      return strategy?.group(scene.points, point) ?? [point]
+      return strategy?.group(points, { point }) ?? [point]
     },
     navigation,
     restore(point) {
-      return restoreFocusedPoint(scene.points, point)
+      return restoreFocusedPoint(points, point)
     },
   }
 }
@@ -98,14 +112,7 @@ export function samePointIdentity<
   left: ChartPoint<TDatum, TXValue, TYValue> | null,
   right: ChartPoint<TDatum, TXValue, TYValue> | null,
 ) {
-  return (
-    left === right ||
-    (left !== null &&
-      right !== null &&
-      left.key === right.key &&
-      left.markId === right.markId &&
-      left.datumIndex === right.datumIndex)
-  )
+  return sameChartPointIdentity(left, right)
 }
 
 export function samePointReferences<
@@ -129,19 +136,8 @@ function resolveFocusStrategy<
 >(
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
-  if (typeof focus !== 'string') return focus
-  switch (focus) {
-    case 'nearest-x':
-      return focusNearestX
-    case 'nearest-y':
-      return focusNearestY
-    case 'group-x':
-      return focusX
-    case 'group-y':
-      return focusY
-    case 'nearest':
-      return undefined
-  }
+  if (focus === false) return focusDisabled
+  return resolveChartFocusStrategy(focus)
 }
 
 function sceneOrder<
@@ -160,46 +156,4 @@ function sceneOrder<
     .map(({ point }) => point)
 }
 
-function restoreFocusedPoint<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  previous: ChartPoint<TDatum, TXValue, TYValue>,
-) {
-  const matches = points.filter((point) => point.key === previous.key)
-  if (matches.length < 2) return matches[0] ?? null
-
-  const datumType = typeof previous.datum
-  const hasReferenceIdentity =
-    previous.datum !== null &&
-    (datumType === 'object' || datumType === 'function')
-  if (hasReferenceIdentity) {
-    const sameDatum = matches.find((point) => point.datum === previous.datum)
-    if (sameDatum) return sameDatum
-  }
-
-  return (
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        Object.is(point.group, previous.group) &&
-        chartValueEqual(point.xValue, previous.xValue) &&
-        chartValueEqual(point.yValue, previous.yValue),
-    ) ??
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        point.datumIndex === previous.datumIndex,
-    ) ??
-    matches[0] ??
-    null
-  )
-}
-
-function chartValueEqual(left: ChartValue, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
-}
+const restoreFocusedPoint = restoreChartFocusPoint

@@ -51,8 +51,11 @@ Use `theme` when a chart needs explicit scene colors:
 ```ts
 const definition = defineChart({
   marks,
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
+
   theme: {
     foreground: '#e5e7eb',
     muted: '#94a3b8',
@@ -104,19 +107,40 @@ container CSS for palette variables, inherited color, and typography.
 
 ## Gradients and clipping
 
-Gradients are opt-in SVG resources. Declare them on the chart and render with
-the resource-aware SVG renderer:
+Gradients are opt-in resources. Declare them on the chart:
 
-```ts
-import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+```ts group=gradient-area env=charts file=/src/chart.ts entry
+import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { rows } from './data'
 
-const definition = defineChart({
-  marks,
-  x,
-  y,
+export default defineChart({
+  marks: [
+    areaY(rows, {
+      x: 'month',
+      y: 'revenue',
+      fill: 'url(#revenue-fill)',
+    }),
+    lineY(rows, {
+      x: 'month',
+      y: 'revenue',
+      stroke: '#2563eb',
+      strokeWidth: 2,
+    }),
+  ],
+  scales: {
+    x: { scale: () => scalePoint<string>().padding(0.2) },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Revenue (USD)' },
+    },
+  },
+
   gradients: [
     {
-      id: 'area-fill',
+      id: 'revenue-fill',
       x1: 0,
       y1: 1,
       x2: 0,
@@ -127,30 +151,35 @@ const definition = defineChart({
       ],
     },
   ],
+  clip: true,
 })
 ```
 
-Use `url(#area-fill)` as the mark paint and pass
-`renderSvg: renderChartSvgWithResources` to the host or adapter. `idPrefix`
-scopes resource and clip IDs when several charts share a document.
+```ts group=gradient-area file=/src/data.ts collapsed
+export const rows = [
+  { month: 'Jan', revenue: 36_000 },
+  { month: 'Feb', revenue: 48_000 },
+  { month: 'Mar', revenue: 45_000 },
+  { month: 'Apr', revenue: 62_000 },
+  { month: 'May', revenue: 76_000 },
+  { month: 'Jun', revenue: 71_000 },
+]
+```
+
+Use `url(#revenue-fill)` as the mark paint. Default SVG hosts emit and scope the
+resource; `idPrefix` keeps resource and clip IDs distinct when several charts
+share a document.
 
 Set `clip: true` when marks should be clipped to the resolved plot rectangle.
 Clipping is a geometry policy, not a substitute for correct scale domains.
 
-Canvas consumes the same declared gradients and group clips without the
-resource-aware SVG serializer. A Canvas gradient needs measurable node bounds;
-path-only geometry with no point bounds should use an explicit paint instead.
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=480"
-  title="Theme-aware labeled heatmap with a quantitative color legend"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+Canvas consumes the same declared gradients and group clips. A Canvas gradient
+needs measurable node bounds; path-only geometry with no point bounds should
+use an explicit paint instead.
 
 ## HTML tooltip styling
 
-The native tooltip is an HTML element inside the chart container by default.
+The built-in DOM tooltip is an HTML element inside the chart container by default.
 Give it a class through `tooltip.className` and style that class in application
 CSS:
 
@@ -162,6 +191,25 @@ const definition = defineChart(baseDefinition, {
 })
 ```
 
+The default tooltip chrome also reads CSS variables from the chart container.
+This avoids selector specificity fights with its positioning styles:
+
+```css
+.revenue-chart {
+  --ts-chart-tooltip-background: color-mix(in srgb, Canvas 92%, transparent);
+  --ts-chart-tooltip-color: CanvasText;
+  --ts-chart-tooltip-border: 1px solid
+    color-mix(in srgb, CanvasText 12%, transparent);
+  --ts-chart-tooltip-border-radius: 0.625rem;
+  --ts-chart-tooltip-shadow: 0 12px 34px
+    color-mix(in srgb, CanvasText 14%, transparent);
+}
+```
+
+`--ts-chart-tooltip-max-width`, `--ts-chart-tooltip-padding`, and
+`--ts-chart-tooltip-font` control the remaining surface defaults. A
+`className` is still useful for content-specific layout.
+
 With the `portal` extension, the preferred manual-Popover path keeps the
 element under the chart in the DOM, so inheritance and scoped selectors
 continue to work. If Popover is unavailable or fails, the fixed fallback moves
@@ -171,6 +219,9 @@ shared document ancestor.
 
 Every framework adapter can compose native application content with the
 default rows. See [Tooltips and Focus](./tooltips-and-focus.md).
+
+See [Themes and Motion examples](../examples/themes-and-motion.md) for complete
+cards with inherited palettes, gradients, controls, and optional motion.
 
 ## Theme checklist
 

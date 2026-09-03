@@ -56,21 +56,23 @@ Use `aspectRatio` when height should follow width:
 
 Set a fixed `width` only for an intentionally fixed graphic such as export, print, or email.
 
-Dynamic definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
+Responsive definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
 
 ```ts
 const chart = defineChart(({ width }) => ({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: {
-    scale: xScale,
-    axis: {
-      ticks: { count: width < 420 ? 4 : 8 },
-      tickLabels: { rotate: width < 520 ? -30 : undefined },
+  scales: {
+    x: {
+      scale: xScale,
+      axis: {
+        ticks: { count: width < 420 ? 4 : 8 },
+        tickLabels: { rotate: width < 520 ? -30 : undefined },
+      },
     },
-  },
-  y: {
-    scale: yScale,
-    axis: { label: width < 480 ? undefined : 'Weekly downloads' },
+    y: {
+      scale: yScale,
+      axis: { label: width < 480 ? undefined : 'Weekly downloads' },
+    },
   },
 }))
 ```
@@ -96,8 +98,11 @@ Explicit margins lock only the sides you provide:
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   margin: { left: 80 },
 })
 ```
@@ -110,8 +115,11 @@ Here the left margin is exactly `80`; top, right, and bottom remain automatic.
 const sparkline = defineChart({
   marks: [lineY(values)],
   guides: false,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   margin: 0,
 })
 ```
@@ -201,18 +209,52 @@ Hide every axis and grid while keeping scales for marks:
 const chart = defineChart({
   marks,
   guides: false,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
 })
 ```
 
-Marks encode whether they materialize each positional dimension. Omit an unused
-axis; for example, a `ruleY`-only chart needs `y` but no `x`. Explicit `null`
-is accepted only for an unused dimension.
+Set a reserved scale to `null` only when no mark uses that dimension. For
+example, a `ruleY`-only chart uses `scales: { x: null, y: { scale: yScale } }`.
+
+## Multiple axes
+
+Add a named scale when one coordinate system needs an independent mapping.
+Declare whether it maps x or y, choose its axis side, then bind the relevant
+mark to its ID:
+
+```ts
+const chart = defineChart({
+  marks: [
+    lineY(revenue, { x: 'date', y: 'value' }),
+    lineY(margin, {
+      x: 'date',
+      y: 'percent',
+      yScale: 'margin',
+    }),
+  ],
+  scales: {
+    x: { scale: dateScale },
+    y: { scale: revenueScale, axis: { label: 'Revenue' } },
+    margin: {
+      channel: 'y',
+      scale: marginScale,
+      side: 'right',
+      axis: { label: 'Margin' },
+    },
+  },
+})
+```
+
+`xScale` and `yScale` bind marks to scale IDs, not axis IDs. Axes visualize the
+scale registry entries. Multiple axes on one side stack outward and take part
+in automatic margin measurement.
 
 ## Scale ranges and coordinate direction
 
-Scale factories derive domains from marks. Configured D3 instances retain fixed
+Scale factories derive domains from marks. Configured instances retain fixed
 semantic domains. TanStack Charts supplies ranges from `scene.chart`.
 
 For a normal cartesian chart:
@@ -223,7 +265,72 @@ For a normal cartesian chart:
 
 `reverse: true` flips the range. It does not reorder or mutate the source domain.
 
-See [Scales and D3](./scales-and-d3.md) for the complete ownership boundary and pixel-to-value inversion.
+See [Scales](./scales-and-d3.md) for scale selection, responsive ownership, and
+pixel-to-value inversion.
+
+## Continuous viewports
+
+A continuous axis can present one semantic window of a larger content domain:
+
+```ts
+const x = {
+  scale: scaleUtc().domain([historyStart, historyEnd]),
+  viewport: {
+    domain: [visibleStart, visibleEnd],
+    translate: dragOffset,
+  },
+}
+```
+
+The configured or inferred scale domain describes the complete content.
+`viewport.domain` is the committed semantic window used for mapping, axes, and
+grid lines. `viewport.translate` is a transient output-space offset applied
+after that mapping.
+
+Viewport ownership is resolved for each mark and each axis. A mark that
+materializes an active viewport axis is content on that axis by default. The
+compiler gives each such mark its own plot-bounded clip layer and applies only
+the translations for axes it owns. Axes and grid lines stay fixed. Marks that
+do not depend on the translated axis also stay fixed, such as a frame or a
+y-only annotation during an x drag. Custom marks can override either axis as
+`'content'` or `'fixed'` through `InitializedMark.viewport`.
+
+Marks, focus layers, interaction points, and tooltip anchors use the same
+presented coordinates. `scene.points` retains every content point, including
+off-window points, for rendering and diagnostics. The interaction host limits
+pointer strategies and keyboard navigation to clipped content points whose
+presented anchors are inside the plot clip. Points from marks with fixed
+viewport ownership remain candidates outside the plot.
+`viewportInteractionPoints(scene)` returns that subset without changing
+`scene.points`.
+
+Translation is expressed in screen-direction scene pixels: positive x moves
+content right, negative x moves it left, positive y moves it down, and negative
+y moves it up. Domain order and `reverse` do not change those directions.
+
+This makes paged history one chart and one continuous line rather than a guide
+chart overlaid with several plot charts. During a drag, keep the committed
+domain fixed and update only `translate`. To settle one page, animate the
+translation to one plot width, then update the semantic domain and reset the
+translation to zero in the same application commit.
+
+Viewport domains accept two distinct finite numbers or two distinct finite
+Dates. The scale must be configured or inferable, continuous, invertible,
+unclamped, and independently accept domain and range assignment. Band,
+ordinal, quantize, clamped, and getter-only scales are rejected. An authored
+`axis.viewport` cannot be applied to an opaque custom `ChartScale`; a custom
+resolver can instead return a complete `ResolvedScale.viewport` that it owns.
+A logarithmic content domain and viewport domain must contain finite, nonzero
+numbers and remain on the same side of zero.
+
+The resolved scale exposes both coordinate systems:
+
+```ts
+const { contentDomain, domain, translate, map } = scene.scales.x.viewport!
+```
+
+`scene.scales.x.map(value)` is the committed, untranslated coordinate used to
+construct geometry. `viewport.map(value)` returns its presented coordinate.
 
 ## Non-cartesian coordinates
 
@@ -235,16 +342,16 @@ import { polar, radialArc } from '@tanstack/charts/polar'
 import { geoShape } from '@tanstack/charts/geo'
 ```
 
-`polar` copies configured angle and radius scales, assigns responsive angular
-and radial ranges, and renders guide backgrounds, child marks, then guide
-foregrounds around one resolved center. `geoShape` calls an
+`polar` copies entries from its own `scales` registry, assigns responsive
+angular and radial ranges, and renders guide backgrounds, child marks, then
+guide foregrounds around one resolved center. `geoShape` calls an
 application-supplied D3 projection callback or fits a projection descriptor to
 data, a sphere, or explicit geometry.
 
 Both paths emit the same keyed scene nodes and interaction points as ordinary
 marks. SVG rendering, DOM reconciliation, focus, export, and adapters do not
-need a coordinate-system branch. Their outer chart omits `x` and `y`; no
-Cartesian guides are created.
+need a coordinate-system branch. Their outer chart uses
+`scales: { x: null, y: null }`; no Cartesian guides are created.
 
 These capabilities stay behind separate package subpaths so their D3 geometry
 does not enter a Cartesian consumer. See
@@ -253,7 +360,7 @@ does not enter a Cartesian consumer. See
 
 ## Band alignment
 
-A D3 band scale returns the start of a band. TanStack Charts centers the resolved positional value:
+A band scale returns the start of a band. TanStack Charts centers the resolved positional value:
 
 ```text
 band start ├──────── bandwidth ────────┤
@@ -273,7 +380,8 @@ barX(rows, {
 })
 ```
 
-The D3 band scale’s `paddingInner` and `paddingOuter` determine category spacing. `inset` removes additional pixels from both bar edges after layout.
+The band scale's `paddingInner` and `paddingOuter` determine category spacing.
+`inset` removes additional pixels from both bar edges after layout.
 
 For side-by-side bars, `layout: group()` subdivides the primary bandwidth. See
 [Bars and Rankings](../examples/bars-and-rankings.md).
@@ -294,7 +402,10 @@ const overlayStyle = {
 }
 ```
 
-DOM pointer coordinates must first be converted into scene coordinates using the rendered SVG bounds. Native focus does this automatically. Application-owned brush and zoom gestures can use copied D3 scales to invert those scene coordinates.
+DOM pointer coordinates must first be converted into scene coordinates using
+the rendered surface bounds. Chart-owned focus and the first-party brush, cursor,
+and zoom behaviors do this automatically against resolved scales. A custom
+gesture can use the resolved scale's optional `invert` operation.
 
 ## Clipping and overflow
 
@@ -303,8 +414,11 @@ DOM pointer coordinates must first be converted into scene coordinates using the
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   clip: true,
 })
 ```
@@ -313,25 +427,11 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 
 ## Complete horizontal ranking
 
-```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
+```ts group=horizontal-ranking env=charts file=/src/chart.ts entry
 import { barX, defineChart, ruleX } from '@tanstack/charts'
-
-interface MetroPopulation {
-  Metro: string
-  POP_2015: number
-}
-
-const citywages: readonly MetroPopulation[] = [
-  { Metro: 'New York–Newark–Jersey City', POP_2015: 20_182_305 },
-  { Metro: 'Los Angeles–Long Beach–Anaheim', POP_2015: 13_340_068 },
-  { Metro: 'Chicago–Naperville–Elgin', POP_2015: 9_532_569 },
-  { Metro: 'Dallas–Fort Worth–Arlington', POP_2015: 7_206_144 },
-  { Metro: 'Houston–The Woodlands–Sugar Land', POP_2015: 6_656_947 },
-  { Metro: 'Washington–Arlington–Alexandria', POP_2015: 6_097_684 },
-  { Metro: 'Philadelphia–Camden–Wilmington', POP_2015: 6_069_875 },
-  { Metro: 'Miami–Fort Lauderdale–West Palm Beach', POP_2015: 6_012_331 },
-]
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { citywages } from './data'
 
 const rows = [...citywages]
   .sort((left, right) => right.POP_2015 - left.POP_2015)
@@ -342,7 +442,7 @@ const compact = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 1,
 })
 
-const rankingChart = defineChart({
+export default defineChart({
   marks: [
     ruleX([0], { stroke: '#94a3b8', strokeOpacity: 0.6 }),
     barX(rows, {
@@ -353,30 +453,41 @@ const rankingChart = defineChart({
       radius: 3,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: {
-      label: '2015 population',
-      ticks: { format: (value) => compact.format(value) },
+  scales: {
+    x: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: {
+        label: '2015 population',
+        ticks: { format: (value) => compact.format(value) },
+      },
     },
-  },
-  y: {
-    scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),
+    y: {
+      scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),
+    },
   },
 })
 ```
 
-This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-scale` as direct dependencies.
+```ts group=horizontal-ranking file=/src/data.ts collapsed
+export interface MetroPopulation {
+  Metro: string
+  POP_2015: number
+}
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-horizontal-ranking/?theme=system&height=480"
-  title="Metropolitan population ranking with long source labels and automatic axis margins"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+export const citywages: readonly MetroPopulation[] = [
+  { Metro: 'New York–Newark–Jersey City', POP_2015: 20_182_305 },
+  { Metro: 'Los Angeles–Long Beach–Anaheim', POP_2015: 13_340_068 },
+  { Metro: 'Chicago–Naperville–Elgin', POP_2015: 9_532_569 },
+  { Metro: 'Dallas–Fort Worth–Arlington', POP_2015: 7_206_144 },
+  { Metro: 'Houston–The Woodlands–Sugar Land', POP_2015: 6_656_947 },
+  { Metro: 'Washington–Arlington–Alexandria', POP_2015: 6_097_684 },
+  { Metro: 'Philadelphia–Camden–Wilmington', POP_2015: 6_069_875 },
+  { Metro: 'Miami–Fort Lauderdale–West Palm Beach', POP_2015: 6_012_331 },
+]
+```
+
+This chart needs only the lightweight linear and band scale entries.
 
 For responsive layout recipes, see [Responsive Charts](../guides/responsive-charts.md). For the exact shape of scenes and resolved bounds, see [Runtime and Scene Reference](../reference/runtime-and-scene.md).

@@ -1,9 +1,6 @@
 import { bin } from 'd3-array'
-import type { SimpsonsRow } from '@charts-poc/demo-data/simpsons'
-
-export type RatedEpisode = SimpsonsRow & {
-  readonly imdb_rating: number
-}
+import { ratingBoundaries } from './selection'
+import type { RatedEpisode } from './selection'
 
 export interface RidgePoint {
   id: string
@@ -13,23 +10,10 @@ export interface RidgePoint {
   density: number
 }
 
-const boundaries = [
-  4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 6, 6.25, 6.5, 6.75, 7, 7.25, 7.5,
-  7.75, 8, 8.25, 8.5, 8.75, 9, 9.25, 9.5, 9.75, 10,
-]
 const createBins = bin<RatedEpisode, number>()
   .value((row) => row.imdb_rating)
   .domain([4, 10])
-  .thresholds(boundaries.slice(1, -1))
-
-export function isRatedEpisode(row: SimpsonsRow): row is RatedEpisode {
-  return row.imdb_rating !== null
-}
-
-export function ridgeSeasons(revision: number): readonly number[] {
-  const offset = revision % 2
-  return [1 + offset, 10 + offset, 20 + offset]
-}
+  .thresholds(ratingBoundaries.slice(1, -1))
 
 export function ridgeDensity(
   episodes: readonly RatedEpisode[],

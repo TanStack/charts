@@ -70,6 +70,16 @@ describe('inferred datum keys', () => {
     ).toEqual([0, 1])
   })
 
+  it('keeps group and key identities distinct without delimiter collisions', () => {
+    const rows = [{ id: 'c' }, { id: 'b:string:c' }]
+
+    expect(
+      inferredKeyValues(rows, undefined, {
+        groups: ['a:string:b', 'a'],
+      }),
+    ).toEqual(['c', 'b:string:c'])
+  })
+
   it('warns once when a mark-specific candidate falls back to position', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const rows = [{ value: 'same' }, { value: 'same' }]

@@ -2,7 +2,7 @@ import {
   synchronizedCursorDateKey,
   synchronizedCursorDatumAtDate,
 } from './model'
-import { travelers } from '@charts-poc/demo-data/travelers'
+import { travelers } from '@tanstack/charts-data/travelers'
 import { selectSynchronizedCursorData } from './selection'
 import { synchronizedCursorColors } from './colors'
 import type { ConformanceInput } from '../../types'
@@ -68,6 +68,7 @@ export function updateSynchronizedSummary(
     summary.date.textContent = 'Focus either chart'
     summary.current.textContent = '—'
     summary.previous.textContent = '—'
+    delete summary.root.dataset.date
     summary.root.dataset.pinned = 'false'
     return
   }

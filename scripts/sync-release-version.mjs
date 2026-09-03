@@ -5,11 +5,59 @@ import { pathToFileURL } from 'node:url'
 import { readReleasePackages } from './release-package-config.mjs'
 
 export const releaseVersionSources = [
-  { path: 'README.md', references: 1 },
-  { path: 'MARKETING.md', references: 6 },
+  { path: 'README.md', references: 2, tagReferences: 1 },
+  { path: 'MARKETING.md', references: 3 },
   { path: 'docs/overview.md', references: 1 },
-  { path: 'docs/installation.md', references: 1 },
-  { path: 'docs/comparison.md', references: 6 },
+  { path: 'docs/installation.md', references: 2, tagReferences: 1 },
+  { path: 'docs/comparison.md', references: 5, tagReferences: 4 },
+  {
+    path: 'packages/charts-core/skills/build-chart-interactions/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/compose-marks-and-views/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/configure-scales-guides-color/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/coordinate-charts-with-tanstack/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/debug-and-verify-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/design-a-chart/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/design-responsive-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/extend-tanstack-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/migrate-to-tanstack-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/prepare-chart-data/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/ship-accessible-charts/SKILL.md',
+    references: 1,
+  },
+  {
+    path: 'packages/charts-core/skills/update-and-animate-charts/SKILL.md',
+    references: 1,
+  },
 ]
 
 export function changelogVersions(source) {
@@ -80,7 +128,7 @@ export async function syncReleaseVersion({
   assert.ok(previousVersion, `Root changelog has no release before ${version}`)
 
   await Promise.all(
-    releaseVersionSources.map(async ({ path, references }) => {
+    releaseVersionSources.map(async ({ path, references, tagReferences }) => {
       const target = resolve(repositoryRoot, path)
       const source = await readFile(target, 'utf8')
       const next = syncReleaseVersionReference(
@@ -90,9 +138,28 @@ export async function syncReleaseVersion({
         path,
         references,
       )
+      if (tagReferences !== undefined) {
+        assert.equal(
+          releaseTagReferenceCount(next, version),
+          tagReferences,
+          `${path} must contain ${tagReferences} immutable v${version} release ${tagReferences === 1 ? 'link' : 'links'}`,
+        )
+      }
       if (next !== source) await writeFile(target, next)
     }),
   )
+}
+
+export function releaseTagReferenceCount(source, version) {
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return [
+    ...source.matchAll(
+      new RegExp(
+        `https://github\\.com/TanStack/charts/(?:tree|blob)/v${escaped}/`,
+        'g',
+      ),
+    ),
+  ].length
 }
 
 const entrypoint = process.argv[1]

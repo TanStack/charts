@@ -26,5 +26,6 @@
     "examples/*/src/**/*.tsx",
     "scripts/**/*.mjs",
     "vitest.config.ts"
-  ]
+  ],
+  "exclude": ["node_modules", "packages/*/dist"]
 }

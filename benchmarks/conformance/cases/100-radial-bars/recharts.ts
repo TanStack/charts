@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { Cell, PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { selectRadialBarData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'

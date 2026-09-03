@@ -5,18 +5,18 @@
   "title": "Scatterplot with marginal histograms",
   "family": "distribution",
   "intent": "Compare penguin flipper length and body mass while retaining the one-dimensional distribution of each measurement.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "joint scatterplot",
     "marginal histograms",
-    "d3-array bin",
-    "embedded plot regions",
+    "public bin transforms",
+    "coordinated view grid",
+    "shared positional scales",
     "categorical color"
   ],
   "geometry": [
     { "role": "dot", "count": 320 },
-    { "role": "rect", "count": 15 },
-    { "role": "rule", "count": 2 }
+    { "role": "rect", "count": 15 }
   ],
   "source": {
     "title": "Observable Plot bin transform and rect mark",

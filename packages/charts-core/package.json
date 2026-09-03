@@ -1,8 +1,11 @@
 {
   "name": "@tanstack/charts",
-  "version": "0.6.4",
+  "version": "0.16.0",
   "private": false,
   "license": "MIT",
+  "keywords": [
+    "tanstack-intent"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/TanStack/charts.git",
@@ -13,81 +16,213 @@
   "files": [
     "dist",
     "docs",
+    "skills",
     "LICENSE",
     "README.md",
     "llms.txt"
   ],
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
     "@types/d3-geo": "^3.1.0",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-sankey": "^0.12.5",
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
+    "d3-brush": "3.0.0",
+    "d3-contour": "4.0.2",
+    "d3-delaunay": "6.0.4",
+    "d3-force": "3.0.0",
     "d3-geo": "3.1.1",
-    "d3-shape": "3.2.0"
+    "d3-hexbin": "0.2.2",
+    "d3-hierarchy": "3.1.2",
+    "d3-sankey": "0.12.3",
+    "d3-scale": "4.0.2",
+    "d3-selection": "3.0.0",
+    "d3-shape": "3.2.0",
+    "d3-zoom": "3.0.0",
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=19",
+    "@angular/platform-browser": ">=19",
+    "alpinejs": ">=3.15",
+    "lit": ">=3.1.3",
+    "octane": "^0.1.13",
+    "preact": ">=10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-native": "^0.86.0",
+    "react-native-svg": ">=15.15.4 <16",
+    "solid-js": ">=1.8",
+    "svelte": "^5.20.0",
+    "vue": ">=3.5"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/platform-browser": {
+      "optional": true
+    },
+    "alpinejs": {
+      "optional": true
+    },
+    "lit": {
+      "optional": true
+    },
+    "octane": {
+      "optional": true
+    },
+    "preact": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "react-native-svg": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.3.6",
     "@types/d3-array": "^3.2.2",
-    "@types/d3-scale": "^4.0.9",
-    "d3-scale": "4.0.2"
+    "@types/d3-brush": "^3.0.6",
+    "@types/d3-contour": "^3.0.6",
+    "@types/d3-delaunay": "^6.0.4",
+    "@types/d3-hexbin": "0.2.5",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-zoom": "^3.0.8",
+    "@types/d3-scale": "^4.0.9"
   },
   "exports": {
     ".": "./src/index.ts",
     "./adapter": "./src/adapter.ts",
     "./adapter/renderer": "./src/adapter-renderer.ts",
+    "./alpine": "./src/alpine.ts",
+    "./angular": "./src/angular.ts",
     "./area": "./src/area.ts",
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
     "./bar": "./src/bar.ts",
     "./band": "./src/band.ts",
+    "./box": "./src/box.ts",
     "./canvas": "./src/canvas.ts",
+    "./crosshair": "./src/crosshair.ts",
+    "./cursor": "./src/cursor-public.ts",
+    "./cursor/host": "./src/cursor-host.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
+    "./difference": "./src/difference.ts",
     "./dom": "./src/dom.ts",
+    "./dodge": "./src/dodge.ts",
     "./dot": "./src/dot.ts",
     "./export": "./src/export.ts",
     "./facet": "./src/facet.ts",
     "./focus": "./src/focus.ts",
+    "./focus/guide": "./src/focus-guide.ts",
     "./focus/mark": "./src/focus-mark.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
     "./frame": "./src/frame.ts",
     "./group": "./src/group.ts",
     "./geo": "./src/geo.ts",
     "./hexagon": "./src/hexagon.ts",
+    "./hierarchy/tree": "./src/hierarchy-tree.ts",
+    "./hierarchy/treemap": "./src/hierarchy-treemap.ts",
+    "./hierarchy/sunburst": "./src/hierarchy-sunburst.ts",
+    "./interaction/signal": "./src/interaction-signal.ts",
+    "./interaction/brush": "./src/interaction-brush.ts",
+    "./interaction/cursor": "./src/interaction-cursor.ts",
+    "./interaction/handle": "./src/interaction-handle.ts",
+    "./interaction/zoom": "./src/interaction-zoom.ts",
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
+    "./lit": "./src/lit.ts",
     "./motion": "./src/motion.ts",
+    "./motion/definition": "./src/motion-definition.ts",
+    "./network/force": "./src/network-force.ts",
+    "./network/sankey": "./src/network-sankey.ts",
+    "./octane": "./src/octane.ts",
+    "./octane/canvas": "./src/octane-canvas.ts",
+    "./octane/core": "./src/octane-core.ts",
+    "./mark/composite": "./src/mark-composite.ts",
+    "./mark/decorative": "./src/mark-decorative.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
+    "./preact": "./src/preact.ts",
+    "./react": "./src/react.ts",
+    "./react/canvas": "./src/react-canvas.ts",
+    "./react/core": "./src/react-core.ts",
+    "./react/tooltip": "./src/react-tooltip.ts",
+    "./react-native": "./src/react-native.ts",
+    "./react-native/tooltip": "./src/react-native-tooltip.ts",
     "./universal": "./src/universal.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
+    "./regression": "./src/regression.ts",
+    "./selection": "./src/selection.ts",
     "./renderer": "./src/renderer.ts",
+    "./ridgeline": "./src/ridgeline.ts",
     "./rule": "./src/rule.ts",
     "./runtime": "./src/runtime.ts",
+    "./scales/band": "./src/scales-band.ts",
+    "./scales/linear": "./src/scales-linear.ts",
+    "./scales/ordinal": "./src/scales-ordinal.ts",
+    "./scales/point": "./src/scales-point.ts",
     "./scene": "./src/scene.ts",
+    "./solid": "./src/solid.ts",
     "./svg": "./src/svg.ts",
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
     "./stack": "./src/stack.ts",
     "./spring": "./src/spring.ts",
+    "./spatial/contour": "./src/spatial-contour.ts",
+    "./spatial/delaunay": "./src/spatial-delaunay.ts",
+    "./spatial/density": "./src/spatial-density.ts",
+    "./spatial/hexbin": "./src/spatial-hexbin.ts",
+    "./spatial/voronoi": "./src/spatial-voronoi.ts",
+    "./svelte": "./src/svelte.ts",
     "./transform": "./src/transform.ts",
     "./transform/bin": "./src/transform-bin.ts",
     "./transform/bin-time": "./src/transform-bin-time.ts",
     "./transform/bin-xy": "./src/transform-bin-xy.ts",
     "./transform/cumulative": "./src/transform-cumulative.ts",
+    "./transform/fold": "./src/transform-fold.ts",
     "./transform/group": "./src/transform-group.ts",
+    "./transform/mosaic": "./src/transform-mosaic.ts",
     "./transform/normalize": "./src/transform-normalize.ts",
     "./transform/rank": "./src/transform-rank.ts",
     "./transform/reduce": "./src/transform-reduce.ts",
     "./transform/select": "./src/transform-select.ts",
     "./transform/stack": "./src/transform-stack.ts",
-    "./transform/window": "./src/transform-window.ts",
+    "./transform/waterfall": "./src/transform-waterfall.ts",
+    "./transform/rolling-window": "./src/transform-rolling-window.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
     "./tooltip": "./src/tooltip.ts",
+    "./tooltip/model": "./src/tooltip-model.ts",
     "./tooltip/portal": "./src/tooltip-portal.ts",
     "./types": "./src/universal-types.ts",
-    "./vector": "./src/vector.ts"
+    "./vector": "./src/vector.ts",
+    "./violin": "./src/violin.ts",
+    "./view": "./src/view.ts",
+    "./vue": "./src/vue.ts",
+    "./waffle": "./src/waffle.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -104,6 +239,14 @@
       "./adapter/renderer": {
         "types": "./dist/adapter-renderer.d.ts",
         "import": "./dist/adapter-renderer.js"
+      },
+      "./alpine": {
+        "types": "./dist/alpine/index.d.ts",
+        "import": "./dist/alpine/index.js"
+      },
+      "./angular": {
+        "types": "./dist/angular/types/tanstack-angular-charts.d.ts",
+        "default": "./dist/angular/fesm2022/tanstack-angular-charts.mjs"
       },
       "./area": {
         "types": "./dist/area.d.ts",
@@ -125,9 +268,26 @@
         "types": "./dist/band.d.ts",
         "import": "./dist/band.js"
       },
+      "./box": {
+        "types": "./dist/box.d.ts",
+        "import": "./dist/box.js"
+      },
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
+      },
+      "./crosshair": {
+        "types": "./dist/crosshair.d.ts",
+        "import": "./dist/crosshair.js"
+      },
+      "./cursor": {
+        "types": "./dist/cursor-public.d.ts",
+        "import": "./dist/cursor-public.js"
+      },
+      "./cursor/host": {
+        "types": "./dist/cursor-host.d.ts",
+        "react-native": "./dist/cursor-host.js",
+        "import": "./dist/cursor-host.js"
       },
       "./d3/area-x": {
         "types": "./dist/d3-area-x.d.ts",
@@ -137,9 +297,17 @@
         "types": "./dist/d3-shape.d.ts",
         "import": "./dist/d3-shape.js"
       },
+      "./difference": {
+        "types": "./dist/difference.d.ts",
+        "import": "./dist/difference.js"
+      },
       "./dom": {
         "types": "./dist/dom.d.ts",
         "import": "./dist/dom.js"
+      },
+      "./dodge": {
+        "types": "./dist/dodge.d.ts",
+        "import": "./dist/dodge.js"
       },
       "./dot": {
         "types": "./dist/dot.d.ts",
@@ -156,6 +324,10 @@
       "./focus": {
         "types": "./dist/focus.d.ts",
         "import": "./dist/focus.js"
+      },
+      "./focus/guide": {
+        "types": "./dist/focus-guide.d.ts",
+        "import": "./dist/focus-guide.js"
       },
       "./focus/mark": {
         "types": "./dist/focus-mark.d.ts",
@@ -181,6 +353,38 @@
         "types": "./dist/hexagon.d.ts",
         "import": "./dist/hexagon.js"
       },
+      "./hierarchy/tree": {
+        "types": "./dist/hierarchy-tree.d.ts",
+        "import": "./dist/hierarchy-tree.js"
+      },
+      "./hierarchy/treemap": {
+        "types": "./dist/hierarchy-treemap.d.ts",
+        "import": "./dist/hierarchy-treemap.js"
+      },
+      "./hierarchy/sunburst": {
+        "types": "./dist/hierarchy-sunburst.d.ts",
+        "import": "./dist/hierarchy-sunburst.js"
+      },
+      "./interaction/signal": {
+        "types": "./dist/interaction-signal.d.ts",
+        "import": "./dist/interaction-signal.js"
+      },
+      "./interaction/brush": {
+        "types": "./dist/interaction-brush.d.ts",
+        "import": "./dist/interaction-brush.js"
+      },
+      "./interaction/cursor": {
+        "types": "./dist/interaction-cursor.d.ts",
+        "import": "./dist/interaction-cursor.js"
+      },
+      "./interaction/handle": {
+        "types": "./dist/interaction-handle.d.ts",
+        "import": "./dist/interaction-handle.js"
+      },
+      "./interaction/zoom": {
+        "types": "./dist/interaction-zoom.d.ts",
+        "import": "./dist/interaction-zoom.js"
+      },
       "./legend": {
         "types": "./dist/legend.d.ts",
         "import": "./dist/legend.js"
@@ -193,13 +397,80 @@
         "types": "./dist/link.d.ts",
         "import": "./dist/link.js"
       },
+      "./lit": {
+        "types": "./dist/lit/index.d.ts",
+        "import": "./dist/lit/index.js"
+      },
       "./motion": {
         "types": "./dist/motion.d.ts",
         "import": "./dist/motion.js"
       },
+      "./motion/definition": {
+        "types": "./dist/motion-definition.d.ts",
+        "import": "./dist/motion-definition.js"
+      },
+      "./network/force": {
+        "types": "./dist/network-force.d.ts",
+        "import": "./dist/network-force.js"
+      },
+      "./network/sankey": {
+        "types": "./dist/network-sankey.d.ts",
+        "import": "./dist/network-sankey.js"
+      },
+      "./octane": {
+        "types": "./dist/octane/index.d.ts",
+        "browser": "./dist/octane/index.js",
+        "node": "./dist/octane/server/index.js",
+        "import": "./dist/octane/index.js"
+      },
+      "./octane/canvas": {
+        "types": "./dist/octane/canvas.d.ts",
+        "browser": "./dist/octane/canvas.js",
+        "node": "./dist/octane/server/canvas.js",
+        "import": "./dist/octane/canvas.js"
+      },
+      "./octane/core": {
+        "types": "./dist/octane/core.d.ts",
+        "browser": "./dist/octane/core.js",
+        "node": "./dist/octane/server/core.js",
+        "import": "./dist/octane/core.js"
+      },
+      "./mark/composite": {
+        "types": "./dist/mark-composite.d.ts",
+        "import": "./dist/mark-composite.js"
+      },
+      "./mark/decorative": {
+        "types": "./dist/mark-decorative.d.ts",
+        "import": "./dist/mark-decorative.js"
+      },
       "./spring": {
         "types": "./dist/spring.d.ts",
         "import": "./dist/spring.js"
+      },
+      "./spatial/contour": {
+        "types": "./dist/spatial-contour.d.ts",
+        "import": "./dist/spatial-contour.js"
+      },
+      "./spatial/delaunay": {
+        "types": "./dist/spatial-delaunay.d.ts",
+        "import": "./dist/spatial-delaunay.js"
+      },
+      "./spatial/density": {
+        "types": "./dist/spatial-density.d.ts",
+        "import": "./dist/spatial-density.js"
+      },
+      "./spatial/hexbin": {
+        "types": "./dist/spatial-hexbin.d.ts",
+        "import": "./dist/spatial-hexbin.js"
+      },
+      "./spatial/voronoi": {
+        "types": "./dist/spatial-voronoi.d.ts",
+        "import": "./dist/spatial-voronoi.js"
+      },
+      "./svelte": {
+        "types": "./dist/svelte/index.d.ts",
+        "svelte": "./dist/svelte/index.js",
+        "import": "./dist/svelte/index.js"
       },
       "./mark/scale-values": {
         "types": "./dist/mark-with-scale-values.d.ts",
@@ -208,6 +479,36 @@
       "./polar": {
         "types": "./dist/polar.d.ts",
         "import": "./dist/polar.js"
+      },
+      "./preact": {
+        "types": "./dist/preact/index.d.ts",
+        "import": "./dist/preact/index.js"
+      },
+      "./react": {
+        "types": "./dist/react/index.d.ts",
+        "import": "./dist/react/index.js"
+      },
+      "./react/canvas": {
+        "types": "./dist/react/canvas.d.ts",
+        "import": "./dist/react/canvas.js"
+      },
+      "./react/core": {
+        "types": "./dist/react/core.d.ts",
+        "import": "./dist/react/core.js"
+      },
+      "./react/tooltip": {
+        "types": "./dist/react/tooltip.d.ts",
+        "import": "./dist/react/tooltip.js"
+      },
+      "./react-native": {
+        "types": "./dist/react-native/index.d.ts",
+        "react-native": "./dist/react-native/index.native.js",
+        "import": "./dist/react-native/index.js"
+      },
+      "./react-native/tooltip": {
+        "types": "./dist/react-native/tooltip-entry.d.ts",
+        "react-native": "./dist/react-native/tooltip-entry.native.js",
+        "import": "./dist/react-native/tooltip-entry.js"
       },
       "./universal": {
         "types": "./dist/universal.d.ts",
@@ -221,9 +522,21 @@
         "types": "./dist/rect.d.ts",
         "import": "./dist/rect.js"
       },
+      "./regression": {
+        "types": "./dist/regression.d.ts",
+        "import": "./dist/regression.js"
+      },
+      "./selection": {
+        "types": "./dist/selection.d.ts",
+        "import": "./dist/selection.js"
+      },
       "./renderer": {
         "types": "./dist/renderer.d.ts",
         "import": "./dist/renderer.js"
+      },
+      "./ridgeline": {
+        "types": "./dist/ridgeline.d.ts",
+        "import": "./dist/ridgeline.js"
       },
       "./rule": {
         "types": "./dist/rule.d.ts",
@@ -233,9 +546,30 @@
         "types": "./dist/runtime.d.ts",
         "import": "./dist/runtime.js"
       },
+      "./scales/band": {
+        "types": "./dist/scales/band.d.ts",
+        "import": "./dist/scales/band.js"
+      },
+      "./scales/linear": {
+        "types": "./dist/scales/linear.d.ts",
+        "import": "./dist/scales/linear.js"
+      },
+      "./scales/ordinal": {
+        "types": "./dist/scales/ordinal.d.ts",
+        "import": "./dist/scales/ordinal.js"
+      },
+      "./scales/point": {
+        "types": "./dist/scales/point.d.ts",
+        "import": "./dist/scales/point.js"
+      },
       "./scene": {
         "types": "./dist/scene.d.ts",
         "import": "./dist/scene.js"
+      },
+      "./solid": {
+        "types": "./dist/solid/index.d.ts",
+        "solid": "./dist/solid/index.js",
+        "import": "./dist/solid/index.js"
       },
       "./svg": {
         "types": "./dist/svg.d.ts",
@@ -273,9 +607,17 @@
         "types": "./dist/transform-cumulative.d.ts",
         "import": "./dist/transform-cumulative.js"
       },
+      "./transform/fold": {
+        "types": "./dist/transform-fold.d.ts",
+        "import": "./dist/transform-fold.js"
+      },
       "./transform/group": {
         "types": "./dist/transform-group.d.ts",
         "import": "./dist/transform-group.js"
+      },
+      "./transform/mosaic": {
+        "types": "./dist/transform-mosaic.d.ts",
+        "import": "./dist/transform-mosaic.js"
       },
       "./transform/normalize": {
         "types": "./dist/transform-normalize.d.ts",
@@ -297,9 +639,13 @@
         "types": "./dist/transform-stack.d.ts",
         "import": "./dist/transform-stack.js"
       },
-      "./transform/window": {
-        "types": "./dist/transform-window.d.ts",
-        "import": "./dist/transform-window.js"
+      "./transform/waterfall": {
+        "types": "./dist/transform-waterfall.d.ts",
+        "import": "./dist/transform-waterfall.js"
+      },
+      "./transform/rolling-window": {
+        "types": "./dist/transform-rolling-window.d.ts",
+        "import": "./dist/transform-rolling-window.js"
       },
       "./text": {
         "types": "./dist/text.d.ts",
@@ -313,6 +659,11 @@
         "types": "./dist/tooltip.d.ts",
         "import": "./dist/tooltip.js"
       },
+      "./tooltip/model": {
+        "types": "./dist/tooltip-model.d.ts",
+        "react-native": "./dist/tooltip-model.js",
+        "import": "./dist/tooltip-model.js"
+      },
       "./tooltip/portal": {
         "types": "./dist/tooltip-portal.d.ts",
         "import": "./dist/tooltip-portal.js"
@@ -324,6 +675,22 @@
       "./vector": {
         "types": "./dist/vector.d.ts",
         "import": "./dist/vector.js"
+      },
+      "./violin": {
+        "types": "./dist/violin.d.ts",
+        "import": "./dist/violin.js"
+      },
+      "./view": {
+        "types": "./dist/view.d.ts",
+        "import": "./dist/view.js"
+      },
+      "./vue": {
+        "types": "./dist/vue/index.d.ts",
+        "import": "./dist/vue/index.js"
+      },
+      "./waffle": {
+        "types": "./dist/waffle.d.ts",
+        "import": "./dist/waffle.js"
       }
     }
   }

@@ -3,15 +3,17 @@
   "referenceRenderer": "recharts",
   "order": 700,
   "id": "70-composed-chart",
-  "title": "Layered Seattle weather chart",
+  "title": "Seattle weather with three y axes",
   "family": "composition",
-  "intent": "Compare daily maximum temperature, precipitation, minimum temperature, and wind using an area, bars, a line, and points.",
+  "intent": "Compare daily temperature, precipitation, and wind without forcing unlike units onto one y scale.",
   "support": "composed",
   "features": [
     "mixed marks",
+    "independent y scales",
+    "left axis and stacked right axes",
     "daily observations",
     "monotone curves",
-    "shared numeric scale"
+    "resolved maximum bar thickness"
   ],
   "geometry": [
     { "role": "area", "count": 1 },
@@ -24,7 +26,7 @@
     "url": "https://recharts.github.io/en-US/examples/LineBarAreaComposedChart/"
   },
   "ai": {
-    "create": "Create one chart from Seattle weather observations that layers maximum temperature as an area, precipitation as bars, minimum temperature as a monotone line, and wind as red points.",
-    "maintain": "Select a different weather window while preserving source dates and measures, mark order, colors, and cast-free channel inference."
+    "create": "Create one chart from Seattle weather observations that uses a left temperature axis, an independent right precipitation axis for bars, and a second right wind axis for points.",
+    "maintain": "Select a different weather window while preserving source dates, units, named scale bindings, stacked right axes, mark order, colors, and cast-free channel inference."
   }
 }

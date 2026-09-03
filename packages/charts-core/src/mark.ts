@@ -3,8 +3,10 @@ import type {
   Channel,
   ChannelAccessor,
   ChartKey,
+  ChartMarkRenderer,
   ChartValue,
   InitializedMark,
+  MarkInitialization,
   MarkInitializeContext,
   ChartMark,
   ChartMotionDefinition,
@@ -39,13 +41,101 @@ export function createMark<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 >(
   initialize: (
     context: MarkInitializeContext,
-  ) => InitializedMark<TDatum, TXValue, TYValue>,
+  ) => MarkInitialization<TDatum, TXValue, TYValue>,
   motion?: ChartMotionDefinition<TDatum>,
-): ChartMark<TDatum, TXValue, TYValue> {
-  return motion === undefined ? { initialize } : { initialize, motion }
+  renderer?: ChartMarkRenderer,
+): ChartMark<TDatum, TXValue, TYValue, TXValue, TYValue, TXScaleId, TYScaleId> {
+  const normalizedInitialize = (context: MarkInitializeContext) => {
+    const initialized = normalizeMarkInitialization(initialize(context))
+    const withMotion =
+      motion === undefined || initialized.motion !== undefined
+        ? initialized
+        : { ...initialized, motion }
+    return renderer === undefined
+      ? withMotion
+      : applyMarkRenderer(withMotion, renderer)
+  }
+  return {
+    initialize: normalizedInitialize,
+    ...(motion === undefined ? {} : { motion }),
+    ...(renderer === undefined ? {} : { renderer }),
+  }
+}
+
+export function applyMarkRenderer<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  initialized: InitializedMark<TDatum, TXValue, TYValue>,
+  renderer: ChartMarkRenderer,
+): InitializedMark<TDatum, TXValue, TYValue> {
+  const render = initialized.render
+  const resolveLayout = initialized.resolveLayout
+  return {
+    ...initialized,
+    render: (context) => applyMarkRendererToScene(render(context), renderer),
+    ...(resolveLayout
+      ? {
+          resolveLayout(context) {
+            const resolved = resolveLayout(context)
+            return {
+              ...resolved,
+              render: (renderContext) =>
+                applyMarkRendererToScene(
+                  resolved.render(renderContext),
+                  renderer,
+                ),
+            }
+          },
+        }
+      : {}),
+  }
+}
+
+export function applyMarkRendererToScene<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: import('./types').MarkScene<TDatum, TXValue, TYValue>,
+  renderer: ChartMarkRenderer,
+): import('./types').MarkScene<TDatum, TXValue, TYValue> {
+  return {
+    ...scene,
+    nodes: scene.nodes.map((node) => ({ ...node, renderer })),
+    ...(scene.focusGuides
+      ? {
+          focusGuides: scene.focusGuides.map((guide) => ({
+            ...guide,
+            renderer,
+          })),
+        }
+      : {}),
+  }
+}
+
+export function normalizeMarkInitialization<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  initialized: MarkInitialization<TDatum, TXValue, TYValue>,
+): InitializedMark<TDatum, TXValue, TYValue> {
+  if (typeof initialized.render === 'function') return initialized
+  return {
+    ...initialized,
+    render: () => {
+      throw new TypeError(
+        `Mark "${initialized.id}" must resolve its layout before rendering`,
+      )
+    },
+  }
 }
 
 export function markStates<TDatum, TStyle extends ChartMarkStateStyle<TDatum>>(
@@ -68,17 +158,17 @@ export function visualValue<TDatum, TValue>(
   fallback: TValue,
 ): TValue {
   return typeof channel === 'function'
-    ? (channel as ChannelAccessor<TDatum, TValue>)(datum, index, data)
+    ? (channel as ChannelAccessor<TDatum, TValue>)(datum, { index, data })
     : (channel ?? fallback)
 }
 
 export function channelValues<TDatum, TValue>(
   data: readonly TDatum[],
   channel: Channel<TDatum, TValue> | undefined,
-  fallback: (datum: TDatum, index: number, data: readonly TDatum[]) => TValue,
+  fallback: ChannelAccessor<TDatum, TValue>,
 ): TValue[] {
   if (typeof channel === 'function') {
-    return data.map((datum, index) => channel(datum, index, data))
+    return data.map((datum, index) => channel(datum, { index, data }))
   }
   if (channel !== undefined) {
     return data.map((datum) =>
@@ -87,7 +177,7 @@ export function channelValues<TDatum, TValue>(
         : undefined,
     ) as TValue[]
   }
-  return data.map(fallback)
+  return data.map((datum, index) => fallback(datum, { index, data }))
 }
 
 export function inferredKeyValues<TDatum>(
@@ -101,7 +191,7 @@ export function inferredKeyValues<TDatum>(
   } = {},
 ): ChartKey[] {
   if (key !== undefined) {
-    return channelValues(data, key, (_datum, index) => index)
+    return channelValues(data, key, (_datum, { index }) => index)
   }
 
   const candidates = [
@@ -167,7 +257,10 @@ function keysAreUniqueWithinGroups(
 ): boolean {
   const seen = new Set<string>()
   for (let index = 0; index < keys.length; index += 1) {
-    const identity = `${valueKey(groups?.[index] ?? null)}:${valueKey(keys[index])}`
+    const identity = JSON.stringify([
+      valueKey(groups?.[index] ?? null),
+      valueKey(keys[index]),
+    ])
     if (seen.has(identity)) return false
     seen.add(identity)
   }

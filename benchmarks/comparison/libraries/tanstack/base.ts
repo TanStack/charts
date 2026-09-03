@@ -5,10 +5,10 @@ import {
   type ChartHostOptions,
   type ChartPoint,
   type ChartScene,
-  type DynamicChartDefinition,
+  type ResponsiveChartDefinition,
   type SceneNode,
 } from '@tanstack/charts'
-import { focusX } from '@tanstack/charts/focus'
+import { focusGroupX } from '@tanstack/charts/focus'
 import { tooltip } from '@tanstack/charts/tooltip'
 import type { BenchmarkHandle, BenchmarkInput } from '../../types'
 import { createFrameOperation } from '../../stress/operation'
@@ -30,7 +30,9 @@ export const margin = { top: 16, right: 16, bottom: 32, left: 48 }
 export function mountDefinition<TDatum>(
   container: HTMLElement,
   input: BenchmarkInput,
-  createDefinition: (input: BenchmarkInput) => DynamicChartDefinition<TDatum>,
+  createDefinition: (
+    input: BenchmarkInput,
+  ) => ResponsiveChartDefinition<TDatum>,
   interactive: boolean,
 ): BenchmarkHandle {
   const definitionOptions = {
@@ -53,11 +55,11 @@ export function mountDefinition<TDatum>(
         : false,
     ...(BENCHMARK_GROUPED_X_FOCUS
       ? {
-          focus: focusX,
+          focus: focusGroupX,
           maxFocusDistance: Number.POSITIVE_INFINITY,
         }
       : undefined),
-    animate: false,
+    svgAnimation: false,
   } satisfies ChartDefinitionOptions<TDatum>
   const resolveDefinition = (nextInput: BenchmarkInput) =>
     defineChart(createDefinition(nextInput), definitionOptions)

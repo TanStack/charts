@@ -1,4 +1,4 @@
-import { flare } from '@charts-poc/demo-data/flare'
+import { flare } from '@tanstack/charts-data/flare'
 import { describe, expect, it } from 'vitest'
 import { nestedFlareDonut } from './transform'
 

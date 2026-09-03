@@ -7,7 +7,7 @@
   "intent": "Show how annual changes bridge from the 2004 U.S. gasoline price to the net change in 2010.",
   "support": "native",
   "features": [
-    "waterfall",
+    "native waterfall transform",
     "ranged bars",
     "annual differences",
     "categorical color",
@@ -20,6 +20,6 @@
   },
   "ai": {
     "create": "Create a waterfall chart by deriving year-over-year gasoline-price changes from the driving dataset, accumulating explicit start and end intervals, and distinguishing increases, decreases, and the net change.",
-    "maintain": "Change the year window while retaining source fields through the difference transform, stable year identity, the zero-based final total, and inferred interval channels."
+    "maintain": "Change the year window while keeping adjacent difference semantics, cumulative interval ownership, stable year identity, direct lineage, and the zero-based net total explicit."
   }
 }

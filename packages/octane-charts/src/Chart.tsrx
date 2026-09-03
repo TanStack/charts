@@ -17,7 +17,7 @@ export function Chart<
   )
   const onRender = props.onRender
     ? (context: ChartRendererRenderContext<TDatum, TXValue, TYValue>) => {
-        const svg = context.surface.element
+        const svg = context.surface.defaultElement ?? context.surface.element
         const SvgElement =
           context.container.ownerDocument.defaultView?.SVGSVGElement
         if (!SvgElement || !(svg instanceof SvgElement)) {
@@ -26,7 +26,9 @@ export function Chart<
         props.onRender?.({
           container: context.container,
           scene: context.scene,
+          surface: context.surface,
           svg,
+          interaction: context.interaction,
         })
       }
     : undefined

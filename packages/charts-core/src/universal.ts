@@ -3,25 +3,49 @@ export { areaX } from './area-x'
 export { arrow } from './arrow'
 export { barX, barY } from './bar'
 export { bandX, bandY } from './band'
+export { boxRows, boxX, boxY } from './box'
+export { crosshair } from './crosshair'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export { d3AreaXCurve } from './d3-area-x'
 export { d3Curve } from './d3-shape'
+export { differenceX, differenceY } from './difference'
+export { createDotLayout, dodgeX, dodgeY } from './dodge'
 export { dot } from './dot'
 export { facet, facetChart } from './facet'
 export { frame } from './frame'
 export { whenFocused } from './focus-mark'
+export { focusedSceneNodes, resolveFocusScene } from './focus-layer'
+export type { ResolvedFocusScene } from './focus-layer'
+export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export { hexagon } from './hexagon'
-export { lineY } from './line'
+export { lineX, lineY } from './line'
+export {
+  linearRegressionRowsX,
+  linearRegressionRowsY,
+  linearRegressionX,
+  linearRegressionY,
+} from './regression'
+export { ridgelineX, ridgelineY } from './ridgeline'
 export { link } from './link'
-export { colorGradientLegend, colorLegend } from './legend'
+export { colorGradientLegend, colorLegend } from './legend-static'
 export { createMark } from './mark'
+export { compositeMark } from './mark-composite'
 export { cell, rect } from './rect'
-export { createChartRuntime, isDynamicChartDefinition } from './runtime'
+export { createChartRuntime, isResponsiveChartDefinition } from './runtime'
 export {
   createChartScene,
   defaultChartTheme,
   defineChart,
   findNearestPoint,
+  viewportInteractionPoints,
 } from './scene'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
@@ -29,11 +53,13 @@ export { binX, binY } from './transform-bin'
 export { binXY } from './transform-bin-xy'
 export { binTimeX, binTimeY } from './transform-bin-time'
 export { cumulative } from './transform-cumulative'
+export { fold } from './transform-fold'
 export { groupBy } from './transform-group'
+export { mosaicX, mosaicY } from './transform-mosaic'
 export { normalize } from './transform-normalize'
 export {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,
@@ -44,9 +70,12 @@ export {
 export { rank } from './transform-rank'
 export { select } from './transform-select'
 export { stackRowsX, stackRowsY } from './transform-stack'
-export { window } from './transform-window'
+export { waterfall } from './transform-waterfall'
+export { rollingWindow } from './transform-rolling-window'
 export { ruleX, ruleY } from './rule'
 export { text } from './text'
 export { tickX, tickY } from './tick'
 export { vector } from './vector'
+export { violinX, violinY } from './violin'
+export { waffleX, waffleY } from './waffle'
 export type * from './universal-types'

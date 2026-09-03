@@ -6,14 +6,15 @@
   "title": "Wheel zoom and pan over AAPL closes",
   "family": "interaction",
   "intent": "Zoom a continuous time viewport around the pointer, pan the cropped domain, and restore the full extent.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "wheel zoom",
     "drag and horizontal wheel pan",
-    "pointer-anchored domain",
+    "pointer-anchored semantic window",
     "clamped continuous viewport",
-    "D3 scale inversion",
-    "optional d3-zoom controller",
+    "controlled semantic window",
+    "resolved-scale inversion",
+    "first-party zoom behavior",
     "keyboard and touch navigation",
     "intentional focus before wheel capture",
     "semantic reset control",
@@ -402,7 +403,7 @@
     "url": "https://echarts.apache.org/handbook/en/concepts/datazoom/"
   },
   "ai": {
-    "create": "Create a UTC chart of AAPL closes with an optional granular d3-zoom controller that zooms around the pointer, pans by drag or horizontal wheel, and exposes keyboard, touch, status, and reset affordances.",
-    "maintain": "Keep the D3 zoom transform and application viewport synchronized across responsive updates, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, expose the same keyboard and reset contract, and preserve D3 constraints rather than recreating transform math."
+    "create": "Create a UTC chart of AAPL closes with the first-party zoomX behavior, a controlled semantic window, pointer-anchored wheel zoom, drag and horizontal-wheel pan, keyboard and touch input, status, and reset affordances.",
+    "maintain": "Keep the semantic window controlled by the application, let zoomX own resolved-scale inversion and gesture lifecycle, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, and keep status, reset, visible-row, and persistence policy outside the renderer."
   }
 }

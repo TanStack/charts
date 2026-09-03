@@ -6,17 +6,17 @@ Observed difficulty from using the API is tracked separately in
 [`API-FRICTION.md`](./API-FRICTION.md). Production migrations, examples, and
 agent evaluations must update that log when they expose a repeatable problem.
 
-Last updated: 2026-07-30
+Last updated: 2026-08-26
 
 ## Working thesis
 
 TanStack Charts should become a tiny, fast, framework-agnostic TypeScript
 visualization grammar deeply inspired by Observable Plot. Observable Plot is
-the primary semantic and ergonomic reference; D3 is the authoritative
-algorithm layer. TanStack owns the grammar, compiler, scene, lifecycle, and
-integration contracts. It should not independently reimplement D3’s data,
-scale, mapping, shape, interpolation, color, spatial, or layout primitives.
-The lineage is recorded in [`ACKNOWLEDGEMENTS.md`](./ACKNOWLEDGEMENTS.md).
+the primary semantic and ergonomic reference. TanStack owns the grammar,
+compiler, scene, lifecycle, integration contracts, and compact primitives that
+make common authoring ergonomic. D3 is a first-class interoperability target
+and a source of mature optional algorithms, not a mandatory backend. The
+lineage is recorded in [`ACKNOWLEDGEMENTS.md`](./ACKNOWLEDGEMENTS.md).
 
 Preserve Plot’s composable marks, channels, scales, transforms, facets, and
 extension ceiling. Do not replace that grammar with `<LineChart>`,
@@ -69,36 +69,49 @@ These are governing constraints, not optional aspirations.
 - Built-in marks and capabilities use the same public extension contracts
   available to application and ecosystem code.
 
-### D3 is the algorithm layer
+### Predictable callback shape
+
+- Public callbacks accept at most two arguments.
+- Primary data or purpose comes first. Additional state comes second in a
+  named context or options object.
+- A callback without a distinct primary payload receives one context object.
+- Standard comparators, exact upstream protocols, paired geometry, and
+  consumer-called service methods are classified exceptions rather than
+  accidental precedents.
+- The public callback inventory is a test contract. A new callback must follow
+  this shape or document why an existing external protocol requires otherwise.
+
+### D3-compatible and composable primitives
 
 This is the destination ownership contract. The checkpoint below records which
 boundaries are implemented and which remain transitional.
 
-- Public definitions accept D3 scales, curve factories, interpolators, easing
-  functions, layouts, and transform output directly whenever their native
-  shape is sufficient.
+- Public definitions accept native D3 scales, curve factories, interpolators,
+  easing functions, layouts, forces, and transform output directly whenever
+  their shape is sufficient.
+- Direct D3 use and compact TanStack primitives are peers. A definition may mix
+  both, and choosing a TanStack helper must not close the corresponding D3
+  extension path.
 - A bar consumes the exact bandwidth, alignment, padding, rounding, and
   reversal of its supplied D3 band scale. It does not infer hidden sub-bands or
   add an implicit inset. Side-by-side groups inject a second D3 band scale;
   `z` remains series identity rather than a positional algorithm.
-- TanStack wrappers exist only when they add grammar semantics: channel
+- TanStack adapters exist only when they add grammar semantics: channel
   materialization, mark composition, responsive range ownership, scene
   metadata, or framework-neutral rendering.
-- Do not write competing implementations of continuous, categorical, temporal,
-  logarithmic, color, radius, or threshold scales.
-- Do not write competing binning, grouping, reduction, stacking, curve, area,
-  arc, interpolation, easing, color parsing, quadtree, triangulation, contour,
-  hierarchy, force, polygon, or geographic algorithms.
-- Import named capabilities from granular `d3-*` packages. Never make the `d3`
-  umbrella package a library dependency.
-- Published D3 behavior and its edge cases are preferable to a smaller
-  look-alike implementation. Bundle size is controlled by capability
-  boundaries, not by replacing mature algorithms.
-- If a published D3 boundary is too coarse, first accept and measure it. A
-  smaller variant may only use a source-preserving upstream decomposition with
-  its ISC notice, pinned provenance, unchanged algorithm bodies, upstream
-  tests, and differential tests. It must be named as a reduced semantic subset,
-  never presented as the complete D3 primitive.
+- Compact, row-based, or independently importable TanStack implementations are
+  valid when they provide a clearer application-facing contract. Their
+  semantics, supported subset, determinism, lineage, and edge cases must be
+  explicit and tested.
+- Prefer a mature granular D3 implementation when it already matches the
+  required contract. Prefer a smaller local primitive when D3's package or
+  mutation model would make the common path materially less ergonomic or less
+  isolated.
+- Never describe a local subset as exact D3 behavior. Compatibility means that
+  authors can compose equivalent D3 inputs or output without changing the chart
+  grammar; it does not require identical implementation.
+- Never make the `d3` umbrella package a library dependency. Optional D3-backed
+  capabilities use granular packages and exact subpaths.
 - Documentation and skills absorb explicit domain, scale, and transform
   construction. AI does not need runtime inference merely to save a few lines.
 
@@ -106,13 +119,13 @@ boundaries are implemented and which remain transitional.
 
 - The scene protocol and explicit-scale compiler have no framework, DOM,
   animation, export, geo, raster, or palette-catalog requirement.
-- D3 enters through exact named algorithms. The baseline may include tiny
-  array and ordinal-color primitives, but a categorical chart must not inherit
-  continuous-scale, interpolation, temporal, spatial, shape, or motion code.
-- Every concrete mark, chart-owned guide, interaction, renderer, and optional
-  profile is statically importable and independently removable. D3 scale,
-  transform, shape, and spatial families remain independently importable from
-  their granular upstream packages.
+- Algorithms enter through exact capability paths. A categorical chart must
+  not inherit continuous-scale, interpolation, temporal, spatial, shape, or
+  motion code merely because another feature uses it.
+- Every concrete mark, transform, layout, chart-owned guide, interaction,
+  renderer, and optional profile is statically importable and independently
+  removable. Direct D3 families remain independently importable from their
+  granular upstream packages.
 - No global registry, side-effect registration, or namespace escape may defeat
   tree shaking.
 - Convenience entry points may aggregate exports for ergonomics, but must not
@@ -173,16 +186,58 @@ described only by the total package size.
 - Low-level scene-node access remains available when the mark grammar is not
   enough.
 
+## Pre-release harmony audit — 2026-08-06
+
+The unreleased definition, composition, interaction, motion, native, and
+optional-layout work has been reviewed together against the charter above.
+The resulting boundaries are:
+
+- Complete charts compose through `composeViews`; `fill`, `grid`, `layer`, and
+  `inset` own placement policy, while scale links remain separate. `viewGrid`
+  is concise syntax over the same engine. Child host controls fail explicitly
+  because one outer definition owns interaction lifecycle.
+- Resolved mark layout stays narrower than view composition. Dot placement can
+  extend through `createDotLayout`, whose callback receives final bounds,
+  measured positions, and radii without gaining scene or lifecycle ownership.
+- Semantic preparation remains usable outside a mark. `boxRows` and the two
+  regression-row transforms expose typed, source-linked rows; their convenience
+  marks reuse those results and add only presentation identity and composition.
+- Common algorithm shorthands do not close interoperability. Treemap accepts a
+  D3-compatible tiler, Sankey accepts a D3-compatible aligner, and static force
+  layout accepts named D3-compatible force factories over private clones.
+  Charts still owns validation, immutability, lineage, and responsive scene
+  composition.
+- Controlled behaviors propose values while the application owns acceptance.
+  Rejected pointer, touch, keyboard, pin, and clear proposals repaint the
+  accepted snapshot. Continuous cursors use resolved scale inversion by
+  default while retaining an explicit override.
+- Static SVG, DOM, Canvas, motion SVG, and React Native consume the same scene
+  composition and accessibility contracts. Motion interruption removes stale
+  exits and presentation state; composite motion retains complete path timing.
+- Exact capability paths remain the cost boundary. CI runs both locked bundle
+  profiles and comparison provenance, and native guidance prefers exact mark
+  and scene imports over the wider universal convenience barrel.
+- Repository documentation names unreleased `main` separately from published
+  `0.6.5`. Release recovery derives a missing tag from the historical release
+  merge rather than current main. Recovery requires an explicit workflow
+  dispatch; ordinary pushes with later changesets stay inert because creating
+  the tag starts external release automation.
+
+Future work must extend one of these boundaries or record concrete friction in
+`API-FRICTION.md`; it should not add a parallel chart-type API, hidden
+preparation layer, renderer-specific composition path, or global capability
+registry.
+
 ## Proof of concept status
 
-### D3-native product checkpoint — 2026-07-27
+### D3 interoperability checkpoint — 2026-07-27
 
 The ground-up engine is now the product proof, not only a proposed direction.
 The current package topology is:
 
 - `@tanstack/charts`: grammar, scene kernel, static SVG, vanilla DOM host, and
-  strict supplied-scale compiler; algorithms outside that grammar are supplied
-  directly from named `d3-*` modules
+  strict supplied-scale compiler; optional algorithms are supplied by exact
+  TanStack entries or direct named `d3-*` modules
 - `@tanstack/react-charts`: lifecycle-only React adapter with full SVG SSR and
   hydration adoption
 - `@tanstack/octane-charts`: lifecycle-only Octane adapter with equivalent SSR
@@ -219,12 +274,13 @@ The product profile currently includes:
   SVG/raster export. SSR and static output use a deterministic text estimator;
   advanced hosts may inject another measurer.
 
-Selected algorithms are explicit D3 values rather than central string switches.
-Raw D3 scales and colors work directly; D3 curves use the small `d3Curve`
-grammar bridge. Every materialized positional dimension requires a supplied
-scale; `null` explicitly represents an unused dimension. The ordinary runtime,
-nested facets, React, and Octane all use this one compiler. Legacy inferred
-scale helpers and TanStack transform or spatial wrappers have been deleted.
+Algorithms compose through values and focused utilities rather than a central
+chart-type switch. Raw D3 scales and colors work directly; D3 curves use the
+small `d3Curve` grammar bridge. Compact TanStack row transforms and isolated
+layout marks provide ergonomic alternatives without closing those D3 paths.
+Every materialized positional dimension requires a supplied scale; `null`
+explicitly represents an unused dimension. The ordinary runtime, nested
+facets, React, and Octane all use this one compiler.
 
 Current verification:
 
@@ -324,7 +380,7 @@ Remaining production gaps are tracked by the open and monitoring entries in
 Plot-backed GIF/WebM frame generator after the TanStack.com default-renderer
 cutover.
 
-`pnpm package:check` now builds real package artifacts, packs all three public
+`pnpm package:check` now builds real package artifacts, packs all twelve public
 packages, installs their tarballs into a disposable offline fixture, and gates
 every ESM subpath, strict declaration inference, required dynamic input,
 React/Octane runtime loading, and minimal production bundles. Every TanStack
@@ -339,15 +395,16 @@ UTC, histogram, facet, arrow, `areaX`, frame, hexagon, link, tick, vector,
 spatial, and Stats surfaces have isolated ceilings. A baseline change is
 explicit even when size decreases, so recovered bytes cannot become silent
 future headroom.
-Transform and spatial profiles import D3 directly rather than testing a
-TanStack wrapper.
+Transform and spatial profiles isolate the actual imported capability. Some
+exercise compact TanStack utilities; others exercise direct granular D3
+imports or D3-backed exact subpaths.
 
-### D3-native product direction — 2026-07-26
+### Historical D3-native product direction — 2026-07-26
 
-This decision supersedes the earlier idea of retaining a parallel native
-mathematical kernel. The current native implementation remains useful only as a
-working grammar, integration proof, migration fixture, and differential oracle.
-The product target is D3-native at every computational boundary.
+This checkpoint records the stricter D3-only direction considered in July. It
+was superseded on 2026-08-06 by the D3-compatible, composable primitive contract
+above. Its measurements remain useful evidence; its implementation mandate does
+not govern current API decisions.
 
 The intended common definition is explicit without becoming chart-type based:
 
@@ -403,7 +460,7 @@ silently importing the continuous D3 scale stack.
 generators from one native D3 curve factory. Straight SVG polylines and polygons
 do not import `d3-shape`; selecting a curve adds the D3 capability.
 
-The ownership boundary is:
+The ownership boundary proposed at that checkpoint was:
 
 | TanStack owns                                | D3 owns                                                 |
 | -------------------------------------------- | ------------------------------------------------------- |
@@ -494,9 +551,9 @@ semantic cost; saving an AI a few tokens is not sufficient justification.
 
 ### Historical granular D3 backend experiment — 2026-07-26
 
-The conclusions in this historical section record what the fork measured. Any
-recommendation to retain native mathematical implementations is superseded by
-the D3-native product direction above.
+The conclusions in this historical section record what the fork measured. Its
+recommendation to make D3 mandatory is superseded by the current compatibility
+contract above.
 
 `@tanstack/charts-d3` is a private, same-API fork used to test D3 as the
 mathematical kernel. It preserves TanStack-owned marks, scene graph,
@@ -840,8 +897,8 @@ not browser performance claims.
 ## Historical engine strategy evaluation
 
 This section records the evidence and alternatives considered before the
-D3-native product checkpoint. Its native-inference assumptions and provisional
-budgets are superseded by the current profile above.
+historical D3-native checkpoint. Its native-inference assumptions and
+provisional budgets are superseded by the current compatibility contract.
 
 The current proof validates the host, adapter, definition, memoization, theme,
 responsive, and transition boundaries. It does not yet settle the production
@@ -1496,10 +1553,12 @@ export const downloadsChart = defineChart({
       key: 'id',
     }),
   ],
-  x: { scale: scaleUtc().domain(dateDomain) },
-  y: {
-    scale: scaleLinear().domain(downloadDomain).nice(),
-    label: 'Weekly downloads',
+  scales: {
+    x: { scale: scaleUtc().domain(dateDomain) },
+    y: {
+      scale: scaleLinear().domain(downloadDomain).nice(),
+      axis: { label: 'Weekly downloads' },
+    },
   },
 })
 ```
@@ -2135,8 +2194,8 @@ catalogs to TanStack Charts without treating a reference renderer's output as
 a proprietary fixture. Each case supplies one typed local dataset and intent,
 isolated reference and TanStack implementations, official provenance, semantic
 geometry expectations, and separate AI creation and maintenance tasks. The
-reference may use built-in transforms; TanStack receives the same rows and
-injects only the granular D3 algorithms it needs.
+reference may use built-in transforms; TanStack receives the same rows and uses
+public TanStack or granular D3 primitives as appropriate.
 
 The corpus began with 12 cartesian Plot cases and now has 79 paired cases: 61
 Observable Plot references, nine Recharts references, and nine Apache ECharts
@@ -2199,47 +2258,32 @@ paired agent protocol is defined in
 agents receive the data, intent, scaffold, and pinned documentation, never the
 human implementations or hidden acceptance checks.
 
-#### Publishable catalog surface
+#### Source-backed catalog surface
 
 Status: implemented.
 
-The conformance corpus also powers a durable supporting site. It is proof and
-reference material, not the TanStack.com marketing landing page:
+The conformance corpus also powers the public catalog on TanStack.com. The
+checked-in `catalog-index.json` carries case metadata and immutable source entry
+paths. TanStack.com reads that index and the authored case files from one pinned
+Charts revision, then runs detail pages and embeds in its notebook runtime.
+Landing and catalog grids use lightweight previews owned by the site.
 
-| Surface             | Route           | Contract                                                    |
-| ------------------- | --------------- | ----------------------------------------------------------- |
-| Browse              | `/`             | Searchable metadata catalog without mounting every renderer |
-| Full gallery        | `/all/`         | Existing side-by-side comparison surface                    |
-| Case proof          | `/charts/:id/`  | One comparison, source, provenance, metrics, and embed code |
-| Documentation embed | `/embed/:id/`   | Responsive, chrome-free TanStack renderer only              |
-| Machine index       | `/catalog.json` | Versioned case metadata plus canonical page/embed paths     |
-
-The existing `case.json` glob remains the only case index. The browser, static
-publisher, conformance runner, and documentation tooling must not maintain
-parallel manifests. The metadata parser is environment-neutral and shared by
-the browser and Node publisher. A build emits physical deep-route HTML files,
-`404.html`, per-route canonical/robots/Open Graph metadata, and an optional
-sitemap when a deployment origin is configured.
-
-Embeds accept explicit theme, height, and revision query parameters; width is
-always container-responsive. They send namespaced ready, resize, and error
-messages to a parent document without exposing internal chart state. The
-generated machine index is the docs integration point: documentation can
-select a case ID and embed its published route instead of copying example
-implementations.
+The existing `case.json` glob remains the only authored case index. The local
+browser, conformance runner, source index, and documentation tooling must not
+maintain parallel case implementations. There is no generated module bundle,
+preview artifact, publication branch, or renderable catalog package.
 
 Maintenance gates:
 
 1. A case ID must match its directory and IDs/orders must be unique.
-2. All metadata must pass the same strict parser before publishing.
+2. All metadata must pass the same strict parser before indexing.
 3. New renderer types and interaction metadata must be preserved by the shared
    parser before their cases can enter the catalog.
-4. Direct detail/embed routes, base-path deployment, and production output are
-   tested independently from the SPA navigation path.
-5. Generated files remain build artifacts; authored case metadata stays the
-   source of truth.
+4. The checked-in source index must match the authored cases and source entries.
+5. Authored case metadata and source stay the source of truth.
 
-Commands are `pnpm catalog:check` and `pnpm catalog:build`.
+The maintenance command is `pnpm catalog:index:check`; the local authoring app
+build is `pnpm --filter @charts-poc/conformance-example build`.
 
 The executable smoke harness covers sorted bars and fixed-boundary histograms
 for both renderers. It creates immutable external workspaces, keeps canonical
@@ -2266,8 +2310,9 @@ complete report, and unknown case IDs fail before bundle or browser work.
 Catalog expansion follows a bundle boundary:
 
 1. Add recipe-only cases freely.
-2. Inject granular D3 algorithms for transforms, layouts, projections, and
-   spatial indexes rather than rebuilding them.
+2. Reuse a public TanStack primitive or granular D3 algorithm when it fits; add
+   a compact public primitive only when the cross-case contract is explicit and
+   independently removable.
 3. Add optional marks only through isolated public entry points with their own
    bundle budgets.
 4. Keep the exact locked core, ordinary line/SVG, DOM, React, and existing
@@ -3097,11 +3142,11 @@ Exit criteria:
 
 ### Phase 2: minimal production core
 
-Status: in progress. Package names, capability boundaries, packed-consumer
-artifacts, automated visual and interaction conformance, production-browser
-stress evidence, and bundle CI are established. Remaining productization gates
-include public diagnostics, release compatibility policy, and published bundle
-budgets.
+Status: complete for Alpha and ongoing for production readiness. Package names,
+capability boundaries, packed-consumer artifacts, automated visual and
+interaction conformance, production-browser stress evidence, bundle CI, locked
+budgets, and the Alpha compatibility policy are established. Public diagnostics
+and stable-release policy remain productization work.
 
 - Finalize public package and entry-point structure.
 - Implement host lifecycle and diagnostics.
@@ -3209,8 +3254,8 @@ Each optional capability should have a real consumer, independent entry point, b
 - The package topology is `@tanstack/charts` plus thin React and Octane adapter
   packages. Chart-owned optional capabilities use core subpaths; D3 algorithms
   remain direct granular dependencies.
-- A D3-native, TanStack-rendered, Plot-inspired engine owns the product package
-  names; Observable Plot remains preserved comparison research.
+- A D3-compatible, TanStack-rendered, Plot-inspired engine owns the product
+  package names; Observable Plot remains preserved comparison research.
 - The React Charts revival spike is part of the TanStack Charts native-engine
   investigation rather than a separate product plan.
 - TanStack Charts will preserve a layered marks, channels, scales, transforms,
@@ -3229,8 +3274,9 @@ Each optional capability should have a real consumer, independent entry point, b
 - Keyed scene reconciliation is the native dynamic-update boundary.
 - Optional scale families, curves, guides, export, and framework adapters use
   explicit tree-shakeable imports.
-- D3 is the mandatory algorithm layer through granular packages, never the
-  renderer or DOM owner. Capabilities remain independently tree-shakeable.
+- Native D3 callables remain first-class inputs, while compact TanStack
+  primitives may own narrower ergonomic contracts. Both remain independently
+  tree-shakeable; neither owns the renderer or DOM lifecycle.
 - Configured positional scales are required by the destination grammar.
   TanStack copies them and owns responsive ranges; D3 owns their semantics.
 - Common capabilities use a four-level progressive disclosure model:
@@ -3240,8 +3286,8 @@ Each optional capability should have a real consumer, independent entry point, b
   labels and titles inside the chart. Numeric per-side margins remain hard
   overrides.
 - The conformance `case.json` corpus is the canonical manifest for the
-  publishable catalog, per-case proof pages, documentation embeds, and
-  generated machine index.
+  source-backed catalog, per-case proof pages, documentation embeds, and
+  checked-in source index.
 
 ### Provisional
 

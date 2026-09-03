@@ -2,6 +2,7 @@ import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
+import { NativeChartFocusOverlay } from './FocusOverlay'
 import { resolveNativePaint } from './paint'
 import { NativeChartScene, resolveNativeLineJoin } from './SvgScene'
 
@@ -47,10 +48,84 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).not.toContain('var(--')
   })
 
+  it('applies native typography and font scale to scene labels', () => {
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={scene()}
+        color="#111827"
+        fontFamily="Inter"
+        fontStyle="italic"
+        fontStretch="condensed"
+        letterSpacing={0.5}
+        fontScale={2}
+        idPrefix="native-type"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain('font-family="Inter"')
+    expect(markup).toContain('font-style="italic"')
+    expect(markup).toContain('font-stretch="condensed"')
+    expect(markup).toContain('letter-spacing="1"')
+    expect(markup).toContain('font-size="24"')
+  })
+
   it('makes the two unsupported SVG joins an explicit lossy mapping', () => {
     expect(resolveNativeLineJoin('arcs')).toBe('round')
     expect(resolveNativeLineJoin('miter-clip')).toBe('miter')
     expect(resolveNativeLineJoin('round')).toBe('round')
+  })
+
+  it('renders structured disconnected polygons and holes with even-odd fill', () => {
+    const polygonScene = scene()
+    polygonScene.nodes = [
+      {
+        kind: 'area',
+        key: 'contour',
+        points: [[99, 99]],
+        path: 'M99,99Z',
+        polygons: [
+          [
+            [
+              [0, 0],
+              [20, 0],
+              [20, 20],
+              [0, 20],
+            ],
+            [
+              [5, 5],
+              [15, 5],
+              [15, 15],
+              [5, 15],
+            ],
+          ],
+          [
+            [
+              [30, 0],
+              [40, 0],
+              [40, 10],
+              [30, 10],
+            ],
+          ],
+        ],
+        style: { fill: '#2563eb' },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={polygonScene}
+        color="#111827"
+        idPrefix="native-one"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain('fill-rule="evenodd"')
+    expect(markup).toContain(
+      'd="M0,0L20,0L20,20L0,20ZM5,5L15,5L15,15L5,15ZM30,0L40,0L40,10L30,10Z"',
+    )
+    expect(markup).not.toContain('M99,99Z')
   })
 
   it('keeps distinct authored gradient ids distinct after encoding', () => {
@@ -88,6 +163,155 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('url(#native-one-_)')
     expect(markup).toContain('id="native-one-a_x29_b"')
     expect(markup).toContain('url(#native-one-a_x29_b)')
+  })
+
+  it('renders only the resolved native retarget candidate', () => {
+    const focusScene = scene()
+    const first = {
+      key: 'guide:a',
+      markId: 'guide',
+      group: null,
+      groupLabel: 'guide',
+      datum: { id: 'a' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 0,
+      x: 10,
+      y: 30,
+      color: '#2563eb',
+    }
+    const second = {
+      ...first,
+      key: 'guide:b',
+      datum: { id: 'b' },
+      datumIndex: 1,
+      xValue: 2,
+      x: 90,
+    }
+    const candidates: SceneNode[] = [
+      {
+        kind: 'group',
+        key: 'guide',
+        children: [
+          {
+            kind: 'rule',
+            key: first.key,
+            x1: 10,
+            x2: 10,
+            y1: 0,
+            y2: 60,
+          },
+          {
+            kind: 'rule',
+            key: second.key,
+            x1: 90,
+            x2: 90,
+            y1: 0,
+            y2: 60,
+          },
+        ],
+      },
+    ]
+    focusScene.nodes = [
+      {
+        kind: 'group',
+        key: 'focus:guide',
+        children: [],
+        focus: {
+          match: 'primary',
+          points: [first, second],
+          placement: 'over',
+          retarget: true,
+          candidates,
+        },
+      },
+    ]
+    const render = (points: readonly (typeof first)[]) =>
+      renderToStaticMarkup(
+        <NativeChartFocusOverlay
+          width={100}
+          height={60}
+          scene={focusScene}
+          points={points}
+          placement="over"
+          source="pointer"
+          pinned={false}
+          showDefault={false}
+          color="#111827"
+          fill="#ffffff"
+          idPrefix="native-focus"
+          resolvePaint={resolveNativePaint}
+        />,
+      )
+
+    expect(render([])).toBe('')
+    expect(render([first])).toContain('x1="10"')
+    expect(render([first])).not.toContain('x1="90"')
+    expect(render([second])).toContain('x1="90"')
+    expect(render([second])).not.toContain('x1="10"')
+  })
+
+  it('paints focus underlays and overlays around the base scene in one SVG', () => {
+    const base = scene()
+    base.nodes = [
+      {
+        kind: 'rect',
+        key: 'base',
+        x: 20,
+        y: 20,
+        width: 20,
+        height: 20,
+        style: { fill: '#222222' },
+      },
+    ]
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={base}
+        color="#111827"
+        focusFill="#fef3c7"
+        focusPresentation={{
+          under: [
+            {
+              kind: 'rect',
+              key: 'under',
+              x: 0,
+              y: 0,
+              width: 10,
+              height: 10,
+              style: { fill: '#111111' },
+            },
+          ],
+          over: [
+            {
+              kind: 'group',
+              key: 'over',
+              clip: { x: 0, y: 0, width: 80, height: 60 },
+              children: [
+                {
+                  kind: 'dot',
+                  key: 'focus-dot',
+                  x: 50,
+                  y: 30,
+                  radius: 5,
+                  style: {
+                    fill: 'var(--ts-chart-focus-fill, Canvas)',
+                    stroke: '#333333',
+                  },
+                },
+              ],
+            },
+          ],
+        }}
+        idPrefix="native-focus"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup.match(/<svg/g)).toHaveLength(1)
+    expect(markup.indexOf('#111111')).toBeLessThan(markup.indexOf('#222222'))
+    expect(markup.indexOf('#222222')).toBeLessThan(markup.indexOf('#fef3c7'))
+    expect(markup).toContain('<clipPath')
+    expect(markup).toContain('fill="#fef3c7"')
   })
 })
 
@@ -171,7 +395,7 @@ function scene(): ChartScene {
     {
       kind: 'group',
       key: 'inactive-focus',
-      focus: { match: 'primary', points: [], placement: 'over' },
+      focus: { match: 'primary', anchors: [], points: [], placement: 'over' },
       children: [
         {
           kind: 'dot',

@@ -1,0 +1,462 @@
+import { barX, barY } from './bar'
+import { dot } from './dot'
+import {
+  channelValues,
+  createMark,
+  inferredKeyValues,
+  isChartValue,
+} from './mark'
+import { initializeCompositeMark } from './mark-composite-internal'
+import { link } from './link'
+import { valueKey } from './scales'
+import { tickX, tickY } from './tick'
+import { groupedIndexes, toArray, transformValues } from './transform-internal'
+import { quantileSortedValues } from './transform-statistics-internal'
+import type {
+  TransformLineage,
+  TransformValue,
+  TransformValueOutput,
+} from './transform'
+import type {
+  Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
+  ChartKey,
+  ChartMark,
+  ChartMotionDefinition,
+  ChartMarkMotionOptions,
+  ChartValue,
+  OptionChannelOutput,
+} from './types'
+
+export interface BoxSummaryDatum<
+  TDatum,
+  TCategory extends ChartValue = ChartValue,
+> extends TransformLineage<TDatum> {
+  readonly kind: 'summary'
+  readonly category: TCategory
+  readonly q1: number
+  readonly median: number
+  readonly q3: number
+  readonly whiskerLow: number
+  readonly whiskerHigh: number
+  readonly count: number
+}
+
+export interface BoxOutlierDatum<
+  TDatum,
+  TCategory extends ChartValue = ChartValue,
+> extends TransformLineage<TDatum> {
+  readonly kind: 'outlier'
+  readonly category: TCategory
+  readonly value: number
+  readonly source: readonly [TDatum]
+  readonly sourceIndexes: readonly [number]
+}
+
+export type BoxDatum<TDatum, TCategory extends ChartValue = ChartValue> =
+  BoxSummaryDatum<TDatum, TCategory> | BoxOutlierDatum<TDatum, TCategory>
+
+export interface BoxRowsOptions<
+  TDatum,
+  TCategory extends TransformValue<TDatum, ChartValue | null | undefined> =
+    TransformValue<TDatum, ChartValue | null | undefined>,
+  TValue extends TransformValue<TDatum, number | null | undefined> =
+    TransformValue<TDatum, number | null | undefined>,
+> {
+  /** Categorical group represented by one summary row. */
+  readonly category: TCategory
+  /** Numeric observation summarized within its category. */
+  readonly value: TValue
+}
+
+interface BoxOptions<
+  TDatum,
+  TCategory extends ChartValue = ChartValue,
+> extends ChartMarkMotionOptions<BoxDatum<TDatum, TCategory>> {
+  id?: string
+  key?: Channel<TDatum, ChartKey>
+  fill?: string
+  fillOpacity?: number
+  stroke?: string
+  strokeOpacity?: number
+  /** Applied to the whisker, median, and outlier marks. */
+  strokeWidth?: number
+  /** Pixels removed from both categorical edges of the box and median. */
+  inset?: number
+  /** Outlier radius in pixels. Defaults to 3. */
+  r?: number
+  xScale?: CartesianScaleBindings['xScale']
+  yScale?: CartesianScaleBindings['yScale']
+}
+
+export interface BoxYOptions<
+  TDatum,
+  TCategory extends ChartValue = ChartValue,
+> extends BoxOptions<TDatum, TCategory> {
+  x: Channel<TDatum, TCategory | null | undefined>
+  y: Channel<TDatum, number | null | undefined>
+}
+
+export interface BoxXOptions<
+  TDatum,
+  TCategory extends ChartValue = ChartValue,
+> extends BoxOptions<TDatum, TCategory> {
+  x: Channel<TDatum, number | null | undefined>
+  y: Channel<TDatum, TCategory | null | undefined>
+}
+
+export type BoxYDatum<TDatum, TOptions> = BoxDatum<
+  TDatum,
+  OptionChannelOutput<TDatum, TOptions, 'x', number>
+>
+
+export type BoxXDatum<TDatum, TOptions> = BoxDatum<
+  TDatum,
+  OptionChannelOutput<TDatum, TOptions, 'y', number>
+>
+
+type BoxYCallOptions<
+  TDatum,
+  TXChannel extends Channel<NoInfer<TDatum>, ChartValue | null | undefined>,
+> = Omit<BoxYOptions<NoInfer<TDatum>>, 'motion' | 'x'> & {
+  x: TXChannel
+  motion?: ChartMotionDefinition<BoxYDatum<TDatum, { x: TXChannel }>>
+}
+
+type BoxXCallOptions<
+  TDatum,
+  TYChannel extends Channel<NoInfer<TDatum>, ChartValue | null | undefined>,
+> = Omit<BoxXOptions<NoInfer<TDatum>>, 'motion' | 'y'> & {
+  y: TYChannel
+  motion?: ChartMotionDefinition<BoxXDatum<TDatum, { y: TYChannel }>>
+}
+
+/** Produces Tukey summary and outlier rows with direct source lineage. */
+export function boxRows<
+  TDatum,
+  const TCategory extends TransformValue<TDatum, ChartValue | null | undefined>,
+  const TValue extends TransformValue<TDatum, number | null | undefined>,
+>(
+  source: Iterable<TDatum>,
+  options: BoxRowsOptions<TDatum, TCategory, TValue>,
+): BoxDatum<
+  TDatum,
+  Extract<TransformValueOutput<TDatum, TCategory>, ChartValue>
+>[] {
+  const data = toArray(source)
+  const { summaries, outliers } = summarizeBoxes(
+    data,
+    transformValues(data, options.category),
+    transformValues(data, options.value),
+  )
+  return [...summaries, ...outliers] as BoxDatum<
+    TDatum,
+    Extract<TransformValueOutput<TDatum, TCategory>, ChartValue>
+  >[]
+}
+
+/** Summarizes raw observations into vertical Tukey boxplots. */
+export function boxY<
+  TDatum,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
+>(
+  source: Iterable<TDatum>,
+  options: BoxYCallOptions<TDatum, TXChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
+): ChartMark<
+  BoxYDatum<TDatum, { x: TXChannel }>,
+  OptionChannelOutput<TDatum, { x: TXChannel }, 'x', number>,
+  number,
+  OptionChannelOutput<TDatum, { x: TXChannel }, 'x', number>,
+  number,
+  TXScaleId,
+  TYScaleId
+>
+export function boxY<TDatum>(
+  source: Iterable<TDatum>,
+  options: BoxYOptions<NoInfer<TDatum>>,
+): CartesianChartMark<any, any, any, any, any, BoxYOptions<TDatum>> {
+  return box(source, options, options.x, options.y, 'y')
+}
+
+/** Summarizes raw observations into horizontal Tukey boxplots. */
+export function boxX<
+  TDatum,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string = 'x',
+  const TYScaleId extends string = 'y',
+>(
+  source: Iterable<TDatum>,
+  options: BoxXCallOptions<TDatum, TYChannel> & {
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  },
+): ChartMark<
+  BoxXDatum<TDatum, { y: TYChannel }>,
+  number,
+  OptionChannelOutput<TDatum, { y: TYChannel }, 'y', number>,
+  number,
+  OptionChannelOutput<TDatum, { y: TYChannel }, 'y', number>,
+  TXScaleId,
+  TYScaleId
+>
+export function boxX<TDatum>(
+  source: Iterable<TDatum>,
+  options: BoxXOptions<NoInfer<TDatum>>,
+): CartesianChartMark<any, any, any, any, any, BoxXOptions<TDatum>> {
+  return box(source, options, options.y, options.x, 'x')
+}
+
+interface BoxMarkIdentity {
+  readonly markKey: ChartKey
+}
+
+type BoxSummaryMarkDatum<TDatum> = BoxSummaryDatum<TDatum> & BoxMarkIdentity
+type BoxOutlierMarkDatum<TDatum> = BoxOutlierDatum<TDatum> & BoxMarkIdentity
+
+const interactiveBoxChildren = new Set(['box', 'outlier'])
+
+function box<TDatum>(
+  source: Iterable<TDatum>,
+  options: BoxOptions<NoInfer<TDatum>>,
+  category: Channel<TDatum, ChartValue | null | undefined>,
+  numeric: Channel<TDatum, number | null | undefined>,
+  orientation: 'x' | 'y',
+): CartesianChartMark<any, any, any, any, any, BoxOptions<TDatum>> {
+  const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
+
+  return createMark<any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `box-${orientation}-${markIndex}`
+      const categoryValues = channelValues(data, category, () => undefined)
+      const numericValues = channelValues(data, numeric, () => undefined)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: categoryValues,
+        markId: id,
+        warningIdentity: options,
+      })
+      const rows = boxRows(data, {
+        category: (_datum, { index }) => categoryValues[index],
+        value: (_datum, { index }) => numericValues[index],
+      })
+      const summaries: BoxSummaryMarkDatum<TDatum>[] = rows.flatMap((row) =>
+        row.kind === 'summary'
+          ? [{ ...row, markKey: `box:${valueKey(row.category)}` }]
+          : [],
+      )
+      const outliers: BoxOutlierMarkDatum<TDatum>[] = rows.flatMap((row) => {
+        if (row.kind !== 'outlier') return []
+        const sourceIndex = row.sourceIndexes[0]
+        return [
+          {
+            ...row,
+            markKey: `box:${valueKey(row.category)}:outlier:${valueKey(
+              keys[sourceIndex],
+            )}`,
+          },
+        ]
+      })
+      const stroke = options.stroke ?? 'currentColor'
+      const children =
+        orientation === 'y'
+          ? [
+              link(summaries, {
+                id: 'whisker',
+                x1: 'category',
+                y1: 'whiskerLow',
+                x2: 'category',
+                y2: 'whiskerHigh',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1,
+                lineCap: 'butt',
+                xScale,
+                yScale,
+              }),
+              barY(summaries, {
+                id: 'box',
+                x: 'category',
+                y: 'median',
+                y1: 'q1',
+                y2: 'q3',
+                key: 'markKey',
+                fill: options.fill ?? '#ccc',
+                fillOpacity: options.fillOpacity,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              tickY(summaries, {
+                id: 'median',
+                x: 'category',
+                y: 'median',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 2,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              dot(outliers, {
+                id: 'outlier',
+                x: 'category',
+                y: 'value',
+                key: 'markKey',
+                r: options.r ?? 3,
+                fill: 'none',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1.5,
+                xScale,
+                yScale,
+              }),
+            ]
+          : [
+              link(summaries, {
+                id: 'whisker',
+                x1: 'whiskerLow',
+                y1: 'category',
+                x2: 'whiskerHigh',
+                y2: 'category',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1,
+                lineCap: 'butt',
+                xScale,
+                yScale,
+              }),
+              barX(summaries, {
+                id: 'box',
+                x: 'median',
+                x1: 'q1',
+                x2: 'q3',
+                y: 'category',
+                key: 'markKey',
+                fill: options.fill ?? '#ccc',
+                fillOpacity: options.fillOpacity,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              tickX(summaries, {
+                id: 'median',
+                x: 'median',
+                y: 'category',
+                key: 'markKey',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 2,
+                inset: options.inset,
+                xScale,
+                yScale,
+              }),
+              dot(outliers, {
+                id: 'outlier',
+                x: 'value',
+                y: 'category',
+                key: 'markKey',
+                r: options.r ?? 3,
+                fill: 'none',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1.5,
+                xScale,
+                yScale,
+              }),
+            ]
+
+      return initializeCompositeMark(id, children, {
+        motion: options.motion,
+        interactiveChildren: interactiveBoxChildren,
+      })
+    },
+    options.motion,
+    options.renderer,
+  )
+}
+
+function summarizeBoxes<TDatum>(
+  data: readonly TDatum[],
+  categoryValues: readonly (ChartValue | null | undefined)[],
+  numericValues: readonly (number | null | undefined)[],
+): {
+  summaries: BoxSummaryDatum<TDatum>[]
+  outliers: BoxOutlierDatum<TDatum>[]
+} {
+  const summaries: BoxSummaryDatum<TDatum>[] = []
+  const outliers: BoxOutlierDatum<TDatum>[] = []
+
+  for (const { key: category, indexes } of groupedIndexes(categoryValues)) {
+    if (!isChartValue(category)) continue
+    const observations = indexes.flatMap((sourceIndex) => {
+      const value = numericValues[sourceIndex]
+      return typeof value === 'number' && Number.isFinite(value)
+        ? [{ sourceIndex, value }]
+        : []
+    })
+    if (!observations.length) continue
+    const sourceIndexes = observations.map(({ sourceIndex }) => sourceIndex)
+    const ranked = [...observations].sort(
+      (left, right) =>
+        left.value - right.value || left.sourceIndex - right.sourceIndex,
+    )
+    const values = ranked.map(({ value }) => value)
+    const q1 = quantileSortedValues(values, 0.25)
+    const median = quantileSortedValues(values, 0.5)
+    const q3 = quantileSortedValues(values, 0.75)
+    const spread = q3 - q1
+    const lowerFence = q1 - spread * 1.5
+    const upperFence = q3 + spread * 1.5
+    const whiskerLow =
+      ranked.find(({ value }) => value >= lowerFence)?.value ?? q1
+    let whiskerHigh = q3
+    for (let index = ranked.length - 1; index >= 0; index -= 1) {
+      const candidate = ranked[index]
+      if (!candidate || candidate.value > upperFence) continue
+      whiskerHigh = candidate.value
+      break
+    }
+    summaries.push({
+      kind: 'summary',
+      category,
+      q1,
+      median,
+      q3,
+      whiskerLow,
+      whiskerHigh,
+      count: sourceIndexes.length,
+      source: sourceIndexes.map((index) => data[index] as TDatum),
+      sourceIndexes,
+    })
+
+    for (const { sourceIndex, value } of observations) {
+      if (value >= lowerFence && value <= upperFence) continue
+      outliers.push({
+        kind: 'outlier',
+        category,
+        value,
+        source: [data[sourceIndex] as TDatum],
+        sourceIndexes: [sourceIndex],
+      })
+    }
+  }
+
+  outliers.sort((left, right) => left.sourceIndexes[0] - right.sourceIndexes[0])
+  return { summaries, outliers }
+}

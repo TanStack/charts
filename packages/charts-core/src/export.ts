@@ -4,7 +4,7 @@ export interface SerializeChartSvgOptions {
   includeFocus?: boolean
 }
 
-export interface RenderChartPngOptions extends SerializeChartSvgOptions {
+export interface RenderChartImageOptions extends SerializeChartSvgOptions {
   scale?: number
   background?: string
   type?: 'image/png' | 'image/jpeg' | 'image/webp'
@@ -66,20 +66,23 @@ export function downloadChartSvg(
 
 export async function renderChartImage(
   target: Element,
-  options: RenderChartPngOptions = {},
+  options: RenderChartImageOptions = {},
 ): Promise<Blob> {
-  const svg = findSvg(target)
-  const canvasSurface = svg ? null : findCanvasSurface(target)
-  if (!svg && !canvasSurface) {
+  const layeredSurface = findLayeredSurface(target)
+  const svg = layeredSurface ? null : findSvg(target)
+  const canvasSurface = layeredSurface || svg ? null : findCanvasSurface(target)
+  if (!layeredSurface && !svg && !canvasSurface) {
     throw new Error('Expected a TanStack Chart SVG or Canvas surface')
   }
-  const source = svg ?? canvasSurface!
+  const source = layeredSurface ?? svg ?? canvasSurface!
   const document = source.ownerDocument
   const view = document.defaultView
   if (!view) throw new Error('Chart image export requires a browser document')
-  const dimensions = svg
-    ? svgDimensions(svg)
-    : canvasSurfaceDimensions(canvasSurface!)
+  const dimensions = layeredSurface
+    ? htmlSurfaceDimensions(layeredSurface)
+    : svg
+      ? svgDimensions(svg)
+      : canvasSurfaceDimensions(canvasSurface!)
   const width = options.width ?? dimensions.width
   const height = options.height ?? dimensions.height
   if (!(width > 0 && height > 0)) {
@@ -97,39 +100,19 @@ export async function renderChartImage(
     context.fillRect(0, 0, width, height)
   }
 
-  if (svg) {
-    const serialized = serializeChartSvg(svg, {
-      ...options,
+  if (layeredSurface) {
+    await drawLayeredSurface(
+      context,
+      layeredSurface,
       width,
       height,
-    })
-    const url = view.URL.createObjectURL(
-      new view.Blob([serialized], { type: 'image/svg+xml;charset=utf-8' }),
+      options,
+      view,
     )
-    try {
-      const image = await loadImage(view, url)
-      context.drawImage(image, 0, 0, width, height)
-    } finally {
-      view.URL.revokeObjectURL(url)
-    }
+  } else if (svg) {
+    await drawSvg(context, svg, width, height, options, view)
   } else {
-    const focusUnder = canvasSurface!.querySelector<HTMLCanvasElement>(
-      '.ts-chart-canvas__focus-under',
-    )
-    const scene = canvasSurface!.querySelector<HTMLCanvasElement>(
-      '.ts-chart-canvas__scene',
-    )
-    if (!scene) throw new Error('Expected a Canvas chart scene layer')
-    if (options.includeFocus && focusUnder) {
-      context.drawImage(focusUnder, 0, 0, width, height)
-    }
-    context.drawImage(scene, 0, 0, width, height)
-    if (options.includeFocus) {
-      const focus = canvasSurface!.querySelector<HTMLCanvasElement>(
-        '.ts-chart-canvas__focus',
-      )
-      if (focus) context.drawImage(focus, 0, 0, width, height)
-    }
+    drawCanvasSurface(context, canvasSurface!, width, height, options)
   }
 
   return new Promise((resolve, reject) => {
@@ -145,7 +128,7 @@ export async function renderChartImage(
 export async function downloadChartImage(
   target: Element,
   filename = 'chart.png',
-  options?: RenderChartPngOptions,
+  options?: RenderChartImageOptions,
 ) {
   downloadBlob(
     target.ownerDocument,
@@ -155,6 +138,11 @@ export async function downloadChartImage(
 }
 
 function resolveSvg(target: Element): SVGSVGElement {
+  if (findLayeredSurface(target)) {
+    throw new Error(
+      'Mixed-renderer charts require raster export through renderChartImage',
+    )
+  }
   const svg = findSvg(target)
   if (!svg) throw new Error('Expected a TanStack Chart SVG')
   return svg
@@ -170,6 +158,12 @@ function findCanvasSurface(target: Element): HTMLElement | null {
   return target.classList.contains('ts-chart-canvas')
     ? (target as HTMLElement)
     : target.querySelector<HTMLElement>('.ts-chart-canvas')
+}
+
+function findLayeredSurface(target: Element): HTMLElement | null {
+  return target.classList.contains('ts-chart-layers')
+    ? (target as HTMLElement)
+    : target.querySelector<HTMLElement>('.ts-chart-layers')
 }
 
 function svgDimensions(svg: SVGSVGElement) {
@@ -198,6 +192,101 @@ function canvasSurfaceDimensions(surface: HTMLElement) {
       positiveNumber(surface.dataset.tsChartHeight) ||
       bounds.height ||
       (scene ? scene.height / pixelRatio : 0),
+  }
+}
+
+function htmlSurfaceDimensions(surface: HTMLElement) {
+  const bounds = surface.getBoundingClientRect()
+  return {
+    width: positiveNumber(surface.dataset.tsChartWidth) || bounds.width,
+    height: positiveNumber(surface.dataset.tsChartHeight) || bounds.height,
+  }
+}
+
+async function drawLayeredSurface(
+  context: CanvasRenderingContext2D,
+  surface: HTMLElement,
+  width: number,
+  height: number,
+  options: RenderChartImageOptions,
+  view: Window,
+) {
+  const constructors = view as Window & typeof globalThis
+  const layers = [...surface.children].filter(
+    (element): element is HTMLElement =>
+      element instanceof constructors.HTMLElement &&
+      element.classList.contains('ts-chart-layer'),
+  )
+  for (const layer of layers) {
+    const svg = layer.querySelector<SVGSVGElement>('svg.ts-chart')
+    const canvas = svg ? null : findCanvasSurface(layer)
+    if (svg) {
+      await drawSvg(context, svg, width, height, options, view)
+    } else if (canvas) {
+      drawCanvasSurface(context, canvas, width, height, options)
+    } else {
+      throw new Error('Layered chart export found an unsupported renderer')
+    }
+  }
+}
+
+async function drawSvg(
+  context: CanvasRenderingContext2D,
+  svg: SVGSVGElement,
+  width: number,
+  height: number,
+  options: RenderChartImageOptions,
+  view: Window,
+) {
+  const constructors = view as Window & typeof globalThis
+  const serialized = serializeChartSvg(svg, { ...options, width, height })
+  const url = constructors.URL.createObjectURL(
+    new constructors.Blob([serialized], {
+      type: 'image/svg+xml;charset=utf-8',
+    }),
+  )
+  try {
+    const image = await loadImage(view, url)
+    context.drawImage(image, 0, 0, width, height)
+  } finally {
+    constructors.URL.revokeObjectURL(url)
+  }
+}
+
+function drawCanvasSurface(
+  context: CanvasRenderingContext2D,
+  surface: HTMLElement,
+  width: number,
+  height: number,
+  options: RenderChartImageOptions,
+) {
+  const base = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__base',
+  )
+  const background = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__background',
+  )
+  const focusUnder = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__focus-under',
+  )
+  const scene = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__scene',
+  )
+  if (!scene) throw new Error('Expected a Canvas chart scene layer')
+  if (!options.includeFocus && base) {
+    context.drawImage(base, 0, 0, width, height)
+    return
+  }
+  if (background) context.drawImage(background, 0, 0, width, height)
+  if (options.includeFocus && focusUnder) {
+    context.drawImage(focusUnder, 0, 0, width, height)
+  }
+  context.drawImage(scene, 0, 0, width, height)
+  const focus = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__focus',
+  )
+  if (options.includeFocus && focus) {
+    context.drawImage(focus, 0, 0, width, height)
   }
 }
 

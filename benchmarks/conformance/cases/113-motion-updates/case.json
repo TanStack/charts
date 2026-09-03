@@ -26,6 +26,6 @@
   },
   "ai": {
     "create": "Create a keyed composed bar and line chart that can compare tweens with physical springs and can accept a second target while the first transition is still running.",
-    "maintain": "Preserve stable datum identity, value and velocity continuity, rest-based spring settling, presentation-aware pointer resolution, incompatible-topology fallback, and the separate @tanstack/charts/motion and @tanstack/charts/spring boundaries."
+    "maintain": "Preserve stable datum keys, enter/update/exit phase semantics, value and velocity continuity during interrupted springs, rest-based settling, presentation-aware pointer resolution, and the direct @tanstack/charts/motion renderer boundary."
   }
 }

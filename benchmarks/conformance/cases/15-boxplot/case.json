@@ -5,14 +5,14 @@
   "title": "Grouped boxplot",
   "family": "distribution",
   "intent": "Compare the five Michelson speed-of-light experiments using quartiles, medians, whiskers, and outliers.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "boxplot",
-    "d3-array quantile",
+    "native boxY mark",
+    "raw observation input",
     "quartiles",
     "whiskers",
     "outliers",
-    "composite marks"
+    "semantic composite children"
   ],
   "geometry": [
     { "role": "bar", "count": 5 },
@@ -21,14 +21,15 @@
       "role": "link",
       "count": 5,
       "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
-    }
+    },
+    { "role": "dot", "count": 6 }
   ],
   "source": {
     "title": "Observable Plot box mark",
     "url": "https://observablehq.com/plot/marks/box"
   },
   "ai": {
-    "create": "Create vertical boxplots from the raw Morley {Expt, Run, Speed} observations. Plot may use boxY; TanStack must compose a box, median tick, whisker link, and outlier dots from D3 quantiles.",
-    "maintain": "Switch to horizontal boxplots while preserving the raw rows, Tukey whisker semantics, outliers, inferred types, and granular D3 imports."
+    "create": "Create vertical boxplots directly from the raw Morley {Expt, Run, Speed} observations with the native boxY mark.",
+    "maintain": "Switch to boxX while preserving raw-row lineage, Tukey whisker semantics, outliers, stable Run identity, and inferred category types."
   }
 }

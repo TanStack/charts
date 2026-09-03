@@ -7,8 +7,13 @@ import {
   launchBenchmarkBrowser,
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
+import { CellTimeoutError } from './benchmark/cell-timeout.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
-import { assertKnownFilterValues } from './benchmark/filters.mjs'
+import {
+  assertKnownFilterValues,
+  parseShard,
+  selectWeightedShard,
+} from './benchmark/filters.mjs'
 import {
   attachPageErrorCollector,
   contextPageErrorFailure,
@@ -23,6 +28,7 @@ import {
   correctnessValidResults,
 } from './benchmark/result-validity.mjs'
 import { stressArtifactStem } from './benchmark/stress-artifacts.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -41,9 +47,11 @@ if (!profile) {
     `Unknown profile "${profileName}". Use ${Object.keys(config.profiles).join(', ')}.`,
   )
 }
+validateConfiguration(config)
 
 const libraryFilter = csvOption('--library')
 const workloadFilter = csvOption('--workload')
+const shard = parseShard(optionValue('--shard'))
 assertKnownFilterValues(
   libraryFilter,
   chartLibraries.map((library) => library.id),
@@ -57,24 +65,36 @@ assertKnownFilterValues(
 const selectedLibraries = chartLibraries.filter(
   (library) => !libraryFilter || libraryFilter.has(library.id),
 )
-const selectedWorkloads = config.workloads.filter(
+const filteredWorkloads = config.workloads.filter(
   (workload) => !workloadFilter || workloadFilter.has(workload.id),
 )
 if (!selectedLibraries.length) {
   throw new Error('The library filter did not match a configured library.')
 }
-if (!selectedWorkloads.length) {
+if (!filteredWorkloads.length) {
   throw new Error('The workload filter did not match a configured workload.')
+}
+const shardWeightProfile = profileName === 'quick' ? 'standard' : profileName
+const selectedWorkloads = selectWeightedShard(
+  filteredWorkloads,
+  shard,
+  (workload) => workload.ciWeight[shardWeightProfile],
+)
+if (!selectedWorkloads.length) {
+  throw new Error(
+    `Stress shard ${shard.index}/${shard.total} has no workloads after filtering.`,
+  )
 }
 const selectedFilters = {
   libraries: libraryFilter
     ? selectedLibraries.map((library) => library.id)
     : [],
-  workloads: workloadFilter
-    ? selectedWorkloads.map((workload) => workload.id)
-    : [],
+  workloads:
+    workloadFilter || shard
+      ? selectedWorkloads.map((workload) => workload.id)
+      : [],
+  shard: shard ? `${shard.index}/${shard.total}` : undefined,
 }
-validateConfiguration(config)
 
 await mkdir(caseOutputDirectory, { recursive: true })
 await mkdir(resultDirectory, { recursive: true })
@@ -219,7 +239,7 @@ if (failures.length) {
 }
 
 async function buildCases(benchmarkCases) {
-  for (const benchmarkCase of benchmarkCases) {
+  await runWithConcurrency(benchmarkCases, 4, async (benchmarkCase) => {
     const source =
       benchmarkCase.library.sources?.[benchmarkCase.workload.chartType] ??
       benchmarkCase.library.source
@@ -272,7 +292,7 @@ async function buildCases(benchmarkCases) {
       legalComments: 'none',
       logLevel: 'silent',
     })
-  }
+  })
 }
 
 async function runIsolated(
@@ -318,13 +338,6 @@ async function runIsolated(
   } finally {
     clearTimeout(timeout)
     await context?.close().catch(() => {})
-  }
-}
-
-class CellTimeoutError extends Error {
-  constructor(timeoutMs) {
-    super(`Cell exceeded ${timeoutMs} ms.`)
-    this.name = 'CellTimeoutError'
   }
 }
 
@@ -878,8 +891,13 @@ async function runTimingCell(
         })
       }
       globalThis.__stressPointerWaitInactive = async () => {
+        let inactiveFrames = 0
         for (let frame = 0; frame < 120; frame++) {
-          if (!globalThis.__stressPointerActive()) return true
+          if (globalThis.__stressPointerActive()) {
+            inactiveFrames = 0
+          } else if (++inactiveFrames >= 2) {
+            return true
+          }
           await nextFrame()
         }
         throw new Error('Pointer tooltip did not return to an inactive state.')
@@ -2632,6 +2650,14 @@ function validateConfiguration(value) {
     }
   }
   for (const workload of value.workloads) {
+    for (const profileName of ['standard', 'full']) {
+      const weight = workload.ciWeight?.[profileName]
+      if (!Number.isFinite(weight) || weight <= 0) {
+        throw new Error(
+          `${workload.id} has no positive ${profileName} CI weight.`,
+        )
+      }
+    }
     if (!workload.updates.includes('noop')) {
       throw new Error(`${workload.id} has no no-op update.`)
     }

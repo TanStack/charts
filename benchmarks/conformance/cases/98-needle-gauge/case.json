@@ -9,7 +9,7 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
+    "native pie allocation",
     "threshold bands",
     "native radial rule ticks and needle",
     "native radial dot hub",
@@ -27,7 +27,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
   },
   "ai": {
-    "create": "Create a semicircular gauge directly from a county's rate field in Observable Plot's U.S. unemployment data, with three D3 pie sectors, eleven radial tick rules, a scale-driven radial rule needle, a radial dot hub, and a centered value label.",
-    "maintain": "Change the selected county without changing threshold or tick boundaries; preserve stable keys, the zero-to-thirty-percent angle domain, the responsive radius, and native polar mark ownership."
+    "create": "Create a semicircular gauge directly from a county's rate field in Observable Plot's U.S. unemployment data, with three native pie sectors, eleven radial tick rules, a scale-driven radial rule needle, a radial dot hub, and a centered value label.",
+    "maintain": "Change the selected county without changing threshold or tick boundaries; preserve semantic mark keys, flat pie lineage, the zero-to-thirty-percent angle domain, the responsive radius, and native polar mark ownership."
   }
 }

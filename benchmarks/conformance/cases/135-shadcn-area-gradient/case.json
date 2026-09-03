@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1360,
+  "id": "135-shadcn-area-gradient",
+  "title": "shadcn Area Chart - Gradient",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-gradient example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "gradient", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-gradient",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-gradient"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-gradient card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area gradient treatment, card dimensions, and light and dark tokens."
+  }
+}

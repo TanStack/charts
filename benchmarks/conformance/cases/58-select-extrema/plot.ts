@@ -1,6 +1,6 @@
 import * as Plot from '@observablehq/plot'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

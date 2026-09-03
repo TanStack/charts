@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1330,
+  "id": "132-shadcn-tooltip-advanced",
+  "title": "shadcn Tooltip - Advanced",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-advanced example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "advanced", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-advanced",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-advanced"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip advanced treatment, card dimensions, and light and dark tokens."
+  }
+}

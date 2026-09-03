@@ -18,7 +18,7 @@ export function transformValues<TDatum, TValue>(
 ): TValue[] {
   if (typeof value === 'function') {
     const accessor = value as TransformAccessor<TDatum, TValue>
-    return data.map((datum, index) => accessor({ datum, index, data }))
+    return data.map((datum, index) => accessor(datum, { index, data }))
   }
   return data.map((datum) =>
     datum != null && typeof datum === 'object'

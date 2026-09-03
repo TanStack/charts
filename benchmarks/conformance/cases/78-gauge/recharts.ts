@@ -1,4 +1,4 @@
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 import { agreementPercent, gaugeSegments } from './transform'

@@ -1,6 +1,6 @@
 ---
 title: Interactive Charts
-description: Choose native focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
+description: Choose chart-owned focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
 ---
 
 Interaction should help the reader inspect, navigate, select, or edit semantic
@@ -16,7 +16,9 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
-| Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
+| Follow focus with one rule or crosshair                      | Data-less `crosshair` mark                     |
+| Paint existing geometry for the active datum/group           | `whenFocused` around an ordinary mark          |
+| Synchronize focus or free coordinates between charts         | Shared `createChartCursor` controller          |
 | Resize, recolor, or fade existing marks during focus         | Inline mark `states`                           |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
@@ -47,14 +49,7 @@ dot(rows, {
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=480"
-  title="Focused dot emphasizing the nearest Apple closing price"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=34-pointer-tooltip height=480 -->
 
 A focused band emphasizes the shared x value for every series. Its position
 before the lines places it underneath them:
@@ -77,33 +72,96 @@ marks: [
 [Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
 to inspect its live chart and complete source.
 
-## Pin rich nested detail
+## Follow focus with a crosshair
 
-A rich tooltip can compose the native rows with framework UI, including a
-second chart. Hover remains transient; click or keyboard activation pins the
-surface before it accepts pointer input.
+A crosshair is one dynamic guide driven by the existing focus state. It is not
+one hidden rule per datum:
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
-  title="Pinned rich tooltip containing a nested detail chart"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+```ts
+marks: [
+  crosshair({
+    x: {
+      band: {
+        inset: 0,
+        radius: 3,
+        fill: '#64748b',
+        fillOpacity: 0.16,
+      },
+      label: true,
+    },
+    y: false,
+  }),
+  barY(rows, { x: 'period', y: 'value', color: 'series', inset: 4 }),
+  crosshair({
+    x: false,
+    y: { strokeDasharray: '4 4', label: true },
+  }),
+]
+```
 
-The embedded framework-neutral case uses a fully application-owned surface.
-Use the adapter's tooltip-body composition surface and include `defaultBody`
-to retain native rows and swatches. A grouped parent can pass `points`
-directly into a pie definition, placing the series comparison beside the rows
-in both transient and pinned states. The transient body is inert; gate controls
-on `pinned`. The nested chart receives its own accessible label, definition,
-runtime, and framework cleanup.
+It follows pointer and keyboard focus, stays out of hit testing, and renders
+through SVG, Canvas, motion, and chart-owned focus presentation. The first guide
+uses categorical bandwidth to paint below the bars; with bar inset 4 and band
+inset 0, it extends 4 pixels past each bar edge. Its x label shows the focused
+period. The second guide paints the dotted y rule above the bars and labels the
+focused stack endpoint. Set `maxFocusDistance` to
+`Number.POSITIVE_INFINITY` only when the guides should remain snapped across
+the complete plot.
 
-Add the `portal` extension to the definition's tooltip options to escape
-clipped ancestors and use viewport collision handling. Move focus intentionally
-when the body contains controls, preserve Escape, and wire a close button to
-`dismiss`.
+[Open the stacked cursor-band example](https://tanstack.com/charts/catalog/119-stacked-bar-band-cursor/)
+to inspect the live chart and complete source.
+
+For synchronized charts or a free two-dimensional cursor, create one
+controller from `@tanstack/charts/cursor` and bind it through definition
+`cursor`. Focus mode shares semantic x/y values and local charts map them to
+their own pixels. Free mode shares controlled coordinates without selecting a
+datum. The complete state and inversion examples are in
+[Interactions and Selections](../guides/interactions-and-selections.md#cursors-and-crosshairs).
+
+## Pin and expand rich detail
+
+This energy tooltip stays compact on hover or keyboard focus. Click, Enter, or
+Space pins the same surface, adds solar coverage to its native rows, and
+smoothly reveals the detailed consumption and generation breakdown, including
+an ordinary nested chart. Hover remains chart focus only; framework detail
+mounts after click or keyboard activation.
+
+<!-- ::chart-example id=84-pinned-nested-chart-tooltip height=500 -->
+
+The definition owns stable point identity, the pinned mark state,
+`visibility: 'pinned'`, placement, portaling, Escape, and focus return. The
+adapter body receives the pinned point and mounts an ordinary nested chart.
+The application retains only the same-species cohort policy, close-button
+presentation, and child-chart content.
+
+The definition's `content` callback receives `pinned`, so it can keep the
+transient summary short and add structured rows only after activation. The
+React `renderTooltipBody` callback receives that updated `defaultBody` and the
+same pinned state:
+
+```tsx
+<TooltipChart
+  definition={definition}
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <EnergyTooltip
+      month={points[0].datum}
+      summary={defaultBody}
+      expanded={pinned}
+      onClose={dismiss}
+    />
+  )}
+/>
+```
+
+The detail wrapper stays mounted and transitions from
+`grid-template-rows: 0fr` to `1fr`; its direct child uses `min-height: 0` and
+`overflow: hidden`. This animates intrinsic height without measuring content.
+The transient body remains inert, controls render only while pinned, and the
+nested consumption chart has its own accessible label and lifecycle.
+
+Add the `portal` extension to escape clipped ancestors and use viewport
+collision handling. Wire the close button to `dismiss`; the shared host also
+owns Escape, focus return, and non-modal dialog semantics.
 
 ## Scroll a wide schedule
 
@@ -111,51 +169,37 @@ Native horizontal scrolling is often better than zoom for resource lanes. It
 preserves a stable time scale and gives the browser proven wheel, touch, and
 keyboard behavior.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/85-scrollable-resource-lanes/?theme=system&height=480"
-  title="Horizontally scrollable resource timeline with fixed lane labels"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=85-scrollable-resource-lanes height=480 -->
 
 Keep lane labels in a fixed rail and place the timeline in the scroll region.
 Preserve lane order, task keys, scroll position, and viewport-relative geometry
 across data updates. Do not capture vertical page scrolling when the timeline
 only needs horizontal movement.
 
+Position the external rail from `onRender` with `scene.scales.y.map`. Do not
+construct a second band scale to reproduce chart-space label centers.
+
 Use [Layout, Axes, and Coordinates](../concepts/layout-axes-and-coordinates.md)
 to align labels and the plotted region.
 
 ## Zoom and pan a time domain
 
-Zooming changes an explicit semantic domain. Wheel, drag, touch, keyboard, and
-reset controls should all update the same start and end values.
+`zoomX` changes a controlled semantic window through the normal definition.
+The x scale, wheel, drag, touch, keyboard, and reset control all use the same
+start and end values.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/90-zoomable-time-window/?theme=system&height=480"
-  title="Controlled time-domain wheel zoom and pan with keyboard and reset controls"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=90-zoomable-time-window height=480 -->
 
-Define:
+Import `zoomX` from `@tanstack/charts/interaction/zoom`, bind its `window` to a
+controlled signal, and provide the full `extent` and allowed `scaleExtent`.
+The behavior owns final-scale inversion, focus-gated wheel capture,
+pointer-anchored zoom, pan, touch and keyboard input, cancellation, clamping,
+and teardown.
 
-- Full-domain limits
-- Minimum and maximum span
-- Pointer anchor behavior
-- Pan increments
-- Wheel activation and normalization
-- Touch cancellation
-- Keyboard equivalents
-- Reset behavior
-
-Store the resulting domain in application state and pass it into the chart's
-configured scale. Preserve that domain when data values update unless product
-policy explicitly follows the latest point.
+Keep the accepted window, visible-row or clipping policy, y-domain policy,
+status, reset control, persistence, and follow-latest behavior in application
+state. Preserve the window when data values update unless product policy
+explicitly follows the latest point.
 
 ## Edit an interval
 
@@ -163,14 +207,7 @@ An editable timeline combines direct manipulation with native semantic
 controls. The chart renders the current record; application validation decides
 which edit can commit.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/92-editable-event-range/?theme=system&height=500"
-  title="Editable scheduled event range with drag, keyboard, and date controls"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+<!-- ::chart-example id=92-editable-event-range height=500 -->
 
 A complete editor should:
 
@@ -196,9 +233,10 @@ Application-owned interaction state should be semantic:
 - Scroll offset
 - Playback index
 - Pinned datum key
+- Shared cursor x/y value
 
-Pixel geometry is derived from `scene.chart` and copied configured scales on
-each render. This keeps state valid after responsive layout, font changes, and
+Pixel geometry is derived from `scene.chart` and resolved scales on each
+render. This keeps state valid after responsive layout, font changes, and
 server hydration.
 
 Controllers and overlays may install pointer capture, event listeners,

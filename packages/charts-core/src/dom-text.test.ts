@@ -40,6 +40,12 @@ describe('DOM text measurement', () => {
     const measurer = createDomTextMeasurer(document.createElement('div'))
     const tick = measurer.measureText('Italic', {
       fontSize: 11,
+      fontFamily: '"Inter var", sans-serif',
+      fontStyle: 'italic',
+      fontStretch: 'condensed',
+      letterSpacing: 0.4,
+      direction: 'rtl',
+      fontScale: 1,
       anchor: 'end',
       baseline: 'middle',
     })
@@ -56,6 +62,12 @@ describe('DOM text measurement', () => {
     measurer.measureText('Title', {
       fontSize: 11,
       fontWeight: 600,
+      fontFamily: '"Inter var", sans-serif',
+      fontStyle: 'italic',
+      fontStretch: 'condensed',
+      letterSpacing: 0.4,
+      direction: 'rtl',
+      fontScale: 1,
       anchor: 'middle',
       baseline: 'auto',
     })

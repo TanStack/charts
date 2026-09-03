@@ -11,7 +11,9 @@
     "multi-series line",
     "categorical x scale",
     "direct labels",
-    "endpoint dots"
+    "endpoint dots",
+    "TanStack fold",
+    "TanStack select"
   ],
   "geometry": [
     { "role": "line", "count": 8 },
@@ -23,7 +25,7 @@
     "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/citywages.csv"
   },
   "ai": {
-    "create": "Create a two-period slopegraph from eight imported citywages rows, pivoting R90_10_1980 and R90_10_2015 into one line per metro.",
-    "maintain": "Move labels to the larger endpoint while retaining nyt_display colors, stable metro identity, and the visible wide-to-long transform."
+    "create": "Create a two-period slopegraph from eight imported citywages rows by folding R90_10_1980 and R90_10_2015 into one native line per metro and selecting the final endpoint label.",
+    "maintain": "Change the periods while retaining explicit field-to-year display mapping, nyt_display colors, stable metro-period identity, and the visible fold and selection transforms."
   }
 }

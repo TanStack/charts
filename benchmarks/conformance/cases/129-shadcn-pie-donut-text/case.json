@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1300,
+  "id": "129-shadcn-pie-donut-text",
+  "title": "shadcn Pie Chart - Donut with Text",
+  "family": "pie",
+  "intent": "Reproduce shadcn/ui's chart-pie-donut-text example with TanStack Charts.",
+  "support": "native",
+  "features": ["pie chart", "donut text", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "arc",
+      "count": 5
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-pie-donut-text",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut-text"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, pie donut text treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,5 +1,175 @@
 # @tanstack/react-native-charts
 
+## 0.16.0
+
+### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+## 0.15.0
+
+### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+## 0.14.0
+
+### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+## 0.13.0
+
+### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+## 0.11.2
+
+### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+## 0.11.0
+
+### Patch Changes
+
+- Updated dependencies [[`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8)]:
+  - @tanstack/charts@0.11.0
+
+## 0.10.0
+
+### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+## 0.9.0
+
+### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+## 0.8.0
+
+### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+## 0.7.1
+
+### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Document React Native parity for shared focus and free-cursor state,
+  renderer-native focus and state layers, selection activation, pinned tooltip
+  context, viewport-filtered focus, polygon areas, and `NativePaintContext.canvas`.
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+## 0.7.0
+
+### Patch Changes
+
+- [#60](https://github.com/TanStack/charts/pull/60) [`38cddc8`](https://github.com/TanStack/charts/commit/38cddc846c8f342aedcd237956a0057155022ae9) - Expose pinned state to tooltip content and item callbacks so built-in and
+  framework-rendered tooltips can expand with additional detail when pinned.
+  Keep dismissing clicks owned by the tooltip when a framework body unmounts
+  during event propagation.
+
+  Standardize public callback parameters as primary data plus a context bag.
+  Tooltip `format` and `formatGroup` now receive the same content context as
+  `content`; channel accessors use `(datum, { index, data })`; facet, focus,
+  legend, and spatial-index extension callbacks move their supporting values
+  into named context objects. Controlled signals now receive change reasons in
+  `{ reason }`; keyed-selection keys and focus-guide label formatters receive
+  their point in `{ point }`; interactive legend item labels receive
+  `{ visible }`.
+
+  `ruleX` and `ruleY` now expose axis-specific presentation-only focus anchors, so
+  `whenFocused(..., { match: 'x' })` and `whenFocused(..., { match: 'y' })` can
+  reveal focused guide rules without making them interaction or tooltip targets.
+
+  Update the published pinned-tooltip catalog case to show the energy overview,
+  compact hover summary, and animated pinned detail.
+
+  Preserve distinct source rows in the linear-regression, framed-scatter, and
+  many-point-scatter catalog examples when car names and years repeat.
+
+  Keep React Native chart-host focusability aligned with the shared definition
+  contract and toggle sticky activation exactly once per accessibility action.
+
+- Complete React Native host parity for shared focus and free-cursor state,
+  renderer-native focus and state layers, selection activation, pinned tooltip
+  context, viewport-filtered focus, polygon areas, and the public
+  `NativePaintContext.canvas` surface.
+
+- Updated dependencies [[`38cddc8`](https://github.com/TanStack/charts/commit/38cddc846c8f342aedcd237956a0057155022ae9), [`a5f9702`](https://github.com/TanStack/charts/commit/a5f97022f90043254e0e0dde174cdf2a63b6a198), [`4134429`](https://github.com/TanStack/charts/commit/4134429b49973cf64df1f36123ba8392571562eb), [`6fd52a8`](https://github.com/TanStack/charts/commit/6fd52a8910c9f933609dce14bffab5277f6325b2)]:
+  - @tanstack/charts@0.7.0
+
+## 0.6.5
+
+### Patch Changes
+
+- [#59](https://github.com/TanStack/charts/pull/59) [`11ba458`](https://github.com/TanStack/charts/commit/11ba4584e6aee639a58e353b5c828b2f3d207f62) - Publish the complete 109-case conformance catalog as per-case React components
+  that render their complete SVG during SSR. Catalog data parsing is compatible
+  with runtimes that prohibit string code generation, case-local D3 imports are
+  declared runtime dependencies, and bundled datasets include source and license
+  notices.
+
+  Add `focus: false` for charts that should omit generated focus geometry and
+  native focus work. Responsive definitions now retain outer definition options,
+  and catalog descriptors and custom views respond to measured width changes
+  after SSR. `d3-scale` is declared as a core runtime dependency.
+
+  Catalog components accept the same responsive `aspectRatio` sizing contract as
+  React Charts while retaining deterministic initial dimensions for SSR.
+  React chart hosts serialize proportional CSS sizing as a unitless value.
+  Legend-heavy preview definitions now dedicate their compact layout to the plot.
+
+- Updated dependencies [[`11ba458`](https://github.com/TanStack/charts/commit/11ba4584e6aee639a58e353b5c828b2f3d207f62)]:
+  - @tanstack/charts@0.6.5
+
 ## 0.6.4
 
 ### Patch Changes

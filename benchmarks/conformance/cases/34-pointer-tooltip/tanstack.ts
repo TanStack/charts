@@ -1,76 +1,31 @@
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { mountChart } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
-import { tooltip } from '@tanstack/charts/tooltip'
-import { scaleLinear, scaleUtc } from 'd3-scale'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ConformanceHandle,
   ConformanceInput,
   ConformanceTestDriver,
 } from '../../types'
-import { selectPointerTooltipData } from './selection'
+import { tanstackExampleMount } from '../../shared/mount'
+import { createExampleChart, exampleAriaLabel } from './example'
 
-const definition = (input: ConformanceInput) => {
-  const rows = selectPointerTooltipData(aapl, input.revision)
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        x: 'Date',
-        y: 'Close',
-        stroke: '#2563eb',
-      }),
-      dot(rows, {
-        x: 'Date',
-        y: 'Close',
-        fill: '#2563eb',
-        r: 3,
-        states: [
-          {
-            when: { focus: 'primary' },
-            style: {
-              r: 7,
-              stroke: 'Canvas',
-              strokeWidth: 2,
-            },
-            transition: {
-              type: 'tween',
-              duration: 140,
-              easing: 'ease-out',
-            },
-          },
-        ],
-      }),
-    ],
-    x: { scale: scaleUtc },
-    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
-  })
-}
+export * from './example'
 
-const configuredDefinition = (input: ConformanceInput) =>
-  defineChart(definition(input), {
-    animate: false,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      anchor: 'point',
-      placement: ['top', 'right', 'left', 'bottom'],
-      items: [
-        {
-          channel: 'y',
-          label: 'Apple',
-          text: (point) =>
-            point.datum.Close.toLocaleString(undefined, {
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
-          channel: 'x',
-          label: 'Date',
-        },
-      ],
+export const catalogCase = tanstackExampleMount(
+  createExampleChart,
+  exampleAriaLabel,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'apple-points' &&
+            dateKey(point.datum.Date) === '2013-06-06',
+        ) ?? null
+      )
     },
-  })
+  },
+)
 
 export function mount(
   container: HTMLElement,
@@ -78,10 +33,10 @@ export function mount(
 ): ConformanceHandle {
   let focusedDates: string[] = []
   const options: ChartHostOptions<AaplRow> = {
-    definition: configuredDefinition(input),
+    definition: createExampleChart(input),
     width: input.width,
     height: input.height,
-    ariaLabel: 'Interactive Apple closing price',
+    ariaLabel: exampleAriaLabel,
     onFocusGroupChange(points) {
       focusedDates = points.map((point) => dateKey(point.datum.Date))
     },
@@ -131,7 +86,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        definition: configuredDefinition(nextInput),
+        definition: createExampleChart(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

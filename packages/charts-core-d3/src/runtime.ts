@@ -1,6 +1,6 @@
 import { createChartScene, defaultChartTheme } from './scene'
 import type {
-  DynamicChartDefinition,
+  ResponsiveChartDefinition,
   ChartDefinition,
   ChartRuntime,
   ChartSize,
@@ -29,7 +29,7 @@ export function createChartRuntime<
         hasPrepared = false
       }
 
-      if (!isDynamicChartDefinition(definition)) {
+      if (!isResponsiveChartDefinition(definition)) {
         return createChartScene(definition, size)
       }
 
@@ -78,7 +78,7 @@ export function chartInputsEqual<TDatum, TInput>(
   previous: TInput,
   next: TInput,
 ): boolean {
-  return isDynamicChartDefinition(definition)
+  return isResponsiveChartDefinition(definition)
     ? (definition.inputEqual ?? shallowInputEqual)(previous, next)
     : true
 }
@@ -94,9 +94,9 @@ export function shallowInputEqual(previous: unknown, next: unknown): boolean {
   )
 }
 
-export function isDynamicChartDefinition<TInput, TPrepared, TDatum>(
+export function isResponsiveChartDefinition<TInput, TPrepared, TDatum>(
   definition: ChartDefinition<TDatum, TInput, TPrepared>,
-): definition is DynamicChartDefinition<TInput, TPrepared, TDatum> {
+): definition is ResponsiveChartDefinition<TInput, TPrepared, TDatum> {
   return 'chart' in definition && typeof definition.chart === 'function'
 }
 

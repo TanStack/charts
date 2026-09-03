@@ -8,11 +8,15 @@ import {
 import { valueKey } from './scales'
 import type {
   Channel,
+  CartesianChartMark,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
+  ChartFocusAnchor,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
   SceneNode,
   VisualChannel,
   WidenChartValue,
@@ -26,6 +30,7 @@ export interface RuleYOptions<TDatum> extends ChartMarkMotionOptions<never> {
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
+  yScale?: string
 }
 
 export interface RuleXOptions<TDatum> extends ChartMarkMotionOptions<never> {
@@ -36,7 +41,26 @@ export interface RuleXOptions<TDatum> extends ChartMarkMotionOptions<never> {
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
+  xScale?: string
 }
+
+type RuleYCallOptions<
+  TDatum,
+  TYChannel,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  RuleYOptions<NoInfer<TDatum>>,
+  { y?: TYChannel; yScale?: TYScaleId }
+>
+
+type RuleXCallOptions<
+  TDatum,
+  TXChannel,
+  TXScaleId extends string | undefined,
+> = MarkCallOptions<
+  RuleXOptions<NoInfer<TDatum>>,
+  { x?: TXChannel; xScale?: TXScaleId }
+>
 
 type RuleFallback<TDatum> = [
   WidenChartValue<Extract<TDatum, ChartValue>>,
@@ -49,77 +73,99 @@ export function ruleY<TDatum>(
 ): ChartMark<never, never, RuleFallback<TDatum>>
 export function ruleY<
   TDatum,
-  const TOptions extends RuleYOptions<NoInfer<TDatum>> | undefined,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options: RuleYCallOptions<TDatum, TYChannel, TYScaleId> | undefined,
+): CartesianChartMark<
   never,
   never,
-  OptionChannelOutput<TDatum, TOptions, 'y', RuleFallback<TDatum>>
+  MarkChannelOutput<TDatum, TYChannel, RuleFallback<TDatum>>,
+  never,
+  MarkChannelOutput<TDatum, TYChannel, RuleFallback<TDatum>>,
+  MarkScaleBindings<'x', TYScaleId>
 >
 export function ruleY<TDatum>(
   source: Iterable<TDatum>,
   options: RuleYOptions<NoInfer<TDatum>> = {},
-): ChartMark<never, any, any> {
+): CartesianChartMark<never, any, any, any, any, RuleYOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const yScale = options.yScale ?? 'y'
 
-  return createMark<never>(({ markIndex }) => {
-    const id = options.id ?? `rule-y-${markIndex}`
-    const values = channelValues(data, options.y, (datum) =>
-      isChartValue(datum) ? datum : undefined,
-    )
-    const colorValues = channelValues(data, options.color, () => null)
-    return {
-      id,
-      channels: {
-        y: { scale: 'y', values: values.filter(isChartValue) },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, chart, theme, color: resolveColor }) => ({
-        nodes: [
-          {
-            kind: 'group',
-            key: id,
-            className: 'ts-chart__rule ts-chart__rule-y',
-            ariaHidden: true,
-            children: data.flatMap((datum, index): SceneNode[] => {
-              const value = values[index]
-              return isChartValue(value)
-                ? [
-                    {
-                      kind: 'rule',
-                      key: `${id}:${valueKey(value)}:${index}`,
-                      x1: chart.x,
-                      x2: chart.x + chart.width,
-                      y1: scales.y.map(value),
-                      y2: scales.y.map(value),
-                      style: {
-                        stroke: visualValue(
-                          options.stroke,
-                          datum,
-                          index,
-                          data,
-                          colorValues[index] == null
-                            ? theme.foreground
-                            : resolveColor(colorValues[index]),
-                        ),
-                        strokeOpacity: options.strokeOpacity ?? 0.5,
-                        strokeWidth: options.strokeWidth,
-                        strokeDasharray: options.strokeDasharray,
-                      },
-                    },
-                  ]
-                : []
-            }),
+  return createMark<never>(
+    ({ markIndex }) => {
+      const id = options.id ?? `rule-y-${markIndex}`
+      const values = channelValues(data, options.y, (datum) =>
+        isChartValue(datum) ? datum : undefined,
+      )
+      const colorValues = channelValues(data, options.color, () => null)
+      return {
+        id,
+        channels: {
+          y: { scale: yScale, values: values.filter(isChartValue) },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
           },
-        ],
-      }),
-    }
-  }, options.motion)
+        },
+        render: ({ scales, chart, theme, color: resolveColor }) => {
+          const children: SceneNode[] = []
+          const focusAnchors: ChartFocusAnchor[] = []
+          data.forEach((datum, index) => {
+            const yValue = values[index]
+            if (!isChartValue(yValue)) return
+            const key = `${id}:${valueKey(yValue)}:${index}`
+            children.push({
+              kind: 'rule',
+              key,
+              x1: chart.x,
+              x2: chart.x + chart.width,
+              y1: scales[yScale]!.map(yValue),
+              y2: scales[yScale]!.map(yValue),
+              style: {
+                stroke: visualValue(
+                  options.stroke,
+                  datum,
+                  index,
+                  data,
+                  colorValues[index] == null
+                    ? theme.foreground
+                    : resolveColor(colorValues[index]),
+                ),
+                strokeOpacity: options.strokeOpacity ?? 0.5,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray: options.strokeDasharray,
+              },
+            })
+            focusAnchors.push({
+              key,
+              markId: id,
+              group: isChartKey(colorValues[index]) ? colorValues[index] : null,
+              datum,
+              datumIndex: index,
+              yValue,
+            })
+          })
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__rule ts-chart__rule-y',
+                ariaHidden: true,
+                children,
+              },
+            ],
+            focusAnchors,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 export function ruleX<TDatum>(
@@ -127,75 +173,97 @@ export function ruleX<TDatum>(
 ): ChartMark<never, RuleFallback<TDatum>, never>
 export function ruleX<
   TDatum,
-  const TOptions extends RuleXOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options: RuleXCallOptions<TDatum, TXChannel, TXScaleId> | undefined,
+): CartesianChartMark<
   never,
-  OptionChannelOutput<TDatum, TOptions, 'x', RuleFallback<TDatum>>,
-  never
+  MarkChannelOutput<TDatum, TXChannel, RuleFallback<TDatum>>,
+  never,
+  MarkChannelOutput<TDatum, TXChannel, RuleFallback<TDatum>>,
+  never,
+  MarkScaleBindings<TXScaleId, 'y'>
 >
 export function ruleX<TDatum>(
   source: Iterable<TDatum>,
   options: RuleXOptions<NoInfer<TDatum>> = {},
-): ChartMark<never, any, any> {
+): CartesianChartMark<never, any, any, any, any, RuleXOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
 
-  return createMark<never>(({ markIndex }) => {
-    const id = options.id ?? `rule-x-${markIndex}`
-    const values = channelValues(data, options.x, (datum) =>
-      isChartValue(datum) ? datum : undefined,
-    )
-    const colorValues = channelValues(data, options.color, () => null)
-    return {
-      id,
-      channels: {
-        x: { scale: 'x', values: values.filter(isChartValue) },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, chart, theme, color: resolveColor }) => ({
-        nodes: [
-          {
-            kind: 'group',
-            key: id,
-            className: 'ts-chart__rule ts-chart__rule-x',
-            ariaHidden: true,
-            children: data.flatMap((datum, index): SceneNode[] => {
-              const value = values[index]
-              return isChartValue(value)
-                ? [
-                    {
-                      kind: 'rule',
-                      key: `${id}:${valueKey(value)}:${index}`,
-                      x1: scales.x.map(value),
-                      x2: scales.x.map(value),
-                      y1: chart.y,
-                      y2: chart.y + chart.height,
-                      style: {
-                        stroke: visualValue(
-                          options.stroke,
-                          datum,
-                          index,
-                          data,
-                          colorValues[index] == null
-                            ? theme.foreground
-                            : resolveColor(colorValues[index]),
-                        ),
-                        strokeOpacity: options.strokeOpacity ?? 0.5,
-                        strokeWidth: options.strokeWidth,
-                        strokeDasharray: options.strokeDasharray,
-                      },
-                    },
-                  ]
-                : []
-            }),
+  return createMark<never>(
+    ({ markIndex }) => {
+      const id = options.id ?? `rule-x-${markIndex}`
+      const values = channelValues(data, options.x, (datum) =>
+        isChartValue(datum) ? datum : undefined,
+      )
+      const colorValues = channelValues(data, options.color, () => null)
+      return {
+        id,
+        channels: {
+          x: { scale: xScale, values: values.filter(isChartValue) },
+          color: {
+            scale: 'color',
+            values: colorValues.filter(isChartKey),
           },
-        ],
-      }),
-    }
-  }, options.motion)
+        },
+        render: ({ scales, chart, theme, color: resolveColor }) => {
+          const children: SceneNode[] = []
+          const focusAnchors: ChartFocusAnchor[] = []
+          data.forEach((datum, index) => {
+            const xValue = values[index]
+            if (!isChartValue(xValue)) return
+            const key = `${id}:${valueKey(xValue)}:${index}`
+            children.push({
+              kind: 'rule',
+              key,
+              x1: scales[xScale]!.map(xValue),
+              x2: scales[xScale]!.map(xValue),
+              y1: chart.y,
+              y2: chart.y + chart.height,
+              style: {
+                stroke: visualValue(
+                  options.stroke,
+                  datum,
+                  index,
+                  data,
+                  colorValues[index] == null
+                    ? theme.foreground
+                    : resolveColor(colorValues[index]),
+                ),
+                strokeOpacity: options.strokeOpacity ?? 0.5,
+                strokeWidth: options.strokeWidth,
+                strokeDasharray: options.strokeDasharray,
+              },
+            })
+            focusAnchors.push({
+              key,
+              markId: id,
+              group: isChartKey(colorValues[index]) ? colorValues[index] : null,
+              datum,
+              datumIndex: index,
+              xValue,
+            })
+          })
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: 'ts-chart__rule ts-chart__rule-x',
+                ariaHidden: true,
+                children,
+              },
+            ],
+            focusAnchors,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }

@@ -9,11 +9,12 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
+    "native pie allocation",
     "outside radial labels",
     "leader lines",
-    "responsive label radius",
-    "data-driven text anchors"
+    "post-scale pixel offsets",
+    "automatic outside anchors",
+    "flat source lineage"
   ],
   "geometry": [
     { "role": "arc", "count": 4, "maxCount": 4 },

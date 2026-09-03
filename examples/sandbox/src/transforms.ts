@@ -1,18 +1,18 @@
-import { aapl, type AaplRow } from '@charts-poc/demo-data/aapl'
-import { cars } from '@charts-poc/demo-data/cars'
+import { aapl, type AaplRow } from '@tanstack/charts-data/aapl'
+import { cars } from '@tanstack/charts-data/cars'
 import {
   industries,
   type IndustriesRow,
-} from '@charts-poc/demo-data/industries'
-import { penguins, type PenguinsRow } from '@charts-poc/demo-data/penguins'
+} from '@tanstack/charts-data/industries'
+import { penguins, type PenguinsRow } from '@tanstack/charts-data/penguins'
 import {
   sfTemperatures,
   type SfTemperaturesRow,
-} from '@charts-poc/demo-data/sf-temperatures'
-import { simpsons, type SimpsonsRow } from '@charts-poc/demo-data/simpsons'
-import { survey, type SurveyRow } from '@charts-poc/demo-data/survey'
-import { travelers, type TravelersRow } from '@charts-poc/demo-data/travelers'
-import { weather, type WeatherRow } from '@charts-poc/demo-data/weather'
+} from '@tanstack/charts-data/sf-temperatures'
+import { simpsons, type SimpsonsRow } from '@tanstack/charts-data/simpsons'
+import { survey, type SurveyRow } from '@tanstack/charts-data/survey'
+import { travelers, type TravelersRow } from '@tanstack/charts-data/travelers'
+import { weather, type WeatherRow } from '@tanstack/charts-data/weather'
 import { mean } from 'd3-array'
 
 // Keep the source observations intact; derive only what each chart requires.

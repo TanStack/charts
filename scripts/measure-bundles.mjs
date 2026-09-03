@@ -2,6 +2,8 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
 import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
+import { readBundleConcurrency } from './measure-bundles-options.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const outputDirectory = resolve(root, '.bundle-output')
@@ -21,6 +23,8 @@ const rendererBoundaryModules = {
   ],
   svg: [
     'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-renderer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
@@ -42,6 +46,8 @@ const rendererBoundaryModules = {
     'packages/charts-core/src/export.ts',
     'packages/charts-core/src/reconcile.ts',
     'packages/charts-core/src/renderer.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
     'packages/react-charts/src/CanvasChart.tsx',
@@ -50,6 +56,17 @@ const rendererBoundaryModules = {
   ],
 }
 const retainedInputGroups = {
+  crosshairRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/crosshair(?:-resolver)?\.ts$/u,
+  ],
+  cursorRuntime: [/(?:^|\/)packages\/charts-core\/src\/cursor\.ts$/u],
+  focusPresentationRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/focus-layer\.ts$/u,
+  ],
+  platformRendererRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/(?:adapter(?:-renderer)?|canvas|dom(?:-text)?|export|reconcile|renderer|svg(?:-focus-guide-(?:layer|serializer)|-renderer|-resources|-surface)?)\.ts$/u,
+    /(?:^|\/)packages\/(?:react-charts|react-native-charts)\/src\//u,
+  ],
   compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
   compactBandEntry: [/(?:^|\/)packages\/charts-scales\/src\/band\.ts$/u],
   compactPointEntry: [/(?:^|\/)packages\/charts-scales\/src\/point\.ts$/u],
@@ -59,6 +76,7 @@ const retainedInputGroups = {
   compactOrdinal: [/(?:^|\/)packages\/charts-scales\/src\/ordinal\.ts$/u],
   coreTooltipRuntime: [
     /(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/tooltip-(?:model|placement)\.ts$/u,
     /(?:^|\/)packages\/charts-core\/src\/tooltip-position\.ts$/u,
   ],
   reactTooltipBridge: [/(?:^|\/)packages\/react-charts\/src\/tooltip\.tsx$/u],
@@ -70,7 +88,55 @@ const retainedInputGroups = {
   tooltipExtension: [/(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u],
   tooltipPortal: [/(?:^|\/)packages\/charts-core\/src\/tooltip-portal\.ts$/u],
   motionRuntime: [/(?:^|\/)packages\/charts-core\/src\/motion\.ts$/u],
+  sceneMotionContract: [
+    /(?:^|\/)packages\/charts-core\/src\/scene-motion-internal\.ts$/u,
+  ],
+  motionDefinition: [
+    /(?:^|\/)packages\/charts-core\/src\/motion-definition\.ts$/u,
+  ],
   springRuntime: [/(?:^|\/)packages\/charts-core\/src\/spring\.ts$/u],
+  focusGuide: [/(?:^|\/)packages\/charts-core\/src\/focus-guide\.ts$/u],
+  focusMark: [/(?:^|\/)packages\/charts-core\/src\/focus-mark\.ts$/u],
+  guideNodes: [
+    /(?:^|\/)packages\/charts-core\/src\/guide-nodes-internal\.ts$/u,
+  ],
+  interactionSignal: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-signal\.ts$/u,
+  ],
+  interactionBrush: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-brush\.ts$/u,
+  ],
+  interactionCursor: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-cursor\.ts$/u,
+  ],
+  interactionHandle: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-handle\.ts$/u,
+  ],
+  interactionZoom: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-zoom\.ts$/u,
+  ],
+  interactionAxis: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-axis-internal\.ts$/u,
+  ],
+  interactionRange: [
+    /(?:^|\/)packages\/charts-core\/src\/interaction-range-internal\.ts$/u,
+  ],
+  interactiveLegend: [
+    /(?:^|\/)packages\/charts-core\/src\/interactive-legend\.ts$/u,
+  ],
+  keyedSelection: [/(?:^|\/)packages\/charts-core\/src\/selection\.ts$/u],
+  decorativeMarkPublic: [
+    /(?:^|\/)packages\/charts-core\/src\/mark-decorative\.ts$/u,
+  ],
+  decorativeMarkLifecycle: [
+    /(?:^|\/)packages\/charts-core\/src\/mark-decorative-internal\.ts$/u,
+  ],
+  markSceneFilter: [
+    /(?:^|\/)packages\/charts-core\/src\/mark-scene-filter-internal\.ts$/u,
+  ],
+  categoricalLegendLayout: [
+    /(?:^|\/)packages\/charts-core\/src\/legend-layout-internal\.ts$/u,
+  ],
   transformRuntime: [
     /(?:^|\/)packages\/charts-core\/src\/transform(?:-[^/]+)?\.ts$/u,
   ],
@@ -83,10 +149,14 @@ const retainedInputGroups = {
   ],
   transformGroup: [/(?:^|\/)packages\/charts-core\/src\/transform-group\.ts$/u],
   transformWindow: [
-    /(?:^|\/)packages\/charts-core\/src\/transform-window\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/transform-rolling-window\.ts$/u,
   ],
   transformCumulative: [
     /(?:^|\/)packages\/charts-core\/src\/transform-cumulative\.ts$/u,
+  ],
+  transformFold: [/(?:^|\/)packages\/charts-core\/src\/transform-fold\.ts$/u],
+  transformMosaic: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-mosaic\.ts$/u,
   ],
   transformRank: [/(?:^|\/)packages\/charts-core\/src\/transform-rank\.ts$/u],
   transformNormalize: [
@@ -96,15 +166,133 @@ const retainedInputGroups = {
     /(?:^|\/)packages\/charts-core\/src\/transform-select\.ts$/u,
   ],
   transformStack: [/(?:^|\/)packages\/charts-core\/src\/transform-stack\.ts$/u],
+  transformWaterfall: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-waterfall\.ts$/u,
+  ],
   transformReduce: [
     /(?:^|\/)packages\/charts-core\/src\/transform-reduce\.ts$/u,
   ],
+  transformInternal: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-internal\.ts$/u,
+  ],
+  proportionalInterval: [
+    /(?:^|\/)packages\/charts-core\/src\/proportional-interval-internal\.ts$/u,
+  ],
+  spatialHexbin: [/(?:^|\/)packages\/charts-core\/src\/spatial-hexbin\.ts$/u],
+  spatialDensity: [/(?:^|\/)packages\/charts-core\/src\/spatial-density\.ts$/u],
+  spatialContour: [
+    /(?:^|\/)packages\/charts-core\/src\/spatial-contour(?:-internal)?\.ts$/u,
+  ],
+  spatialGrouping: [
+    /(?:^|\/)packages\/charts-core\/src\/spatial-group-internal\.ts$/u,
+  ],
+  spatialDelaunay: [
+    /(?:^|\/)packages\/charts-core\/src\/spatial-delaunay(?:-internal)?\.ts$/u,
+  ],
+  spatialVoronoi: [
+    /(?:^|\/)packages\/charts-core\/src\/spatial-voronoi(?:-internal)?\.ts$/u,
+  ],
+  resolvedLayoutChild: [
+    /(?:^|\/)packages\/charts-core\/src\/resolved-layout-child\.ts$/u,
+  ],
+  compositeMarkPublic: [
+    /(?:^|\/)packages\/charts-core\/src\/mark-composite\.ts$/u,
+  ],
+  compositeMarkKernel: [
+    /(?:^|\/)packages\/charts-core\/src\/mark-composite-internal\.ts$/u,
+  ],
+  scenePointOwnership: [
+    /(?:^|\/)packages\/charts-core\/src\/scene-point-ownership-internal\.ts$/u,
+  ],
+  boxMark: [/(?:^|\/)packages\/charts-core\/src\/box\.ts$/u],
+  regressionMark: [/(?:^|\/)packages\/charts-core\/src\/regression\.ts$/u],
+  differenceMark: [/(?:^|\/)packages\/charts-core\/src\/difference\.ts$/u],
+  viewComposition: [
+    /(?:^|\/)packages\/charts-core\/src\/view(?:-layout)?\.ts$/u,
+  ],
+  sceneEmbed: [
+    /(?:^|\/)packages\/charts-core\/src\/scene-embed-internal\.ts$/u,
+  ],
+  sceneNamespace: [
+    /(?:^|\/)packages\/charts-core\/src\/scene-child-id-internal\.ts$/u,
+  ],
+  facetMark: [/(?:^|\/)packages\/charts-core\/src\/facet\.ts$/u],
+  areaYMark: [/(?:^|\/)packages\/charts-core\/src\/area\.ts$/u],
+  areaXMark: [/(?:^|\/)packages\/charts-core\/src\/area-x\.ts$/u],
+  stackInternal: [/(?:^|\/)packages\/charts-core\/src\/stack-internal\.ts$/u],
+  transformStatistics: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-statistics-internal\.ts$/u,
+  ],
+  waffleMark: [/(?:^|\/)packages\/charts-core\/src\/waffle\.ts$/u],
+  ridgelineMark: [/(?:^|\/)packages\/charts-core\/src\/ridgeline\.ts$/u],
+  violinMark: [/(?:^|\/)packages\/charts-core\/src\/violin\.ts$/u],
+  mappedSpacing: [
+    /(?:^|\/)packages\/charts-core\/src\/mapped-spacing-internal\.ts$/u,
+  ],
+  resolvedLayoutProjection: [
+    /(?:^|\/)packages\/charts-core\/src\/resolved-layout-position\.ts$/u,
+  ],
+  dodgeLayout: [
+    /(?:^|\/)packages\/charts-core\/src\/dodge(?:-internal)?\.ts$/u,
+  ],
+  networkForce: [
+    /(?:^|\/)packages\/charts-core\/src\/network-force(?:-internal)?\.ts$/u,
+  ],
+  networkGraph: [
+    /(?:^|\/)packages\/charts-core\/src\/network-graph-internal\.ts$/u,
+  ],
+  networkSankey: [/(?:^|\/)packages\/charts-core\/src\/network-sankey\.ts$/u],
+  compositeMotion: [
+    /(?:^|\/)packages\/charts-core\/src\/composite-motion-internal\.ts$/u,
+  ],
+  hierarchyFlat: [
+    /(?:^|\/)packages\/charts-core\/src\/hierarchy-flat-internal\.ts$/u,
+  ],
+  hierarchyTree: [/(?:^|\/)packages\/charts-core\/src\/hierarchy-tree\.ts$/u],
+  hierarchyTreemap: [
+    /(?:^|\/)packages\/charts-core\/src\/hierarchy-treemap\.ts$/u,
+  ],
+  hierarchySunburst: [
+    /(?:^|\/)packages\/charts-core\/src\/hierarchy-sunburst\.ts$/u,
+  ],
+  polarMarks: [/(?:^|\/)packages\/charts-core\/src\/polar\.ts$/u],
+  polarMarkInfrastructure: [
+    /(?:^|\/)packages\/charts-core\/src\/polar-mark-internal\.ts$/u,
+  ],
+  polarSector: [
+    /(?:^|\/)packages\/charts-core\/src\/polar-sector-internal\.ts$/u,
+  ],
+  polarPie: [/(?:^|\/)packages\/charts-core\/src\/polar-pie\.ts$/u],
+  markInfrastructure: [
+    /(?:^|\/)packages\/charts-core\/src\/(?:guide-layout|mark|mark-with-scale-values|materialized-channel-internal|scales)\.ts$/u,
+  ],
+  rectMark: [/(?:^|\/)packages\/charts-core\/src\/rect\.ts$/u],
   nativeTooltip: [
+    /(?:^|\/)packages\/charts-core\/src\/tooltip-(?:model|placement)\.ts$/u,
     /(?:^|\/)packages\/react-native-charts\/src\/Tooltip\.tsx$/u,
     /(?:^|\/)packages\/react-native-charts\/src\/tooltip-entry\.ts$/u,
   ],
   d3Array: [/(?:^|\/)node_modules\/d3-array\//u],
   d3Shape: [/(?:^|\/)node_modules\/d3-shape\//u],
+  d3Path: [/(?:^|\/)node_modules\/d3-path\//u],
+  d3Hexbin: [/(?:^|\/)node_modules\/d3-hexbin\//u],
+  d3Contour: [/(?:^|\/)node_modules\/d3-contour\//u],
+  d3Geo: [/(?:^|\/)node_modules\/d3-geo\//u],
+  d3Delaunay: [
+    /(?:^|\/)node_modules\/(?:d3-delaunay|delaunator|robust-predicates)\//u,
+  ],
+  d3Force: [/(?:^|\/)node_modules\/d3-force\//u],
+  d3Sankey: [/(?:^|\/)node_modules\/d3-sankey\//u],
+  d3Hierarchy: [/(?:^|\/)node_modules\/d3-hierarchy\//u],
+  d3Brush: [/(?:^|\/)node_modules\/d3-brush\//u],
+  d3Zoom: [/(?:^|\/)node_modules\/d3-zoom\//u],
+  d3Selection: [/(?:^|\/)node_modules\/d3-selection\//u],
+  d3BrushRuntime: [
+    /(?:^|\/)node_modules\/(?:d3-brush|d3-color|d3-dispatch|d3-drag|d3-ease|d3-interpolate|d3-selection|d3-timer|d3-transition)\//u,
+  ],
+  d3ZoomRuntime: [
+    /(?:^|\/)node_modules\/(?:d3-color|d3-dispatch|d3-drag|d3-ease|d3-interpolate|d3-selection|d3-timer|d3-transition|d3-zoom)\//u,
+  ],
   d3ScaleRuntime: [
     /(?:^|\/)node_modules\/d3-scale\//u,
     /(?:^|\/)node_modules\/d3-format\//u,
@@ -112,7 +300,9 @@ const retainedInputGroups = {
     /(?:^|\/)node_modules\/d3-color\//u,
     /(?:^|\/)node_modules\/internmap\//u,
   ],
-  d3GeometryRuntime: [/(?:^|\/)node_modules\/(?:d3-geo|d3-shape)\//u],
+  d3GeometryRuntime: [
+    /(?:^|\/)node_modules\/(?:d3-contour|d3-delaunay|d3-geo|d3-hexbin|d3-shape|delaunator|robust-predicates)\//u,
+  ],
   d3Runtime: [/(?:^|\/)node_modules\/(?:d3-[^/]+|internmap)\//u],
 }
 const granularTransformInputGroups = [
@@ -122,12 +312,39 @@ const granularTransformInputGroups = [
   'transformGroup',
   'transformWindow',
   'transformCumulative',
+  'transformFold',
+  'transformMosaic',
   'transformRank',
   'transformNormalize',
   'transformSelect',
   'transformStack',
+  'transformWaterfall',
   'transformReduce',
 ]
+const optionalHierarchyInputGroups = [
+  'hierarchyFlat',
+  'hierarchyTree',
+  'hierarchyTreemap',
+  'hierarchySunburst',
+  'd3Hierarchy',
+]
+const optionalSankeyInputGroups = ['networkSankey', 'd3Sankey']
+const optionalFocusInputGroups = ['focusGuide']
+const optionalGuideNodeInputGroups = ['guideNodes']
+const optionalInteractionInputGroups = [
+  'interactionSignal',
+  'interactiveLegend',
+  'keyedSelection',
+  'decorativeMarkPublic',
+  'decorativeMarkLifecycle',
+  'markSceneFilter',
+]
+const optionalInteractionAxisInputGroups = ['interactionAxis']
+const optionalInteractionRangeInputGroups = ['interactionRange']
+const optionalCursorInputGroups = ['interactionCursor']
+const optionalHandleInputGroups = ['interactionHandle']
+const optionalBrushInputGroups = ['interactionBrush', 'd3Brush', 'd3Selection']
+const optionalZoomInputGroups = ['interactionZoom', 'd3Zoom']
 const nativeExternals = [
   'react',
   'react/jsx-runtime',
@@ -143,7 +360,7 @@ const entries = [
   budgeted(
     'Granular data transform suite',
     'benchmarks/entries/charts-transform-suite.ts',
-    6.35,
+    8.7,
     {
       inputBoundary: transformSuiteBoundary(),
     },
@@ -184,7 +401,7 @@ const entries = [
   ),
   budgeted(
     'Transform: window',
-    'benchmarks/entries/charts-transform-window.ts',
+    'benchmarks/entries/charts-transform-rolling-window.ts',
     1.35,
     { inputBoundary: granularTransformBoundary('transformWindow') },
   ),
@@ -193,6 +410,27 @@ const entries = [
     'benchmarks/entries/charts-transform-cumulative.ts',
     1.2,
     { inputBoundary: granularTransformBoundary('transformCumulative') },
+  ),
+  budgeted(
+    'Transform: fold',
+    'benchmarks/entries/charts-transform-fold.ts',
+    0.5,
+    { inputBoundary: granularTransformBoundary('transformFold') },
+  ),
+  budgeted(
+    'Transform: mosaic',
+    'benchmarks/entries/charts-transform-mosaic.ts',
+    2.1,
+    {
+      inputBoundary: {
+        ...granularTransformBoundary('transformMosaic'),
+        require: [
+          'transformMosaic',
+          'transformInternal',
+          'proportionalInterval',
+        ],
+      },
+    },
   ),
   budgeted(
     'Transform: rank',
@@ -217,7 +455,7 @@ const entries = [
   budgeted(
     'Transform: stack',
     'benchmarks/entries/charts-transform-stack.ts',
-    2.1,
+    2.68,
     {
       inputBoundary: granularTransformBoundary('transformStack', {
         allowD3Shape: true,
@@ -225,116 +463,1065 @@ const entries = [
     },
   ),
   budgeted(
+    'Transform: waterfall',
+    'benchmarks/entries/charts-transform-waterfall.ts',
+    1.1,
+    { inputBoundary: granularTransformBoundary('transformWaterfall') },
+  ),
+  budgeted(
     'Transform: advanced reducers',
     'benchmarks/entries/charts-transform-reduce.ts',
     0.55,
     { inputBoundary: granularTransformBoundary('transformReduce') },
   ),
+  measured('D3 force kernel', 'benchmarks/entries/d3-force-kernel.ts'),
+  incrementalBudgeted(
+    'Network force layout',
+    'benchmarks/entries/charts-network-force.ts',
+    'D3 force kernel',
+    2.5,
+    {
+      inputBoundary: {
+        require: ['networkForce', 'networkGraph', 'd3Force'],
+        addedFrom: 'D3 force kernel',
+        allowAdded: ['networkForce', 'networkGraph', 'transformInternal'],
+      },
+    },
+  ),
+  measured('D3 Sankey kernel', 'benchmarks/entries/d3-sankey-kernel.ts', {
+    inputBoundary: { require: ['d3Sankey'] },
+  }),
+  incrementalBudgeted(
+    'Network Sankey mark',
+    'benchmarks/entries/charts-network-sankey.ts',
+    'D3 Sankey kernel',
+    6.24,
+    {
+      inputBoundary: {
+        require: [
+          'networkSankey',
+          'networkGraph',
+          'resolvedLayoutChild',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'd3Sankey',
+        ],
+        addedFrom: 'D3 Sankey kernel',
+        allowAdded: [
+          'networkSankey',
+          'networkGraph',
+          'resolvedLayoutChild',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'markInfrastructure',
+          'rectMark',
+          'transformInternal',
+        ],
+      },
+    },
+  ),
+  measured(
+    'D3 hierarchy tree kernel',
+    'benchmarks/entries/d3-hierarchy-tree-kernel.ts',
+  ),
+  incrementalBudgeted(
+    'Hierarchy tree layout',
+    'benchmarks/entries/charts-hierarchy-tree.ts',
+    'D3 hierarchy tree kernel',
+    2.5,
+    {
+      inputBoundary: {
+        require: ['hierarchyFlat', 'hierarchyTree', 'd3Hierarchy'],
+        addedFrom: 'D3 hierarchy tree kernel',
+        allowAdded: ['hierarchyFlat', 'hierarchyTree', 'transformInternal'],
+      },
+    },
+  ),
+  measured(
+    'D3 hierarchy treemap kernel',
+    'benchmarks/entries/d3-hierarchy-treemap-kernel.ts',
+    {
+      inputBoundary: { require: ['d3Hierarchy'] },
+    },
+  ),
+  incrementalBudgeted(
+    'Hierarchy treemap mark',
+    'benchmarks/entries/charts-hierarchy-treemap.ts',
+    'D3 hierarchy treemap kernel',
+    3.74,
+    {
+      inputBoundary: {
+        require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
+        forbid: ['hierarchyTree'],
+        addedFrom: 'D3 hierarchy treemap kernel',
+        allowAdded: [
+          'hierarchyFlat',
+          'hierarchyTreemap',
+          'markInfrastructure',
+          'transformInternal',
+        ],
+      },
+    },
+  ),
+  measured(
+    'D3 hierarchy partition kernel',
+    'benchmarks/entries/d3-hierarchy-partition-kernel.ts',
+    {
+      inputBoundary: { require: ['d3Hierarchy'] },
+    },
+  ),
+  incrementalBudgeted(
+    'Hierarchy sunburst mark',
+    'benchmarks/entries/charts-hierarchy-sunburst.ts',
+    'D3 hierarchy partition kernel',
+    5.45,
+    {
+      inputBoundary: {
+        require: [
+          'hierarchyFlat',
+          'hierarchySunburst',
+          'sceneMotionContract',
+          'polarMarkInfrastructure',
+          'polarSector',
+          'd3Hierarchy',
+          'd3Shape',
+        ],
+        forbid: ['hierarchyTree', 'hierarchyTreemap', 'polarPie'],
+        addedFrom: 'D3 hierarchy partition kernel',
+        allowAdded: [
+          'hierarchyFlat',
+          'hierarchySunburst',
+          'sceneMotionContract',
+          'polarMarkInfrastructure',
+          'polarSector',
+          'markInfrastructure',
+          'transformInternal',
+          'd3Shape',
+          'd3Path',
+        ],
+      },
+    },
+  ),
   locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts', {
     inputBoundary: {
-      forbid: ['transformRuntime', 'tooltipRuntime', 'd3GeometryRuntime'],
+      forbid: [
+        'transformRuntime',
+        'tooltipRuntime',
+        'd3GeometryRuntime',
+        'networkForce',
+        'd3Force',
+        ...optionalHierarchyInputGroups,
+        'spatialContour',
+        'spatialGrouping',
+        'spatialVoronoi',
+        'scenePointOwnership',
+      ],
     },
   }),
   locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts', {
     rendererBoundary: 'svg',
-    inputBoundary: { forbid: ['d3GeometryRuntime'] },
+    inputBoundary: {
+      forbid: [
+        'd3GeometryRuntime',
+        'networkForce',
+        'd3Force',
+        ...optionalHierarchyInputGroups,
+        'spatialContour',
+        'spatialGrouping',
+        'spatialVoronoi',
+        'scenePointOwnership',
+      ],
+    },
   }),
+  incrementalBudgeted(
+    'Decorative line + static SVG',
+    'benchmarks/entries/charts-decorative-line-svg.ts',
+    'D3-scale line + static SVG',
+    0.5,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+        ],
+        forbid: [
+          'interactionSignal',
+          'interactiveLegend',
+          'keyedSelection',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: [
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'D3-scale lineX + static SVG',
+    'benchmarks/entries/charts-line-x-svg.ts',
+    20.24,
+  ),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    20.9,
+    24.9,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    18.7,
+    22.78,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    19.2,
+    23.94,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    16.35,
+    20.2,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    19.8,
+    24.25,
   ),
-  budgeted('Frame + static SVG', 'benchmarks/entries/charts-frame-svg.ts', 7.9),
+  budgeted(
+    'D3-scale dots + static SVG',
+    'benchmarks/entries/charts-dot-svg.ts',
+    20.67,
+    {
+      inputBoundary: {
+        forbid: [
+          'dodgeLayout',
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Focus guide + static SVG',
+    'benchmarks/entries/charts-focus-guide.ts',
+    'D3-scale dots + static SVG',
+    2,
+    {
+      inputBoundary: {
+        require: ['focusGuide', 'focusMark', 'guideNodes'],
+        forbid: [
+          'motionRuntime',
+          'springRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: ['focusGuide', 'focusMark', 'guideNodes'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Tick-label accessors + static SVG',
+    'benchmarks/entries/charts-tick-label-accessors.ts',
+    'D3-scale line + static SVG',
+    0.75,
+    {
+      inputBoundary: {
+        forbid: [
+          'focusGuide',
+          'focusMark',
+          'motionRuntime',
+          'springRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: [],
+      },
+    },
+  ),
+  budgeted(
+    'Frame + static SVG',
+    'benchmarks/entries/charts-frame-svg.ts',
+    11.63,
+  ),
+  incrementalBudgeted(
+    'Spatial density contours + static SVG',
+    'benchmarks/entries/charts-spatial-density-svg.ts',
+    'D3-scale dots + static SVG',
+    3,
+    {
+      inputBoundary: {
+        require: [
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'resolvedLayoutProjection',
+        ],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: [
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'd3Array',
+          'resolvedLayoutProjection',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Spatial scalar contours + static SVG',
+    'benchmarks/entries/charts-spatial-contour-svg.ts',
+    'Frame + static SVG',
+    3,
+    {
+      inputBoundary: {
+        require: ['spatialContour', 'd3Contour'],
+        forbid: ['spatialDensity', 'spatialGrouping', 'd3Geo'],
+        addedFrom: 'Frame + static SVG',
+        allowAdded: ['spatialContour', 'd3Contour', 'd3Array'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Spatial Voronoi cells + static SVG',
+    'benchmarks/entries/charts-spatial-voronoi-svg.ts',
+    'D3-scale dots + static SVG',
+    9,
+    {
+      inputBoundary: {
+        require: [
+          'spatialVoronoi',
+          'spatialGrouping',
+          'd3Delaunay',
+          'resolvedLayoutProjection',
+        ],
+        forbid: ['resolvedLayoutChild'],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: [
+          'spatialVoronoi',
+          'spatialGrouping',
+          'spatialDelaunay',
+          'd3Delaunay',
+          'resolvedLayoutProjection',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Dodge dots + static SVG',
+    'benchmarks/entries/charts-dodge-svg.ts',
+    'D3-scale dots + static SVG',
+    2,
+    {
+      inputBoundary: {
+        require: ['dodgeLayout'],
+        forbid: ['d3Force'],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: ['dodgeLayout'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Waffle + static SVG',
+    'benchmarks/entries/charts-waffle-svg.ts',
+    'Frame + static SVG',
+    2,
+    {
+      inputBoundary: {
+        require: ['waffleMark'],
+        forbid: ['d3GeometryRuntime'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Ridgeline + static SVG',
+    'benchmarks/entries/charts-ridgeline-svg.ts',
+    'D3-scale line + static SVG',
+    0.75,
+    {
+      inputBoundary: {
+        require: ['ridgelineMark', 'mappedSpacing', 'transformInternal'],
+        forbid: [
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          'transformBin',
+          'transformNormalize',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: ['ridgelineMark', 'mappedSpacing', 'transformInternal'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Violin + static SVG',
+    'benchmarks/entries/charts-violin-svg.ts',
+    'D3-scale line + static SVG',
+    0.75,
+    {
+      inputBoundary: {
+        require: ['violinMark', 'mappedSpacing', 'transformInternal'],
+        forbid: [
+          'ridgelineMark',
+          'areaXMark',
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          ...granularTransformInputGroups,
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: ['violinMark', 'mappedSpacing', 'transformInternal'],
+      },
+    },
+  ),
+  budgeted(
+    'Composite mark + static SVG',
+    'benchmarks/entries/charts-composite-mark.ts',
+    27.75,
+    {
+      inputBoundary: {
+        require: [
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+        ],
+        forbid: ['boxMark', 'transformStatistics'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Box mark + static SVG',
+    'benchmarks/entries/charts-box-svg.ts',
+    'Composite mark + static SVG',
+    1.1,
+    {
+      inputBoundary: {
+        require: [
+          'boxMark',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'transformStatistics',
+          'transformInternal',
+        ],
+        forbid: ['compositeMarkPublic'],
+        addedFrom: 'Composite mark + static SVG',
+        allowAdded: ['boxMark', 'transformStatistics', 'transformInternal'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Linear regression + static SVG',
+    'benchmarks/entries/charts-regression-svg.ts',
+    'D3-scale line + static SVG',
+    6.59,
+    {
+      inputBoundary: {
+        require: [
+          'regressionMark',
+          'areaYMark',
+          'stackInternal',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'd3Shape',
+        ],
+        forbid: ['compositeMarkPublic', 'boxMark', 'transformStatistics'],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: [
+          'regressionMark',
+          'areaYMark',
+          'stackInternal',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'transformInternal',
+          'd3Shape',
+          'd3Path',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Difference mark + static SVG',
+    'benchmarks/entries/charts-difference-svg.ts',
+    'D3-scale line + static SVG',
+    7.03,
+    {
+      inputBoundary: {
+        require: [
+          'differenceMark',
+          'areaYMark',
+          'areaXMark',
+          'stackInternal',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'resolvedLayoutChild',
+          'd3Shape',
+        ],
+        forbid: [
+          'compositeMarkPublic',
+          'boxMark',
+          'regressionMark',
+          'transformStatistics',
+        ],
+        addedFrom: 'D3-scale line + static SVG',
+        allowAdded: [
+          'differenceMark',
+          'areaYMark',
+          'areaXMark',
+          'stackInternal',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'scenePointOwnership',
+          'resolvedLayoutChild',
+          'transformInternal',
+          'd3Shape',
+          'd3Path',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Coordinated views + static SVG',
+    'benchmarks/entries/charts-view-composition.ts',
+    'D3-scale dots + static SVG',
+    5.4,
+    {
+      inputBoundary: {
+        require: [
+          'viewComposition',
+          'sceneEmbed',
+          'sceneNamespace',
+          'compositeMotion',
+        ],
+        forbid: [
+          'facetMark',
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: [
+          'viewComposition',
+          'sceneEmbed',
+          'sceneNamespace',
+          'compositeMotion',
+        ],
+      },
+    },
+  ),
   budgeted(
     'Custom mark scale-value factory',
     'benchmarks/entries/charts-mark-scale-values.ts',
-    0.25,
+    0.39,
+  ),
+  measured(
+    'Crosshair mark extension',
+    'benchmarks/entries/charts-crosshair-kernel.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['crosshairRuntime'],
+        forbid: [
+          'cursorRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    16.3,
+    20.11,
+    { inputBoundary: { forbid: ['d3Hexbin'] } },
+  ),
+  incrementalBudgeted(
+    'Spatial hexbin + static SVG',
+    'benchmarks/entries/charts-spatial-hexbin-svg.ts',
+    'D3-scale hexagons + static SVG',
+    2,
+    {
+      inputBoundary: {
+        require: [
+          'spatialHexbin',
+          'd3Hexbin',
+          'resolvedLayoutProjection',
+          'resolvedLayoutChild',
+        ],
+        addedFrom: 'D3-scale hexagons + static SVG',
+        allowAdded: [
+          'spatialHexbin',
+          'd3Hexbin',
+          'transformRuntime',
+          'resolvedLayoutProjection',
+          'resolvedLayoutChild',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    16.25,
+    20.1,
+    {
+      inputBoundary: {
+        forbid: [
+          'spatialGrouping',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Spatial Delaunay links + static SVG',
+    'benchmarks/entries/charts-spatial-delaunay-svg.ts',
+    'D3-scale link + static SVG',
+    8.25,
+    {
+      inputBoundary: {
+        require: [
+          'spatialDelaunay',
+          'spatialGrouping',
+          'd3Delaunay',
+          'resolvedLayoutProjection',
+          'resolvedLayoutChild',
+        ],
+        addedFrom: 'D3-scale link + static SVG',
+        allowAdded: [
+          'spatialDelaunay',
+          'spatialGrouping',
+          'd3Delaunay',
+          'resolvedLayoutProjection',
+          'resolvedLayoutChild',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    16.75,
+    21.13,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
     'benchmarks/entries/charts-vector-svg.ts',
-    16.45,
+    20.31,
   ),
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    13.85,
+    17.58,
   ),
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    11.75,
+    16.56,
+    { inputBoundary: { forbid: ['polarPie'] } },
   ),
-  budgeted(
-    'D3 pie + polar arc + static SVG',
+  incrementalBudgeted(
+    'Polar pie allocation + static SVG',
     'benchmarks/entries/charts-polar-pie-svg.ts',
-    12.2,
+    'Polar arc + static SVG',
+    1.1,
+    {
+      inputBoundary: {
+        require: ['polarPie', 'proportionalInterval'],
+        addedFrom: 'Polar arc + static SVG',
+        allowAdded: ['polarPie', 'proportionalInterval', 'transformInternal'],
+      },
+    },
   ),
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    20.55,
+    25.69,
+  ),
+  budgeted(
+    'Radial labels + static SVG',
+    'benchmarks/entries/charts-radial-label-svg.ts',
+    22.2,
+    { inputBoundary: { forbid: ['polarPie'] } },
+  ),
+  budgeted(
+    'Polar radial bars + static SVG',
+    'benchmarks/entries/charts-radial-bar-svg.ts',
+    25.7,
+    {
+      inputBoundary: {
+        require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
+        forbid: ['polarPie', 'hierarchySunburst', 'd3Hierarchy'],
+      },
+    },
   ),
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    22.1,
+    26.8,
   ),
-  locked('Representative marks', 'benchmarks/entries/charts-representative.ts'),
+  locked(
+    'Representative marks',
+    'benchmarks/entries/charts-representative.ts',
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        forbid: [
+          'dodgeLayout',
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Representative marks + mark Canvas renderer',
+    'benchmarks/entries/charts-representative-mark-canvas.ts',
+    35.8,
+    {
+      rendererBoundary: 'mixed',
+      inputBoundary: {
+        forbid: [
+          'dodgeLayout',
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+        ],
+      },
+    },
+  ),
   measured(
     'Renderer-neutral DOM host',
     'benchmarks/entries/charts-renderer.ts',
     {
       rendererBoundary: 'neutral',
       inputBoundary: {
-        forbid: ['tooltipRuntime', 'tooltipPortal'],
+        forbid: ['tooltipRuntime', 'tooltipPortal', 'spatialVoronoi'],
       },
     },
   ),
   measured('Canvas DOM host', 'benchmarks/entries/charts-canvas.ts', {
     rendererBoundary: 'canvas',
+    inputBoundary: { forbid: ['spatialVoronoi'] },
   }),
   locked('TanStack DOM host', 'benchmarks/entries/charts-dom.ts', {
     rendererBoundary: 'svg',
     inputBoundary: {
-      forbid: ['tooltipRuntime', 'tooltipPortal', 'd3GeometryRuntime'],
+      forbid: [
+        'tooltipRuntime',
+        'tooltipPortal',
+        'd3GeometryRuntime',
+        'spatialVoronoi',
+      ],
     },
   }),
+  budgeted(
+    'Controlled interaction signal',
+    'benchmarks/entries/charts-interaction-signal.ts',
+    0.25,
+    {
+      inputBoundary: {
+        require: ['interactionSignal'],
+        forbid: [
+          'interactiveLegend',
+          'keyedSelection',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Controlled keyed selection',
+    'benchmarks/entries/charts-keyed-selection.ts',
+    0.5,
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['interactionSignal', 'keyedSelection'],
+        forbid: [
+          'interactiveLegend',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Selected overlay + static SVG',
+    'benchmarks/entries/charts-selected-overlay-svg.ts',
+    'D3-scale dots + static SVG',
+    1.6,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'keyedSelection',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'scenePointOwnership',
+        ],
+        forbid: [
+          'interactiveLegend',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'D3-scale dots + static SVG',
+        allowAdded: [
+          'interactionSignal',
+          'keyedSelection',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'scenePointOwnership',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Interactive legend + DOM host',
+    'benchmarks/entries/charts-interactive-legend.ts',
+    'TanStack DOM host',
+    2.6,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactiveLegend',
+          'markSceneFilter',
+          'scenePointOwnership',
+          'categoricalLegendLayout',
+        ],
+        forbid: [
+          'keyedSelection',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'TanStack DOM host',
+        allowAdded: [
+          'interactionSignal',
+          'interactiveLegend',
+          'markSceneFilter',
+          'scenePointOwnership',
+          'categoricalLegendLayout',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Continuous cursor + DOM host',
+    'benchmarks/entries/charts-continuous-cursor.ts',
+    'TanStack DOM host',
+    5,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionCursor',
+          'interactionAxis',
+          'guideNodes',
+        ],
+        forbid: [
+          'interactionBrush',
+          'd3Brush',
+          'd3Selection',
+          'focusGuide',
+          'focusMark',
+          'interactiveLegend',
+          'keyedSelection',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'TanStack DOM host',
+        allowAdded: [
+          'interactionSignal',
+          'interactionCursor',
+          'interactionAxis',
+          'guideNodes',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Horizontal handle + DOM host',
+    'benchmarks/entries/charts-scale-handle.ts',
+    'TanStack DOM host',
+    5,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionHandle',
+          'interactionAxis',
+          'interactionRange',
+        ],
+        forbid: [
+          'interactionBrush',
+          'interactionCursor',
+          'interactionZoom',
+          'd3Brush',
+          'd3Zoom',
+          'd3Selection',
+          'focusGuide',
+          'focusMark',
+          'guideNodes',
+          'interactiveLegend',
+          'keyedSelection',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'TanStack DOM host',
+        allowAdded: [
+          'interactionSignal',
+          'interactionHandle',
+          'interactionAxis',
+          'interactionRange',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Horizontal brush + DOM host',
+    'benchmarks/entries/charts-brush-x.ts',
+    'TanStack DOM host',
+    20,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionBrush',
+          'interactionAxis',
+          'interactionRange',
+          'd3Brush',
+          'd3Selection',
+        ],
+        forbid: [
+          'interactiveLegend',
+          'keyedSelection',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'TanStack DOM host',
+        allowAdded: [
+          'interactionSignal',
+          'interactionBrush',
+          'interactionAxis',
+          'interactionRange',
+          'd3BrushRuntime',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'Horizontal zoom + DOM host',
+    'benchmarks/entries/charts-zoom-x.ts',
+    'TanStack DOM host',
+    20.35,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionZoom',
+          'interactionAxis',
+          'interactionRange',
+          'd3Zoom',
+          'd3Selection',
+        ],
+        forbid: [
+          'interactionBrush',
+          'interactionCursor',
+          'd3Brush',
+          'interactiveLegend',
+          'keyedSelection',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+        addedFrom: 'TanStack DOM host',
+        allowAdded: [
+          'interactionSignal',
+          'interactionZoom',
+          'interactionAxis',
+          'interactionRange',
+          'd3ZoomRuntime',
+        ],
+      },
+    },
+  ),
   measured(
     'React renderer-neutral adapter',
     'benchmarks/entries/charts-react-core.ts',
@@ -342,7 +1529,7 @@ const entries = [
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'neutral',
       inputBoundary: {
-        forbid: ['tooltipRuntime', 'tooltipPortal'],
+        forbid: ['tooltipRuntime', 'tooltipPortal', 'spatialVoronoi'],
       },
     },
   ),
@@ -352,19 +1539,36 @@ const entries = [
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'canvas',
+      inputBoundary: { forbid: ['spatialVoronoi'] },
     },
   ),
   locked('React adapter', 'benchmarks/entries/charts-react.ts', {
     external: ['react', 'react/jsx-runtime', 'react-dom'],
     rendererBoundary: 'svg',
     inputBoundary: {
-      forbid: ['tooltipRuntime', 'tooltipPortal', 'd3GeometryRuntime'],
+      forbid: [
+        'tooltipRuntime',
+        'tooltipPortal',
+        'd3GeometryRuntime',
+        'spatialVoronoi',
+      ],
     },
   }),
   locked('React line consumer', 'benchmarks/entries/charts-react-line.ts', {
     external: ['react', 'react/jsx-runtime', 'react-dom'],
-    inputBoundary: { forbid: ['d3GeometryRuntime'] },
+    rendererBoundary: 'svg',
+    inputBoundary: { forbid: ['d3GeometryRuntime', 'spatialVoronoi'] },
   }),
+  budgeted(
+    'React line consumer + mark Canvas renderer',
+    'benchmarks/entries/charts-react-line-mark-canvas.ts',
+    41.8,
+    {
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
+      rendererBoundary: 'mixed',
+      inputBoundary: { forbid: ['d3GeometryRuntime', 'spatialVoronoi'] },
+    },
+  ),
   measured(
     'React Native SVG host',
     'benchmarks/entries/charts-react-native.ts',
@@ -377,6 +1581,7 @@ const entries = [
           'tooltipRuntime',
           'tooltipPortal',
           'd3Runtime',
+          'spatialVoronoi',
         ],
       },
       platform: 'neutral',
@@ -389,6 +1594,7 @@ const entries = [
     {
       external: nativeExternals,
       rendererBoundary: 'native',
+      inputBoundary: { forbid: ['spatialVoronoi'] },
       platform: 'neutral',
       conditions: ['react-native', 'import'],
     },
@@ -401,7 +1607,12 @@ const entries = [
       rendererBoundary: 'native',
       inputBoundary: {
         require: ['nativeTooltip'],
-        forbid: ['tooltipRuntime', 'tooltipPortal', 'd3Runtime'],
+        forbid: [
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+          'spatialVoronoi',
+        ],
         addedFrom: 'React Native SVG host',
         allowAdded: ['nativeTooltip'],
       },
@@ -421,6 +1632,7 @@ const entries = [
           'tooltipRuntime',
           'tooltipPortal',
           'd3GeometryRuntime',
+          'spatialVoronoi',
         ],
       },
       platform: 'neutral',
@@ -430,7 +1642,7 @@ const entries = [
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
-    8.2,
+    11.68,
     {
       inputBoundary: {
         require: ['compactLinear'],
@@ -449,7 +1661,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    18.6,
+    28.47,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -482,6 +1694,26 @@ const entries = [
           'compactBandKernel',
           'compactOrdinal',
           'reactTooltipBridge',
+          'motionRuntime',
+          'springRuntime',
+          'transformRuntime',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Motion timing utilities',
+    'benchmarks/entries/charts-motion-definition.ts',
+    0.5,
+    {
+      inputBoundary: {
+        require: ['motionDefinition'],
+        forbid: [
+          'motionRuntime',
+          'springRuntime',
+          'tooltipExtension',
+          'tooltipPortal',
           'transformRuntime',
           'd3Runtime',
         ],
@@ -491,17 +1723,21 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    10.6,
+    20.91,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
-        require: ['motionRuntime', 'springRuntime'],
+        require: ['motionRuntime', 'sceneMotionContract', 'springRuntime'],
         forbid: [
           'tooltipExtension',
           'tooltipPortal',
           'transformRuntime',
           'd3Array',
           'd3ScaleRuntime',
+          'd3Shape',
+          'd3Path',
+          'polarSector',
+          ...optionalHierarchyInputGroups,
         ],
       },
     },
@@ -593,7 +1829,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    42.3,
+    52.82,
   ),
   locked(
     'Custom-scale line scene',
@@ -619,37 +1855,37 @@ const entries = [
   budgeted(
     'D3 curved line scene',
     'benchmarks/entries/charts-d3-curved-line-scene.ts',
-    17.45,
+    20.9,
   ),
   budgeted(
     'D3 time-scale line scene',
     'benchmarks/entries/charts-d3-time-scene.ts',
-    19.8,
+    23.21,
   ),
   budgeted(
     'Direct D3 monotone + TanStack SVG',
     'benchmarks/entries/charts-d3-curve-svg.ts',
-    18.5,
+    22.61,
   ),
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    17.5,
+    21.5,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    20.9,
+    24.9,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    26.5,
+    36.84,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    31.8,
+    42.07,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -789,7 +2025,42 @@ const entries = [
   budgeted(
     'Geometry pointer resolver kernel',
     'benchmarks/entries/charts-pointer-geometry-kernel.ts',
-    2,
+    2.25,
+  ),
+  measured(
+    'Application cursor controller',
+    'benchmarks/entries/charts-cursor-controller.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
+  measured(
+    'Cursor host policy',
+    'benchmarks/entries/charts-cursor-host-policy.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime', 'focusPresentationRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3 brush controller kernel',
@@ -813,13 +2084,12 @@ const entries = [
   measured('D3 polygon kernel', 'benchmarks/entries/d3-polygon-kernel.ts'),
   measured('D3 polar kernel', 'benchmarks/entries/d3-polar-kernel.ts'),
   measured('D3 hierarchy kernel', 'benchmarks/entries/d3-hierarchy-kernel.ts'),
-  measured('D3 force kernel', 'benchmarks/entries/d3-force-kernel.ts'),
   measured('D3 contour kernel', 'benchmarks/entries/d3-contour-kernel.ts'),
   measured('D3 geo kernel', 'benchmarks/entries/d3-geo-kernel.ts'),
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    43.4,
+    53.72,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
@@ -836,49 +2106,73 @@ const entries = [
 
 await mkdir(outputDirectory, { recursive: true })
 
+const bundleConcurrency = readBundleConcurrency(
+  process.env.BUNDLE_BUILD_CONCURRENCY,
+  4,
+)
+const entryRows = new Array(entries.length)
+await runWithConcurrency(
+  entries,
+  bundleConcurrency,
+  async (
+    {
+      label,
+      entry,
+      external,
+      alias,
+      policy,
+      rendererBoundary,
+      inputBoundary,
+      platform,
+      conditions,
+    },
+    index,
+  ) => {
+    const outfile = resolve(
+      outputDirectory,
+      `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+    )
+    const result = await build({
+      entryPoints: [resolve(root, entry)],
+      outfile,
+      bundle: true,
+      minify: true,
+      treeShaking: true,
+      platform: platform ?? 'browser',
+      format: 'esm',
+      target: 'es2022',
+      define: { 'process.env.NODE_ENV': '"production"' },
+      legalComments: 'none',
+      logLevel: 'silent',
+      external,
+      alias,
+      conditions,
+      metafile: true,
+    })
+    const retainedInputs = collectRetainedInputs(result.metafile)
+    const contents = await readFile(outfile)
+    entryRows[index] = {
+      label,
+      bytes: contents.byteLength,
+      gzip: gzipSync(contents).byteLength,
+      policy,
+      retainedInputs,
+      rendererBoundary,
+      inputBoundary,
+    }
+  },
+)
+
 const rows = []
-for (const {
-  label,
-  entry,
-  external,
-  alias,
-  policy,
-  rendererBoundary,
-  inputBoundary,
-  platform,
-  conditions,
-} of entries) {
-  const outfile = resolve(
-    outputDirectory,
-    `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+for (const row of entryRows) {
+  assertRendererBoundary(row.label, row.retainedInputs, row.rendererBoundary)
+  assertRetainedInputBoundary(
+    row.label,
+    row.retainedInputs,
+    row.inputBoundary,
+    rows,
   )
-  const result = await build({
-    entryPoints: [resolve(root, entry)],
-    outfile,
-    bundle: true,
-    minify: true,
-    treeShaking: true,
-    platform: platform ?? 'browser',
-    format: 'esm',
-    target: 'es2022',
-    legalComments: 'none',
-    logLevel: 'silent',
-    external,
-    alias,
-    conditions,
-    metafile: true,
-  })
-  const retainedInputs = collectRetainedInputs(result.metafile)
-  assertRendererBoundary(label, retainedInputs, rendererBoundary)
-  assertRetainedInputBoundary(label, retainedInputs, inputBoundary, rows)
-  const contents = await readFile(outfile)
-  rows.push({
-    label,
-    bytes: contents.byteLength,
-    gzip: gzipSync(contents).byteLength,
-    policy,
-    retainedInputs,
-  })
+  rows.push(row)
 }
 
 for (const [label, directory] of [
@@ -1015,9 +2309,72 @@ function createEntry(label, entry, policy, options) {
     external: options.external,
     alias: options.alias,
     rendererBoundary: options.rendererBoundary,
-    inputBoundary: options.inputBoundary,
+    inputBoundary: optionalSubpathIsolatedBoundary(
+      entry,
+      options.inputBoundary,
+    ),
     platform: options.platform,
     conditions: options.conditions,
+  }
+}
+
+function optionalSubpathIsolatedBoundary(entry, boundary = {}) {
+  if (!entry.startsWith('benchmarks/entries/charts-')) return boundary
+
+  const hierarchyRequired = (boundary.require ?? []).some((group) =>
+    optionalHierarchyInputGroups.includes(group),
+  )
+  const sankeyRequired = (boundary.require ?? []).some((group) =>
+    optionalSankeyInputGroups.includes(group),
+  )
+  const focusRequired = (boundary.require ?? []).some((group) =>
+    optionalFocusInputGroups.includes(group),
+  )
+  const guideNodesRequired = (boundary.require ?? []).some((group) =>
+    optionalGuideNodeInputGroups.includes(group),
+  )
+  const interactionRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionInputGroups.includes(group),
+  )
+  const interactionAxisRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionAxisInputGroups.includes(group),
+  )
+  const interactionRangeRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionRangeInputGroups.includes(group),
+  )
+  const cursorRequired = (boundary.require ?? []).some((group) =>
+    optionalCursorInputGroups.includes(group),
+  )
+  const handleRequired = (boundary.require ?? []).some((group) =>
+    optionalHandleInputGroups.includes(group),
+  )
+  const brushRequired = (boundary.require ?? []).some((group) =>
+    optionalBrushInputGroups.includes(group),
+  )
+  const zoomRequired = (boundary.require ?? []).some((group) =>
+    optionalZoomInputGroups.includes(group),
+  )
+
+  return {
+    ...boundary,
+    forbid: [
+      ...new Set([
+        ...(boundary.forbid ?? []),
+        ...(hierarchyRequired ? [] : optionalHierarchyInputGroups),
+        ...(sankeyRequired ? [] : optionalSankeyInputGroups),
+        ...(focusRequired ? [] : optionalFocusInputGroups),
+        ...(guideNodesRequired ? [] : optionalGuideNodeInputGroups),
+        ...(interactionRequired ? [] : optionalInteractionInputGroups),
+        ...(interactionAxisRequired ? [] : optionalInteractionAxisInputGroups),
+        ...(interactionRangeRequired
+          ? []
+          : optionalInteractionRangeInputGroups),
+        ...(cursorRequired ? [] : optionalCursorInputGroups),
+        ...(handleRequired ? [] : optionalHandleInputGroups),
+        ...(brushRequired ? [] : optionalBrushInputGroups),
+        ...(zoomRequired ? [] : optionalZoomInputGroups),
+      ]),
+    ],
   }
 }
 
@@ -1040,6 +2397,9 @@ function assertRendererBoundary(label, inputs, boundary) {
   } else if (boundary === 'svg') {
     if (!svg.length) failures.push('did not include the SVG renderer')
     if (canvas.length) failures.push(`included Canvas: ${canvas.join(', ')}`)
+  } else if (boundary === 'mixed') {
+    if (!canvas.length) failures.push('did not include the Canvas renderer')
+    if (!svg.length) failures.push('did not include the SVG renderer')
   } else if (boundary === 'native') {
     if (!native.length) failures.push('did not include the native SVG host')
     if (browser.length) {

@@ -5,9 +5,9 @@ description: Choose quantitative matrix cells, contours, or hexagonal bins to sh
 
 Heatmaps and density charts answer where values concentrate across two
 dimensions. A matrix uses explicit row and column categories or intervals.
-Contours and spatial bins summarize a continuous point field. Choose the
-representation that preserves the question instead of defaulting to one color
-per raw observation.
+Contours summarize a regular scalar grid or an estimated point field; spatial
+bins summarize local observations. Choose the representation that preserves
+the question instead of defaulting to one color per raw observation.
 
 ## Choose the comparison
 
@@ -15,6 +15,7 @@ per raw observation.
 | ------------------------------------------------------------- | --------------------------- |
 | How does daily activity vary by week and weekday?             | Token use calendar heatmap  |
 | How many observations fall in each quantitative x-y interval? | Binned quantitative heatmap |
+| What regions of a regular scalar grid cross selected levels?  | Scalar-grid contours        |
 | What smooth regions enclose similar point density?            | Density contours            |
 | Where are dense clusters while retaining local bin shape?     | Hexagonal bins              |
 | What value belongs to each pair of named categories?          | An ordinal cell matrix      |
@@ -23,6 +24,74 @@ per raw observation.
 color channels. [Legends and Color](../guides/legends-and-color.md) covers
 continuous color meaning and accessible legend design.
 
+## Start with a labeled matrix
+
+An ordinal matrix uses categories on both axes and one quantitative value for
+each cell. Direct labels preserve exact values while color makes broad patterns
+visible.
+
+```ts group=labeled-matrix env=charts file=/src/chart.ts entry
+import { cell, colorGradientLegend, defineChart, text } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from 'd3-scale'
+import { quarters, scores, teams } from './data'
+
+export default defineChart({
+  marks: [
+    cell(scores, {
+      x: 'quarter',
+      y: 'team',
+      color: 'score',
+      key: (row) => `${row.team}-${row.quarter}`,
+      inset: 1,
+    }),
+    text(scores, {
+      x: 'quarter',
+      y: 'team',
+      text: (row) => row.score.toFixed(0),
+      fill: '#0f172a',
+      fontWeight: 650,
+    }),
+  ],
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().domain(quarters).padding(0.04),
+      axis: { label: 'Quarter' },
+    },
+    y: {
+      scale: () => scaleBand<string>().domain(teams).padding(0.04),
+      axis: { label: 'Team' },
+    },
+  },
+
+  color: {
+    scale: () =>
+      scaleLinear<string>().domain([60, 100]).range(['#eff6ff', '#60a5fa']),
+    legend: colorGradientLegend({ label: 'Score', steps: 8 }),
+  },
+})
+```
+
+```ts group=labeled-matrix file=/src/data.ts collapsed
+export const quarters = ['Q1', 'Q2', 'Q3', 'Q4']
+export const teams = ['Core', 'Cloud', 'Mobile']
+
+export const scores = [
+  { team: 'Core', quarter: 'Q1', score: 72 },
+  { team: 'Core', quarter: 'Q2', score: 78 },
+  { team: 'Core', quarter: 'Q3', score: 84 },
+  { team: 'Core', quarter: 'Q4', score: 88 },
+  { team: 'Cloud', quarter: 'Q1', score: 66 },
+  { team: 'Cloud', quarter: 'Q2', score: 74 },
+  { team: 'Cloud', quarter: 'Q3', score: 81 },
+  { team: 'Cloud', quarter: 'Q4', score: 86 },
+  { team: 'Mobile', quarter: 'Q1', score: 82 },
+  { team: 'Mobile', quarter: 'Q2', score: 79 },
+  { team: 'Mobile', quarter: 'Q3', score: 91 },
+  { team: 'Mobile', quarter: 'Q4', score: 94 },
+]
+```
+
 ## Bin events into a calendar
 
 A contribution-style calendar exposes both long-term activity and weekday
@@ -30,14 +99,7 @@ rhythm without drawing one long daily time axis. This example aggregates raw,
 session-level token events into a complete twelve-month UTC day domain, then
 maps Sunday weeks to columns and weekdays to rows.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/118-token-usage-calendar/?theme=system&height=480"
-  title="Token use calendar heatmap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=118-token-usage-calendar height=480 -->
 
 The example uses `binTimeX` with D3's `utcDay` interval and an explicit
 twelve-month domain. Each output row contains the day interval, the summed token
@@ -57,38 +119,39 @@ around daylight-saving transitions.
 A two-dimensional binned heatmap makes density bounded: the number of rendered
 cells depends on the chosen grid, not directly on the number of raw points.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/24-quantitative-binned-heatmap/?theme=system&height=480"
-  title="Two-dimensional quantitative binned heatmap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=24-quantitative-binned-heatmap height=480 -->
 
 Prepare explicit x and y interval endpoints plus the aggregate value. Use
 thresholds that are stable across comparable views and a color domain that
 states whether absolute count or normalized density is being shown. See
-[Scales and D3](../concepts/scales-and-d3.md) for binning and scale ownership.
+[Scales](../concepts/scales-and-d3.md) for binning and scale ownership.
 
-## Summarize a continuous field with contours
+## Trace levels through a scalar grid
+
+A scalar-grid contour shows where a sampled field crosses chosen values. The
+input is a regular row-major grid rather than a set of x/y observations.
+
+<!-- ::chart-example id=38-contour-topography height=480 -->
+
+The optional [`contour` mark](../reference/marks/contour.md) accepts the raw
+grid, dimensions, value channel, and levels. It owns marching-squares topology
+and structured polygons; the chart definition retains the metric and threshold
+choices. Keep grid orientation and dimensions explicit when changing the
+sample window.
+
+## Estimate point concentration with density contours
 
 Density contours turn many points into nested level sets. They are useful for
 revealing cluster shape and overlap when raw dots would occlude one another.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/39-density-contours/?theme=system&height=480"
-  title="Nested point-density contours built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=39-density-contours height=480 -->
 
 Bandwidth and thresholds change the visible shape. Treat them as analytical
 parameters, keep them stable for comparisons, and explain them when they affect
-interpretation. This case uses an optional custom mark boundary described in
-[Custom Marks and Renderers](../guides/custom-marks-and-renderers.md).
+interpretation. The optional
+[`densityContour` mark](../reference/marks/density.md) maps the source channels
+through final scales, owns responsive estimation, and emits structured polygons
+and holes without case-owned path construction.
 
 ## Retain local structure with hexagonal bins
 
@@ -96,20 +159,12 @@ Hexagonal bins aggregate nearby points in pixel space and encode each bin's
 count or statistic. They provide a compact alternative when a rectangular grid
 would impose stronger horizontal and vertical edges.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/43-hexbin-density/?theme=system&height=480"
-  title="Pixel-space hexagonally binned density chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=43-hexbin-density height=480 -->
 
 Pixel-space binning is responsive work: a changed container changes the spatial
-layout. Keep that preparation aligned with the chart's measured inner bounds.
-[Responsive Charts](../guides/responsive-charts.md) defines the measurement
-lifecycle; [Dot and Hexagon Marks](../reference/marks/dot-and-hexagon.md)
-defines the rendered mark.
+layout. The optional [`hexbin` mark](../reference/marks/hexbin.md) owns that
+resolved-layout step, reducer channels, source lineage, and hexagon scene
+output without a duplicated scale.
 
 ## Production checks
 

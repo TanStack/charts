@@ -9,6 +9,7 @@
   "features": [
     "focus plus context",
     "linked views",
+    "definition-owned horizontal brush",
     "explicit shared domain",
     "semantic click targets",
     "persistent viewport"
@@ -132,17 +133,23 @@
           "type": "assertRendered",
           "assertions": [
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "visible",
               "equals": true
             },
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "width",
               "atLeast": 40
             },
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "contained",
               "equals": true,
               "within": {
@@ -151,7 +158,9 @@
               "tolerance": 1
             },
             {
-              "target": { "selector": "[data-focus-window] .handle" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .handle"
+              },
               "property": "count",
               "equals": 2
             },
@@ -195,12 +204,16 @@
           "type": "assertRendered",
           "assertions": [
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "visible",
               "equals": true
             },
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "contained",
               "equals": true,
               "within": {
@@ -251,12 +264,16 @@
           "type": "assertRendered",
           "assertions": [
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "visible",
               "equals": true
             },
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "contained",
               "equals": true,
               "within": {
@@ -304,7 +321,9 @@
           "type": "assertRendered",
           "assertions": [
             {
-              "target": { "selector": "[data-focus-window] .selection" },
+              "target": {
+                "selector": "[data-chart-brush=\"focus-window\"] .selection"
+              },
               "property": "contained",
               "equals": true,
               "within": {
@@ -389,7 +408,7 @@
               "atLeast": 52
             },
             {
-              "target": { "selector": "[data-focus-window]" },
+              "target": { "selector": "[data-chart-brush=\"focus-window\"]" },
               "property": "contained",
               "equals": true,
               "within": {

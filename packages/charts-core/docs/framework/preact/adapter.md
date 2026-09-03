@@ -3,16 +3,16 @@ title: Preact Adapter
 description: Render and hydrate TanStack Charts with Preact.
 ---
 
-Install the core, adapter, framework peer, and authored D3 modules:
+Install TanStack Charts and its Preact peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
+pnpm add @tanstack/charts preact
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/preact-charts'
+import { Chart } from '@tanstack/charts/preact'
 
 export function RevenueChart() {
   const definition = useMemo(
@@ -52,9 +52,10 @@ dimensions deterministic.
 ## Presentation and rendering
 
 `className` and `style: JSX.CSSProperties` apply to the outer host and are not
-forwarded to the SVG. Custom styles are applied after adapter sizing. The
-package exposes the SVG component only; use `renderSvg` to replace SVG
-serialization without replacing the shared host.
+forwarded to the chart surface. Custom styles are applied after adapter sizing.
+The component starts with SVG and can compose marks that use
+`canvasChartRenderer`. Use `renderSvg` to replace SVG serialization without
+replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodyRenderContext`, `ChartDefinition`, and `ChartPoint`.

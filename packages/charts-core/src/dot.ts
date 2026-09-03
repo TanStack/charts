@@ -1,17 +1,28 @@
 import {
   channelValues,
   compositeKeyValues,
-  createMark,
   inferredKeyValues,
   isChartKey,
   isChartValue,
   isNonnegativeFiniteNumber,
   markStates,
 } from './mark'
+import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { resolveDotLayout } from './dot-layout'
+import { projectLayoutX, projectLayoutY } from './resolved-layout-position'
 import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
+import type { DotLayout } from './dot-layout'
+import type {
+  LayoutSourceRow,
+  ResolvedLayoutX,
+  ResolvedLayoutY,
+} from './resolved-layout-position'
 import type {
   Channel,
+  CartesianChartMark,
+  CartesianScaleBindings,
+  ChartBounds,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -20,11 +31,15 @@ import type {
   ChartNumericScale,
   ChartPoint,
   ChartValue,
-  OptionChannelOutput,
+  MarkCallOptions,
+  MarkChannelOutput,
+  MarkScaleBindings,
+  ResolvedScale,
   SceneNode,
 } from './types'
 
-export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface DotOptions<TDatum>
+  extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -35,90 +50,182 @@ export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   rScale?: ChartNumericScale
   fill?: string
   fillOpacity?: number
+  layout?: DotLayout
   stroke?: string
   strokeOpacity?: number
   strokeWidth?: number
   states?: readonly ChartMarkState<TDatum, ChartDotStateStyle<TDatum>>[]
 }
 
+type DotCallOptions<
+  TDatum,
+  TXChannel,
+  TYChannel,
+  TLayout,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DotOptions<NoInfer<TDatum>>,
+  {
+    x?: TXChannel
+    y?: TYChannel
+    layout?: TLayout
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
+>
+
+type DotPointX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x', infer TAnchor>
+    ? TAnchor
+    : MarkChannelOutput<TDatum, TXChannel, number>
+
+type DotPointY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y', infer TAnchor>
+    ? TAnchor
+    : MarkChannelOutput<TDatum, TYChannel, number>
+
+type DotScaleX<TDatum, TXChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TXChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'x'>
+    ? never
+    : MarkChannelOutput<TDatum, TXChannel, number>
+
+type DotScaleY<TDatum, TYChannel, TLayout> = [NonNullable<TLayout>] extends [
+  never,
+]
+  ? MarkChannelOutput<TDatum, TYChannel, number>
+  : NonNullable<TLayout> extends DotLayout<'y'>
+    ? never
+    : MarkChannelOutput<TDatum, TYChannel, number>
+
 export function dot<TDatum>(
   source: Iterable<TDatum>,
 ): ChartMark<TDatum, number, number>
 export function dot<
   TDatum,
-  const TOptions extends DotOptions<NoInfer<TDatum>> | undefined,
+  const TXChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TYChannel extends
+    Channel<NoInfer<TDatum>, ChartValue | null | undefined> | undefined = never,
+  const TLayout extends DotLayout | undefined = never,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options:
+    | DotCallOptions<
+        TDatum,
+        TXChannel,
+        TYChannel,
+        TLayout,
+        TXScaleId,
+        TYScaleId
+      >
+    | undefined,
+): CartesianChartMark<
   TDatum,
-  OptionChannelOutput<TDatum, TOptions, 'x', number>,
-  OptionChannelOutput<TDatum, TOptions, 'y', number>
+  DotPointX<TDatum, TXChannel, TLayout>,
+  DotPointY<TDatum, TYChannel, TLayout>,
+  DotScaleX<TDatum, TXChannel, TLayout>,
+  DotScaleY<TDatum, TYChannel, TLayout>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function dot<TDatum>(
   source: Iterable<TDatum>,
   options: DotOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any> {
+): CartesianChartMark<TDatum, any, any, any, any, DotOptions<TDatum>> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `dot-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
-    const yValues = channelValues(data, options.y, (datum) =>
-      typeof datum === 'number' ? datum : undefined,
-    )
-    const zValues = channelValues(data, options.z, () => null)
-    const colorValues =
-      options.color === undefined
-        ? zValues
-        : channelValues(data, options.color, () => null)
-    const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
-      candidates: [xValues, yValues, compositeKeyValues(xValues, yValues)],
-      markId: id,
-      warningIdentity: options,
-    })
-    const rawRadii =
-      typeof options.r === 'number'
-        ? data.map(() => options.r as number)
-        : channelValues(data, options.r, () => 3.5)
-    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
-    const radii = radiusMapper
-      ? rawRadii.map((value) =>
-          isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
+  return createMarkWithScaleValues<TDatum, any, any, any, any, string, string>(
+    ({ markIndex }) => {
+      const id = options.id ?? `dot-${markIndex}`
+      const layout = options.layout
+      if (layout?.axis === 'x' && options.x !== undefined) {
+        throw new TypeError(
+          'dot: x is derived by its layout and cannot be configured',
         )
-      : rawRadii
+      }
+      if (layout?.axis === 'y' && options.y !== undefined) {
+        throw new TypeError(
+          'dot: y is derived by its layout and cannot be configured',
+        )
+      }
+      const xValues =
+        layout?.axis === 'x'
+          ? data.map(() => layout.anchor)
+          : channelValues(data, options.x, (_datum, { index }) => index)
+      const yValues =
+        layout?.axis === 'y'
+          ? data.map(() => layout.anchor)
+          : channelValues(data, options.y, (datum) =>
+              typeof datum === 'number' ? datum : undefined,
+            )
+      const zValues = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? zValues
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, {
+        groups: zValues,
+        candidates:
+          layout?.axis === 'x'
+            ? [yValues]
+            : layout?.axis === 'y'
+              ? [xValues]
+              : [xValues, yValues, compositeKeyValues(xValues, yValues)],
+        markId: id,
+        warningIdentity: options,
+      })
+      const rawRadii =
+        typeof options.r === 'number'
+          ? data.map(() => options.r as number)
+          : channelValues(data, options.r, () => 3.5)
+      const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
+      const radii = radiusMapper
+        ? rawRadii.map((value) =>
+            isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
+          )
+        : rawRadii
 
-    return {
-      id,
-      states: markStates(data, options.states),
-      channels: {
-        x: { scale: 'x', values: xValues.filter(isChartValue) },
-        y: { scale: 'y', values: yValues.filter(isChartValue) },
-        color: {
-          scale: 'color',
-          values: colorValues.filter(isChartKey),
-        },
-      },
-      render: ({ scales, color: resolveColor }) => {
+      const sourceRows: readonly LayoutSourceRow<TDatum>[] = data.map(
+        (datum, sourceIndex) => ({ datum, sourceIndex }),
+      )
+      type PositionedRow = LayoutSourceRow<TDatum> &
+        ResolvedLayoutX<ChartValue> &
+        ResolvedLayoutY<ChartValue>
+
+      const renderPositions = (
+        positions: readonly PositionedRow[],
+        resolveColor: (value: ChartKey | null | undefined) => string,
+      ) => {
         const nodes: SceneNode[] = []
 
-        data.forEach((datum, datumIndex) => {
-          const xValue = xValues[datumIndex]
-          const yValue = yValues[datumIndex]
+        positions.forEach((position) => {
+          const {
+            datum,
+            sourceIndex: datumIndex,
+            xValue,
+            yValue,
+            x,
+            y,
+          } = position
           const radius = radii[datumIndex]
-          if (
-            !isChartValue(xValue) ||
-            !isChartValue(yValue) ||
-            !isNonnegativeFiniteNumber(radius)
-          )
-            return
+          if (!isNonnegativeFiniteNumber(radius)) return
           const group = zValues[datumIndex] ?? null
           const groupKey = valueKey(group)
           const color =
             options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
-          const x = scales.x.map(xValue)
-          const y = scales.y.map(yValue)
           const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
           const point: ChartPoint<TDatum> = {
             key,
@@ -139,7 +246,15 @@ export function dot<TDatum>(
             x,
             y,
             radius,
-            interaction: { point },
+            interaction: {
+              point,
+              affinity:
+                layout?.axis === 'y'
+                  ? 'x'
+                  : layout?.axis === 'x'
+                    ? 'y'
+                    : undefined,
+            },
             style: {
               fill: color,
               fillOpacity: options.fillOpacity,
@@ -153,7 +268,7 @@ export function dot<TDatum>(
         return {
           nodes: [
             {
-              kind: 'group',
+              kind: 'group' as const,
               key: id,
               className: 'ts-chart__dot',
               ariaHidden: true,
@@ -161,7 +276,126 @@ export function dot<TDatum>(
             },
           ],
         }
-      },
-    }
-  }, options.motion)
+      }
+
+      const channels = {
+        ...(layout?.axis !== 'x'
+          ? { x: { scale: xScale, values: xValues.filter(isChartValue) } }
+          : {}),
+        ...(layout?.axis !== 'y'
+          ? { y: { scale: yScale, values: yValues.filter(isChartValue) } }
+          : {}),
+        color: {
+          scale: 'color',
+          values: colorValues.filter(isChartKey),
+        },
+      }
+
+      const initialized = {
+        id,
+        states: markStates(data, options.states),
+        channels,
+      }
+
+      if (!layout) {
+        return {
+          ...initialized,
+          render: ({ scales, color: resolveColor }) => {
+            const resolvedXScale = requiredScale(scales[xScale], xScale)
+            const resolvedYScale = requiredScale(scales[yScale], yScale)
+            const positions = projectLayoutY(
+              projectLayoutX(sourceRows, xValues, resolvedXScale),
+              yValues,
+              resolvedYScale,
+            )
+            return renderPositions(positions, resolveColor)
+          },
+        }
+      }
+
+      return {
+        ...initialized,
+        resolveLayout: ({ chart, scales }) => {
+          if (layout.axis === 'y') {
+            const measured = projectLayoutX(
+              sourceRows,
+              xValues,
+              requiredScale(scales[xScale], xScale),
+            ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
+            const crossPositions = resolveCrossPositions(
+              layout,
+              chart,
+              measured.map((row) => row.x),
+              measured.map((row) => radii[row.sourceIndex]!),
+            )
+            const positions: readonly PositionedRow[] = measured.map(
+              (row, index) => ({
+                ...row,
+                yValue: layout.anchor,
+                y: crossPositions[index]!,
+              }),
+            )
+            return {
+              render: ({ color: resolveColor }) =>
+                renderPositions(positions, resolveColor),
+            }
+          }
+
+          const measured = projectLayoutY(
+            sourceRows,
+            yValues,
+            requiredScale(scales[yScale], yScale),
+          ).filter((row) => isNonnegativeFiniteNumber(radii[row.sourceIndex]))
+          const crossPositions = resolveCrossPositions(
+            layout,
+            chart,
+            measured.map((row) => row.y),
+            measured.map((row) => radii[row.sourceIndex]!),
+          )
+          const positions: readonly PositionedRow[] = measured.map(
+            (row, index) => ({
+              ...row,
+              xValue: layout.anchor,
+              x: crossPositions[index]!,
+            }),
+          )
+
+          return {
+            render: ({ color: resolveColor }) =>
+              renderPositions(positions, resolveColor),
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
+}
+
+function requiredScale(
+  scale: ResolvedScale | undefined,
+  id: string,
+): ResolvedScale {
+  if (!scale) throw new TypeError(`dot: missing ${id} scale`)
+  return scale
+}
+
+function resolveCrossPositions(
+  layout: DotLayout,
+  chart: ChartBounds,
+  measuredPositions: readonly number[],
+  radii: readonly number[],
+): readonly number[] {
+  const positions = layout[resolveDotLayout]({
+    chart,
+    measuredPositions,
+    radii,
+  })
+  if (
+    positions.length !== measuredPositions.length ||
+    positions.some((position) => !Number.isFinite(position))
+  ) {
+    throw new TypeError('dot: layout must resolve one finite position per row')
+  }
+  return positions
 }

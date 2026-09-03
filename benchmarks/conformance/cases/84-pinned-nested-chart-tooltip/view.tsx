@@ -1,400 +1,258 @@
-import {
-  forwardRef,
-  useId,
-  useImperativeHandle,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-import { barY, defineChart, dot } from '@tanstack/charts'
-import { Chart } from '@tanstack/react-charts'
-import { penguins } from '@charts-poc/demo-data/penguins'
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { energyDefinition, ConsumptionMixChart, AnnualMetric } from './example'
+import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react'
+import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+import { Chart as TooltipChart } from '@tanstack/charts/react/tooltip'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
-  isNestedTooltipId,
-  nestedTooltipRows,
-  penguinCohort,
-  penguinTooltipId,
-  penguinTooltipLabel,
+  energyAnnualOverview,
+  energyMonths,
+  formatEnergy,
+  monthFromTarget,
 } from './model'
+import { EnergyTooltipBody, energyTooltipStyles } from './tooltip-body'
 import type { ChartScene } from '@tanstack/charts'
-import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
+import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
-import type { CompletePenguin, NestedTooltipId } from './model'
+import type { EnergyMonth, EnergyMonthId } from './model'
 
-const NestedTooltipExample = forwardRef<
+const EnergyTooltipExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function NestedTooltipExample({ input }, ref) {
-  const titleId = `tanstack-nested-tooltip-${useId().replaceAll(':', '')}`
+>(function EnergyTooltipExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
-  const chartSurfaceRef = useRef<HTMLDivElement>(null)
-  const tooltipRef = useRef<HTMLElement>(null)
-  const miniSurfaceRef = useRef<HTMLDivElement>(null)
-  const hoveredIdRef = useRef<NestedTooltipId | null>(null)
-  const restorePointRef = useRef<NestedTooltipId | null>(null)
-  const renderedMainRef = useRef<{
-    scene: ChartScene<CompletePenguin, number, number>
+  const focusedIdRef = useRef<EnergyMonthId | null>(null)
+  const previewPinnedRevisionRef = useRef<number | null>(null)
+  const renderedRef = useRef<{
+    scene: ChartScene<EnergyMonth, string, number>
     svg: SVGSVGElement
   } | null>(null)
-  const [pinnedId, setPinnedId] = useState<NestedTooltipId | null>(null)
-  const [placement, setPlacement] = useState<'left' | 'right' | 'panel' | null>(
-    null,
+  const rows = useMemo(() => energyMonths(input.revision), [input.revision])
+  const chartWidth = Math.max(1, input.width - 24)
+  const chartHeight = Math.max(1, input.height - 48)
+  const annualConsumption = rows.reduce(
+    (total, month) => total + month.consumption,
+    0,
   )
-  const rows = useMemo(
-    () => nestedTooltipRows(penguins, input.revision),
-    [input.revision],
+  const mainDefinition = useMemo(
+    () => energyDefinition(rows, chartWidth),
+    [chartWidth, rows],
   )
-  const pinnedDatum = rows.find((row) => penguinTooltipId(row) === pinnedId)
-  const cohort = useMemo(
-    () => (pinnedDatum ? penguinCohort(penguins, pinnedDatum) : []),
-    [pinnedDatum],
-  )
-  const narrowLayout = input.width < 520
-  const panelHeight = Math.max(
-    96,
-    Math.min(154, Math.round(input.height * 0.42)),
-  )
-  const mainHeight =
-    narrowLayout && pinnedDatum
-      ? Math.max(1, input.height - panelHeight - 8)
-      : input.height
-  const miniDimensions = {
-    width: narrowLayout ? Math.max(1, input.width - 32) : 208,
-    height: narrowLayout ? Math.max(48, panelHeight - 60) : 106,
-  }
-  const mainDefinition = useMemo(() => {
-    const selectedRows = rows.filter(
-      (row) => penguinTooltipId(row) === pinnedId,
-    )
-    return defineChart(
-      defineChart({
-        marks: [
-          dot(rows, {
-            id: 'penguins',
-            x: 'flipper_length_mm',
-            y: 'body_mass_g',
-            r: 5,
-            fill: '#2563eb',
-            stroke: '#ffffff',
-            strokeWidth: 1,
-          }),
-          ...(selectedRows.length
-            ? [
-                dot(selectedRows, {
-                  id: 'pinned-penguin',
-                  x: 'flipper_length_mm',
-                  y: 'body_mass_g',
-                  r: 9,
-                  fill: '#f97316',
-                  stroke: '#ffffff',
-                  strokeWidth: 3,
-                }),
-              ]
-            : []),
-        ],
-        x: {
-          scale: scaleLinear().domain([170, 235]),
-          axis: { label: 'Flipper length (mm)' },
-        },
-        y: {
-          scale: scaleLinear().domain([3000, 6000]),
-          grid: true,
-          axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
-        },
-        margin: { top: 18, right: 24, bottom: 42, left: 68 },
-      }),
-      { animate: false, keyboard: true },
-    )
-  }, [pinnedId, rows])
-  const miniDefinition = useMemo(
-    () =>
-      defineChart(
-        defineChart({
-          marks: [
-            barY(cohort, {
-              x: (row) => String(row.flipper_length_mm),
-              y: 'body_mass_g',
-              fill: '#8b5cf6',
-              inset: 1,
-            }),
-          ],
-          x: {
-            scale: () =>
-              scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
-          },
-          y: { scale: scaleLinear, axis: false },
-          margin: { top: 6, right: 6, bottom: 24, left: 6 },
-        }),
-        { animate: false, keyboard: false },
-      ),
-    [cohort],
-  )
-
-  const closePinned = () => {
-    if (!pinnedId) return
-    restorePointRef.current = pinnedId
-    setPinnedId(null)
-  }
-
-  useLayoutEffect(() => {
-    const restorePoint = restorePointRef.current
-    if (pinnedId !== null || !restorePoint) return
-    const svg = renderedMainRef.current?.svg
-    if (!svg) return
-    svg.dataset.restoredPoint = restorePoint
-    svg.focus()
-    restorePointRef.current = null
-  }, [pinnedId])
-
-  useLayoutEffect(() => {
-    if (!pinnedDatum) {
-      setPlacement(null)
-      return
-    }
-    if (narrowLayout) {
-      setPlacement('panel')
-      return
-    }
-    const rendered = renderedMainRef.current
-    const tooltip = tooltipRef.current
-    if (!rendered || !tooltip) return
-    const point = rendered.scene.points.find(
-      (candidate) =>
-        candidate.markId === 'penguins' &&
-        penguinTooltipId(candidate.datum) === pinnedId,
-    )
-    if (!point) return
-    const width = tooltip.offsetWidth || 224
-    const edge = 8
-    const gap = 14
-    setPlacement(point.x + gap + width <= input.width - edge ? 'right' : 'left')
-  }, [input.height, input.width, narrowLayout, pinnedDatum, pinnedId])
 
   useImperativeHandle(
     ref,
     () => ({
       resolveTarget(target) {
-        if (target.anchor === 'tooltip:close' && pinnedDatum) {
-          const button = tooltipRef.current?.querySelector<HTMLElement>(
-            '[data-tooltip-close]',
-          )
-          return button ? center(button) : null
+        if (target.anchor === 'tooltip:close') {
+          const close =
+            viewRef.current?.ownerDocument.querySelector<HTMLElement>(
+              '[data-energy-tooltip-close]',
+            )
+          return close ? center(close) : null
         }
-        const pointId = pointFromTarget(target)
-        if (!pointId) return null
-        return pointCoordinate(renderedMainRef.current, pointId)
+        const monthId = monthFromTarget(target)
+        if (!monthId) return null
+        return pointCoordinate(renderedRef.current, monthId)
       },
       readState() {
-        const rendered = renderedMainRef.current
-        const miniSurface = miniSurfaceRef.current
-        const chartSurface = chartSurfaceRef.current
+        const document = viewRef.current?.ownerDocument
+        const surface = document?.querySelector<HTMLElement>(
+          '.ts-chart-tooltip.energy-tooltip-surface',
+        )
+        const tooltip = surface && !surface.hidden ? surface : null
+        const body = tooltip?.querySelector<HTMLElement>('.energy-tooltip')
+        const reveal = tooltip?.querySelector<HTMLElement>(
+          '.energy-tooltip__reveal',
+        )
         return {
-          hoveredId: hoveredIdRef.current,
-          focusedPoint:
-            rendered &&
-            rendered.svg.ownerDocument.activeElement === rendered.svg
-              ? (rendered.svg.dataset.restoredPoint ?? null)
-              : null,
+          focusedMonth: focusedIdRef.current,
           tooltip: {
-            visible: Boolean(pinnedDatum),
-            pinnedId,
-            miniBarCount: pinnedDatum
-              ? (miniSurface?.querySelectorAll('.ts-chart__bar rect').length ??
-                0)
-              : 0,
-            chartCount: pinnedDatum
-              ? (miniSurface?.querySelectorAll('svg.ts-chart').length ?? 0)
-              : 0,
-            selectedOverlayCount:
-              chartSurface?.querySelectorAll(
-                '.ts-chart__dot[data-ts-key="pinned-penguin"] circle',
-              ).length ?? 0,
-            flipperLabelCount: pinnedDatum
-              ? (miniSurface?.querySelectorAll('[data-ts-key^="x-tick-label:"]')
-                  .length ?? 0)
-              : 0,
-            placement,
-            closeVisible: Boolean(pinnedDatum),
+            visible: Boolean(tooltip),
+            pinned: tooltip?.dataset.sticky === 'true',
+            role: tooltip?.getAttribute('role') ?? null,
+            inert:
+              tooltip
+                ?.querySelector('.ts-chart-tooltip__body')
+                ?.hasAttribute('inert') ?? false,
+            month:
+              tooltip
+                ?.querySelector('.ts-chart-tooltip__title')
+                ?.textContent?.trim() ?? null,
+            summaryRowCount:
+              tooltip?.querySelectorAll('.ts-chart-tooltip__row').length ?? 0,
+            detailRowCount:
+              tooltip?.querySelectorAll('[data-energy-detail-row]').length ?? 0,
+            detailsExpanded: body?.dataset.expanded === 'true',
+            detailHeight: Math.round(
+              reveal?.getBoundingClientRect().height ?? 0,
+            ),
+            nestedBarCount:
+              tooltip?.querySelectorAll('.ts-chart__bar rect').length ?? 0,
+            closeVisible: Boolean(
+              tooltip?.querySelector('[data-energy-tooltip-close]'),
+            ),
+            text: tooltip?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
           },
         }
       },
     }),
-    [pinnedDatum, pinnedId, placement],
+    [],
   )
 
-  const tooltipPosition = tooltipStyle(
-    input.width,
-    input.height,
-    mainHeight,
-    panelHeight,
-    placement,
-    pinnedId,
-    renderedMainRef.current,
-    tooltipRef.current,
-  )
+  if (input.preview) {
+    return (
+      <TooltipChart
+        idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
+        definition={catalogPreviewDefinition(mainDefinition)}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        renderSvg={renderChartSvgWithResources}
+        ariaLabel="Annual household energy overview"
+        ariaDescription="A gray area tracks monthly electricity consumption. Stacked gold bars show solar energy used on site and exported."
+        onRender={({ scene, interaction }) => {
+          if (previewPinnedRevisionRef.current === input.revision) return
+          const point = scene.points.find(
+            (candidate) =>
+              candidate.markId === 'consumption-points' &&
+              candidate.datum.id === 'jun',
+          )
+          if (!point) return
+          previewPinnedRevisionRef.current = input.revision
+          interaction.setControlledFocus(point, {
+            source: 'programmatic',
+            pinned: true,
+          })
+        }}
+        renderTooltipBody={({ points }) => {
+          const month = points[0]?.datum
+          return month ? (
+            <ConsumptionMixChart
+              month={month}
+              idPrefix={idPrefix ? `${idPrefix}-nested` : undefined}
+              catalogPreview
+            />
+          ) : null
+        }}
+      />
+    )
+  }
 
   return (
     <div
       ref={viewRef}
       data-conformance-view="main"
       role="region"
-      aria-label="Penguin measurements with a pinned nested-chart tooltip"
-      onKeyDown={(event) => {
-        if (event.key !== 'Escape') return
-        event.stopPropagation()
-        closePinned()
+      aria-label="Monthly household energy with an expanding pinned tooltip"
+      style={{
+        position: 'relative',
+        width: input.width,
+        height: input.height,
+        paddingTop: 4,
+        background: 'Canvas',
+        color: 'CanvasText',
+        boxSizing: 'border-box',
       }}
-      style={{ position: 'relative', width: input.width, height: input.height }}
     >
-      <div ref={chartSurfaceRef}>
-        <Chart
-          definition={mainDefinition}
-          width={input.width}
-          height={mainHeight}
-          ariaLabel="Selectable penguin measurement chart"
-          ariaDescription="Use arrow keys to choose a penguin and Enter or Space to pin a same-species comparison."
-          onFocusChange={(point) => {
-            hoveredIdRef.current = point ? penguinTooltipId(point.datum) : null
+      <style>{energyTooltipStyles}</style>
+      <header
+        style={{
+          display: 'flex',
+          height: 36,
+          alignItems: 'center',
+          padding: '0 24px',
+          font: '500 12px/1.3 system-ui, sans-serif',
+        }}
+      >
+        <strong style={{ fontSize: 13, fontWeight: 680 }}>
+          Annual overview
+        </strong>
+      </header>
+      <div
+        className="energy-overview-card"
+        style={{
+          position: 'relative',
+          width: chartWidth,
+          height: chartHeight,
+          margin: '0 12px',
+          border: '1px solid color-mix(in srgb, CanvasText 8%, transparent)',
+          borderRadius: 7,
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            zIndex: 1,
+            top: 14,
+            left: 16,
+            display: 'flex',
+            gap: 26,
+            pointerEvents: 'none',
+            font: '500 11px/1.2 system-ui, sans-serif',
           }}
-          onSelect={(point) => {
-            const selectedId = point ? penguinTooltipId(point.datum) : null
-            const svg = renderedMainRef.current?.svg
-            if (svg) delete svg.dataset.restoredPoint
-            setPinnedId((current) =>
-              current === selectedId ? null : selectedId,
-            )
+        >
+          <AnnualMetric
+            label="Energy generated"
+            value={formatEnergy(energyAnnualOverview.generation)}
+          />
+          <AnnualMetric
+            label="Total consumption"
+            value={formatEnergy(annualConsumption)}
+          />
+        </div>
+        <TooltipChart
+          idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
+          definition={mainDefinition}
+          initialWidth={chartWidth}
+          height={chartHeight}
+          renderSvg={renderChartSvgWithResources}
+          ariaLabel="Annual household energy overview"
+          ariaDescription="A gray area tracks monthly electricity consumption. Stacked gold bars show solar energy used on site and exported. Hover or focus a month for totals, then click or press Enter to expand the breakdown."
+          onFocusGroupChange={(points) => {
+            focusedIdRef.current = points[0]?.datum.id ?? null
           }}
           onRender={({ scene, svg }) => {
-            renderedMainRef.current = { scene, svg }
+            renderedRef.current = { scene, svg }
+          }}
+          renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => {
+            const month = points[0]?.datum
+            if (!month) return defaultBody
+            return (
+              <EnergyTooltipBody
+                month={month}
+                pinned={pinned}
+                dismiss={dismiss}
+                consumptionChart={
+                  <ConsumptionMixChart
+                    month={month}
+                    idPrefix={idPrefix ? `${idPrefix}-nested` : undefined}
+                  />
+                }
+              />
+            )
           }}
         />
       </div>
-      {pinnedDatum ? (
-        <aside
-          ref={tooltipRef}
-          data-external-tooltip="pinned"
-          data-placement={placement ?? undefined}
-          role="dialog"
-          aria-modal="false"
-          aria-labelledby={titleId}
-          tabIndex={-1}
-          style={{
-            position: 'absolute',
-            zIndex: 2,
-            boxSizing: 'border-box',
-            padding: 8,
-            border: '1px solid rgb(100 116 139 / 0.35)',
-            borderRadius: 8,
-            background: 'Canvas',
-            color: 'CanvasText',
-            boxShadow: '0 8px 28px rgb(15 23 42 / 0.16)',
-            font: '600 12px/1.3 system-ui, sans-serif',
-            pointerEvents: 'auto',
-            ...tooltipPosition,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-              minHeight: 44,
-            }}
-          >
-            <strong id={titleId}>
-              {penguinTooltipLabel(pinnedDatum)}:{' '}
-              {pinnedDatum.body_mass_g.toLocaleString()} g
-            </strong>
-            <button
-              type="button"
-              data-tooltip-close
-              aria-label="Close pinned penguin details"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={closePinned}
-              style={{
-                width: 44,
-                minWidth: 44,
-                height: 44,
-                flex: '0 0 44px',
-                padding: 0,
-                border:
-                  '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
-                borderRadius: 6,
-                background: 'Canvas',
-                color: 'CanvasText',
-                cursor: 'pointer',
-                font: '700 20px/1 system-ui, sans-serif',
-              }}
-            >
-              ×
-            </button>
-          </div>
-          <div
-            ref={miniSurfaceRef}
-            style={{
-              width: miniDimensions.width,
-              height: miniDimensions.height,
-            }}
-          >
-            <Chart
-              definition={miniDefinition}
-              width={miniDimensions.width}
-              height={miniDimensions.height}
-              ariaLabel="Body mass for nearby penguins of the same species"
-              ariaDescription={cohort
-                .map(
-                  (row) =>
-                    `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
-                )
-                .join('. ')}
-            />
-          </div>
-          <div style={visuallyHiddenStyle}>
-            {cohort
-              .map(
-                (row) =>
-                  `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
-              )
-              .join('. ')}
-          </div>
-        </aside>
-      ) : null}
     </div>
   )
 })
 
-export const mount = reactMount(NestedTooltipExample)
-
-const visuallyHiddenStyle = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-} as const
-
-function pointFromTarget(target: ConformanceTarget) {
-  if (target.view !== undefined && target.view !== 'main') return null
-  const [kind, id] = target.anchor.split(':')
-  return kind === 'point' && isNestedTooltipId(id) ? id : null
-}
+export const catalogComponent = EnergyTooltipExample
+export const mount = reactMount(EnergyTooltipExample)
 
 function pointCoordinate(
   rendered: {
-    scene: ChartScene<CompletePenguin, number, number>
+    scene: ChartScene<EnergyMonth, string, number>
     svg: SVGSVGElement
   } | null,
-  id: NestedTooltipId,
+  id: EnergyMonthId,
 ) {
   if (!rendered) return null
   const point = rendered.scene.points.find(
     (candidate) =>
-      candidate.markId === 'penguins' &&
-      penguinTooltipId(candidate.datum) === id,
+      candidate.markId === 'consumption-points' && candidate.datum.id === id,
   )
   if (!point) return null
   const bounds = rendered.svg.getBoundingClientRect()
@@ -402,50 +260,6 @@ function pointCoordinate(
     x: bounds.left + (point.x / rendered.scene.width) * bounds.width,
     y: bounds.top + (point.y / rendered.scene.height) * bounds.height,
     focusElement: rendered.svg,
-  }
-}
-
-function tooltipStyle(
-  width: number,
-  height: number,
-  mainHeight: number,
-  panelHeight: number,
-  placement: 'left' | 'right' | 'panel' | null,
-  pinnedId: NestedTooltipId | null,
-  rendered: {
-    scene: ChartScene<CompletePenguin, number, number>
-    svg: SVGSVGElement
-  } | null,
-  tooltip: HTMLElement | null,
-) {
-  if (placement === 'panel') {
-    return {
-      left: 8,
-      top: mainHeight + 4,
-      width: Math.max(1, width - 16),
-      height: panelHeight,
-    }
-  }
-  const point = rendered?.scene.points.find(
-    (candidate) =>
-      candidate.markId === 'penguins' &&
-      penguinTooltipId(candidate.datum) === pinnedId,
-  )
-  if (!point) return { width: 224, left: 8, top: 8 }
-  const edge = 8
-  const gap = 14
-  const tooltipWidth = tooltip?.offsetWidth || 224
-  const tooltipHeight = tooltip?.offsetHeight || 150
-  const left =
-    placement === 'right' ? point.x + gap : point.x - gap - tooltipWidth
-  return {
-    left: Math.max(edge, left),
-    top: Math.max(
-      edge,
-      Math.min(height - tooltipHeight - edge, point.y - tooltipHeight / 2),
-    ),
-    width: 224,
-    height: 'auto',
   }
 }
 

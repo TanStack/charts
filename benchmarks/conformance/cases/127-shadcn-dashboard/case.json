@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "height": 860,
+  "order": 1280,
+  "id": "127-shadcn-dashboard",
+  "title": "shadcn dashboard",
+  "family": "application",
+  "intent": "Reproduce shadcn/ui's canonical dashboard shell and interactive stacked-area card while replacing only Recharts with TanStack Charts.",
+  "support": "native",
+  "features": [
+    "responsive dashboard shell",
+    "stacked area chart",
+    "natural curves",
+    "linear gradient fills",
+    "grouped tooltip",
+    "responsive time-range controls",
+    "CSS-variable theming",
+    "application-level catalog viewport"
+  ],
+  "geometry": [{ "role": "area", "count": 2 }],
+  "source": {
+    "title": "shadcn/ui dashboard-01",
+    "url": "https://ui.shadcn.com/examples/dashboard"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui dashboard-01 layout and data. Keep the dashboard shell independent of the chart renderer, then implement its filtered, stacked, gradient area chart with TanStack Charts.",
+    "maintain": "Preserve the official dashboard data, responsive sidebar, metric cards, time-range behavior, table shell, natural stacked-area geometry, gradients, axis labels, tooltip content, light and dark themes, and a renderer-only compact catalog preview."
+  }
+}

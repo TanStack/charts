@@ -1,11 +1,7 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import * as Plot from '@observablehq/plot'
-import {
-  isPenguinMass,
-  violinDensity,
-  violinMedians,
-  violinSpecies,
-} from './transform'
+import { isPenguinMass, violinSpecies } from './selection'
+import { violinDensity, violinMedians } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

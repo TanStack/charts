@@ -5,13 +5,13 @@
   "title": "Diverging Likert responses",
   "family": "survey",
   "intent": "Compare response distributions across survey questions around a shared zero baseline.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "diverging stack",
-    "signed values",
+    "anchored stack",
+    "grouped response counts",
     "horizontal bars",
     "categorical color",
-    "d3-shape stackOffsetDiverging"
+    "named neutral series"
   ],
   "geometry": [{ "role": "bar", "count": 25 }],
   "source": {
@@ -20,6 +20,6 @@
   },
   "ai": {
     "create": "Create a diverging Likert chart from the raw {Question, ID, Response} survey observations, counting responses and centering the neutral category on zero.",
-    "maintain": "Reorder response categories while preserving Plot stack semantics, granular d3-shape diverging offsets, stable colors, and inferred categorical keys."
+    "maintain": "Reorder response categories while keeping the neutral anchor, response-count lineage, stable colors, and categorical keys explicit in the chart definition."
   }
 }

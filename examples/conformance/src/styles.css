@@ -55,6 +55,18 @@ body {
   margin: 0;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 a {
   color: var(--accent);
 }
@@ -761,6 +773,188 @@ dd {
   padding-block: 18vh;
 }
 
+body.shadcn-catalog {
+  color: oklch(0.145 0 0);
+  background: oklch(1 0 0);
+  --panel: oklch(1 0 0);
+  --panel-muted: oklch(0.97 0 0);
+  --border: oklch(0.922 0 0);
+  --muted: oklch(0.556 0 0);
+  --accent: oklch(0.205 0 0);
+  --accent-muted: oklch(0.97 0 0);
+}
+
+:root[data-theme='dark'] body.shadcn-catalog {
+  color: oklch(0.985 0 0);
+  background: oklch(0.145 0 0);
+  --panel: oklch(0.205 0 0);
+  --panel-muted: oklch(0.269 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --muted: oklch(0.708 0 0);
+  --accent: oklch(0.985 0 0);
+  --accent-muted: oklch(0.269 0 0);
+}
+
+.shadcn-catalog .site-header,
+.shadcn-gallery {
+  width: min(100% - 32px, 1440px);
+  margin-inline: auto;
+}
+
+.shadcn-gallery {
+  padding: 64px 0 96px;
+}
+
+.shadcn-gallery-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 44px;
+}
+
+.shadcn-gallery-header h1 {
+  margin-bottom: 10px;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.shadcn-gallery-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.shadcn-install {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-muted);
+}
+
+.shadcn-install code {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 0.8rem;
+}
+
+.shadcn-install button {
+  min-height: 42px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.shadcn-gallery-controls {
+  position: sticky;
+  z-index: 20;
+  top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 6%);
+  backdrop-filter: blur(16px);
+}
+
+.shadcn-gallery-controls > label {
+  width: min(240px, 25vw);
+  flex: none;
+}
+
+.shadcn-gallery-controls input,
+.shadcn-gallery-controls > button,
+.shadcn-gallery-controls nav button {
+  min-height: 36px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.shadcn-gallery-controls nav {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.shadcn-gallery-controls nav button {
+  flex: none;
+  border-color: transparent;
+  background: transparent;
+}
+
+.shadcn-gallery-controls nav button[aria-pressed='true'] {
+  border-color: var(--border);
+  color: var(--accent);
+  background: var(--panel-muted);
+}
+
+.shadcn-result-count {
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.shadcn-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: 40px 24px;
+}
+
+.shadcn-chart-card {
+  min-width: 0;
+}
+
+.shadcn-chart-preview {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  place-items: start center;
+  border-radius: 14px;
+  color: var(--muted);
+  background: var(--panel);
+  font-size: 0.8rem;
+}
+
+.shadcn-chart-preview > span {
+  align-self: center;
+}
+
+.shadcn-chart-card > footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 14px 2px 0;
+}
+
+.shadcn-chart-card nav {
+  display: flex;
+  gap: 12px;
+}
+
+.shadcn-chart-card nav a {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.shadcn-chart-card nav a:hover {
+  color: var(--accent);
+}
+
 html.embed-mode,
 body.embed-mode {
   min-width: 0;
@@ -807,6 +1001,40 @@ body.embed-mode {
     align-items: start;
     flex-direction: column;
     padding-top: 48px;
+  }
+
+  .shadcn-gallery {
+    padding-top: 40px;
+  }
+
+  .shadcn-gallery-header {
+    align-items: stretch;
+    flex-direction: column;
+    margin-bottom: 28px;
+  }
+
+  .shadcn-install {
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .shadcn-gallery-controls {
+    position: static;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .shadcn-gallery-controls > label {
+    width: 100%;
+  }
+
+  .shadcn-gallery-controls nav {
+    order: 3;
+    width: 100%;
+  }
+
+  .shadcn-gallery-controls > button {
+    margin-left: auto;
   }
 
   .summary {

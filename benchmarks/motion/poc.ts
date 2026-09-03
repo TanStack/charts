@@ -69,8 +69,11 @@ const baseDefinition = defineChart({
       points: true,
     }),
   ],
-  x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
+
   guides: false,
   margin: { top: 20, right: 20, bottom: 20, left: 20 },
 })

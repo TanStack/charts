@@ -1,20 +1,23 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mountChart } from './dom'
 import { barX, barY } from './bar'
+import { dot } from './dot'
 import { lineY } from './line'
 import { rect } from './rect'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
-import { focusX } from './focus'
+import { focusGroupX } from './focus'
 import { bandXAxes, bandYAxes, linearAxes, utcXAxes } from './test-scales'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartDefinition,
   ChartDefinitionOptions,
+  DomChartDefinition,
   ChartPoint,
   ChartTextMeasurer,
+  ChartTooltipContentContext,
   ChartValue,
 } from './types'
 
@@ -30,17 +33,47 @@ interface Input {
 }
 
 describe('dynamic chart runtime', () => {
+  it('uses one platform theme for responsive builders and final scenes', () => {
+    const build = vi.fn(({ defaultTheme }) => ({
+      marks: [dot([{ id: 'a', x: 1, y: 2 }], { x: 'x', y: 'y' })],
+      ...linearAxes([0, 2], [0, 3]),
+      theme: {
+        foreground: defaultTheme.foreground,
+        muted: '#authored-muted',
+      },
+    }))
+    const runtime = createChartRuntime<Datum>({
+      defaultTheme: {
+        foreground: '#platform-foreground',
+        muted: '#platform-muted',
+      },
+    })
+    const scene = runtime.render(defineChart(build), {
+      width: 480,
+      height: 260,
+    })
+
+    expect(build.mock.calls[0]?.[0].defaultTheme.foreground).toBe(
+      '#platform-foreground',
+    )
+    expect(scene.theme.foreground).toBe('#platform-foreground')
+    expect(scene.theme.muted).toBe('#authored-muted')
+  })
+
   it('compiles dynamic specifications through the strict scale path', () => {
     const definition = {
       chart: () => ({
         marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        scales: { x: null, y: null },
       }),
     } as unknown as ChartDefinition<Datum>
     const runtime = createChartRuntime<Datum>()
 
     expect(() =>
       runtime.render(definition, { width: 480, height: 260 }),
-    ).toThrow(/requires a configured scale/)
+    ).toThrow(
+      'Chart scale "x" cannot be null when a mark materializes its channel',
+    )
     runtime.destroy()
   })
 
@@ -76,6 +109,58 @@ describe('dynamic chart runtime', () => {
 
     expect(narrow.points).toHaveLength(2)
     expect(wide.points[0]?.color).toBe('blue')
+    runtime.destroy()
+  })
+
+  it('preserves behavior and focus options around a dynamic chart builder', () => {
+    const resolve = vi.fn(() => ({
+      nodes: [
+        {
+          kind: 'group' as const,
+          key: 'dynamic-behavior-fallback',
+          children: [],
+        },
+      ],
+    }))
+    const definition = defineChart(
+      defineChart(() => ({
+        marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        ...linearAxes([0, 1], [0, 4]),
+      })),
+      {
+        controls: [{ id: 'dynamic-behavior', resolve }],
+        focusRing: false,
+      },
+    )
+    const runtime = createChartRuntime<Datum>()
+    const scene = runtime.render(definition, { width: 480, height: 260 })
+
+    expect(resolve).toHaveBeenCalledOnce()
+    expect(
+      scene.nodes.some((node) => node.key === 'dynamic-behavior-fallback'),
+    ).toBe(true)
+    expect(scene.nodes.some((node) => node.key === 'default-focus')).toBe(false)
+    runtime.destroy()
+  })
+
+  it('applies replacement behavior to responsive definitions', () => {
+    const base = defineChart({
+      focus: 'nearest-x',
+      chart: () => ({
+        marks: [lineY([2, 4, 3])],
+        ...linearAxes([0, 2], [0, 4]),
+      }),
+    })
+    const definition = defineChart(base, { focus: false })
+    const runtime = createChartRuntime<number>()
+
+    const scene = runtime.render(definition, { width: 480, height: 260 })
+    const svg = renderChartSvgWithResources(scene, {
+      ariaLabel: 'Responsive static chart',
+    })
+
+    expect(scene.points).toHaveLength(3)
+    expect(svg).not.toContain('data-ts-focus-layer')
     runtime.destroy()
   })
 
@@ -194,6 +279,63 @@ describe('dynamic chart runtime', () => {
     host.destroy()
   })
 
+  it('disables native focus and spatial indexing when focus is false', () => {
+    const findNearest = vi.fn()
+    const spatialIndex = vi.fn(() => ({ findNearest }))
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const definition = defineChart({
+      marks: [lineY([2, 4, 3])],
+      ...linearAxes([0, 2], [0, 4]),
+      focus: false,
+      spatialIndex,
+    })
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static chart',
+      onFocusChange,
+      onFocusGroupChange,
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    if (!svg || !point) throw new Error('Expected rendered chart')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    expect(svg.getAttribute('tabindex')).toBe('-1')
+    expect(spatialIndex).not.toHaveBeenCalled()
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+
+    expect(spatialIndex).not.toHaveBeenCalled()
+    expect(findNearest).not.toHaveBeenCalled()
+    expect(onFocusChange).not.toHaveBeenCalled()
+    expect(onFocusGroupChange).not.toHaveBeenCalled()
+    host.destroy()
+  })
+
   it('repaints focused UI when the spatial index and tooltip change together', () => {
     const data = [{ id: 'a', x: 0, y: 4 }]
     const definition = defineChart({
@@ -223,6 +365,31 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
     const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
     expect(tooltip?.hidden).toBe(false)
+    expect(tooltip?.style.background).toBe(
+      'var(--ts-chart-tooltip-background, Canvas)',
+    )
+    expect(tooltip?.style.color).toBe(
+      'var(--ts-chart-tooltip-color, CanvasText)',
+    )
+    expect(tooltip?.style.maxWidth).toBe(
+      'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    )
+    expect(tooltip?.style.padding).toBe(
+      'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    )
+    expect(tooltip?.style.border).toBe(
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    )
+    expect(tooltip?.style.borderRadius).toBe(
+      'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    )
+    expect(tooltip?.style.boxShadow).toBe(
+      'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    )
+    expect(tooltip?.style.font).toBe(
+      'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
+    )
+    expect(tooltip?.style.backdropFilter).toBe('')
 
     host.update({
       ...options,
@@ -532,12 +699,17 @@ describe('dynamic chart runtime', () => {
             key: 'id',
           }),
         ],
-        x: { ...bandXAxes(['A'], [0, 12]).x, axis: { label: 'Period' } },
-        y: {
-          ...linearAxes([0, 1], [0, 12]).y,
-          axis: {
-            ticks: { format: (value) => `${value}k` },
-            label: 'Downloads',
+        scales: {
+          x: {
+            ...bandXAxes(['A'], [0, 12]).scales.x,
+            axis: { label: 'Period' },
+          },
+          y: {
+            ...linearAxes([0, 1], [0, 12]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value}k` },
+              label: 'Downloads',
+            },
           },
         },
         focus: 'group-x',
@@ -660,12 +832,14 @@ describe('dynamic chart runtime', () => {
             y: 'end',
           }),
         ],
-        x: bandXAxes(['A'], [0, 20]).x,
-        y: {
-          ...linearAxes([0, 1], [0, 20]).y,
-          axis: {
-            ticks: { format: (value) => `${value} units` },
-            label: 'Change',
+        scales: {
+          x: bandXAxes(['A'], [0, 20]).scales.x,
+          y: {
+            ...linearAxes([0, 1], [0, 20]).scales.y,
+            axis: {
+              ticks: { format: (value) => `${value} units` },
+              label: 'Change',
+            },
           },
         },
         tooltip: tooltipExtension,
@@ -685,36 +859,49 @@ describe('dynamic chart runtime', () => {
     stackHost.destroy()
   })
 
-  it('accepts application fields through structured tooltip content', () => {
+  it('expands structured tooltip content when pinned', () => {
+    const contentPinned = vi.fn()
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
-      x: { ...linearAxes([0, 1], [0, 4]).x, axis: { label: 'Week' } },
-      y: {
-        ...linearAxes([0, 1], [0, 4]).y,
-        axis: { ticks: { format: (value) => `${value}k` } },
+      scales: {
+        x: {
+          ...linearAxes([0, 1], [0, 4]).scales.x,
+          axis: { label: 'Week' },
+        },
+        y: {
+          ...linearAxes([0, 1], [0, 4]).scales.y,
+          axis: { ticks: { format: (value) => `${value}k` } },
+        },
       },
     })
     const host = mountChart(container, {
       definition: withChartOptions(definition, {
         tooltip: {
           use: tooltipExtension,
-          content: ([point], context) => ({
-            title: point ? context.formatX(point.xValue) : undefined,
-            rows: point
-              ? [
-                  {
-                    label: 'Status',
-                    value: point.datum.note,
-                    color: point.color,
-                  },
-                  {
-                    label: 'Downloads',
-                    value: `${point.yValue}k`,
-                  },
-                ]
-              : [],
-          }),
+          content: ([point], context) => {
+            contentPinned(context.pinned)
+            return {
+              title: point ? context.formatX(point.xValue) : undefined,
+              rows: point
+                ? [
+                    {
+                      label: 'Status',
+                      value: point.datum.note,
+                      color: point.color,
+                    },
+                    ...(context.pinned
+                      ? [
+                          {
+                            label: 'Downloads',
+                            value: `${point.yValue}k`,
+                          },
+                        ]
+                      : []),
+                  ]
+                : [],
+            }
+          },
         },
       }),
       width: 480,
@@ -726,13 +913,94 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 
     const tooltip = container.querySelector('.ts-chart-tooltip')
-    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(1)
     expect(tooltip?.textContent).toContain('Released')
+    expect(tooltip?.textContent).not.toContain('4k')
+    expect(contentPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(contentPinned).toHaveBeenLastCalledWith(true)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
     expect(tooltip?.textContent).toContain('4k')
     host.destroy()
   })
 
+  it.each(['format', 'formatGroup'] as const)(
+    'supplies shared tooltip context to %s while pinning',
+    (formatter) => {
+      const contexts: ChartTooltipContentContext[] = []
+      const data = [{ id: 'released', x: 1, y: 4 }]
+      const definition = defineChart({
+        marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
+        scales: {
+          x: {
+            ...linearAxes([0, 2], [0, 4]).scales.x,
+            axis: { label: 'Week' },
+          },
+          y: {
+            ...linearAxes([0, 2], [0, 4]).scales.y,
+            axis: { label: 'Downloads' },
+          },
+        },
+      })
+      const resolveText = (context: ChartTooltipContentContext) => {
+        contexts.push(context)
+        return context.pinned ? 'Pinned' : 'Transient'
+      }
+      const format = (
+        _point: ChartPoint<(typeof data)[number], number, number>,
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const formatGroup = (
+        _points: readonly ChartPoint<(typeof data)[number], number, number>[],
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const container = document.createElement('div')
+      const host = mountChart(container, {
+        definition: withChartOptions(definition, {
+          tooltip:
+            formatter === 'format'
+              ? { use: tooltipExtension, format }
+              : { use: tooltipExtension, formatGroup },
+        }),
+        width: 480,
+        height: 260,
+        ariaLabel: `${formatter} context chart`,
+      })
+      const svg = container.querySelector('svg')
+      if (!svg) throw new Error('Expected SVG')
+
+      svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      expect(contexts.at(-1)).toMatchObject({
+        pinned: false,
+        xLabel: 'Week',
+        yLabel: 'Downloads',
+      })
+      expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe(
+        'Transient',
+      )
+
+      svg.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+      )
+      expect(contexts.at(-1)).toMatchObject({
+        pinned: true,
+        xLabel: 'Week',
+        yLabel: 'Downloads',
+      })
+      expect(contexts.at(-1)?.formatX(1)).toBe('1')
+      expect(contexts.at(-1)?.formatY(4)).toBe('4')
+      expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe(
+        'Pinned',
+      )
+      host.destroy()
+    },
+  )
+
   it('orders automatic point items and formats datum fields', () => {
+    const itemPinned = vi.fn()
     const data = [
       {
         id: 'a',
@@ -772,7 +1040,10 @@ describe('dynamic chart runtime', () => {
             {
               id: 'change',
               label: 'Change',
-              text: (point) => `${point.datum.change * 100}%`,
+              text: (point, context) => {
+                itemPinned(context.pinned)
+                return context.pinned ? `${point.datum.change * 100}%` : null
+              },
             },
             {
               id: 'empty',
@@ -800,11 +1071,19 @@ describe('dynamic chart runtime', () => {
     expect(rows.map((row) => row.textContent)).toEqual([
       'Revenue4.0',
       'Volume1.2k',
-      'Change25%',
       'PeriodA',
       'GroupAtlas',
     ])
     expect(container.querySelector('.ts-chart-tooltip__title')).toBeNull()
+    expect(itemPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(itemPinned).toHaveBeenLastCalledWith(true)
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toContain(
+      'Change25%',
+    )
     host.destroy()
   })
 
@@ -914,6 +1193,149 @@ describe('dynamic chart runtime', () => {
     )
     container.dispatchEvent(new MouseEvent('mouseleave'))
     expect(tooltip?.hidden).toBe(true)
+    host.destroy()
+  })
+
+  it('repaints inline pinned mark state on pointer pin and release', () => {
+    const data = [{ id: 'a', x: 0.5, y: 0.5 }]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          dot(data, {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 5,
+            states: [
+              {
+                when: { focus: 'primary', pinned: true },
+                style: { r: 9, fill: '#f97316' },
+              },
+            ],
+          }),
+        ],
+        ...linearAxes([0, 1], [0, 1]),
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      width: 320,
+      height: 200,
+      ariaLabel: 'Pointer pinned mark state',
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    const circle = container.querySelector<SVGCircleElement>(
+      '.ts-chart__dot circle',
+    )
+    if (!svg || !point || !circle) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 320,
+      bottom: 200,
+      left: 0,
+      width: 320,
+      height: 200,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('5')
+
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('9')
+    expect(circle.getAttribute('fill')).toBe('#f97316')
+
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('5')
+    host.destroy()
+  })
+
+  it('repaints pointer-dependent mark state while tracking one point', () => {
+    const data = [{ id: 'a', x: 0.5, y: 0.5 }]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          dot(data, {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 5,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: {
+                  r: ({ point, pointer }) =>
+                    pointer && pointer.x > point.x ? 11 : 7,
+                },
+              },
+            ],
+          }),
+        ],
+        ...linearAxes([0, 1], [0, 1]),
+        maxFocusDistance: 1_000,
+        tooltip: { use: tooltipExtension, anchor: 'pointer' },
+      }),
+      width: 320,
+      height: 200,
+      ariaLabel: 'Pointer tracked mark state',
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    const circle = container.querySelector<SVGCircleElement>(
+      '.ts-chart__dot circle',
+    )
+    if (!svg || !point || !circle) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 320,
+      bottom: 200,
+      left: 0,
+      width: 320,
+      height: 200,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x - 20,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('7')
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x + 20,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('11')
     host.destroy()
   })
 
@@ -1071,7 +1493,7 @@ describe('dynamic chart runtime', () => {
     const onRender = vi.fn()
     const host = mountChart(container, {
       definition: withChartOptions(definition, {
-        focus: focusX,
+        focus: focusGroupX,
         maxFocusDistance: 1_000,
         tooltip: {
           use: tooltipExtension,
@@ -1122,7 +1544,11 @@ describe('dynamic chart runtime', () => {
       'Router',
     )
     expect(onRender).toHaveBeenCalledWith(
-      expect.objectContaining({ container, svg }),
+      expect.objectContaining({
+        container,
+        svg,
+        interaction: host.interaction,
+      }),
     )
     host.destroy()
   })
@@ -1323,12 +1749,17 @@ describe('dynamic chart runtime', () => {
     const spacious = textMeasurer(1.2)
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { ...linearAxes([0, 2], [0, 3]).x, axis: { label: 'Release' } },
-      y: {
-        ...linearAxes([0, 2], [0, 3]).y,
-        axis: {
-          ticks: { format: () => 'Long formatted tick' },
-          label: 'Downloads',
+      scales: {
+        x: {
+          ...linearAxes([0, 2], [0, 3]).scales.x,
+          axis: { label: 'Release' },
+        },
+        y: {
+          ...linearAxes([0, 2], [0, 3]).scales.y,
+          axis: {
+            ticks: { format: () => 'Long formatted tick' },
+            label: 'Downloads',
+          },
         },
       },
     })
@@ -1423,14 +1854,14 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      definition: withChartOptions(createDefinition(8), { animate: true }),
+      definition: withChartOptions(createDefinition(8), { svgAnimation: true }),
     })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
       definition: withChartOptions(createDefinition(12), {
-        animate: { respectReducedMotion: false },
+        svgAnimation: { respectReducedMotion: false },
       }),
     })
     expect(requestFrame).toHaveBeenCalled()
@@ -1446,9 +1877,9 @@ function withChartOptions<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): ChartDefinition<TDatum, TXValue, TYValue> {
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue, 'dom'>,
+): DomChartDefinition<TDatum, TXValue, TYValue> {
   return { ...definition, ...options }
 }
 

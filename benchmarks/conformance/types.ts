@@ -35,6 +35,8 @@ export interface ConformanceInput {
   height: number
   revision: number
   interactive?: boolean
+  /** Use lower-detail geometry suited to compact catalog cards. */
+  preview?: boolean
   /** True only for semantic browser scenarios, not catalog or visual mounts. */
   behavior?: boolean
 }
@@ -346,6 +348,8 @@ export interface ConformanceInteractionScenario {
 export interface ConformanceCaseMeta {
   schemaVersion: 1
   referenceRenderer?: ConformanceReferenceRenderer
+  collections?: readonly string[]
+  height?: number
   order: number
   id: string
   title: string
@@ -369,4 +373,6 @@ export interface ConformanceCaseMeta {
 
 export interface ConformanceImplementationModule {
   mount: ConformanceMount
+  /** Definition-only mount used by compact generated catalog previews. */
+  catalogCase?: { mount: ConformanceMount }
 }

@@ -11,12 +11,12 @@ runtime and renderer on the server and in the browser.
 
 | Adapter                                    | Server output                       | Browser contract                                    |
 | ------------------------------------------ | ----------------------------------- | --------------------------------------------------- |
-| [React](../framework/react/adapter.md)     | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
-| [Preact](../framework/preact/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Vue](../framework/vue/adapter.md)         | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Solid](../framework/solid/adapter.md)     | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Svelte](../framework/svelte/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
-| [Octane](../framework/octane/adapter.md)   | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
+| [React](../framework/react/adapter.md)     | SVG, Canvas, or mixed shell         | Hydrates and adopts the existing surface            |
+| [Preact](../framework/preact/adapter.md)   | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Vue](../framework/vue/adapter.md)         | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Solid](../framework/solid/adapter.md)     | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Svelte](../framework/svelte/adapter.md)   | SVG or mixed shell                  | Hydrates before the shared host mounts              |
+| [Octane](../framework/octane/adapter.md)   | SVG, Canvas, or mixed shell         | Hydrates and adopts the existing surface            |
 | [Angular](../framework/angular/adapter.md) | Not yet a verified adapter contract | Browser mount, immutable update, and teardown       |
 | [Lit](../framework/lit/adapter.md)         | Not yet a verified adapter contract | Browser registration, update, disconnect, reconnect |
 | [Alpine](../framework/alpine/adapter.md)   | None                                | Browser-only directive                              |
@@ -82,15 +82,22 @@ up the shared render path.
 
 ## Canvas server shell
 
-`@tanstack/react-charts/canvas` and `@tanstack/octane-charts/canvas` render a
-deterministic accessible shell on the server: a named chart root and two
-`aria-hidden` canvas elements with the initial scene dimensions. No server
-Canvas API or pixel painting is required.
+`@tanstack/charts/react/canvas` and `@tanstack/charts/octane/canvas` render a
+deterministic accessible shell on the server: a named chart root and five
+`aria-hidden` canvas elements with the initial scene dimensions. The hidden
+stable base bitmap preserves the raw `canvas` surface, while four live layers
+model background, focus underlay, ordinary scene, and focus overlay paint. No
+server Canvas API or pixel painting is required.
 
 The client renders the same shell, adopts its existing root and canvases, sizes
 their backing stores for the device-pixel ratio, paints the scene, and attaches
 the shared interaction host. The first image appears after client mount; use
 the default SVG adapter when visible server-rendered geometry is required.
+
+When selected marks use `canvasChartRenderer`, verified server adapters emit
+one accessible mixed root with ordered SVG markup and Canvas shells. The
+browser adopts each child surface. SVG marks remain visible in the server
+response, while Canvas marks receive pixels after mount.
 
 ## Fonts and text measurement
 
@@ -98,12 +105,18 @@ Automatic guide margins depend on text metrics. The server uses deterministic
 fallback measurement unless you provide `measureText`. The browser host
 remeasures when fonts become available and schedules a new layout.
 
+`ChartTextMeasurer` is deliberately synchronous. Its options include the
+resolved family, style, stretch, letter spacing, direction, locale, and font
+scale so server and native implementations can use the same typography
+contract. Hosts own asynchronous font readiness and request another render
+after their available metrics change.
+
 For strict pixel parity:
 
 1. Use a font available in both environments.
 2. Supply a deterministic `ChartTextMeasurer`.
-3. Keep font size and weight in chart configuration rather than ambient,
-   late-changing CSS.
+3. Supply the same `ChartTextTypography`, including locale and font scale, in
+   both environments.
 
 Most applications should allow the browser's post-font layout correction
 instead of shipping a font engine to the server.

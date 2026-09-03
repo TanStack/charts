@@ -1,9 +1,9 @@
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { selectRoseData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { ConformanceInput } from '../../types'
 
 const colors = [

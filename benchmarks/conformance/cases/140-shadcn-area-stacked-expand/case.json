@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1410,
+  "id": "140-shadcn-area-stacked-expand",
+  "title": "shadcn Area Chart - Stacked Expanded",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-stacked-expand example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "stacked expand", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 3
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-stacked-expand",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-stacked-expand"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-stacked-expand card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area stacked expand treatment, card dimensions, and light and dark tokens."
+  }
+}

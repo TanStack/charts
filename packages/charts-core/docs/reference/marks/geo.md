@@ -62,7 +62,7 @@ and materialized `data`; return a `GeoProjection`, `GeoStreamWrapper`, or
 | `strokeWidth`     | `number`                              | SVG default             | Boundary width                                        |
 | `strokeDasharray` | `string`                              | SVG default             | Boundary dash pattern                                 |
 | `opacity`         | `number`                              | SVG default             | Whole-feature opacity                                 |
-| `anchor`          | `(datum, index, data) => [lon, lat]`  | `geoCentroid()`         | Semantic longitude/latitude for the interaction point |
+| `anchor`          | `(datum, context) => [lon, lat]`      | `geoCentroid()`         | Semantic longitude/latitude for the interaction point |
 
 Semantic `color` becomes fill for closed geometry, stroke for linework, and
 both for a mixed collection. Explicit `fill` or `stroke` channels override that

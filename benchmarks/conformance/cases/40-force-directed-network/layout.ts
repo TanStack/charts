@@ -12,7 +12,7 @@ import type {
   MiserablesGraph,
   MiserablesLink,
   MiserablesNode,
-} from '@charts-poc/demo-data/miserables'
+} from '@tanstack/charts-data/miserables'
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force'
 
 export interface PositionedNetworkNode extends MiserablesNode {
@@ -49,14 +49,8 @@ export function networkLayout(
   source: MiserablesGraph,
   revision = 0,
 ): PositionedNetwork {
-  const networkNodes = source.nodes.slice(0, 13)
-  const networkNodeIds = new Set(networkNodes.map((node) => node.id))
-  const networkEdges = source.links.filter(
-    (link) =>
-      networkNodeIds.has(link.source) && networkNodeIds.has(link.target),
-  )
-  const layoutNodes: LayoutNode[] = networkNodes.map((node) => ({ ...node }))
-  const layoutLinks: LayoutLink[] = networkEdges.map((edge) => ({ ...edge }))
+  const layoutNodes: LayoutNode[] = source.nodes.map((node) => ({ ...node }))
+  const layoutLinks: LayoutLink[] = source.links.map((edge) => ({ ...edge }))
   const distanceDelta = Math.abs(revision % 2) * 3
 
   const simulation = forceSimulation(layoutNodes)

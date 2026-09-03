@@ -3,9 +3,12 @@ import { groupBy } from '@tanstack/charts/transform/group'
 import { normalize } from '@tanstack/charts/transform/normalize'
 import { select } from '@tanstack/charts/transform/select'
 import { stackRowsY } from '@tanstack/charts/transform/stack'
-import { window } from '@tanstack/charts/transform/window'
+import { waterfall } from '@tanstack/charts/transform/waterfall'
+import { rollingWindow } from '@tanstack/charts/transform/rolling-window'
 import { binXY } from '@tanstack/charts/transform/bin-xy'
 import { cumulative } from '@tanstack/charts/transform/cumulative'
+import { fold } from '@tanstack/charts/transform/fold'
+import { mosaicY } from '@tanstack/charts/transform/mosaic'
 import { rank } from '@tanstack/charts/transform/rank'
 
 const rows = [
@@ -24,7 +27,12 @@ export const transformed = {
   normalized: normalize(rows, { value: 'value', by: 'category' }),
   selected: select(rows, { value: 'value', select: 'max' }),
   stacked: stackRowsY(rows, { x: 'category', y: 'value', z: 'series' }),
-  rolling: window(rows, {
+  waterfall: waterfall(rows, {
+    value: 'value',
+    orderBy: 'value',
+    total: true,
+  }),
+  rolling: rollingWindow(rows, {
     size: 2,
     outputs: { average: { value: 'value', reduce: 'mean' } },
   }),
@@ -36,6 +44,12 @@ export const transformed = {
   }),
   cumulative: cumulative(rows, {
     outputs: { total: { value: 'value', reduce: 'sum' } },
+  }),
+  folded: fold(rows, { fields: ['value', 'category'] }),
+  mosaic: mosaicY(rows, {
+    x: 'category',
+    y: 'series',
+    value: 'value',
   }),
   ranked: rank(rows, { value: 'value' }),
 }

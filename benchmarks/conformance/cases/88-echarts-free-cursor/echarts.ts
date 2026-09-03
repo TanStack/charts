@@ -7,7 +7,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   AriaComponentOption,
@@ -17,6 +17,7 @@ import type {
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
+import { clientPointBounds } from '../../shared/driver-geometry'
 import {
   freeCursorFractionFromAnchor,
   freeCursorRows,
@@ -434,7 +435,9 @@ function geometry(
       )
       return point ? [point] : []
     })
-    const sample = pointsBounds(points, surfaceBounds, '#0f766e')
+    const sample = clientPointBounds(points, surfaceBounds, {
+      paint: '#0f766e',
+    })
     return sample ? [sample] : []
   }
 
@@ -474,27 +477,6 @@ function pixelPoint(
     return null
   }
   return [point[0], point[1]]
-}
-
-function pointsBounds(
-  points: readonly (readonly [number, number])[],
-  surfaceBounds: DOMRect,
-  paint: string,
-): ConformanceGeometrySample | null {
-  if (!points.length) return null
-  const xs = points.map((point) => point[0])
-  const ys = points.map((point) => point[1])
-  const left = Math.min(...xs)
-  const right = Math.max(...xs)
-  const top = Math.min(...ys)
-  const bottom = Math.max(...ys)
-  return {
-    x: surfaceBounds.left + left,
-    y: surfaceBounds.top + top,
-    width: Math.max(1, right - left),
-    height: Math.max(1, bottom - top),
-    paint,
-  }
 }
 
 function interactionState(

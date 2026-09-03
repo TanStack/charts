@@ -1,27 +1,8 @@
-import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear, scaleUtc } from 'd3-scale'
-import type { ConformanceInput, ConformanceMount } from '../../types'
-import { tanstackMount } from '../../shared/mount'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const definition = (input: ConformanceInput) => {
-  const rows = aapl.slice(Math.abs(input.revision) % 2)
+export * from './example'
 
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        x: 'Date',
-        y: (row) => (row.Date.getUTCMonth() < 3 ? null : row.Close),
-        stroke: '#2563eb',
-        strokeWidth: 2.25,
-      }),
-    ],
-    x: { scale: scaleUtc, axis: { label: 'Week' } },
-    y: { scale: scaleLinear, grid: true, axis: { label: 'Close (USD)' } },
-  })
-}
+export const mount = tanstackExampleMount(createExampleChart, exampleAriaLabel)
 
-export const mount: ConformanceMount = tanstackMount(
-  definition,
-  'Apple closing price with first-quarter gaps',
-)
+export const catalogCase = mount

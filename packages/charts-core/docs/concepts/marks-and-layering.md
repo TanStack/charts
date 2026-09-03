@@ -7,21 +7,24 @@ A mark turns data and channel values into renderer-neutral scene nodes. Marks ar
 
 ## Built-in mark families
 
-| Visual task                                   | Start with                |
-| --------------------------------------------- | ------------------------- |
-| Trend or connected path                       | `lineY`                   |
-| Range, band, or filled trend                  | `areaY`, `areaX`          |
-| Category comparison                           | `barY`, `barX`            |
-| Interval, heatmap cell, or rectangular region | `rect`, `cell`            |
-| Relationship or individual observation        | `dot`, `hexagon`          |
-| Baseline, threshold, or reference             | `ruleX`, `ruleY`          |
-| Label or annotation                           | `text`                    |
-| Directed relationship                         | `arrow`, `link`, `vector` |
-| Compact distribution glyph                    | `tickX`, `tickY`          |
-| Plot frame                                    | `frame`                   |
-| Small-multiple composition                    | `facet`, `facetChart`     |
-| Pie, donut, gauge, or cyclic profile          | `polar` and radial marks  |
-| Projected GeoJSON                             | `geoShape`                |
+| Visual task                                   | Start with                   |
+| --------------------------------------------- | ---------------------------- |
+| Trend or connected path                       | `lineY`                      |
+| Difference between two connected paths        | `differenceY`, `differenceX` |
+| Least-squares trend and confidence band       | `linearRegressionY`          |
+| Range, band, or filled trend                  | `areaY`, `areaX`             |
+| Category comparison                           | `barY`, `barX`               |
+| Interval, heatmap cell, or rectangular region | `rect`, `cell`               |
+| Relationship or individual observation        | `dot`, `hexagon`             |
+| Tukey distribution summary                    | `boxY`, `boxX`               |
+| Baseline, threshold, or reference             | `ruleX`, `ruleY`             |
+| Label or annotation                           | `text`                       |
+| Directed relationship                         | `arrow`, `link`, `vector`    |
+| Compact distribution glyph                    | `tickX`, `tickY`             |
+| Plot frame                                    | `frame`                      |
+| Small-multiple composition                    | `facet`, `facetChart`        |
+| Pie, donut, gauge, or cyclic profile          | `polar` and radial marks     |
+| Projected GeoJSON                             | `geoShape`                   |
 
 Start from the analytical question in
 [Choosing a Chart](../guides/choosing-a-chart.md). The
@@ -51,6 +54,65 @@ A useful default order is:
 5. Labels and annotations
 
 There is no separate overlay subsystem. An annotation is another mark with its own data, channels, and stable identity.
+
+## Opt individual marks into Canvas
+
+Import the Canvas renderer and attach it only to paint-heavy marks:
+
+```ts
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+
+const marks = [
+  areaY(denseRange, {
+    x: 'date',
+    y1: 'low',
+    y2: 'high',
+    renderer: canvasChartRenderer,
+  }),
+  lineY(summary, { x: 'date', y: 'value' }),
+  dot(highlights, { x: 'date', y: 'value' }),
+  text(labels, { x: 'date', y: 'value', text: 'label' }),
+]
+```
+
+The host keeps axes, guides, and marks without `renderer` in SVG. It creates
+ordered SVG and Canvas layers from the mark declaration order, so a Canvas
+mark can sit behind, between, or in front of SVG marks. Focus, tooltips,
+keyboard navigation, responsive updates, SSR shell adoption, and export still
+use the shared chart host.
+
+Cartesian and radial mark option objects accept `renderer`. A
+`compositeMark` can select a renderer for its complete output, or its children
+can select their own renderers when the parent does not. The same nested
+selection works inside facets and `polar`.
+
+Importing `@tanstack/charts/canvas` is the opt-in boundary that adds the Canvas
+painter to the bundle. Reuse a stable renderer instance across updates. The
+exported `canvasChartRenderer` singleton already has stable identity. Creating
+a new renderer or changing the renderer sequence replaces the affected layer
+composition.
+
+## Decorative layers
+
+When two layered marks describe the same observations, choose one interaction
+owner. For example, dots can own focus and tooltips while the connected line
+remains visual:
+
+```ts
+import { dot, lineY } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
+
+const marks = [
+  decorative(lineY(rows, { x: 'date', y: 'value' })),
+  dot(rows, { x: 'date', y: 'value' }),
+]
+```
+
+`decorative(mark)` preserves the mark's scale channels, domains, layout-label
+measurement, motion, and painted geometry. It removes interaction points and
+scene ownership, so the layer cannot add a second keyboard stop, tooltip, or
+activation target. The input must be an always-painted mark without focus or
+state behavior.
 
 ## Mark identity
 
@@ -182,8 +244,11 @@ Set `clip: true` on the chart definition when marks must not paint outside the r
 ```ts
 const chart = defineChart({
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale },
+  },
+
   clip: true,
 })
 ```
@@ -192,26 +257,13 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 
 ## Complete range-band composition
 
-```ts
-import { scaleLinear, scaleUtc } from 'd3-scale'
+```ts group=temperature-range env=charts file=/src/chart.ts entry
+import { scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { sfTemperatures } from './data'
 
-interface DailyTemperature {
-  date: Date
-  high: number
-  low: number
-}
-
-const sfTemperatures: readonly DailyTemperature[] = [
-  { date: new Date('2026-07-01T00:00:00Z'), high: 68, low: 55 },
-  { date: new Date('2026-07-02T00:00:00Z'), high: 71, low: 56 },
-  { date: new Date('2026-07-03T00:00:00Z'), high: 66, low: 54 },
-  { date: new Date('2026-07-04T00:00:00Z'), high: 69, low: 55 },
-  { date: new Date('2026-07-05T00:00:00Z'), high: 73, low: 57 },
-  { date: new Date('2026-07-06T00:00:00Z'), high: 70, low: 56 },
-]
-
-const temperatureChart = defineChart({
+export default defineChart({
   marks: [
     areaY(sfTemperatures, {
       id: 'daily-range',
@@ -236,30 +288,41 @@ const temperatureChart = defineChart({
       strokeWidth: 1.5,
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    axis: { label: 'Day' },
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: { label: 'Temperature (°F)' },
+  scales: {
+    x: {
+      scale: scaleUtc,
+      axis: { label: 'Day' },
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: { label: 'Temperature (°F)' },
+    },
   },
 })
 ```
 
-This example directly imports `d3-scale`. Install it and `@types/d3-scale` as
-direct dependencies.
+```ts group=temperature-range file=/src/data.ts collapsed
+export interface DailyTemperature {
+  date: Date
+  high: number
+  low: number
+}
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=480"
-  title="Temperature range band with layered lines built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+export const sfTemperatures: readonly DailyTemperature[] = [
+  { date: new Date('2026-07-01T00:00:00Z'), high: 68, low: 55 },
+  { date: new Date('2026-07-02T00:00:00Z'), high: 71, low: 56 },
+  { date: new Date('2026-07-03T00:00:00Z'), high: 66, low: 54 },
+  { date: new Date('2026-07-04T00:00:00Z'), high: 69, low: 55 },
+  { date: new Date('2026-07-05T00:00:00Z'), high: 73, low: 57 },
+  { date: new Date('2026-07-06T00:00:00Z'), high: 70, low: 56 },
+]
+```
+
+The numeric y axis uses the lightweight linear scale. The x axis upgrades to
+D3 UTC so spacing and ticks preserve elapsed time; install `d3-scale` and
+`@types/d3-scale` for that mapping.
 
 ## Custom marks
 

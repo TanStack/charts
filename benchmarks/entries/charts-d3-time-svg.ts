@@ -20,8 +20,10 @@ const definition = defineChart({
       { x: 'date', y: 'value' },
     ),
   ],
-  x: { scale: scaleUtc().domain(dates) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleUtc().domain(dates) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
 })
 
 export function render(width: number, height: number) {

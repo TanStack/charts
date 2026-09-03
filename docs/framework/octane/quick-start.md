@@ -3,41 +3,26 @@ title: Octane Quick Start
 description: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, Octane peer, and only the granular
-data and scale modules used by the chart:
+Install TanStack Charts and its Octane peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/octane-charts octane d3-scale
-pnpm add -D @types/d3-scale
+pnpm add @tanstack/charts octane
 ```
 
-The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains the
-injected scale and algorithm boundary.
+The shared [Scales](../../concepts/scales-and-d3.md) page explains the
+compact scale families and when a chart needs D3 instead.
 
 ## Define and render a chart
 
 Definitions are framework-independent and can be shared with any adapter:
 
-<!-- docs-example: octane-quick-start octane -->
-
-```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
+```tsx group=octane-quick-start env=charts-octane file=/src/App.tsrx entry
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/octane-charts'
-
-interface AlphabetRow {
-  letter: string
-  frequency: number
-}
-
-const alphabet: readonly AlphabetRow[] = [
-  { letter: 'E', frequency: 0.12702 },
-  { letter: 'T', frequency: 0.09056 },
-  { letter: 'A', frequency: 0.08167 },
-  { letter: 'O', frequency: 0.07507 },
-  { letter: 'I', frequency: 0.06966 },
-]
+import { Chart } from '@tanstack/charts/octane'
+import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',
@@ -51,22 +36,25 @@ const letterFrequencyChart = defineChart({
       y: 'frequency',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.18),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: {
-      label: 'Frequency',
-      ticks: { format: (value) => percent.format(value) },
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.18),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: {
+        label: 'Frequency',
+        ticks: { format: (value) => percent.format(value) },
+      },
     },
   },
+
   tooltip,
 })
 
-export function LetterFrequencyChart() {
+export default function App() {
   return (
     <Chart
       definition={letterFrequencyChart}
@@ -75,6 +63,21 @@ export function LetterFrequencyChart() {
     />
   )
 }
+```
+
+```ts group=octane-quick-start file=/src/data.ts collapsed
+export interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+export const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 ```
 
 The definition infers the row, scale, and callback types. Normal TSRX authoring
@@ -127,14 +130,17 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
           fill: accent,
         }),
       ],
-      x: {
-        scale: () => scaleBand().padding(0.18),
+      scales: {
+        x: {
+          scale: () => scaleBand().padding(0.18),
+        },
+        y: {
+          scale: scaleLinear,
+          nice: true,
+        },
       },
-      y: {
-        scale: scaleLinear,
-        nice: true,
-      },
-      animate: true,
+
+      svgAnimation: true,
       tooltip,
     })
   })
@@ -174,20 +180,6 @@ host when captured values changed. See
 Grouped focus, tooltip formatting, keyboard behavior, and application-owned
 interaction are documented in
 [Focus and interaction](../../reference/focus-and-interaction.md).
-
-## Example
-
-This calendar heatmap uses typed cells and responsive guide layout through the
-same Octane adapter:
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=480"
-  title="Precipitation calendar heatmap"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width: 100%; height: 480px; border: 0"
-></iframe>
 
 Continue with the [Octane adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

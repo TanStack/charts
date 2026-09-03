@@ -4,15 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && node ../../scripts/build-conformance-artifact.mjs && node ../../scripts/check-conformance-artifact.mjs",
-    "check:catalog": "node ../../scripts/build-conformance-artifact.mjs --check",
+    "build": "vite build",
     "dev": "vite --host --port 5194 --strictPort"
   },
   "dependencies": {
-    "@charts-poc/demo-data": "workspace:*",
+    "@tanstack/charts-data": "workspace:*",
     "@observablehq/plot": "0.6.17",
     "@tanstack/charts": "workspace:*",
-    "@tanstack/react-charts": "workspace:*",
     "d3-array": "3.2.4",
     "d3-sankey": "0.12.3",
     "d3-scale": "4.0.2",

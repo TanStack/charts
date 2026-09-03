@@ -21,8 +21,11 @@ const samples = [
 const definition = defineChart({
   marks: [
     polar({
-      angle: { scale: scalePoint<string>().domain(metrics), wrap: true },
-      radius: { scale: scaleLinear().domain([0, 100]) },
+      scales: {
+        angle: { scale: scalePoint<string>().domain(metrics), wrap: true },
+        radius: { scale: scaleLinear().domain([0, 100]) },
+      },
+
       guides: [
         radialGrid({ values: [25, 50, 75, 100] }),
         angleGrid({ values: metrics }),
@@ -46,8 +49,10 @@ const definition = defineChart({
     }),
   ],
   guides: false,
-  x: null,
-  y: null,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 export function render(width: number, height: number) {

@@ -3,41 +3,27 @@ title: React Quick Start
 description: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, React peers, and only the granular
-data and scale modules used by the chart:
+Install TanStack Charts and its React peers:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
-pnpm add -D @types/d3-scale @types/react @types/react-dom
+pnpm add @tanstack/charts react react-dom
+pnpm add -D @types/react @types/react-dom
 ```
 
-The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains why
-scales and optional algorithms remain direct application dependencies.
+The shared [Scales](../../concepts/scales-and-d3.md) page explains the
+compact scale families and when a chart needs D3 instead.
 
 ## Define a chart
 
 Definitions are ordinary framework-independent TypeScript:
 
-<!-- docs-example: react-quick-start typecheck -->
-
-```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
+```tsx group=react-quick-start env=charts-react file=/src/App.tsx entry
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
-
-interface AlphabetRow {
-  letter: string
-  frequency: number
-}
-
-const alphabet: readonly AlphabetRow[] = [
-  { letter: 'E', frequency: 0.12702 },
-  { letter: 'T', frequency: 0.09056 },
-  { letter: 'A', frequency: 0.08167 },
-  { letter: 'O', frequency: 0.07507 },
-  { letter: 'I', frequency: 0.06966 },
-]
+import { Chart } from '@tanstack/charts/react'
+import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',
@@ -51,22 +37,25 @@ const letterFrequencyChart = defineChart({
       y: 'frequency',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.18),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: {
-      label: 'Frequency',
-      ticks: { format: (value) => percent.format(value) },
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.18),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: {
+        label: 'Frequency',
+        ticks: { format: (value) => percent.format(value) },
+      },
     },
   },
+
   tooltip,
 })
 
-export function LetterFrequencyChart() {
+export default function App() {
   return (
     <Chart
       definition={letterFrequencyChart}
@@ -75,6 +64,21 @@ export function LetterFrequencyChart() {
     />
   )
 }
+```
+
+```ts group=react-quick-start file=/src/data.ts collapsed
+export interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+export const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 ```
 
 The definition infers the original row and semantic x/y types. Do not add
@@ -130,14 +134,17 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
           fill: accent,
         }),
       ],
-      x: {
-        scale: () => scaleBand().padding(0.18),
+      scales: {
+        x: {
+          scale: () => scaleBand().padding(0.18),
+        },
+        y: {
+          scale: scaleLinear,
+          nice: true,
+        },
       },
-      y: {
-        scale: scaleLinear,
-        nice: true,
-      },
-      animate: true,
+
+      svgAnimation: true,
       tooltip,
     })
   }, [rows, accent])
@@ -176,18 +183,18 @@ Callback types flow from the marks:
 />
 ```
 
-The native tooltip is optional. Grouped focus, formatting, keyboard behavior,
+The built-in tooltip is optional. Grouped focus, formatting, keyboard behavior,
 and application-owned interaction are documented in
 [Focus and interaction](../../reference/focus-and-interaction.md).
 
 ## Render React tooltip content
 
-Keep `Chart` from `@tanstack/react-charts` when the native tooltip is enough.
+Keep `Chart` from `@tanstack/charts/react` when the built-in tooltip is enough.
 To pass `renderTooltipBody`, switch the component import to the optional React
 tooltip entry:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/tooltip'
+import { Chart } from '@tanstack/charts/react/tooltip'
 
 ;<Chart
   definition={letterFrequencyChart}
@@ -203,22 +210,8 @@ import { Chart } from '@tanstack/react-charts/tooltip'
 ```
 
 Existing `renderTooltipBody` users should migrate the component import from
-`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. The definition
+`@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. The definition
 still uses `tooltip` from `@tanstack/charts/tooltip`.
-
-## Example
-
-This catalog example uses multiple line layers and endpoint labels through the
-same React adapter:
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/02-multi-line-end-labels/?theme=system&height=480"
-  title="Multi-line chart with endpoint labels"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width: 100%; height: 480px; border: 0"
-></iframe>
 
 Continue with the [React adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

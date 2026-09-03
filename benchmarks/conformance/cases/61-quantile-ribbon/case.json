@@ -5,14 +5,15 @@
   "title": "Industry unemployment percentile ribbon",
   "family": "uncertainty",
   "intent": "Show the monthly median and central eighty percent of unemployment counts across U.S. industries.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "quantile ribbon",
     "percentile reducers",
     "median line",
     "group transform",
     "raw repeated observations",
-    "d3-array quantile"
+    "TanStack groupBy",
+    "TanStack quantile"
   ],
   "geometry": [
     { "role": "area", "count": 1 },

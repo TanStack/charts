@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1540,
+  "id": "153-shadcn-line-dots-colors",
+  "title": "shadcn Line Chart - Dots Colors",
+  "family": "line",
+  "intent": "Reproduce shadcn/ui's chart-line-dots-colors example with TanStack Charts.",
+  "support": "native",
+  "features": ["line chart", "dots colors", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "line",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-line-dots-colors",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots-colors"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-line-dots-colors card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, line dots colors treatment, card dimensions, and light and dark tokens."
+  }
+}

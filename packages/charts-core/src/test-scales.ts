@@ -5,8 +5,10 @@ type Axes<
   TX extends number | string | Date,
   TY extends number | string | Date,
 > = {
-  x: ChartAxisOptions<TX>
-  y: ChartAxisOptions<TY>
+  scales: {
+    x: ChartAxisOptions<TX>
+    y: ChartAxisOptions<TY>
+  }
 }
 
 export function linearAxes(
@@ -14,8 +16,10 @@ export function linearAxes(
   yDomain: readonly [number, number] = [0, 1],
 ): Axes<number, number> {
   return {
-    x: { scale: scaleLinear().domain(xDomain) },
-    y: { scale: scaleLinear().domain(yDomain) },
+    scales: {
+      x: { scale: scaleLinear().domain(xDomain) },
+      y: { scale: scaleLinear().domain(yDomain) },
+    },
   }
 }
 
@@ -24,8 +28,10 @@ export function bandXAxes(
   yDomain: readonly [number, number],
 ): Axes<string, number> {
   return {
-    x: { scale: scaleBand().domain(xDomain).padding(0.1) },
-    y: { scale: scaleLinear().domain(yDomain) },
+    scales: {
+      x: { scale: scaleBand().domain(xDomain).padding(0.1) },
+      y: { scale: scaleLinear().domain(yDomain) },
+    },
   }
 }
 
@@ -34,8 +40,10 @@ export function bandYAxes(
   yDomain: readonly string[],
 ): Axes<number, string> {
   return {
-    x: { scale: scaleLinear().domain(xDomain) },
-    y: { scale: scaleBand().domain(yDomain).padding(0.1) },
+    scales: {
+      x: { scale: scaleLinear().domain(xDomain) },
+      y: { scale: scaleBand().domain(yDomain).padding(0.1) },
+    },
   }
 }
 
@@ -44,8 +52,10 @@ export function bandAxes(
   yDomain: readonly string[],
 ): Axes<string, string> {
   return {
-    x: { scale: scaleBand().domain(xDomain).padding(0.1) },
-    y: { scale: scaleBand().domain(yDomain).padding(0.1) },
+    scales: {
+      x: { scale: scaleBand().domain(xDomain).padding(0.1) },
+      y: { scale: scaleBand().domain(yDomain).padding(0.1) },
+    },
   }
 }
 
@@ -54,7 +64,9 @@ export function utcXAxes(
   yDomain: readonly [number, number],
 ): Axes<Date, number> {
   return {
-    x: { scale: scaleUtc().domain(xDomain) },
-    y: { scale: scaleLinear().domain(yDomain) },
+    scales: {
+      x: { scale: scaleUtc().domain(xDomain) },
+      y: { scale: scaleLinear().domain(yDomain) },
+    },
   }
 }
