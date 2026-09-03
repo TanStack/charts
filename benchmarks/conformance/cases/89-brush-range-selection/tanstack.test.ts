@@ -1,11 +1,12 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartScene } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { initialBrushRange, monthlyAaplRows, observedBrushDates } from './model'
 import { brushRangeDefinition, mount } from './tanstack'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type {
   ChartDefinition,
   ChartSpecDatum,
@@ -54,7 +55,10 @@ describe('definition-owned brush range', () => {
   it('accepts semantic handle changes and preserves the range through updates', () => {
     const container = document.createElement('div')
     document.body.append(container)
-    const handle = mount(container, input)
+    let handle!: ReturnType<typeof mount>
+    act(() => {
+      handle = mount(container, input)
+    })
     const driver = handle.driver
     const end = container.querySelector<SVGRectElement>(
       '[data-chart-brush-handle="end"]',
@@ -76,9 +80,11 @@ describe('definition-owned brush range', () => {
     ).toBe('application')
 
     end.focus()
-    end.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
-    )
+    act(() => {
+      end.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       selection: {
         start: '2017-04-28',
@@ -92,15 +98,19 @@ describe('definition-owned brush range', () => {
       'avg $147.3',
     )
 
-    handle.update({ ...input, revision: 1 })
+    act(() => {
+      handle.update({ ...input, revision: 1 })
+    })
     expect(driver.readState()).toMatchObject({
       selection: { start: '2017-04-28', end: '2017-07-31' },
     })
     expect(document.activeElement).toBe(end)
 
-    end.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Home', bubbles: true }),
-    )
+    act(() => {
+      end.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Home', bubbles: true }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       selection: {
         start: '2017-04-28',
@@ -109,7 +119,9 @@ describe('definition-owned brush range', () => {
       },
     })
 
-    handle.destroy()
+    act(() => {
+      handle.destroy()
+    })
     expect(container.childElementCount).toBe(0)
     container.remove()
   })
@@ -119,12 +131,10 @@ describe('definition-owned brush range', () => {
       process.cwd(),
       'benchmarks/conformance/cases/89-brush-range-selection',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
-    expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
     for (const forbidden of [
-      "from 'react'",
-      '@tanstack/charts/react',
       "from 'd3-brush'",
       "from 'd3-selection'",
       'createElementNS',
@@ -144,5 +154,7 @@ describe('definition-owned brush range', () => {
     expect(source).toContain('controlledSignal<')
     expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('<output')
   })
 })

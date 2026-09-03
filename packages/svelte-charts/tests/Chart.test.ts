@@ -18,8 +18,10 @@ const rows = [
 ]
 const definition = defineChart({
   marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-  x: { scale: scaleLinear().domain([0, 1]) },
-  y: { scale: scaleLinear().domain([0, 4]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  },
 })
 const tooltipDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,

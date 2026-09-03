@@ -1,7 +1,8 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { createChartScene } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   initialZoomWindow,
@@ -10,7 +11,7 @@ import {
   zoomSpanDays,
 } from './model'
 import { mount, zoomTimeWindowDefinition } from './tanstack'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import type { ChartDefinition, ChartSpecDatum } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -47,7 +48,10 @@ describe('definition-owned zoomable time window', () => {
   it('accepts keyboard changes, external reset, and responsive updates', () => {
     const container = document.createElement('div')
     document.body.append(container)
-    const handle = mount(container, input)
+    let handle!: ReturnType<typeof mount>
+    act(() => {
+      handle = mount(container, input)
+    })
     const driver = handle.driver
     const surface = container.querySelector<SVGElement>(
       '[data-chart-zoom-surface]',
@@ -70,9 +74,11 @@ describe('definition-owned zoomable time window', () => {
     })
 
     surface.focus()
-    surface.dispatchEvent(
-      new KeyboardEvent('keydown', { key: '+', bubbles: true }),
-    )
+    act(() => {
+      surface.dispatchEvent(
+        new KeyboardEvent('keydown', { key: '+', bubbles: true }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       viewport: {
         start: '2018-01-06',
@@ -83,13 +89,17 @@ describe('definition-owned zoomable time window', () => {
     })
     expect(document.activeElement).toBe(surface)
 
-    handle.update({ ...input, revision: 1 })
+    act(() => {
+      handle.update({ ...input, revision: 1 })
+    })
     expect(driver.readState()).toMatchObject({
       viewport: { start: '2018-01-06', end: '2018-01-14' },
     })
     expect(document.activeElement).toBe(surface)
 
-    reset.click()
+    act(() => {
+      reset.click()
+    })
     expect(driver.readState()).toMatchObject({
       viewport: {
         start: '2018-01-02',
@@ -103,7 +113,9 @@ describe('definition-owned zoomable time window', () => {
       '2018-01-02 → 2018-01-18',
     )
 
-    handle.destroy()
+    act(() => {
+      handle.destroy()
+    })
     expect(container.childElementCount).toBe(0)
     container.remove()
   })
@@ -123,12 +135,10 @@ describe('definition-owned zoomable time window', () => {
       process.cwd(),
       'benchmarks/conformance/cases/90-zoomable-time-window',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
-    expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
     for (const forbidden of [
-      "from 'react'",
-      '@tanstack/charts/react',
       "from 'd3-zoom'",
       "from 'd3-selection'",
       'createElementNS',
@@ -151,5 +161,7 @@ describe('definition-owned zoomable time window', () => {
     expect(source).toContain('controlledSignal<')
     expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('data-conformance-zoom-reset')
   })
 })

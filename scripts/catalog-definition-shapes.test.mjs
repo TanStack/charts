@@ -9,12 +9,27 @@ const casesDirectory = path.resolve(
 )
 
 const responsiveDefinitions = [
-  '29-waterfall/tanstack.ts',
-  '85-scrollable-resource-lanes/tanstack.ts',
-  '92-editable-event-range/tanstack.ts',
-  'bar-grouped/tanstack.ts',
-  'bar-vertical-sorted/tanstack.ts',
+  '137-shadcn-area-interactive/example.tsx',
+  '152-shadcn-line-default/example.tsx',
+  '153-shadcn-line-dots-colors/example.tsx',
+  '154-shadcn-line-dots-custom/example.tsx',
+  '155-shadcn-line-dots/example.tsx',
+  '156-shadcn-line-interactive/example.tsx',
+  '157-shadcn-line-label-custom/example.tsx',
+  '158-shadcn-line-label/example.tsx',
+  '159-shadcn-line-linear/example.tsx',
+  '160-shadcn-line-multiple/example.tsx',
+  '161-shadcn-line-step/example.tsx',
+  '181-shadcn-radar-label-custom/example.tsx',
+  '186-shadcn-radial-label/example.tsx',
+  '29-waterfall/example.tsx',
+  '85-scrollable-resource-lanes/example.tsx',
+  '92-editable-event-range/example.tsx',
+  'bar-grouped/example.tsx',
+  'bar-vertical-sorted/example.tsx',
 ]
+
+const indirectDefinitions = []
 
 describe('catalog definition shapes', () => {
   it('uses static definitions unless the chart reads build context', async () => {
@@ -27,22 +42,18 @@ describe('catalog definition shapes', () => {
         caseDirectories.map(async (directory) => {
           const caseEntries = await readdir(directory, { withFileTypes: true })
           return caseEntries
-            .filter(
-              (entry) =>
-                entry.isFile() &&
-                (entry.name === 'tanstack.ts' ||
-                  entry.name === 'view.tsx' ||
-                  entry.name === 'chart.ts'),
-            )
+            .filter((entry) => entry.isFile() && entry.name === 'example.tsx')
             .map((entry) => path.join(directory, entry.name))
         }),
       )
     ).flat()
 
     const classification = {
+      indirect: [],
       parameterless: [],
       responsive: [],
       static: 0,
+      staticFiles: [],
     }
 
     await Promise.all(
@@ -57,25 +68,45 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(117)
+    expect(classification.static).toBe(175)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(122)
+    expect(classification.indirect.sort()).toEqual(indirectDefinitions)
+    expect(classification.staticFiles).toHaveLength(170)
+    expect(
+      new Set([
+        ...classification.staticFiles,
+        ...classification.responsive,
+        ...classification.indirect,
+      ]).size,
+    ).toBe(files.length)
   })
 
   it('classifies the base definition once when options are added', () => {
     const classification = {
+      indirect: [],
       parameterless: [],
       responsive: [],
       static: 0,
+      staticFiles: [],
     }
 
     classifyDefinitions(
       'two-argument.ts',
       `
-        defineChart({ marks: [] }, { focus: 'nearest' })
-        defineChart(defineChart({ marks: [] }), { keyboard: true })
         defineChart(
-          defineChart(({ width }) => ({ marks: [], width })),
+          { marks: [], scales: { x: null, y: null } },
+          { focus: 'nearest' },
+        )
+        defineChart(
+          defineChart({ marks: [], scales: { x: null, y: null } }),
+          { keyboard: true },
+        )
+        defineChart(
+          defineChart(({ width }) => ({
+            marks: [],
+            scales: { x: null, y: null },
+            width,
+          })),
           { keyboard: true },
         )
       `,
@@ -83,9 +114,11 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification).toEqual({
+      indirect: [],
       parameterless: [],
       responsive: ['two-argument.ts'],
       static: 2,
+      staticFiles: ['two-argument.ts'],
     })
   })
 })
@@ -97,6 +130,9 @@ function classifyDefinitions(relativePath, source, classification) {
     ts.ScriptTarget.Latest,
     true,
   )
+  let hasIndirectDefinition = false
+  let hasResponsiveDefinition = false
+  let hasStaticDefinition = false
 
   function visit(node) {
     if (
@@ -105,6 +141,7 @@ function classifyDefinitions(relativePath, source, classification) {
       node.expression.text === 'facetChart'
     ) {
       classification.static += 1
+      hasStaticDefinition = true
     }
 
     if (
@@ -116,7 +153,29 @@ function classifyDefinitions(relativePath, source, classification) {
       const definition = unwrapParentheses(node.arguments[0])
 
       if (ts.isObjectLiteralExpression(definition)) {
-        classification.static += 1
+        const chartProperty = definition.properties.find(
+          (property) =>
+            ts.isPropertyAssignment(property) &&
+            property.name.getText(sourceFile) === 'chart',
+        )
+        const chart =
+          chartProperty && ts.isPropertyAssignment(chartProperty)
+            ? unwrapParentheses(chartProperty.initializer)
+            : undefined
+        if (chart && ts.isArrowFunction(chart)) {
+          if (chart.parameters.length === 0) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(
+              chart.getStart(sourceFile),
+            )
+            classification.parameterless.push(`${relativePath}:${line + 1}`)
+          } else {
+            classification.responsive.push(relativePath)
+            hasResponsiveDefinition = true
+          }
+        } else {
+          classification.static += 1
+          hasStaticDefinition = true
+        }
       } else if (ts.isArrowFunction(definition)) {
         if (definition.parameters.length === 0) {
           const { line } = sourceFile.getLineAndCharacterOfPosition(
@@ -125,7 +184,14 @@ function classifyDefinitions(relativePath, source, classification) {
           classification.parameterless.push(`${relativePath}:${line + 1}`)
         } else {
           classification.responsive.push(relativePath)
+          hasResponsiveDefinition = true
         }
+      } else if (!(
+        ts.isCallExpression(definition) &&
+        ts.isIdentifier(definition.expression) &&
+        definition.expression.text === 'defineChart'
+      )) {
+        hasIndirectDefinition = true
       }
     }
 
@@ -133,6 +199,14 @@ function classifyDefinitions(relativePath, source, classification) {
   }
 
   visit(sourceFile)
+  if (hasStaticDefinition) classification.staticFiles.push(relativePath)
+  if (
+    hasIndirectDefinition &&
+    !hasStaticDefinition &&
+    !hasResponsiveDefinition
+  ) {
+    classification.indirect.push(relativePath)
+  }
 }
 
 function unwrapParentheses(node) {

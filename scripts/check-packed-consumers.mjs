@@ -835,19 +835,38 @@ async function verifyEsmRuntime() {
     ]
     const definition = defineChart({
       marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-      x: {
-        scale: scaleLinear().domain([0, 1]),
-        axis: {
-          ticks: { values: [0, 1] },
-          tickLabels: {
-            fontSize: 13,
-            opacity: 0.62,
-            anchor: ({ index }) => index === 0 ? 'start' : undefined,
-            dx: ({ index, bandwidth }) => index === 0 ? -bandwidth / 2 : undefined,
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            ticks: { values: [0, 1] },
+            tickLabels: {
+              fontSize: 13,
+              opacity: 0.62,
+              anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+              dx: ({ index, bandwidth }) =>
+                index === 0 ? -bandwidth / 2 : undefined,
+            },
           },
         },
+        y: { scale: scaleLinear().domain([0, 5]) },
       },
-      y: { scale: scaleLinear().domain([0, 5]) },
+    })
+    const mixedDefinition = defineChart({
+      marks: [
+        lineY(rows, {
+          id: 'canvas-line',
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          renderer: canvasChartRenderer,
+        }),
+        lineY(rows, { id: 'svg-line', x: 'x', y: 'y', key: 'id' }),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
     })
     const scene = createChartScene(definition, { width: 320, height: 180 })
     const coreSvg = renderChartSvg(scene, { ariaLabel: 'Packed core chart' })
@@ -858,8 +877,10 @@ async function verifyEsmRuntime() {
 
     const horizontalDefinition = defineChart({
       marks: [lineX(rows, { x: 'y', y: 'id', key: 'id' })],
-      x: { scale: scaleLinear().domain([0, 5]) },
-      y: { scale: scaleBand().domain(['a', 'b']) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 5]) },
+        y: { scale: scaleBand().domain(['a', 'b']) },
+      },
     })
     const horizontalScene = createChartScene(horizontalDefinition, {
       width: 320,
@@ -880,15 +901,19 @@ async function verifyEsmRuntime() {
       { id: 'b:1', category: 'B', x: 1, height: 0.75 },
     ]
     const ridgeScene = createChartScene(defineChart({
-      marks: [ridgelineY(ridgeRows, {
-        x: 'x',
-        y: 'category',
-        height: 'height',
-        key: 'id',
-      })],
+      marks: [
+        ridgelineY(ridgeRows, {
+          x: 'x',
+          y: 'category',
+          height: 'height',
+          key: 'id',
+        }),
+      ],
       guides: false,
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scalePoint().domain(['A', 'B']) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scalePoint().domain(['A', 'B']) },
+      },
     }), { width: 320, height: 180 })
     const ridgeSvg = renderChartSvg(ridgeScene, {
       ariaLabel: 'Packed ridgeline chart',
@@ -906,15 +931,19 @@ async function verifyEsmRuntime() {
       { id: 'b:1', category: 'B', value: 1, width: 0.75 },
     ]
     const violinScene = createChartScene(defineChart({
-      marks: [violinY(violinRows, {
-        x: 'category',
-        y: 'value',
-        width: 'width',
-        key: 'id',
-      })],
+      marks: [
+        violinY(violinRows, {
+          x: 'category',
+          y: 'value',
+          width: 'width',
+          key: 'id',
+        }),
+      ],
       guides: false,
-      x: { scale: scalePoint().domain(['A', 'B']) },
-      y: { scale: scaleLinear().domain([0, 1]) },
+      scales: {
+        x: { scale: scalePoint().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      },
     }), { width: 320, height: 180 })
     const violinSvg = renderChartSvg(violinScene, {
       ariaLabel: 'Packed violin chart',
@@ -934,8 +963,10 @@ async function verifyEsmRuntime() {
           samples: 3,
         }),
       ],
-      x: { scale: scaleLinear() },
-      y: { scale: scaleLinear() },
+      scales: {
+        x: { scale: scaleLinear() },
+        y: { scale: scaleLinear() },
+      },
     })
     const regressionScene = createChartScene(regressionDefinition, {
       width: 320,
@@ -960,8 +991,10 @@ async function verifyEsmRuntime() {
           y2: 'y',
         }),
       ],
-      x: { scale: scaleLinear() },
-      y: { scale: scaleLinear() },
+      scales: {
+        x: { scale: scaleLinear() },
+        y: { scale: scaleLinear() },
+      },
     })
     const differenceScene = createChartScene(differenceDefinition, {
       width: 320,
@@ -995,8 +1028,10 @@ async function verifyEsmRuntime() {
           layout: stack({ order: 'inside-out', offset: 'wiggle' }),
         }),
       ],
-      x: { scale: scaleLinear() },
-      y: { scale: scaleLinear() },
+      scales: {
+        x: { scale: scaleLinear() },
+        y: { scale: scaleLinear() },
+      },
     })
     const packedStreamScene = createChartScene(packedStreamDefinition, {
       width: 320,
@@ -1028,8 +1063,10 @@ async function verifyEsmRuntime() {
           }),
         }),
       ],
-      x: { scale: scaleLinear() },
-      y: { scale: scaleBand() },
+      scales: {
+        x: { scale: scaleLinear() },
+        y: { scale: scaleBand() },
+      },
     })
     const packedLikertScene = createChartScene(packedLikertDefinition, {
       width: 320,
@@ -1109,15 +1146,18 @@ async function verifyEsmRuntime() {
     ]
     const packedCompositeDefinition = defineChart({
       marks: [
-        compositeMark([
-          barY(packedSummaryRows, {
-            id: 'body',
-            x: 'category',
-            y: 'median',
-            y1: 'q1',
-            y2: 'q3',
-          }),
-        ], { id: 'packed-composite' }),
+        compositeMark(
+          [
+            barY(packedSummaryRows, {
+              id: 'body',
+              x: 'category',
+              y: 'median',
+              y1: 'q1',
+              y2: 'q3',
+            }),
+          ],
+          { id: 'packed-composite' },
+        ),
         boxY(packedBoxRows, {
           id: 'packed-box',
           x: 'category',
@@ -1125,8 +1165,10 @@ async function verifyEsmRuntime() {
           key: 'id',
         }),
       ],
-      x: { scale: scaleBand().domain(['A', 'B']) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
     })
     const packedCompositeScene = createChartScene(packedCompositeDefinition, {
       width: 320,
@@ -1170,8 +1212,11 @@ async function verifyEsmRuntime() {
           yLabel: {},
         }),
       ],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
+
       focusRing: false,
     })
     const focusGuideScene = createChartScene(focusGuideDefinition, {
@@ -1214,8 +1259,11 @@ async function verifyEsmRuntime() {
           packedSelection,
         ),
       ],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
+
       selection: packedSelection,
     })
     const packedSelectionScene = createChartScene(
@@ -1244,17 +1292,25 @@ async function verifyEsmRuntime() {
 
     let packedVisibleChange
     const packedInteractiveLegendDefinition = defineChart({
-      marks: [lineY([
-        { id: 'a', x: 0, y: 2, series: 'one' },
-        { id: 'b', x: 1, y: 5, series: 'two' },
-      ], {
-        x: 'x',
-        y: 'y',
-        color: 'series',
-        key: 'id',
-      })],
-      x: { scale: scaleLinear().domain([0, 1]) },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      marks: [
+        lineY(
+          [
+            { id: 'a', x: 0, y: 2, series: 'one' },
+            { id: 'b', x: 1, y: 5, series: 'two' },
+          ],
+          {
+            x: 'x',
+            y: 'y',
+            color: 'series',
+            key: 'id',
+          },
+        ),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
+
       color: {
         domain: ['one', 'two'],
         legend: interactiveColorLegend({
@@ -1287,11 +1343,14 @@ async function verifyEsmRuntime() {
     const radialDefinition = defineChart({
       marks: [
         polar({
-          angle: { scale: () => scaleBand() },
-          radius: {
-            scale: scaleLinear().domain([0, 8]),
-            range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+          scales: {
+            angle: { scale: () => scaleBand() },
+            radius: {
+              scale: scaleLinear().domain([0, 8]),
+              range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+            },
           },
+
           marks: [
             radialBarRadius(radialRows, {
               angle: 'id',
@@ -1302,11 +1361,14 @@ async function verifyEsmRuntime() {
           ],
         }),
         polar({
-          angle: { scale: scaleLinear().domain([0, 8]) },
-          radius: {
-            scale: () => scaleBand(),
-            range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 8]) },
+            radius: {
+              scale: () => scaleBand(),
+              range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+            },
           },
+
           marks: [
             radialBarAngle(radialRows, {
               angle: 'value',
@@ -1318,6 +1380,10 @@ async function verifyEsmRuntime() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
     })
     const radialSvg = renderChartSvg(
       createChartScene(radialDefinition, { width: 320, height: 180 }),
@@ -1347,8 +1413,16 @@ async function verifyEsmRuntime() {
               color: 'branchId',
             }),
           ],
+          scales: {
+            angle: null,
+            radius: null,
+          },
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
     })
     const hierarchyScene = createChartScene(hierarchyDefinition, {
       width: 320,
@@ -1411,6 +1485,10 @@ async function verifyEsmRuntime() {
           ],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
     })
     const sankeyScene = createChartScene(sankeyDefinition, {
@@ -1441,6 +1519,18 @@ async function verifyEsmRuntime() {
     )
     assert.match(reactHtml, /Packed React chart/)
     assert.match(reactHtml, /<path/)
+
+    const reactMixedHtml = renderToStaticMarkup(
+      createElement(ReactChart, {
+        definition: mixedDefinition,
+        ariaLabel: 'Packed mixed React chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(reactMixedHtml, /ts-chart-layers/)
+    assert.match(reactMixedHtml, /<canvas/)
+    assert.match(reactMixedHtml, /<svg/)
 
     const reactRendererHtml = renderToStaticMarkup(
       createElement(ReactRendererChart, {
@@ -1475,6 +1565,18 @@ async function verifyEsmRuntime() {
     )
     assert.match(octaneHtml, /Packed Octane chart/)
     assert.match(octaneHtml, /<path/)
+
+    const { html: octaneMixedHtml } = renderToString(() =>
+      OctaneChart({
+        definition: mixedDefinition,
+        ariaLabel: 'Packed mixed Octane chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(octaneMixedHtml, /ts-chart-layers/)
+    assert.match(octaneMixedHtml, /<canvas/)
+    assert.match(octaneMixedHtml, /<svg/)
 
     const { html: octaneRendererHtml } = renderToString(() =>
       OctaneRendererChart({
@@ -1525,6 +1627,7 @@ async function verifyDeclarations() {
       type ChartHost,
       type ChartHostCommonOptions,
       type ChartHostOptions,
+      type ChartLayerRenderer,
       type ChartAxisTickLabelContext,
       type ChartAxisTickLabelValue,
       type ChartSpec,
@@ -2083,8 +2186,10 @@ async function verifyDeclarations() {
     const packedViewLink: ViewLink = { x: 'main' }
     const packedViewChart = defineChart({
       marks: [lineY(lineRows, lineYOptions)],
-      x: { scale: compactScaleLinear().domain([0, 5]) },
-      y: { scale: compactScaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: compactScaleLinear().domain([0, 5]) },
+        y: { scale: compactScaleLinear().domain([0, 5]) },
+      },
     })
     const packedViewItem: ViewGridItem<
       typeof packedViewChart,
@@ -2380,19 +2485,29 @@ async function verifyDeclarations() {
     const radialBarDefinition = defineChart({
       marks: [
         polar({
-          angle: { scale: () => scaleBand<string>() },
-          radius: polarRadiusOptions,
+          scales: {
+            angle: { scale: () => scaleBand<string>() },
+            radius: polarRadiusOptions,
+          },
+
           marks: [radiusBars],
         }),
         polar({
-          angle: { scale: scaleLinear().domain([0, 2]) },
-          radius: {
-            scale: () => scaleBand<string>(),
-            range: [0, ({ radius }) => radius],
+          scales: {
+            angle: { scale: scaleLinear().domain([0, 2]) },
+            radius: {
+              scale: () => scaleBand<string>(),
+              range: [0, ({ radius }) => radius],
+            },
           },
+
           marks: [angleBars],
         }),
       ],
+      scales: {
+        x: null,
+        y: null,
+      },
     })
     if (false) {
       // @ts-expect-error Pie values must be numeric or nullish.
@@ -2603,6 +2718,10 @@ async function verifyDeclarations() {
     })
     const sankeyDefinition = defineChart({
       marks: [sankeyMark],
+      scales: {
+        x: null,
+        y: null,
+      },
       guides: false,
     })
     type PackedSankeyNode = SankeyNode<
@@ -2658,8 +2777,10 @@ async function verifyDeclarations() {
     })
     const packedBoxDefinition = defineChart({
       marks: [packedBoxMark],
-      x: { scale: scaleBand<string>() },
-      y: { scale: scaleLinear() },
+      scales: {
+        x: { scale: scaleBand<string>() },
+        y: { scale: scaleLinear() },
+      },
     })
     type PackedBoxDatumIsDerived = Expect<
       Equal<ChartSpecDatum<typeof packedBoxDefinition>, BoxDatum<Row, string>>
@@ -2908,16 +3029,19 @@ async function verifyDeclarations() {
     ]
     const definition = defineChart({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
-      x: {
-        scale: scaleBand<string>().domain(rows.map((row) => row.category)),
-        axis: {
-          tickLabels: {
-            fontSize: packedTickFontSize,
-            anchor: packedTickAnchor,
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+          axis: {
+            tickLabels: {
+              fontSize: packedTickFontSize,
+              anchor: packedTickAnchor,
+            },
           },
         },
+        y: { scale: scaleLinear().domain([0, 8]) },
       },
-      y: { scale: scaleLinear().domain([0, 8]) },
+
       focus: {
         resolve(points) {
           const point = points[0]
@@ -2925,11 +3049,7 @@ async function verifyDeclarations() {
             type DatumIsRow = Expect<Equal<typeof point.datum, Row>>
             type XIsString = Expect<Equal<typeof point.xValue, string>>
             type YIsNumber = Expect<Equal<typeof point.yValue, number>>
-            const checks: [DatumIsRow, XIsString, YIsNumber] = [
-              true,
-              true,
-              true,
-            ]
+            const checks: [DatumIsRow, XIsString, YIsNumber] = [true, true, true]
             void checks
           }
           return points
@@ -2945,14 +3065,35 @@ async function verifyDeclarations() {
         },
       },
     })
+    const mixedDefinition = defineChart({
+      marks: [
+        lineY(rows, {
+          x: 'category',
+          y: 'value',
+          key: 'id',
+          renderer: canvasChartRenderer,
+        }),
+        lineY(rows, { x: 'category', y: 'value', key: 'id' }),
+      ],
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+        },
+        y: { scale: scaleLinear().domain([0, 8]) },
+      },
+    })
+    const packedLayerRenderer: ChartLayerRenderer<Row, string, number> =
+      canvasChartRenderer
+    void packedLayerRenderer
     const compactDefinition = defineChart({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
-      x: {
-        scale: compactScaleBand<string>().domain(
-          rows.map((row) => row.category),
-        ),
+      scales: {
+        x: {
+          scale: compactScaleBand<string>().domain(rows.map((row) => row.category)),
+        },
+        y: { scale: compactScaleLinear().domain([0, 8]) },
       },
-      y: { scale: compactScaleLinear().domain([0, 8]) },
+
       tooltip: {
         use: tooltip,
         portal,
@@ -2980,11 +3121,13 @@ async function verifyDeclarations() {
     void compactDefinition
     const responsiveDefinition = defineChart(({ width }) => ({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
-      x: {
-        scale: scaleBand<string>().domain(rows.map((row) => row.category)),
-        axis: { ticks: { count: width < 480 ? 3 : 5 } },
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+          axis: { ticks: { count: width < 480 ? 3 : 5 } },
+        },
+        y: { scale: scaleLinear().domain([0, 8]) },
       },
-      y: { scale: scaleLinear().domain([0, 8]) },
     }))
     const endpointMark = createMarkWithScaleValues<
       Row,
@@ -3017,12 +3160,12 @@ async function verifyDeclarations() {
     }))
     const endpointDefinition = defineChart({
       marks: [endpointMark],
-      x: {
-        scale: scaleBand<string>().domain(
-          rows.map((row) => row.category),
-        ),
+      scales: {
+        x: {
+          scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+        },
+        y: { scale: scaleLinear().domain([0, 8]) },
       },
-      y: { scale: scaleLinear().domain([0, 8]) },
     })
     type EndpointXIsNumber = Expect<
       Equal<NonNullable<typeof endpointDefinition.__xValue>, number>
@@ -3058,9 +3201,11 @@ async function verifyDeclarations() {
     ]
     const invalidEndpointSpec: ChartSpec<readonly [typeof endpointMark]> = {
       marks: [endpointMark],
-      // @ts-expect-error The packed custom mark declares categorical x scale values.
-      x: { scale: scaleLinear() },
-      y: { scale: scaleLinear() },
+      scales: {
+        // @ts-expect-error The packed custom mark declares categorical x scale values.
+        x: { scale: scaleLinear() },
+        y: { scale: scaleLinear() },
+      },
     }
     void invalidEndpointSpec
     const container = document.createElement('div')
@@ -3199,9 +3344,27 @@ async function verifyDeclarations() {
       definition: responsiveDefinition,
       ariaLabel: 'Responsive React chart',
     })
+    ReactChart({
+      definition: mixedDefinition,
+      ariaLabel: 'Mixed React chart',
+      onRender({ scene, surface, svg }) {
+        const point = scene.points[0]
+        point?.xValue.toUpperCase()
+        surface.layers?.forEach((layer) => layer.element)
+        svg.getAttribute('viewBox')
+      },
+    })
     OctaneChart({
       definition: responsiveDefinition,
       ariaLabel: 'Responsive Octane chart',
+    })
+    OctaneChart({
+      definition: mixedDefinition,
+      ariaLabel: 'Mixed Octane chart',
+      onRender({ surface, svg }) {
+        surface.element.getAttribute('role')
+        svg.getAttribute('viewBox')
+      },
     })
     ReactRendererChart({
       renderer: canvasChartRenderer,
@@ -3340,8 +3503,11 @@ async function verifyDeclarations() {
           selection,
         ),
       ],
-      x: { scale: scaleLinear() },
-      y: { scale: scaleLinear() },
+      scales: {
+        x: { scale: scaleLinear() },
+        y: { scale: scaleLinear() },
+      },
+
       selection,
     })
     const runtime = createChartRuntime<Row, number, number>()
@@ -3651,8 +3817,10 @@ async function verifyProductionBundles() {
         const rows = [{ x: 0, y: 2 }, { x: 1, y: 5 }]
         const definition = defineChart({
           marks: [lineY(rows, { x: 'x', y: 'y' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -3930,8 +4098,11 @@ async function verifyProductionBundles() {
               selection,
             ),
           ],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
+
           selection,
         })
         export const svg = renderChartSvg(
@@ -3969,8 +4140,10 @@ async function verifyProductionBundles() {
         import { scaleLinear } from 'd3-scale'
         const definition = defineChart({
           marks: [decorative(lineY([2, 5, 3]))],
-          x: { scale: scaleLinear().domain([0, 2]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4035,8 +4208,10 @@ async function verifyProductionBundles() {
         ]
         const definition = defineChart({
           marks: [lineX(rows, { x: 'value', y: 'category', key: 'id' })],
-          x: { scale: scaleLinear().domain([0, 5]) },
-          y: { scale: scaleBand().domain(['A', 'B']) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 5]) },
+            y: { scale: scaleBand().domain(['A', 'B']) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4073,8 +4248,10 @@ async function verifyProductionBundles() {
         ]
         const definition = defineChart({
           marks: [linearRegressionY(rows, { x: 'x', y: 'y', samples: 8 })],
-          x: { scale: scaleLinear() },
-          y: { scale: scaleLinear() },
+          scales: {
+            x: { scale: scaleLinear() },
+            y: { scale: scaleLinear() },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4110,13 +4287,17 @@ async function verifyProductionBundles() {
           { x: 3, comparison: 2, primary: 1 },
         ]
         const definition = defineChart({
-          marks: [differenceY(rows, {
-            x: 'x',
-            y1: 'comparison',
-            y2: 'primary',
-          })],
-          x: { scale: scaleLinear() },
-          y: { scale: scaleLinear() },
+          marks: [
+            differenceY(rows, {
+              x: 'x',
+              y1: 'comparison',
+              y2: 'primary',
+            }),
+          ],
+          scales: {
+            x: { scale: scaleLinear() },
+            y: { scale: scaleLinear() },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4156,14 +4337,19 @@ async function verifyProductionBundles() {
           views: {
             overview: defineChart({
               marks: [dot(rows, { x: 'x', y: 'y' })],
-              x: { scale: x },
-              y: { scale: scaleLinear().domain([0, 2]) },
+              scales: {
+                x: { scale: x },
+                y: { scale: scaleLinear().domain([0, 2]) },
+              },
+
               guides: false,
             }),
             main: defineChart({
               marks: [dot(rows, { x: 'x', y: 'y' })],
-              x: { scale: x },
-              y: { scale: scaleLinear().domain([0, 2]) },
+              scales: {
+                x: { scale: x },
+                y: { scale: scaleLinear().domain([0, 2]) },
+              },
             }),
           },
           layout: grid({
@@ -4316,16 +4502,23 @@ async function verifyProductionBundles() {
         import { scaleBand, scaleLinear } from 'd3-scale'
         const rows = [{ id: 'a', category: 'A', value: 4 }]
         const definition = defineChart({
-          marks: [compositeMark([
-            barY(rows, {
-              id: 'body',
-              x: 'category',
-              y: 'value',
-              key: 'id',
-            }),
-          ], { id: 'packed-composite' })],
-          x: { scale: scaleBand() },
-          y: { scale: scaleLinear() },
+          marks: [
+            compositeMark(
+              [
+                barY(rows, {
+                  id: 'body',
+                  x: 'category',
+                  y: 'value',
+                  key: 'id',
+                }),
+              ],
+              { id: 'packed-composite' },
+            ),
+          ],
+          scales: {
+            x: { scale: scaleBand() },
+            y: { scale: scaleLinear() },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4362,13 +4555,17 @@ async function verifyProductionBundles() {
           { id: 'e', category: 'A', value: 10 },
         ]
         const definition = defineChart({
-          marks: [boxY(rows, {
-            x: 'category',
-            y: 'value',
-            key: 'id',
-          })],
-          x: { scale: scaleBand() },
-          y: { scale: scaleLinear() },
+          marks: [
+            boxY(rows, {
+              x: 'category',
+              y: 'value',
+              key: 'id',
+            }),
+          ],
+          scales: {
+            x: { scale: scaleBand() },
+            y: { scale: scaleLinear() },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4403,15 +4600,19 @@ async function verifyProductionBundles() {
           { id: 'b:1', category: 'B', x: 1, height: 0.75 },
         ]
         const definition = defineChart({
-          marks: [ridgelineY(rows, {
-            x: 'x',
-            y: 'category',
-            height: 'height',
-            key: 'id',
-          })],
+          marks: [
+            ridgelineY(rows, {
+              x: 'x',
+              y: 'category',
+              height: 'height',
+              key: 'id',
+            }),
+          ],
           guides: false,
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scalePoint().domain(['A', 'B']) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scalePoint().domain(['A', 'B']) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4448,15 +4649,19 @@ async function verifyProductionBundles() {
           { id: 'b:1', category: 'B', value: 1, width: 0.75 },
         ]
         const definition = defineChart({
-          marks: [violinY(rows, {
-            x: 'category',
-            y: 'value',
-            width: 'width',
-            key: 'id',
-          })],
+          marks: [
+            violinY(rows, {
+              x: 'category',
+              y: 'value',
+              width: 'width',
+              key: 'id',
+            }),
+          ],
           guides: false,
-          x: { scale: scalePoint().domain(['A', 'B']) },
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: { scale: scalePoint().domain(['A', 'B']) },
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4557,32 +4762,38 @@ async function verifyProductionBundles() {
           { id: 'middle-target', source: 'middle', target: 'target', value: 4 },
         ]
         const definition = defineChart({
-          marks: [sankeyDiagram({
-            nodes,
-            links,
-            nodeKey: 'id',
-            source: 'source',
-            target: 'target',
-            value: 'value',
-            align: sankeyLeft,
-            marks: ({ nodes: laidOutNodes, links: laidOutLinks }) => [
-              link(laidOutLinks, {
-                x1: 'x1',
-                y1: 'y1',
-                x2: 'x2',
-                y2: 'y2',
-                key: 'key',
-                strokeWidth: (flow) => flow.width,
-              }),
-              rect(laidOutNodes, {
-                x1: 'x0',
-                x2: 'x1',
-                y1: 'y0',
-                y2: 'y1',
-                key: 'key',
-              }),
-            ],
-          })],
+          marks: [
+            sankeyDiagram({
+              nodes,
+              links,
+              nodeKey: 'id',
+              source: 'source',
+              target: 'target',
+              value: 'value',
+              align: sankeyLeft,
+              marks: ({ nodes: laidOutNodes, links: laidOutLinks }) => [
+                link(laidOutLinks, {
+                  x1: 'x1',
+                  y1: 'y1',
+                  x2: 'x2',
+                  y2: 'y2',
+                  key: 'key',
+                  strokeWidth: (flow) => flow.width,
+                }),
+                rect(laidOutNodes, {
+                  x1: 'x0',
+                  x2: 'x1',
+                  y1: 'y0',
+                  y2: 'y1',
+                  key: 'key',
+                }),
+              ],
+            }),
+          ],
+          scales: {
+            x: null,
+            y: null,
+          },
           guides: false,
         })
         export const svg = renderChartSvg(
@@ -4614,19 +4825,22 @@ async function verifyProductionBundles() {
         import { scaleLinear } from 'd3-scale'
         const definition = defineChart({
           marks: [lineY([4, 9, 7])],
-          x: {
-            scale: scaleLinear().domain([0, 2]),
-            axis: {
-              ticks: { values: [0, 1, 2] },
-              tickLabels: {
-                fontSize: 13,
-                opacity: 0.62,
-                anchor: ({ index }) => index === 0 ? 'start' : undefined,
-                dx: ({ index, bandwidth }) => index === 0 ? -bandwidth / 2 : undefined,
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 2]),
+              axis: {
+                ticks: { values: [0, 1, 2] },
+                tickLabels: {
+                  fontSize: 13,
+                  opacity: 0.62,
+                  anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+                  dx: ({ index, bandwidth }) =>
+                    index === 0 ? -bandwidth / 2 : undefined,
+                },
               },
             },
+            y: { scale: scaleLinear().domain([0, 10]) },
           },
-          y: { scale: scaleLinear().domain([0, 10]) },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4674,8 +4888,10 @@ async function verifyProductionBundles() {
           ],
           guides: false,
           focusRing: false,
-          x: { scale: scaleLinear().domain([0, 3]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 3]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4800,13 +5016,17 @@ async function verifyProductionBundles() {
           { x: 1, y: 5 },
         ]
         const definition = defineChart({
-          marks: [densityContour(rows, {
-            x: 'x',
-            y: 'y',
-            thresholds: [0.0001],
-          })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          marks: [
+            densityContour(rows, {
+              x: 'x',
+              y: 'y',
+              thresholds: [0.0001],
+            }),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4832,11 +5052,17 @@ async function verifyProductionBundles() {
         import { contour } from '@tanstack/charts/spatial/contour'
         const values = [0, 0, 0, 0, 8, 0, 0, 0, 0]
         const definition = defineChart({
-          marks: [contour(values, {
-            width: 3,
-            height: 3,
-            thresholds: [4],
-          })],
+          marks: [
+            contour(values, {
+              width: 3,
+              height: 3,
+              thresholds: [4],
+            }),
+          ],
+          scales: {
+            x: null,
+            y: null,
+          },
           guides: false,
         })
         export const svg = renderChartSvg(
@@ -4866,8 +5092,10 @@ async function verifyProductionBundles() {
         ]
         const definition = defineChart({
           marks: [hexbin(rows, { x: 'x', y: 'y', binWidth: 20 })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4898,8 +5126,10 @@ async function verifyProductionBundles() {
         ]
         const definition = defineChart({
           marks: [delaunayLink(rows, { x: 'x', y: 'y', key: 'id' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4944,8 +5174,10 @@ async function verifyProductionBundles() {
               stroke: '#fff',
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         })
         export const svg = renderChartSvg(
           createChartScene(definition, { width: 320, height: 180 }),
@@ -4990,8 +5222,10 @@ async function verifyProductionBundles() {
         const rows = [{ x: 0, y: 2 }, { x: 1, y: 5 }]
         const definition = defineChart({
           marks: [lineY(rows, { x: 'x', y: 'y' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
         })
         export const chart = createElement(Chart, {
           definition,
@@ -5156,8 +5390,11 @@ async function verifyProductionBundles() {
         import { Chart } from '@tanstack/react-charts/tooltip'
         const definition = defineChart({
           marks: [lineY([2, 5])],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
+
           tooltip,
         })
         export const chart = createElement(Chart, {
@@ -5218,6 +5455,7 @@ async function verifyProductionBundles() {
         absWorkingDir: fixtureDirectory,
         bundle: true,
         conditions: entry.conditions ?? ['browser', 'import', 'default'],
+        define: { 'process.env.NODE_ENV': '"production"' },
         external: entry.external,
         format: 'esm',
         legalComments: 'none',

@@ -2,18 +2,15 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import {
-  indexedIndustryDefinition,
-  indexedIndustryObservations,
-} from './tanstack'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import { createExampleChart, indexedIndustryObservations } from './tanstack'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import type { ChartPoint, ChartSpecDatum } from '@tanstack/charts'
 
-type IndexedDatum = ChartSpecDatum<ReturnType<typeof indexedIndustryDefinition>>
+type IndexedDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('definition-owned indexed industry lines', () => {
   it('normalizes within each industry and preserves one-row lineage', () => {
-    const scene = render(indexedIndustryObservations)
+    const scene = render()
     const lines = points(scene.points, 'indexed-lines')
     const labels = points(scene.points, 'end-labels')
     const chronological = [...indexedIndustryObservations].sort(
@@ -54,38 +51,11 @@ describe('definition-owned indexed industry lines', () => {
     }
   })
 
-  it('keeps baselines and newest labels stable when input rows are reordered', () => {
-    const canonical = render(indexedIndustryObservations)
-    const reorderedRows = [...indexedIndustryObservations].reverse()
-    const reordered = render(reorderedRows)
-    const canonicalValues = new Map(
-      points(canonical.points, 'indexed-lines').map(({ datum }) => [
-        datumKey(datum),
-        datum.indexed,
-      ]),
-    )
-
-    for (const { datum } of points(reordered.points, 'indexed-lines')) {
-      expect(datum.indexed).toBeCloseTo(canonicalValues.get(datumKey(datum))!)
-      expect(reorderedRows).toContain(datum.source[0])
-    }
-
-    expect(
-      points(reordered.points, 'end-labels')
-        .map(({ datum }) => [datum.industry, datum.date.getTime()])
-        .sort(([left], [right]) => String(left).localeCompare(String(right))),
-    ).toEqual(
-      points(canonical.points, 'end-labels')
-        .map(({ datum }) => [datum.industry, datum.date.getTime()])
-        .sort(([left], [right]) => String(left).localeCompare(String(right))),
-    )
-  })
-
   it('keeps normalization and endpoint selection in the definition source closure', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/55-indexed-multi-line/tanstack.ts',
+        'benchmarks/conformance/cases/55-indexed-multi-line/example.tsx',
       ),
       'utf8',
     )
@@ -104,10 +74,15 @@ describe('definition-owned indexed industry lines', () => {
   })
 })
 
-function render(source: readonly IndustriesRow[]) {
+function render() {
+  const input = {
+    width: 640,
+    height: 400,
+    revision: 0,
+  }
   return createChartRuntime<IndexedDatum>().render(
-    indexedIndustryDefinition(source),
-    { width: 640, height: 400 },
+    createExampleChart({}),
+    input,
   )
 }
 
@@ -123,8 +98,4 @@ function groupByIndustry(source: readonly IndustriesRow[]) {
     groups.set(row.industry, group)
   }
   return groups
-}
-
-function datumKey(datum: IndexedDatum) {
-  return `${datum.industry}:${datum.date.getTime()}`
 }

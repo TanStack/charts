@@ -62,8 +62,10 @@ const definition = defineChart({
   ],
   guides: false,
   margin: 8,
-  x: null,
-  y: null,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 export function render(width: number, height: number) {

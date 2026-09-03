@@ -28,11 +28,17 @@ const definition = defineChart({
           fill: (row) => row.fill,
         }),
       ],
+      scales: {
+        angle: null,
+        radius: null,
+      },
     }),
   ],
   guides: false,
-  x: null,
-  y: null,
+  scales: {
+    x: null,
+    y: null,
+  },
 })
 
 export function render(width: number, height: number) {

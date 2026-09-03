@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { survey } from '@charts-poc/demo-data/survey'
+import { survey } from '@tanstack/charts-data/survey'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
@@ -9,7 +9,7 @@ import {
   selectLikertSurvey,
 } from './selection'
 import type { LikertSurveyRow } from './selection'
-import { likertCounts, likertDefinition } from './tanstack'
+import { likertCounts, createExampleChart } from './tanstack'
 
 type LikertCount = (typeof likertCounts)[number]
 
@@ -80,7 +80,7 @@ describe('definition-owned anchored Likert stack', () => {
       process.cwd(),
       'benchmarks/conformance/cases/26-diverging-likert',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     expect(source).toContain('groupBy(likertSurvey')
     expect(source).toContain("outputs: { count: { reduce: 'count' } }")
@@ -96,7 +96,7 @@ describe('definition-owned anchored Likert stack', () => {
 
 function render() {
   return createChartRuntime<LikertCount | number, number, string>().render(
-    likertDefinition(),
+    createExampleChart(),
     { width: 640, height: 400 },
   )
 }

@@ -29,8 +29,8 @@ function compositeMark<
 >
 ```
 
-`CompositeMarkOptions` contains optional `id` and `motion` fields. The result
-preserves the union of child datum and positional types. Initialization merges
+`CompositeMarkOptions` contains optional `id`, `motion`, and `renderer` fields.
+The result preserves the union of child datum and positional types. Initialization merges
 the children's semantic channels under parent and child namespaces. Rendering
 keeps child order, namespaces scene keys and mark IDs, and retains each child
 point as a separate interaction target. Parent and child motion definitions
@@ -53,12 +53,15 @@ function createMark<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 >(
   initialize: (
     context: MarkInitializeContext,
   ) => MarkInitialization<TDatum, TXValue, TYValue>,
   motion?: ChartMotionDefinition<TDatum>,
-): ChartMark<TDatum, TXValue, TYValue>
+  renderer?: ChartMarkRenderer,
+): ChartMark<TDatum, TXValue, TYValue, TXValue, TYValue, TXScaleId, TYScaleId>
 ```
 
 Initialization runs once per scene compilation and receives the mark's layer
@@ -97,6 +100,11 @@ initializer may return its own `motion` when a composite or resolved layout
 needs a scene-local policy; that value takes precedence over the factory
 fallback.
 
+The optional third `renderer` argument is copied onto the nodes returned by
+both direct `render` and resolved-layout render paths. It does not replace or
+shift the motion argument. Use a stable `ChartMarkRenderer` instance so an
+update can reuse its existing surface composition.
+
 Materialized channels declare semantic values before scale resolution:
 
 ```ts
@@ -107,9 +115,13 @@ interface MaterializedChannel {
 }
 ```
 
-Use `scale: 'x'`, `scale: 'y'`, or `scale: 'color'` for shared chart scales.
-`includeZero` is a hint available to a custom scale resolver. Filter invalid
-values before materializing them.
+Use a `ChartSpec.scales` ID for a positional channel. The reserved `x` and `y`
+IDs are the defaults; additional IDs select named scales. Use `scale: 'color'`
+for the shared color scale, and do not reuse `color` as a positional scale ID.
+Pass named position IDs through the `createMark` scale ID type parameters so
+their values do not widen the reserved scale types. `includeZero` is a hint
+available to a custom scale resolver. Filter invalid values before
+materializing them.
 
 `viewport` overrides presentation ownership independently for x and y. Without
 an override, a mark is viewport content on an axis when one of its materialized
@@ -256,17 +268,29 @@ function createMarkWithScaleValues<
   TYPointValue extends ChartValue,
   TXScaleValue extends ChartValue,
   TYScaleValue extends ChartValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 >(
   initialize: (
     context: MarkInitializeContext,
   ) => MarkInitialization<TDatum, TXPointValue, TYPointValue>,
   motion?: ChartMotionDefinition<TDatum>,
-): ChartMark<TDatum, TXPointValue, TYPointValue, TXScaleValue, TYScaleValue>
+  renderer?: ChartMarkRenderer,
+): ChartMark<
+  TDatum,
+  TXPointValue,
+  TYPointValue,
+  TXScaleValue,
+  TYScaleValue,
+  TXScaleId,
+  TYScaleId
+>
 ```
 
 The subpath also exports `ChartMarkPointX`, `ChartMarkPointY`,
 `ChartMarkScaleX`, and `ChartMarkScaleY`. Use it only when the distinction is
-real; ordinary custom marks should use `createMark`.
+real; ordinary custom marks should use `createMark`. Pass named scale IDs in
+the last two type parameters when the mark does not use reserved `x` or `y`.
 
 ## Curves
 
@@ -371,6 +395,18 @@ guide resolvers or infer mark order again.
 Use `@tanstack/charts/renderer` directly or the framework `/core` entries.
 The optional built-in implementation at `@tanstack/charts/canvas` demonstrates
 the boundary without changing the default SVG imports.
+
+`ChartMarkRenderer` is the small renderer-selection token stored in universal
+mark and scene types. A DOM implementation uses `ChartLayerRenderer`, which
+extends `ChartRenderer` and `ChartMarkRenderer` with
+`compose(defaultRenderer)`. `UniversalChartLayerRenderer` provides the same
+contract for a definition-agnostic renderer. The returned compositor owns the
+ordered child surfaces and exposes them through `ChartSurface.layers`.
+
+Built-in marks accept a `ChartMarkRenderer` through their shared
+`ChartMarkOptions`. Custom marks pass it as the third factory argument, after
+the optional motion definition. See
+[Mark-level renderers](./rendering-and-export.md#mark-level-renderers).
 
 For an SVG-only serialization change, pass a `ChartSvgRenderer` as `renderSvg`
 to the compatibility host or adapt it with `createSvgChartRenderer` from

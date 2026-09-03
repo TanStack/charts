@@ -104,8 +104,8 @@ describe('declarative definition-owned motion', () => {
       },
     })
 
-    const xAxis = requiredAxis(definition.x)
-    const yAxis = requiredAxis(definition.y)
+    const xAxis = requiredAxis(definition.scales.x)
+    const yAxis = requiredAxis(definition.scales.y)
     const xTicks = requiredTicks(xAxis.ticks)
     const xTickLabels = requiredTickLabels(xAxis.tickLabels)
     const xLabel = requiredLabel(xAxis.label)
@@ -182,22 +182,29 @@ describe('declarative definition-owned motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/115-definition-motion/tanstack.ts',
+        'benchmarks/conformance/cases/115-definition-motion/example.tsx',
       ),
       'utf8',
     )
     const start = source.indexOf('export function definitionMotionDefinition(')
-    const end = source.indexOf('function createControls', start)
+    const end = source.indexOf('export default function', start)
     const definitionSource = source.slice(start, end)
 
-    expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('controls.update.addEventListener')
-    expect(source).toContain('controls.interrupt.addEventListener')
-    expect(source).toContain('controls.replay.addEventListener')
-    expect(source).toContain('setTimeout(() =>')
-    expect(source).toContain('mountChartRenderer(chart')
-    expect(source).toContain('settleChartMotion(chart')
-    expect(source).not.toContain('function settleMotion')
+    const view = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/115-definition-motion/view.tsx',
+      ),
+      'utf8',
+    )
+    expect(view).toContain("from '../../shared/motion'")
+    expect(view).toContain('onClick={advance}')
+    expect(view).toContain('onClick={interrupt}')
+    expect(view).toContain('onClick={replay}')
+    expect(view).toContain('window.setTimeout(() =>')
+    expect(view).toContain('<Chart')
+    expect(view).toContain('settleChartMotion(')
+    expect(view).not.toContain('function settleMotion')
     expect(definitionSource).toContain('defineChart({')
     expect(definitionSource).toContain("id: 'actual'")
     expect(definitionSource).toContain("id: 'target'")
@@ -276,7 +283,7 @@ function guideMotionContext(
 function resolveMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }
 

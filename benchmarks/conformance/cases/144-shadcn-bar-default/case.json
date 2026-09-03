@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1450,
+  "id": "144-shadcn-bar-default",
+  "title": "shadcn Bar Chart",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-default example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-default",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-default"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-default card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar default treatment, card dimensions, and light and dark tokens."
+  }
+}

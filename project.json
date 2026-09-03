@@ -128,6 +128,12 @@
         "command": "node scripts/catalog-index.mjs --check"
       }
     },
+    "catalog-example-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-catalog-examples.mjs"
+      }
+    },
     "catalog-preview-check": {
       "executor": "nx:run-commands",
       "options": {
@@ -170,6 +176,7 @@
         "package-check",
         "bundle-check",
         "benchmark-check",
+        "catalog-example-check",
         "catalog-index-check",
         "catalog-preview-check",
         "conformance-app-build"
@@ -195,6 +202,7 @@
         "react-native-types",
         "bundle-check",
         "benchmark-check",
+        "catalog-example-check",
         "catalog-index-check",
         "catalog-preview-check",
         "conformance-app-build"

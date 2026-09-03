@@ -1,6 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartScene } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { catalogCase, freeCursorDefinition, mount } from './tanstack'
 import type {
@@ -112,7 +113,10 @@ describe('definition-owned free cursor', () => {
   it('previews without rendering, pins on touch, survives leave, and clears on Escape', () => {
     const container = document.createElement('div')
     document.body.append(container)
-    const handle = mount(container, input)
+    let handle!: ReturnType<typeof mount>
+    act(() => {
+      handle = mount(container, input)
+    })
     const driver = handle.driver
     const surface = container.querySelector<SVGSVGElement>('svg.ts-chart')
     const overlay = container.querySelector<SVGSVGElement>(
@@ -138,7 +142,9 @@ describe('definition-owned free cursor', () => {
       y: scene.chart.y + scene.chart.height * 0.64,
     }
 
-    overlay.dispatchEvent(pointer('pointermove', preview.x, preview.y))
+    act(() => {
+      overlay.dispatchEvent(pointer('pointermove', preview.x, preview.y))
+    })
 
     expect(driver.readState()).toMatchObject({
       cursor: {
@@ -156,23 +162,32 @@ describe('definition-owned free cursor', () => {
         ?.textContent,
     ).toContain('HP 101.8 · MPG 20.8')
 
-    overlay.dispatchEvent(pointer('pointerleave', preview.x, preview.y))
+    act(() => {
+      overlay.dispatchEvent(pointer('pointerleave', preview.x, preview.y))
+    })
     expect(driver.readState()).toMatchObject({
       cursor: { visible: false, pinned: false },
     })
+    const sliders = container.querySelectorAll<HTMLInputElement>(
+      'input[type="range"]',
+    )
+    expect(sliders[0]?.value).toBe('101.8')
+    expect(sliders[1]?.value).toBe('20.8')
 
     const touch = {
       x: scene.chart.x + scene.chart.width * 0.25,
       y: scene.chart.y + scene.chart.height * 0.25,
     }
-    overlay.dispatchEvent(pointer('pointerdown', touch.x, touch.y, 'touch'))
-    overlay.dispatchEvent(
-      new MouseEvent('click', {
-        bubbles: true,
-        clientX: touch.x,
-        clientY: touch.y,
-      }),
-    )
+    act(() => {
+      overlay.dispatchEvent(pointer('pointerdown', touch.x, touch.y, 'touch'))
+      overlay.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          clientX: touch.x,
+          clientY: touch.y,
+        }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       cursor: {
         visible: true,
@@ -182,19 +197,25 @@ describe('definition-owned free cursor', () => {
       },
     })
 
-    overlay.dispatchEvent(pointer('pointerleave', touch.x, touch.y, 'touch'))
+    act(() => {
+      overlay.dispatchEvent(pointer('pointerleave', touch.x, touch.y, 'touch'))
+    })
     expect(driver.readState()).toMatchObject({
       cursor: { visible: true, pinned: true },
     })
 
-    overlay.dispatchEvent(
-      new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
-    )
+    act(() => {
+      overlay.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
+      )
+    })
     expect(driver.readState()).toMatchObject({
       cursor: { visible: false, pinned: false },
     })
 
-    handle.destroy()
+    act(() => {
+      handle.destroy()
+    })
     container.remove()
   })
 
@@ -203,12 +224,10 @@ describe('definition-owned free cursor', () => {
       process.cwd(),
       'benchmarks/conformance/cases/88-echarts-free-cursor',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
-    expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
     for (const forbidden of [
-      "from 'react'",
-      '@tanstack/charts/react',
       'createElementNS',
       'data-conformance-overlay',
       '.copy()',
@@ -223,6 +242,8 @@ describe('definition-owned free cursor', () => {
     expect(source).toContain('controlledSignal<')
     expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('<CursorSlider')
   })
 })
 

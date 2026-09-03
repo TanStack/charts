@@ -8,7 +8,7 @@ import {
 import { motion } from '@tanstack/charts/motion'
 import { Chart } from '@tanstack/charts/react/core'
 import { settleChartMotion } from '../../shared/motion'
-import { activeBarDashboardDefinition } from './chart'
+import { activeBarDashboardDefinition } from './example'
 import { dashboardRows, metricTotal } from './model'
 import { reactMount } from '../../shared/react-mount'
 import type { CSSProperties } from 'react'

@@ -41,6 +41,11 @@ for it only when they import a Canvas entry. Motion is likewise isolated behind
 `@tanstack/charts/motion`. The `/core` adapter entries accept an explicit
 `renderer` without choosing one for the application.
 
+A default SVG host can still compose selected Canvas marks. Import
+`canvasChartRenderer` from `@tanstack/charts/canvas` and attach it to those
+marks. The default adapter remains the host, and the Canvas painter enters the
+module graph through that explicit import.
+
 ## React Native adapter
 
 The React Native entry selects its native build through the package export
@@ -162,7 +167,7 @@ interface CanvasChartRenderer<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> extends ChartRenderer<TDatum, TXValue, TYValue> {
+> extends ChartLayerRenderer<TDatum, TXValue, TYValue> {
   mount: (
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
@@ -456,12 +461,99 @@ The promise rejects when any requirement fails or Canvas encoding returns no
 blob. `downloadChartImage` defaults to `chart.png`; keep the filename extension
 consistent with the selected MIME type.
 
-The raster helpers accept a mounted SVG or Canvas chart root, or an ancestor
-containing one. SVG is serialized, decoded, and drawn into the export canvas.
-Canvas uses the stable `canvas` base bitmap directly when focus is excluded.
-With `includeFocus`, it composites `backgroundCanvas`, `focusUnderCanvas`,
-`sceneCanvas`, and `focusCanvas` in that order. `serializeChartSvg` and
-`downloadChartSvg` remain SVG-only.
+The raster helpers accept a mounted SVG, Canvas, or mixed chart root, or an
+ancestor containing one. SVG is serialized, decoded, and drawn into the export
+canvas. Canvas uses the stable `canvas` base bitmap directly when focus is
+excluded. With `includeFocus`, it composites `backgroundCanvas`,
+`focusUnderCanvas`, `sceneCanvas`, and `focusCanvas` in that order. Mixed roots
+draw every child surface in visual order. `serializeChartSvg` and
+`downloadChartSvg` reject mixed roots and remain SVG-only.
+
+## Mark-level renderers
+
+Built-in Cartesian, radial, and composite marks accept a `renderer` option.
+Passing `canvasChartRenderer` opts that mark into Canvas while axes, guides,
+and marks without the option keep the host renderer:
+
+```ts
+import { areaY, defineChart, lineY, text } from '@tanstack/charts'
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleUtc } from 'd3-scale'
+
+const definition = defineChart({
+  marks: [
+    areaY(denseRows, {
+      x: 'time',
+      y: 'value',
+      renderer: canvasChartRenderer,
+    }),
+    lineY(summaryRows, { x: 'time', y: 'value' }),
+    text(labels, { x: 'time', y: 'value', text: 'label' }),
+  ],
+  scales: {
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
+  },
+})
+```
+
+Adjacent nodes with the same renderer share a layer. Alternating renderer runs
+remain in declaration order, including nested runs inside facets, composites,
+and `polar`. Server output contains one accessible mixed root with
+deterministic child shells, and the browser adopts those shells. Direct
+`renderChartSvg(scene, options)` calls remain an explicit SVG serialization of
+the complete renderer-neutral scene and do not run surface composition.
+
+The universal mark contract stays small:
+
+```ts
+interface ChartMarkRenderer {
+  readonly kind: 'chart-layer-renderer'
+  readonly id: string
+}
+
+interface ChartMarkOptions {
+  renderer?: ChartMarkRenderer
+}
+```
+
+A renderer that mounts one DOM layer implements the complete composition
+contract:
+
+```ts
+interface ChartLayerRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>
+  extends ChartRenderer<TDatum, TXValue, TYValue>, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<TDatum, TXValue, TYValue>,
+  ) => ChartRenderer<TDatum, TXValue, TYValue>
+}
+
+interface UniversalChartLayerRenderer
+  extends UniversalChartRenderer, ChartMarkRenderer {
+  compose: (
+    defaultRenderer: ChartRenderer<any, any, any>,
+  ) => ChartRenderer<any, any, any>
+}
+```
+
+The first non-default mark renderer supplies the compositor. The built-in
+Canvas renderer can compose normal `ChartRenderer` surfaces and exposes the
+result as one `ChartSurface`.
+
+Mark motion and renderer selection are independent in the authoring API. The
+built-in factories preserve both options, and `createMark` keeps motion as its
+second argument and accepts the renderer as its third. The optional
+`motion()` renderer consumes tween and spring policy only on layers it owns.
+`canvasChartRenderer` paints the final mark scene and does not interpret that
+policy. A host `svgAnimation` can still crossfade complete Canvas frames while
+SVG layers reconcile keyed elements. Changing the layer renderer sequence
+remounts the composition, so that structural update does not animate between
+the old and new surface layout.
 
 ## Custom renderers
 
@@ -480,6 +572,8 @@ interface ChartSurface<
 > {
   readonly renderer: ChartRenderer<TDatum, TXValue, TYValue>
   readonly element: Element
+  readonly layers?: readonly ChartSurface<TDatum, TXValue, TYValue>[]
+  readonly defaultElement?: Element
   render: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
@@ -508,6 +602,7 @@ interface ChartRenderer<
   TYValue extends ChartValue = ChartValue,
 > {
   readonly id: string
+  readonly capabilities?: ChartRendererCapabilities
   prerender: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: RenderChartOptions,
@@ -530,13 +625,37 @@ interface ChartRendererRenderContext<
 }
 ```
 
+`element` is the one accessible, interactive root. `layers`, when present,
+lists child surfaces from back to front. `defaultElement` is the topmost
+surface element owned by the host's default renderer. SVG-oriented
+`ChartRenderContext` callbacks expose that element as `svg` and also include
+the complete renderer-neutral `surface`. `ChartRendererRenderContext` exposes
+the complete surface directly.
+
+```ts
+interface ChartRenderContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  container: HTMLElement
+  svg: SVGSVGElement
+  scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
+  interaction: ChartInteractionController<TDatum, TXValue, TYValue>
+}
+```
+
 | Member                          | Responsibility                                                                                                                 |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `ChartRenderer.id`              | Stable renderer identifier                                                                                                     |
+| `ChartRenderer.capabilities`    | Expose optional versioned services that the shared host injects into extensions                                                |
 | `prerender()`                   | Return deterministic accessible markup for the supplied scene and render options                                               |
 | `mount()`                       | Adopt or create a surface in the container and connect renderer-owned environment observers                                    |
 | `ChartSurface.renderer`         | Refer to the renderer that created the surface; a different renderer object on update replaces the surface                     |
 | `ChartSurface.element`          | Expose the accessible, focusable root used by shared keyboard and focus handling                                               |
+| `ChartSurface.layers`           | Expose ordered child surfaces when this surface composes more than one renderer                                                |
+| `ChartSurface.defaultElement`   | Expose the topmost element owned by the host's default renderer                                                                |
 | `render()`                      | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation                        |
 | `clientToScene()`               | Optionally convert viewport client coordinates to scene coordinates; the controller returns `null` when omitted or unavailable |
 | `getPresentationPoints()`       | Expose renderer-owned point geometry while a scene transition is active                                                        |
@@ -549,6 +668,12 @@ animation frame; ordinary requests proceed only when responsive width changed.
 `requestRender(true)` forces the work when renderer state changed without a
 width or chart-option change, such as device-pixel ratio or resolved theme
 colors. Requests made before the same frame are coalesced.
+
+Renderer capabilities are structural so independently bundled package
+entrypoints do not need shared object or symbol identity. A renderer can expose
+`capabilities.tooltipMotion` with protocol `1`; the host creates its controller
+and injects it as `ChartTooltipExtensionContext.motion`. Renderers that omit the
+capability do not load or run tooltip motion code.
 
 Animated renderers can expose their current point geometry through
 `getPresentationPoints()` and notify the host through
@@ -588,9 +713,19 @@ stable interaction controller instead of assuming an SVG element.
 Use `mountChartRenderer` from `@tanstack/charts/renderer`, or the React and
 Octane `/core` entries, to mount a custom renderer. `RenderChartOptions`,
 `ChartSurfaceRenderOptions`, `ChartSurface`, `ChartRenderer`,
+`ChartRendererCapabilities`, `ChartRendererTooltipMotionCapability`,
+`ChartTooltipMotionController`, `ChartTooltipMotionSnapshot`,
 `ChartRendererRenderContext`, `ChartRendererHostCommonOptions`,
 `ChartRendererHostOptions`, and `ChartRendererHost` describe the complete
 boundary.
+
+Import `resolveChartRenderer` from `@tanstack/charts/renderer` when implementing
+a host outside the shared adapters. The function returns the effective renderer
+for prerendering or mounting a scene. It returns the default when every node
+uses that renderer. Otherwise it asks the first non-default
+`ChartLayerRenderer` to compose the ordered layers with the default renderer.
+The shared DOM host and `createChartRendererAdapter` perform this resolution
+automatically.
 
 SVG remains available as a renderer implementation:
 

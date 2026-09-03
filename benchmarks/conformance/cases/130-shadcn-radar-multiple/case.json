@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1310,
+  "id": "130-shadcn-radar-multiple",
+  "title": "shadcn Radar Chart - Multiple",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-multiple example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "multiple", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-multiple",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-multiple"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-multiple card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar multiple treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { simpsons } from '@charts-poc/demo-data/simpsons'
+import { simpsons } from '@tanstack/charts-data/simpsons'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { isRatedEpisode, ratingBoundaries, ridgeSeasons } from './selection'
-import { ridgelineDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { RatedEpisode } from './selection'
 import type {
   ChartSpecDatum,
@@ -23,9 +23,7 @@ describe('ridgeline density comparison', () => {
         (row): row is RatedEpisode =>
           isRatedEpisode(row) && seasons.includes(row.season),
       )
-      const definition = ridgelineDefinition({
-        width: 720,
-        height: 480,
+      const definition = createExampleChart({
         revision,
       })
       type Datum = ChartSpecDatum<typeof definition>
@@ -95,9 +93,7 @@ describe('ridgeline density comparison', () => {
   it.each([320, 640, 960])(
     'derives responsive ridge offsets from the semantic category step at %spx',
     (width) => {
-      const definition = ridgelineDefinition({
-        width,
-        height: 480,
+      const definition = createExampleChart({
         revision: 0,
       })
       const scene = createChartScene(definition, { width, height: 480 })
@@ -152,9 +148,7 @@ describe('ridgeline density comparison', () => {
   )
 
   it('keeps stable semantic identities while resizing', () => {
-    const definition = ridgelineDefinition({
-      width: 640,
-      height: 480,
+    const definition = createExampleChart({
       revision: 0,
     })
     const narrow = createChartScene(definition, { width: 320, height: 360 })
@@ -181,7 +175,7 @@ describe('ridgeline density comparison', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/62-ridgeline-density/tanstack.ts',
+        'benchmarks/conformance/cases/62-ridgeline-density/example.tsx',
       ),
       'utf8',
     )

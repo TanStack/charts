@@ -1,16 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
 import { createChartRuntime } from '@tanstack/charts'
 import type { ChartSpecDatum } from '@tanstack/charts'
 import { deviation, mean } from 'd3-array'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { ConformanceInput } from '../../types'
 import { selectBollingerData } from './selection'
-import { bollingerDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 
-type BollingerDatum = ChartSpecDatum<ReturnType<typeof bollingerDefinition>>
+type BollingerDatum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('definition-owned Bollinger band', () => {
   it.each([0, 1])(
@@ -67,7 +67,7 @@ describe('definition-owned Bollinger band', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/22-bollinger-band/tanstack.ts',
+        'benchmarks/conformance/cases/22-bollinger-band/example.tsx',
       ),
       'utf8',
     )
@@ -100,7 +100,7 @@ function render(revision: number) {
     revision,
   } satisfies ConformanceInput
   return createChartRuntime<BollingerDatum, Date, number>().render(
-    bollingerDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

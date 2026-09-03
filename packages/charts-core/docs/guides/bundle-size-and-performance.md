@@ -64,6 +64,24 @@ SVG-based. Canvas enters the module graph only through
 `@tanstack/charts/octane/canvas`. The React and Octane `/core` entries accept
 an application-supplied renderer without importing Canvas.
 
+The Canvas renderer can also be attached to only the dense marks in an
+otherwise SVG chart:
+
+```ts
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+
+lineY(rows, {
+  x: 'time',
+  y: 'value',
+  renderer: canvasChartRenderer,
+})
+```
+
+The shared host includes only the small renderer-selection and layer metadata
+contract. It does not include the Canvas painter. A consumer that never
+imports the Canvas subpath cannot retain that painter. Measure mixed and
+SVG-only entries separately when reviewing a bundle change.
+
 Non-cartesian geometry is subpath-only:
 
 ```ts

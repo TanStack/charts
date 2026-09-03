@@ -1,18 +1,18 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { morley } from '@charts-poc/demo-data/morley'
-import type { MorleyRow } from '@charts-poc/demo-data/morley'
+import { morley } from '@tanstack/charts-data/morley'
+import type { MorleyRow } from '@tanstack/charts-data/morley'
 import { createChartRuntime } from '@tanstack/charts'
 import type { BoxDatum, ChartSpecDatum } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { boxplotDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 
-type Datum = ChartSpecDatum<ReturnType<typeof boxplotDefinition>>
+type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
 describe('native boxplot definition', () => {
   it('derives Tukey summaries and raw-linked outliers inside boxY', () => {
     const scene = createChartRuntime<Datum, number, number>().render(
-      boxplotDefinition(),
+      createExampleChart(),
       { width: 640, height: 400 },
     )
     const summaries = scene.points.flatMap(({ datum }) =>
@@ -57,7 +57,7 @@ describe('native boxplot definition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/15-boxplot/tanstack.ts',
+        'benchmarks/conformance/cases/15-boxplot/example.tsx',
       ),
       'utf8',
     )

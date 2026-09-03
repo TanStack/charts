@@ -13,14 +13,19 @@ const definition = composeViews({
   views: {
     overview: defineChart({
       marks: [dot(rows, { x: 'x', y: 'y', r: 2 })],
-      x: { scale: x },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: x },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
+
       guides: false,
     }),
     main: defineChart({
       marks: [dot(rows, { x: 'x', y: 'y' })],
-      x: { scale: x },
-      y: { scale: scaleLinear().domain([0, 5]) },
+      scales: {
+        x: { scale: x },
+        y: { scale: scaleLinear().domain([0, 5]) },
+      },
     }),
   },
   layout: grid({

@@ -1,4 +1,4 @@
-import { simpsons } from '@charts-poc/demo-data/simpsons'
+import { simpsons } from '@tanstack/charts-data/simpsons'
 import * as Plot from '@observablehq/plot'
 import { isRatedEpisode, ridgeSeasons } from './selection'
 import { ridgeDensity } from './transform'

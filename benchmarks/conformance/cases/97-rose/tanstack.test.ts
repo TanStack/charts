@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { createChartRuntime } from '@tanstack/charts'
 import { arc, pointRadial } from 'd3-shape'
 import { describe, expect, it } from 'vitest'
 import { selectRoseData } from './selection'
-import { roseDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -146,7 +146,7 @@ describe('native radius-extending rose bars', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/97-rose/tanstack.ts',
+        'benchmarks/conformance/cases/97-rose/example.tsx',
       ),
       'utf8',
     )
@@ -172,7 +172,7 @@ function roseRadius(frequency: number, radius: number): number {
 }
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(roseDefinition(nextInput), nextInput)
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function barPoints(points: readonly ChartPoint<unknown>[]) {

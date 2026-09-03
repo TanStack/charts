@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { cars } from '@charts-poc/demo-data/cars'
+import { cars } from '@tanstack/charts-data/cars'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { empiricalCdfDefinition } from './tanstack'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
+import { createExampleChart } from './tanstack'
+import type { CarsRow } from '@tanstack/charts-data/cars'
 import type { ChartPoint } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -65,7 +65,7 @@ describe('native empirical CDF preparation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/50-empirical-cdf/tanstack.ts',
+        'benchmarks/conformance/cases/50-empirical-cdf/example.tsx',
       ),
       'utf8',
     )
@@ -79,7 +79,7 @@ describe('native empirical CDF preparation', () => {
 
 function render(nextInput: ConformanceInput) {
   return createChartRuntime<RankedCar>().render(
-    empiricalCdfDefinition(nextInput),
+    createExampleChart(nextInput),
     nextInput,
   )
 }

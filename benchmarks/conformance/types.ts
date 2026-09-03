@@ -348,6 +348,8 @@ export interface ConformanceInteractionScenario {
 export interface ConformanceCaseMeta {
   schemaVersion: 1
   referenceRenderer?: ConformanceReferenceRenderer
+  collections?: readonly string[]
+  height?: number
   order: number
   id: string
   title: string

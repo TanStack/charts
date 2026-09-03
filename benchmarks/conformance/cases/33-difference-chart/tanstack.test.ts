@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { differenceDefinition, differenceRows } from './tanstack'
+import { createExampleChart, differenceRows } from './tanstack'
 import type { SceneArea, SceneNode, ScenePolyline } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -84,7 +84,7 @@ describe('definition-owned difference chart', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/33-difference-chart/tanstack.ts',
+        'benchmarks/conformance/cases/33-difference-chart/example.tsx',
       ),
       'utf8',
     )
@@ -102,7 +102,7 @@ describe('definition-owned difference chart', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(differenceDefinition(nextInput), {
+  return createChartRuntime().render(createExampleChart(nextInput), {
     width: nextInput.width,
     height: nextInput.height,
   })

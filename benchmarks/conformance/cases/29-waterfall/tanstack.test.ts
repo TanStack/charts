@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { driving } from '@charts-poc/demo-data/driving'
+import { driving } from '@tanstack/charts-data/driving'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { waterfallDefinition, waterfallRows, yearlyChanges } from './tanstack'
+import { createExampleChart, waterfallRows, yearlyChanges } from './tanstack'
 
 type WaterfallRow = (typeof waterfallRows)[number]
 
@@ -60,7 +60,7 @@ describe('definition-owned waterfall layout', () => {
       WaterfallRow | number,
       string,
       number
-    >().render(waterfallDefinition(), { width: 640, height: 400 })
+    >().render(createExampleChart(), { width: 640, height: 400 })
     const bars = scene.points.filter(
       ({ markId }) => markId === 'waterfall-bars',
     )
@@ -87,7 +87,7 @@ describe('definition-owned waterfall layout', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/29-waterfall/tanstack.ts',
+        'benchmarks/conformance/cases/29-waterfall/example.tsx',
       ),
       'utf8',
     )

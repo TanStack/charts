@@ -12,6 +12,7 @@ import {
   createPortableCatalogPreviewSvg,
   isTransientCatalogPreviewBrowserError,
   retryCatalogPreviewBrowserRender,
+  resolveCatalogPreviewDarkPaint,
   validateCatalogPreviewPresentation,
   validateCatalogPreviewSvg,
   validateCatalogPreviewXml,
@@ -22,8 +23,18 @@ const darkRenderedChart = renderedChart
   .replace('#2563eb', '#6ea8fe')
   .replace('#172033', '#edf2fb')
 
-function portable(light = renderedChart, dark = darkRenderedChart) {
-  return createPortableCatalogPreviewSvg(light, dark, 'line-gaps', JSDOM)
+function portable(
+  light = renderedChart,
+  dark = darkRenderedChart,
+  presentation = {},
+) {
+  return createPortableCatalogPreviewSvg(
+    light,
+    dark,
+    'line-gaps',
+    JSDOM,
+    presentation,
+  )
 }
 
 describe('catalog previews', () => {
@@ -40,17 +51,66 @@ describe('catalog previews', () => {
     expect(preview).toContain('color-scheme:dark')
     expect(preview).toContain('--panel:#ffffff')
     expect(preview).toContain('--panel:#151a24')
+    expect(preview).toContain('--background:#ffffff')
+    expect(preview).toContain('--background:#151a24')
+    expect(preview).toContain('--foreground:#172033')
+    expect(preview).toContain('--foreground:#edf2fb')
+    expect(preview).toContain('--muted:#f7f8fb')
+    expect(preview).toContain('--muted:#10151e')
+    expect(preview).toContain('--muted-foreground:#697386')
+    expect(preview).toContain('--muted-foreground:#9aa6b9')
     expect(preview).toContain('--ts-catalog-preview-paint-0:#2563eb')
     expect(preview).toContain('--ts-catalog-preview-paint-0:#6ea8fe')
     expect(preview).toContain('--ts-catalog-preview-paint-1:#172033')
     expect(preview).toContain('--ts-catalog-preview-paint-1:#edf2fb')
     expect(preview).toContain('fill="var(--ts-catalog-preview-paint-0)"')
     expect(preview).toContain('stroke="var(--ts-catalog-preview-paint-1)"')
-    expect(preview).toContain('fill="#f97316"')
+    expect(preview).toContain('--ts-catalog-preview-paint-2:#f97316')
+    expect(preview).toContain('--ts-catalog-preview-paint-2:#ff9b65')
+    expect(preview).toContain('fill="var(--ts-catalog-preview-paint-2)"')
     expect(preview).toContain(
       "font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
     )
-    expect(preview).not.toContain('background:')
+    expect(preview).not.toMatch(/(?:^|[{;])background\s*:/u)
+  })
+
+  it('adapts fixed authored paint only when the dark surface needs it', () => {
+    expect(resolveCatalogPreviewDarkPaint('#2563eb')).toBe('#6ea8fe')
+    expect(resolveCatalogPreviewDarkPaint('#0f172a')).toMatch(/^#[\da-f]{6}$/u)
+    expect(resolveCatalogPreviewDarkPaint('#0f172a')).not.toBe('#0f172a')
+    expect(resolveCatalogPreviewDarkPaint('#f59e0b')).not.toBe('#f59e0b')
+    expect(
+      resolveCatalogPreviewDarkPaint('var(--premium-kpi-accent, #6d5dfc)'),
+    ).toMatch(/^var\(--premium-kpi-accent, #[\da-f]{6}\)$/u)
+    expect(resolveCatalogPreviewDarkPaint('none')).toBeUndefined()
+    expect(resolveCatalogPreviewDarkPaint('var(--chart-1)')).toBeUndefined()
+
+    const fixed = renderedChart.replace('#2563eb', '#0f172a')
+    const preview = portable(fixed, fixed)
+    expect(preview).toContain('--ts-catalog-preview-paint-0:#0f172a')
+    expect(preview).toContain('fill="var(--ts-catalog-preview-paint-0)"')
+  })
+
+  it('binds shadcn text and surface tokens inside the standalone SVG', () => {
+    const tokenChart = renderedChart
+      .replace(
+        '<path fill="#2563eb" stroke="#172033"',
+        '<path fill="var(--background)" stroke="var(--muted)"',
+      )
+      .replace(
+        '</svg>',
+        '<text fill="var(--foreground)">Total</text><text fill="var(--muted-foreground)">Visitors</text></svg>',
+      )
+    const preview = portable(tokenChart, tokenChart, { text: 'retain' })
+
+    expect(preview).toContain('fill="var(--background)"')
+    expect(preview).toContain('stroke="var(--muted)"')
+    expect(preview).toContain('fill="var(--foreground)"')
+    expect(preview).toContain('fill="var(--muted-foreground)"')
+    expect(preview).toContain('--background:#ffffff')
+    expect(preview).toContain('--background:#151a24')
+    expect(preview).toContain('--foreground:#172033')
+    expect(preview).toContain('--foreground:#edf2fb')
   })
 
   it('requires the fixed 3:2 TanStack chart surface', () => {
@@ -79,6 +139,18 @@ describe('catalog previews', () => {
     )
   })
 
+  it('does not treat semantic background IDs as CSS background paint', () => {
+    expect(() =>
+      validateCatalogPreviewSvg(
+        portable().replace(
+          '<g data-ts-key="marks"',
+          '<g data-ts-key="radial-background:object"',
+        ),
+        'line-gaps',
+      ),
+    ).not.toThrow()
+  })
+
   it('requires standalone XML rather than browser-tolerated HTML markup', () => {
     expect(() =>
       validateCatalogPreviewXml(
@@ -102,6 +174,8 @@ describe('catalog previews', () => {
       '118-token-usage-calendar',
       '120-themed-interactive-area',
       '121-active-bar-dashboard',
+      '130-shadcn-radar-multiple',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       'bar-horizontal-ranking',
     ])
@@ -111,6 +185,9 @@ describe('catalog previews', () => {
     expect(catalogMarginPreviewCaseIds).toEqual([
       '115-definition-motion',
       '118-token-usage-calendar',
+      '128-shadcn-bar-multiple',
+      '132-shadcn-tooltip-advanced',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',
@@ -126,6 +203,7 @@ describe('catalog previews', () => {
       '36-hierarchy-tree',
       '58-select-extrema',
       '59-grouped-reducer-bars',
+      '70-composed-chart',
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',
@@ -141,6 +219,9 @@ describe('catalog previews', () => {
       '123-active-donut-metric',
       '125-sales-funnel',
       '126-drillable-sunburst',
+      '129-shadcn-pie-donut-text',
+      '130-shadcn-radar-multiple',
+      '131-shadcn-radial-text',
       'bar-horizontal-ranking',
       'heatmap-labeled',
     ])
@@ -160,6 +241,13 @@ describe('catalog previews', () => {
       validateCatalogPreviewPresentation(
         '<g class="ts-chart__axes"><text x="0">label</text></g>',
         '115-definition-motion',
+      ),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g class="ts-chart__axes"><text x="0">label</text></g>',
+        'shadcn-collection-case',
+        { guides: true, legend: true, text: 'retain' },
       ),
     ).not.toThrow()
     expect(() =>
@@ -196,6 +284,21 @@ describe('catalog previews', () => {
         '121-active-bar-dashboard',
       ),
     ).toThrow('must retain all 24 keyed bars')
+  })
+
+  it('validates selected-point geometry independently of themed paint', () => {
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g data-ts-key="selected-observation"><circle fill="var(--ts-catalog-preview-paint-0)" r="7"/></g>',
+        '82-chart-table-selection',
+      ),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g data-ts-key="selected-observation"><circle fill="var(--ts-catalog-preview-paint-0)" r="6"/></g>',
+        '82-chart-table-selection',
+      ),
+    ).toThrow('must retain its native selected point')
   })
 
   it('requires the active donut preview composition', () => {

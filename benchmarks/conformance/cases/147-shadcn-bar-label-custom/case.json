@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1480,
+  "id": "147-shadcn-bar-label-custom",
+  "title": "shadcn Bar Chart - Custom Label",
+  "family": "bar",
+  "intent": "Reproduce shadcn/ui's chart-bar-label-custom example with TanStack Charts.",
+  "support": "native",
+  "features": ["bar chart", "label custom", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-bar-label-custom",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-label-custom"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-bar-label-custom card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, bar label custom treatment, card dimensions, and light and dark tokens."
+  }
+}

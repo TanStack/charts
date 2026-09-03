@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { color as parseD3Color } from 'd3-color'
 import { readCatalogCases } from './catalog-index.mjs'
 
 export const catalogPreviewWidth = 288
@@ -76,11 +77,32 @@ const themePaintAttributes = new Set([
   'stop-color',
   'stroke',
 ])
+const minimumDarkPreviewPaintContrast = 3
+const darkPreviewSurface = parseCssColor(darkTheme.panel)
+const darkPreviewForeground = parseCssColor(darkTheme.foreground)
+const darkPreviewForegroundTint = 0.08
+const semanticDarkPreviewPaints = new Map(
+  [
+    [lightTheme.foreground, darkTheme.foreground],
+    [lightTheme.panel, darkTheme.panel],
+    [lightTheme.panelMuted, darkTheme.panelMuted],
+    [lightTheme.border, darkTheme.border],
+    [lightTheme.muted, darkTheme.muted],
+    [lightTheme.accent, darkTheme.accent],
+    [lightTheme.accentMuted, darkTheme.accentMuted],
+    ...lightTheme.series.map((paint, index) => [
+      paint,
+      darkTheme.series[index],
+    ]),
+  ].map(([light, dark]) => [cssColorKey(parseCssColor(light)), dark]),
+)
 export const catalogGuidePreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
   '120-themed-interactive-area',
   '121-active-bar-dashboard',
+  '130-shadcn-radar-multiple',
+  '70-composed-chart',
   '80-echarts-axis-pointer',
   'bar-horizontal-ranking',
 ]
@@ -88,6 +110,9 @@ export const catalogLegendPreviewCaseIds = ['81-recharts-interactive-legend']
 export const catalogMarginPreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
+  '128-shadcn-bar-multiple',
+  '132-shadcn-tooltip-advanced',
+  '70-composed-chart',
   '80-echarts-axis-pointer',
   '81-recharts-interactive-legend',
   '88-echarts-free-cursor',
@@ -103,6 +128,7 @@ export const catalogTextPreviewCaseIds = [
   '36-hierarchy-tree',
   '58-select-extrema',
   '59-grouped-reducer-bars',
+  '70-composed-chart',
   '80-echarts-axis-pointer',
   '81-recharts-interactive-legend',
   '88-echarts-free-cursor',
@@ -118,6 +144,9 @@ export const catalogTextPreviewCaseIds = [
   '123-active-donut-metric',
   '125-sales-funnel',
   '126-drillable-sunburst',
+  '129-shadcn-pie-donut-text',
+  '130-shadcn-radar-multiple',
+  '131-shadcn-radial-text',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
@@ -177,6 +206,7 @@ export async function writeCatalogPreviews() {
         darkSvg,
         entry.id,
         JSDOM,
+        catalogPreviewPresentation(entry),
       )
       validateCatalogPreviewXml(portableSvg, entry.id, JSDOM)
       const assetPath = path.join(previewsDirectory, `${entry.id}.svg`)
@@ -248,6 +278,7 @@ export function isTransientCatalogPreviewBrowserError(error) {
 
 export async function checkCatalogPreviews() {
   const cases = await orderedCatalogCases()
+  const casesById = new Map(cases.map((entry) => [entry.id, entry]))
   const { JSDOM } = await import('jsdom')
   const expectedIds = cases.map((entry) => entry.id)
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
@@ -275,7 +306,11 @@ export async function checkCatalogPreviews() {
     )
     validateCatalogPreviewSvg(source, asset.id)
     validateCatalogPreviewXml(source, asset.id, JSDOM)
-    validateCatalogPreviewPresentation(source, asset.id)
+    validateCatalogPreviewPresentation(
+      source,
+      asset.id,
+      catalogPreviewPresentation(casesById.get(asset.id)),
+    )
     const actual = assetRecord(asset.id, source)
     assert(
       actual.sha256 === asset.sha256 && actual.bytes === asset.bytes,
@@ -291,6 +326,7 @@ export function createPortableCatalogPreviewSvg(
   darkSvg,
   caseId,
   JSDOM,
+  presentation = {},
 ) {
   validateCatalogPreviewSvg(lightSvg, caseId, false)
   validateCatalogPreviewSvg(darkSvg, caseId, false)
@@ -304,7 +340,7 @@ export function createPortableCatalogPreviewSvg(
     lightRoot.insertAdjacentHTML('afterbegin', portableThemeStyle(paints))
     const result = `${lightRoot.outerHTML}\n`
     validateCatalogPreviewSvg(result, caseId)
-    validateCatalogPreviewPresentation(result, caseId)
+    validateCatalogPreviewPresentation(result, caseId, presentation)
     return result
   } finally {
     lightDocument.window.close()
@@ -340,26 +376,32 @@ export function validateCatalogPreviewSvg(
       `catalog preview ${caseId} is missing its portable catalog theme`,
     )
     assert(
-      !trimmed.includes('background:'),
+      !/[{;]background\s*:/u.test(trimmed),
       `catalog preview ${caseId} must keep a transparent background`,
     )
   }
 }
 
-export function validateCatalogPreviewPresentation(svg, caseId) {
-  if (!guidePreviewCaseIdSet.has(caseId)) {
+export function validateCatalogPreviewPresentation(
+  svg,
+  caseId,
+  presentation = {},
+) {
+  if (!presentation.guides && !guidePreviewCaseIdSet.has(caseId)) {
     assert(
       !svg.includes('ts-chart__axes') && !svg.includes('ts-chart__grid'),
       `catalog preview ${caseId} must omit axes and grids`,
     )
   }
-  if (!legendPreviewCaseIdSet.has(caseId)) {
+  if (!presentation.legend && !legendPreviewCaseIdSet.has(caseId)) {
     assert(
       !svg.includes('ts-chart__legend'),
       `catalog preview ${caseId} must omit its legend`,
     )
   }
-  if (textPreviewCaseIdSet.has(caseId)) {
+  if (presentation.text === 'retain') {
+    // Collection previews retain whichever labels define each upstream variant.
+  } else if (textPreviewCaseIdSet.has(caseId)) {
     assert(
       svg.includes('<text '),
       `catalog preview ${caseId} must retain its feature-defining text`,
@@ -387,7 +429,7 @@ export function validateCatalogPreviewPresentation(svg, caseId) {
   if (caseId === '82-chart-table-selection') {
     assert(
       svg.includes('data-ts-key="selected-observation"') &&
-        svg.includes('fill="#f97316"'),
+        svg.includes('r="7"'),
       'catalog preview 82-chart-table-selection must retain its native selected point',
     )
   }
@@ -563,6 +605,12 @@ export function validateCatalogPreviewPresentation(svg, caseId) {
   }
 }
 
+function catalogPreviewPresentation(entry) {
+  return entry?.collections?.includes('shadcn')
+    ? { guides: true, legend: true, text: 'retain' }
+    : {}
+}
+
 export function validateCatalogPreviewXml(svg, caseId, JSDOM) {
   let document
   try {
@@ -611,7 +659,7 @@ function portableThemeStyle(paints) {
 }
 
 function themeVariables(theme) {
-  return `--panel:${theme.panel};--panel-muted:${theme.panelMuted};--border:${theme.border};--muted:${theme.muted};--accent:${theme.accent};--accent-muted:${theme.accentMuted};${theme.series.map((color, index) => `--ts-chart-${index + 1}:${color};`).join('')}`
+  return `--panel:${theme.panel};--panel-muted:${theme.panelMuted};--background:${theme.panel};--foreground:${theme.foreground};--border:${theme.border};--muted:${theme.panelMuted};--muted-foreground:${theme.muted};--accent:${theme.accent};--accent-muted:${theme.accentMuted};${theme.series.map((color, index) => `--ts-chart-${index + 1}:${color};`).join('')}`
 }
 
 function themePaintVariables(paints, theme) {
@@ -627,6 +675,58 @@ function applyThemePaints(lightRoot, darkRoot, caseId) {
   const paintIndexes = new Map()
   compareThemeNodes(lightRoot, darkRoot, caseId, paints, paintIndexes)
   return paints
+}
+
+export function resolveCatalogPreviewDarkPaint(paint) {
+  const variableFallback = paint.match(
+    /^var\(\s*(--[\w-]+)\s*,\s*((?:#[\da-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|white|black))\s*\)$/iu,
+  )
+  if (variableFallback) {
+    const darkFallback = resolveCatalogPreviewDarkPaint(variableFallback[2])
+    return darkFallback === undefined
+      ? undefined
+      : `var(${variableFallback[1]}, ${darkFallback})`
+  }
+
+  const color = parseCssColor(paint)
+  if (!color || color.alpha === 0) return undefined
+
+  const semanticPaint = semanticDarkPreviewPaints.get(cssColorKey(color))
+  if (semanticPaint) return semanticPaint
+
+  if (
+    colorContrast(
+      compositeColor(color, darkPreviewSurface),
+      darkPreviewSurface,
+    ) >= minimumDarkPreviewPaintContrast
+  ) {
+    const tinted = formatCssColor(
+      mixColor(color, darkPreviewForeground, darkPreviewForegroundTint),
+    )
+    return cssColorKey(parseCssColor(tinted)) === cssColorKey(color)
+      ? undefined
+      : tinted
+  }
+
+  const white = { red: 255, green: 255, blue: 255, alpha: color.alpha }
+  let lower = 0
+  let upper = 1
+  for (let iteration = 0; iteration < 12; iteration += 1) {
+    const amount = (lower + upper) / 2
+    const candidate = mixColor(color, white, amount)
+    if (
+      colorContrast(
+        compositeColor(candidate, darkPreviewSurface),
+        darkPreviewSurface,
+      ) >= minimumDarkPreviewPaintContrast
+    ) {
+      upper = amount
+    } else {
+      lower = amount
+    }
+  }
+
+  return formatCssColor(mixColor(color, white, upper))
 }
 
 function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
@@ -656,21 +756,27 @@ function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
     for (const name of attributeNames) {
       const light = lightAttributes.get(name)
       const dark = darkAttributes.get(name)
-      if (light === dark) continue
+      if (light === dark) {
+        if (light === undefined || !themePaintAttributes.has(name)) continue
+        const adaptedDark = resolveCatalogPreviewDarkPaint(light)
+        if (adaptedDark === undefined || adaptedDark === light) continue
+        applyThemePaint(
+          lightNode,
+          name,
+          light,
+          adaptedDark,
+          paints,
+          paintIndexes,
+        )
+        continue
+      }
       assert(
         light !== undefined &&
           dark !== undefined &&
           themePaintAttributes.has(name),
         `catalog preview ${caseId} changed non-paint attribute ${name} between light and dark themes`,
       )
-      const key = `${light}\0${dark}`
-      let index = paintIndexes.get(key)
-      if (index === undefined) {
-        index = paints.length
-        paintIndexes.set(key, index)
-        paints.push({ light, dark })
-      }
-      lightNode.setAttribute(name, `var(--ts-catalog-preview-paint-${index})`)
+      applyThemePaint(lightNode, name, light, dark, paints, paintIndexes)
     }
   } else {
     assert(
@@ -692,6 +798,99 @@ function compareThemeNodes(lightNode, darkNode, caseId, paints, paintIndexes) {
       paintIndexes,
     )
   }
+}
+
+function applyThemePaint(node, name, light, dark, paints, paintIndexes) {
+  const key = `${light}\0${dark}`
+  let index = paintIndexes.get(key)
+  if (index === undefined) {
+    index = paints.length
+    paintIndexes.set(key, index)
+    paints.push({ light, dark })
+  }
+  node.setAttribute(name, `var(--ts-catalog-preview-paint-${index})`)
+}
+
+function parseCssColor(value) {
+  if (typeof value !== 'string') return undefined
+  const parsed = parseD3Color(value)
+  if (!parsed) return undefined
+  const color = parsed.rgb()
+  return {
+    red: color.r,
+    green: color.g,
+    blue: color.b,
+    alpha: color.opacity,
+  }
+}
+
+function mixColor(source, target, amount) {
+  return {
+    red: source.red + (target.red - source.red) * amount,
+    green: source.green + (target.green - source.green) * amount,
+    blue: source.blue + (target.blue - source.blue) * amount,
+    alpha: source.alpha,
+  }
+}
+
+function compositeColor(foreground, background) {
+  return {
+    red:
+      foreground.red * foreground.alpha +
+      background.red * (1 - foreground.alpha),
+    green:
+      foreground.green * foreground.alpha +
+      background.green * (1 - foreground.alpha),
+    blue:
+      foreground.blue * foreground.alpha +
+      background.blue * (1 - foreground.alpha),
+    alpha: 1,
+  }
+}
+
+function colorContrast(left, right) {
+  const leftLuminance = relativeLuminance(left)
+  const rightLuminance = relativeLuminance(right)
+  return (
+    (Math.max(leftLuminance, rightLuminance) + 0.05) /
+    (Math.min(leftLuminance, rightLuminance) + 0.05)
+  )
+}
+
+function relativeLuminance(color) {
+  const channel = (value) => {
+    const normalized = clampColorChannel(value) / 255
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4
+  }
+  return (
+    0.2126 * channel(color.red) +
+    0.7152 * channel(color.green) +
+    0.0722 * channel(color.blue)
+  )
+}
+
+function formatCssColor(color) {
+  const red = Math.round(clampColorChannel(color.red))
+  const green = Math.round(clampColorChannel(color.green))
+  const blue = Math.round(clampColorChannel(color.blue))
+  if (color.alpha < 1) {
+    return `rgba(${red}, ${green}, ${blue}, ${Number(color.alpha.toFixed(3))})`
+  }
+  return `#${[red, green, blue]
+    .map((channel) => channel.toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+function cssColorKey(color) {
+  return color
+    ? `${Math.round(color.red)},${Math.round(color.green)},${Math.round(color.blue)},${Number(color.alpha.toFixed(3))}`
+    : ''
+}
+
+function clampColorChannel(value) {
+  return Math.min(255, Math.max(0, value))
 }
 
 function parseCatalogPreviewXml(svg, caseId, JSDOM) {
@@ -751,99 +950,108 @@ async function renderCatalogPreviewVariant(context, origin, entry, theme) {
       errors.length === 0,
       `catalog preview ${entry.id} (${theme}) logged errors:\n${errors.join('\n')}`,
     )
-    return await page.locator('svg.ts-chart').evaluateAll((allElements) => {
-      const elements = allElements.filter((element) => {
-        const bounds = element.getBoundingClientRect()
-        const style = getComputedStyle(element)
-        return (
-          bounds.width > 0 &&
-          bounds.height > 0 &&
-          style.display !== 'none' &&
-          style.visibility !== 'hidden'
+    return await page
+      .locator('svg.ts-chart')
+      .evaluateAll((allElements) => {
+        const elements = allElements.filter((element) => {
+          const bounds = element.getBoundingClientRect()
+          const style = getComputedStyle(element)
+          return (
+            bounds.width > 0 &&
+            bounds.height > 0 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden'
+          )
+        })
+        const container = elements[0]?.closest('.embed-chart')
+        if (!container)
+          throw new Error('Catalog preview has no chart container')
+        const containerBounds = container.getBoundingClientRect()
+        const overflow = elements.flatMap((element) =>
+          [...element.querySelectorAll('text')].flatMap((label) => {
+            if (!label.textContent?.trim()) return []
+            const style = getComputedStyle(label)
+            if (style.display === 'none' || style.visibility === 'hidden')
+              return []
+            const bounds = label.getBoundingClientRect()
+            const tolerance = 1
+            return bounds.left < containerBounds.left - tolerance ||
+              bounds.top < containerBounds.top - tolerance ||
+              bounds.right > containerBounds.right + tolerance ||
+              bounds.bottom > containerBounds.bottom + tolerance
+              ? [
+                  `${label.textContent.trim()} (${Math.round(bounds.left - containerBounds.left)},${Math.round(bounds.top - containerBounds.top)} ${Math.round(bounds.width)}×${Math.round(bounds.height)})`,
+                ]
+              : []
+          }),
+        )
+        if (overflow.length > 0) {
+          throw new Error(
+            `Catalog preview has clipped SVG labels:\n${overflow.join('\n')}`,
+          )
+        }
+
+        function cloneSurface(element) {
+          const source = element.cloneNode(true)
+          const controls = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'g',
+          )
+          controls.setAttribute('data-tanstack-catalog-preview-controls', '')
+          controls.setAttribute('aria-hidden', 'true')
+          for (const overlay of element.parentElement?.querySelectorAll(
+            ':scope > svg:not(.ts-chart)',
+          ) ?? []) {
+            const clone = overlay.cloneNode(true)
+            clone
+              .querySelectorAll(
+                '.overlay, [data-chart-handle-surface], [style*="display: none"]',
+              )
+              .forEach((node) => node.remove())
+            controls.append(...clone.childNodes)
+          }
+          if (controls.childNodes.length > 0) source.append(controls)
+          return source
+        }
+
+        if (elements.length === 1) {
+          return cloneSurface(elements[0]).outerHTML
+        }
+
+        const composed = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg',
+        )
+        composed.setAttribute('class', 'ts-chart')
+        composed.setAttribute('width', '100%')
+        composed.setAttribute('height', '100%')
+        composed.setAttribute('viewBox', '0 0 288 192')
+        composed.setAttribute('role', 'img')
+        composed.setAttribute(
+          'aria-label',
+          container.closest('[aria-label]')?.getAttribute('aria-label') ??
+            'Chart preview',
+        )
+        composed.setAttribute('data-tanstack-catalog-preview-surfaces', '')
+
+        for (const element of elements) {
+          const bounds = element.getBoundingClientRect()
+          const source = cloneSurface(element)
+          source.setAttribute('x', String(bounds.left - containerBounds.left))
+          source.setAttribute('y', String(bounds.top - containerBounds.top))
+          source.setAttribute('width', String(bounds.width))
+          source.setAttribute('height', String(bounds.height))
+          source.setAttribute('aria-hidden', 'true')
+          composed.append(source)
+        }
+        return composed.outerHTML
+      })
+      .catch((error) => {
+        throw new Error(
+          `catalog preview ${entry.id} (${theme}) failed presentation validation`,
+          { cause: error },
         )
       })
-      const container = elements[0]?.closest('.embed-chart')
-      if (!container) throw new Error('Catalog preview has no chart container')
-      const containerBounds = container.getBoundingClientRect()
-      const overflow = elements.flatMap((element) =>
-        [...element.querySelectorAll('text')].flatMap((label) => {
-          if (!label.textContent?.trim()) return []
-          const style = getComputedStyle(label)
-          if (style.display === 'none' || style.visibility === 'hidden')
-            return []
-          const bounds = label.getBoundingClientRect()
-          const tolerance = 1
-          return bounds.left < containerBounds.left - tolerance ||
-            bounds.top < containerBounds.top - tolerance ||
-            bounds.right > containerBounds.right + tolerance ||
-            bounds.bottom > containerBounds.bottom + tolerance
-            ? [
-                `${label.textContent.trim()} (${Math.round(bounds.left - containerBounds.left)},${Math.round(bounds.top - containerBounds.top)} ${Math.round(bounds.width)}×${Math.round(bounds.height)})`,
-              ]
-            : []
-        }),
-      )
-      if (overflow.length > 0) {
-        throw new Error(
-          `Catalog preview has clipped SVG labels:\n${overflow.join('\n')}`,
-        )
-      }
-
-      function cloneSurface(element) {
-        const source = element.cloneNode(true)
-        const controls = document.createElementNS(
-          'http://www.w3.org/2000/svg',
-          'g',
-        )
-        controls.setAttribute('data-tanstack-catalog-preview-controls', '')
-        controls.setAttribute('aria-hidden', 'true')
-        for (const overlay of element.parentElement?.querySelectorAll(
-          ':scope > svg:not(.ts-chart)',
-        ) ?? []) {
-          const clone = overlay.cloneNode(true)
-          clone
-            .querySelectorAll(
-              '.overlay, [data-chart-handle-surface], [style*="display: none"]',
-            )
-            .forEach((node) => node.remove())
-          controls.append(...clone.childNodes)
-        }
-        if (controls.childNodes.length > 0) source.append(controls)
-        return source
-      }
-
-      if (elements.length === 1) {
-        return cloneSurface(elements[0]).outerHTML
-      }
-
-      const composed = document.createElementNS(
-        'http://www.w3.org/2000/svg',
-        'svg',
-      )
-      composed.setAttribute('class', 'ts-chart')
-      composed.setAttribute('width', '100%')
-      composed.setAttribute('height', '100%')
-      composed.setAttribute('viewBox', '0 0 288 192')
-      composed.setAttribute('role', 'img')
-      composed.setAttribute(
-        'aria-label',
-        container.closest('[aria-label]')?.getAttribute('aria-label') ??
-          'Chart preview',
-      )
-      composed.setAttribute('data-tanstack-catalog-preview-surfaces', '')
-
-      for (const element of elements) {
-        const bounds = element.getBoundingClientRect()
-        const source = cloneSurface(element)
-        source.setAttribute('x', String(bounds.left - containerBounds.left))
-        source.setAttribute('y', String(bounds.top - containerBounds.top))
-        source.setAttribute('width', String(bounds.width))
-        source.setAttribute('height', String(bounds.height))
-        source.setAttribute('aria-hidden', 'true')
-        composed.append(source)
-      }
-      return composed.outerHTML
-    })
   } finally {
     await page.close()
   }

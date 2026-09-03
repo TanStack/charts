@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { alphabet } from '@tanstack/charts-data/alphabet'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { selectCenterDonutData } from './selection'
-import { centerDonutDefinition } from './tanstack'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import { createExampleChart } from './tanstack'
+import type { AlphabetRow } from '@tanstack/charts-data/alphabet'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
@@ -132,7 +132,7 @@ describe('native center-donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/94-center-donut/tanstack.ts',
+        'benchmarks/conformance/cases/94-center-donut/example.tsx',
       ),
       'utf8',
     )
@@ -154,10 +154,7 @@ describe('native center-donut allocation', () => {
 })
 
 function render(nextInput: ConformanceInput) {
-  return createChartRuntime().render(
-    centerDonutDefinition(nextInput),
-    nextInput,
-  )
+  return createChartRuntime().render(createExampleChart(nextInput), nextInput)
 }
 
 function slicePoints(points: readonly ChartPoint<unknown>[]) {

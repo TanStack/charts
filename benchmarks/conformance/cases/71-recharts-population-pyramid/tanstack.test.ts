@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { isSexedPenguin, pyramidSexes } from './selection'
-import { populationPyramidDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   ChartPoint,
   ChartSpecDatum,
@@ -38,9 +38,7 @@ describe('definition-owned population pyramid', () => {
     (revision) => {
       const sourceRows = revision === 0 ? penguins : penguins.slice(0, -8)
       const observations = sourceRows.filter(isSexedPenguin)
-      const definition = populationPyramidDefinition({
-        width: 640,
-        height: 400,
+      const definition = createExampleChart({
         revision,
       })
       type Datum = ChartSpecDatum<typeof definition>
@@ -89,10 +87,10 @@ describe('definition-owned population pyramid', () => {
 
   it('keeps semantic bar identities stable across data revisions', () => {
     const keys = [0, 1].map((revision) =>
-      createChartScene(
-        populationPyramidDefinition({ width: 640, height: 400, revision }),
-        { width: 640, height: 400 },
-      )
+      createChartScene(createExampleChart({ revision }), {
+        width: 640,
+        height: 400,
+      })
         .points.filter((point) => point.markId === 'population-bars')
         .map((point) => point.key),
     )
@@ -103,10 +101,10 @@ describe('definition-owned population pyramid', () => {
   it.each([320, 640, 960])(
     'keeps both sexes joined to the shared zero baseline at %spx',
     (width) => {
-      const scene = createChartScene(
-        populationPyramidDefinition({ width, height: 400, revision: 0 }),
-        { width, height: 400 },
-      )
+      const scene = createChartScene(createExampleChart({ revision: 0 }), {
+        width,
+        height: 400,
+      })
       const zero = scene.scales.x.map(0)
       const rectangles = sceneRects(scene.nodes).filter((node) =>
         node.key.startsWith('population-bars:'),
@@ -127,9 +125,7 @@ describe('definition-owned population pyramid', () => {
   )
 
   it('keeps semantic identities stable while resizing', () => {
-    const definition = populationPyramidDefinition({
-      width: 640,
-      height: 400,
+    const definition = createExampleChart({
       revision: 0,
     })
     const narrow = createChartScene(definition, { width: 320, height: 360 })
@@ -156,7 +152,7 @@ describe('definition-owned population pyramid', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/71-recharts-population-pyramid/tanstack.ts',
+        'benchmarks/conformance/cases/71-recharts-population-pyramid/example.tsx',
       ),
       'utf8',
     )

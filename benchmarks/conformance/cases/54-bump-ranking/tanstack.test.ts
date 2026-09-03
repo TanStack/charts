@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { bumpRankingDefinition } from './tanstack'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import { createExampleChart } from './tanstack'
+import type { IndustriesRow } from '@tanstack/charts-data/industries'
 import type { ChartPoint } from '@tanstack/charts'
 
 type RankedIndustry = IndustriesRow & {
@@ -15,11 +15,11 @@ type RankedIndustry = IndustriesRow & {
 describe('native bump-ranking labels', () => {
   it('selects each industry label by maximum date instead of input position', () => {
     const runtime = createChartRuntime()
-    const first = runtime.render(bumpRankingDefinition(), {
+    const first = runtime.render(createExampleChart(), {
       width: 640,
       height: 400,
     })
-    const repeated = runtime.render(bumpRankingDefinition(), {
+    const repeated = runtime.render(createExampleChart(), {
       width: 640,
       height: 400,
     })
@@ -51,7 +51,7 @@ describe('native bump-ranking labels', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/54-bump-ranking/tanstack.ts',
+        'benchmarks/conformance/cases/54-bump-ranking/example.tsx',
       ),
       'utf8',
     )

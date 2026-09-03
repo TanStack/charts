@@ -1,8 +1,8 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import * as Plot from '@observablehq/plot'
 import { bin, max } from 'd3-array'
 import { mountObservablePlot } from '../../shared/mount'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@tanstack/charts-data/penguins'
 import type { ConformanceMount } from '../../types'
 
 type CompletePenguin = PenguinsRow & {

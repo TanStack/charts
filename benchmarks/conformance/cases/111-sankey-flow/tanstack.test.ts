@@ -8,7 +8,7 @@ import {
   linkColors,
   toneColors,
 } from './model'
-import { sankeyDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type {
   IncomeSankeyDatum,
   IncomeSankeyLinkRow,
@@ -225,7 +225,7 @@ describe('Apple income statement Sankey composition', () => {
     const runtime = createChartRuntime<IncomeSankeyDatum, number, number>()
     const renderRevision = (revision: number) => {
       const input = { ...baseInput, revision }
-      return runtime.render(sankeyDefinition(input), input)
+      return runtime.render(createExampleChart(input), input)
     }
     const first = renderRevision(0)
     const repeated = renderRevision(0)
@@ -277,11 +277,11 @@ describe('Apple income statement Sankey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/111-sankey-flow/tanstack.ts',
+        'benchmarks/conformance/cases/111-sankey-flow/example.tsx',
       ),
       'utf8',
     )
-    type Datum = ChartSpecDatum<ReturnType<typeof sankeyDefinition>>
+    type Datum = ChartSpecDatum<ReturnType<typeof createExampleChart>>
 
     expectTypeOf<Datum>().toMatchTypeOf<IncomeSankeyDatum>()
     expect(source).toContain("from '@tanstack/charts/network/sankey'")
@@ -304,7 +304,7 @@ describe('Apple income statement Sankey composition', () => {
 
 function render(input: ConformanceInput) {
   return createChartRuntime<IncomeSankeyDatum, number, number>().render(
-    sankeyDefinition(input),
+    createExampleChart(input),
     input,
   )
 }

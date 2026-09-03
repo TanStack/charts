@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
+import { usCountyUnemployment } from '@tanstack/charts-data/us-county-unemployment'
 import { createChartRuntime } from '@tanstack/charts'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { usStateChoroplethDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import {
   projectedUnemploymentCounties,
   unemploymentCountyCollection,
@@ -26,7 +26,7 @@ const input = {
 
 describe('definition-owned Albers USA choropleth', () => {
   it('fits every county through the public explicit-geometry descriptor', () => {
-    const definition = usStateChoroplethDefinition(input)
+    const definition = createExampleChart(input)
     const scene = createChartRuntime<
       UnemploymentCounty,
       number,
@@ -78,7 +78,7 @@ describe('definition-owned Albers USA choropleth', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/109-us-state-choropleth/tanstack.ts',
+        'benchmarks/conformance/cases/109-us-state-choropleth/example.tsx',
       ),
       'utf8',
     )

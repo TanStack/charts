@@ -1,9 +1,9 @@
-import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
+import { crimeanWar } from '@tanstack/charts-data/crimean-war'
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
-import { stackedBarDefinition } from './tanstack'
-import type { CrimeanWarRow } from '@charts-poc/demo-data/crimean-war'
+import { createExampleChart } from './tanstack'
+import type { CrimeanWarRow } from '@tanstack/charts-data/crimean-war'
 import type { ChartPoint } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -77,5 +77,5 @@ describe('stacked Crimean War bars', () => {
 })
 
 function render(input: ConformanceInput) {
-  return createChartRuntime().render(stackedBarDefinition(input), input)
+  return createChartRuntime().render(createExampleChart(input), input)
 }

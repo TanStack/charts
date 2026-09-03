@@ -156,23 +156,28 @@ export interface ViewGridOptions<
 type ViewDefinition<TView> =
   TView extends ViewGridItem<infer TDefinition, any, any> ? TDefinition : never
 
-type DefinitionDatum<TDefinition> = TDefinition extends {
-  readonly __datum?: infer TDatum
-}
-  ? TDatum
-  : never
+type DefinitionDatum<TDefinition> =
+  TDefinition extends ComposableChartDefinition<infer TDatum, any, any>
+    ? TDatum
+    : never
 
-type DefinitionXValue<TDefinition> = TDefinition extends {
-  readonly __xValue?: infer TXValue extends ChartValue
-}
-  ? TXValue
-  : never
+type DefinitionXValue<TDefinition> =
+  TDefinition extends ComposableChartDefinition<
+    any,
+    infer TXValue extends ChartValue,
+    any
+  >
+    ? TXValue
+    : never
 
-type DefinitionYValue<TDefinition> = TDefinition extends {
-  readonly __yValue?: infer TYValue extends ChartValue
-}
-  ? TYValue
-  : never
+type DefinitionYValue<TDefinition> =
+  TDefinition extends ComposableChartDefinition<
+    any,
+    any,
+    infer TYValue extends ChartValue
+  >
+    ? TYValue
+    : never
 
 type ViewDatum<TViews extends readonly ViewGridItem[]> = DefinitionDatum<
   ViewDefinition<TViews[number]>
@@ -508,8 +513,10 @@ function createViewComposition<
     marks: [mark],
     guides: false,
     margin: 0,
-    x: null,
-    y: null,
+    scales: {
+      x: null,
+      y: null,
+    },
   }
 }
 
@@ -752,7 +759,7 @@ function assertChildDefinition(
     )
   }
   for (const axis of ['x', 'y'] as const) {
-    const configured = definition[axis]
+    const configured = definition.scales[axis]
     const presentation =
       !configured || configured.axis === false
         ? undefined

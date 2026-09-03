@@ -81,12 +81,12 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 
 ## Callbacks
 
-| Prop                 | Type                                      | Default | Meaning                                                 |
-| -------------------- | ----------------------------------------- | ------- | ------------------------------------------------------- |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner surface, live SVG, and scene after reconciliation |
+| Prop                 | Type                                      | Default | Meaning                                                              |
+| -------------------- | ----------------------------------------- | ------- | -------------------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                               |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                               |
+| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                               |
+| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner host, default SVG, complete surface, and scene after rendering |
 
 See [Focus and interaction](../../../reference/focus-and-interaction.md) for
 the behavior and complete callback values.

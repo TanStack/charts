@@ -22,8 +22,10 @@ const definition = defineChart({
     dot(highlights, { x: 'date', y: 'median' }),
     text(labels, { x: 'date', y: 'median', text: 'label' }),
   ],
-  x,
-  y,
+  scales: {
+    x: x,
+    y: y,
+  },
 })
 ```
 
@@ -56,11 +58,13 @@ export default facetChart(rows, {
         lineY(data, { x: 'week', y: 'orders', strokeWidth: 2 }),
         dot(data, { x: 'week', y: 'orders', r: 3.5 }),
       ],
-      x: { scale: scaleLinear().domain([1, 4]) },
-      y: {
-        scale: scaleLinear().domain([0, 80]),
-        grid: true,
-        axis: { label: 'Orders' },
+      scales: {
+        x: { scale: scaleLinear().domain([1, 4]) },
+        y: {
+          scale: scaleLinear().domain([0, 80]),
+          grid: true,
+          axis: { label: 'Orders' },
+        },
       },
     }
   },

@@ -32,10 +32,14 @@ import type {
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
+  CartesianScaleBindings,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
   SceneNode,
   ScenePolygon,
   VisualChannel,
@@ -48,9 +52,8 @@ export interface DensityContourDatum<TDatum> extends TransformLineage<TDatum> {
   readonly group: ChartKey | null
 }
 
-export interface DensityContourOptions<
-  TDatum,
-> extends ChartMarkMotionOptions<never> {
+export interface DensityContourOptions<TDatum>
+  extends ChartMarkMotionOptions<never>, CartesianScaleBindings {
   id?: string
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
@@ -73,16 +76,20 @@ export interface DensityContourOptions<
   opacity?: number
 }
 
-type DensityXOutput<TDatum, TOptions> = ChannelOutput<
+type DensityContourCallOptions<
   TDatum,
-  TOptions extends { x: infer TChannel } ? TChannel : never,
-  number
->
-
-type DensityYOutput<TDatum, TOptions> = ChannelOutput<
-  TDatum,
-  TOptions extends { y: infer TChannel } ? TChannel : never,
-  number
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DensityContourOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
 >
 
 interface DensitySourceRow<TDatum> extends LayoutXYSourceRow<
@@ -115,21 +122,44 @@ type DensityWithContourAt<TDatum> = ContourDensity<TDatum> & {
 /** Estimates filled density contours after x/y scales reach final screen space. */
 export function densityContour<
   TDatum,
-  const TOptions extends DensityContourOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options: DensityContourCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
+): CartesianChartMark<
   never,
   never,
   never,
-  DensityXOutput<TDatum, TOptions>,
-  DensityYOutput<TDatum, TOptions>
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function densityContour<TDatum>(
   source: Iterable<TDatum>,
   options: DensityContourOptions<NoInfer<TDatum>>,
-): ChartMark<never, never, never> {
+): CartesianChartMark<
+  never,
+  never,
+  never,
+  any,
+  any,
+  DensityContourOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
   const bandwidth = options.bandwidth ?? 20
   const cellSize = options.cellSize ?? 4
@@ -138,6 +168,8 @@ export function densityContour<TDatum>(
     20,
     'densityContour',
   )
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
   if (!isFiniteNumber(bandwidth) || bandwidth < 0) {
     throw new TypeError(
       'densityContour: bandwidth must be a nonnegative finite number',
@@ -167,101 +199,110 @@ export function densityContour<TDatum>(
       ]
     })
 
-  return createMark<never, never, never>(({ markIndex }) => {
-    const id = options.id ?? `density-contour-${markIndex}`
-    return {
-      id,
-      channels: {
-        x: { scale: 'x', values: sourceRows.map((row) => row.xValue) },
-        y: { scale: 'y', values: sourceRows.map((row) => row.yValue) },
-      },
-      resolveLayout: ({ chart, scales }) => {
-        const xScale = scales.x
-        const yScale = scales.y
-        if (!xScale || !yScale) {
-          throw new TypeError('densityContour: x and y scales are required')
-        }
-        const rows = projectLayoutY(
-          projectLayoutX(sourceRows, xValues, xScale),
-          yValues,
-          yScale,
-        )
-        const groups = groupRowsByChartKey(rows)
-        const contourFunctions = groups.map(({ rows: groupRows }) => ({
-          rows: groupRows,
-          contour: createDensityEstimator<TDatum>(
-            chart.width,
-            chart.height,
-            chart.x,
-            chart.y,
-            bandwidth,
-            cellSize,
-          ).contours(groupRows),
-        }))
-        const levels =
-          typeof thresholds === 'number'
-            ? sharedThresholds(
-                contourFunctions.map(({ contour }) => contour.max),
-                thresholds,
-              )
-            : thresholds
-        const identifiedLevels = identifyContourLevels(
-          levels,
-          typeof thresholds === 'number'
-            ? { kind: 'generated', count: thresholds }
-            : { kind: 'explicit' },
-        )
-        const contours = contourFunctions.flatMap(
-          ({ rows: groupRows, contour }) =>
-            materializeContours(data, groupRows, contour, identifiedLevels),
-        )
-        const derivedData = contours.map(({ datum }) => datum)
-        const colorValues = channelValues(
-          derivedData,
-          options.color,
-          (datum) => datum.group,
-        )
+  return createMark<never, never, never>(
+    ({ markIndex }) => {
+      const id = options.id ?? `density-contour-${markIndex}`
+      return {
+        id,
+        channels: {
+          x: { scale: xScale, values: sourceRows.map((row) => row.xValue) },
+          y: { scale: yScale, values: sourceRows.map((row) => row.yValue) },
+        },
+        resolveLayout: ({ chart, scales }) => {
+          const resolvedXScale = scales[xScale]
+          const resolvedYScale = scales[yScale]
+          if (!resolvedXScale || !resolvedYScale) {
+            throw new TypeError('densityContour: x and y scales are required')
+          }
+          const rows = projectLayoutY(
+            projectLayoutX(sourceRows, xValues, resolvedXScale),
+            yValues,
+            resolvedYScale,
+          )
+          const groups = groupRowsByChartKey(rows)
+          const contourFunctions = groups.map(({ rows: groupRows }) => ({
+            rows: groupRows,
+            contour: createDensityEstimator<TDatum>(
+              chart.width,
+              chart.height,
+              chart.x,
+              chart.y,
+              bandwidth,
+              cellSize,
+            ).contours(groupRows),
+          }))
+          const levels =
+            typeof thresholds === 'number'
+              ? sharedThresholds(
+                  contourFunctions.map(({ contour }) => contour.max),
+                  thresholds,
+                )
+              : thresholds
+          const identifiedLevels = identifyContourLevels(
+            levels,
+            typeof thresholds === 'number'
+              ? { kind: 'generated', count: thresholds }
+              : { kind: 'explicit' },
+          )
+          const contours = contourFunctions.flatMap(
+            ({ rows: groupRows, contour }) =>
+              materializeContours(data, groupRows, contour, identifiedLevels),
+          )
+          const derivedData = contours.map(({ datum }) => datum)
+          const colorValues = channelValues(
+            derivedData,
+            options.color,
+            (datum) => datum.group,
+          )
 
-        return {
-          channels: {
-            x: { scale: 'x', values: sourceRows.map((row) => row.xValue) },
-            y: { scale: 'y', values: sourceRows.map((row) => row.yValue) },
-            color: {
-              scale: 'color',
-              values:
-                options.color === 'density'
-                  ? [0, ...colorValues.filter(isChartKey)]
-                  : colorValues.filter(isChartKey),
-            },
-          },
-          render: ({ color: resolveColor }) => ({
-            nodes: [
-              {
-                kind: 'group',
-                key: id,
-                className: 'ts-chart__area ts-chart__density-contour',
-                ariaHidden: true,
-                translateX: chart.x,
-                translateY: chart.y,
-                clip: { x: 0, y: 0, width: chart.width, height: chart.height },
-                children: contours.map((contour, index) =>
-                  contourNode(
-                    id,
-                    contour,
-                    index,
-                    derivedData,
-                    colorValues,
-                    resolveColor,
-                    options,
-                  ),
-                ),
+          return {
+            channels: {
+              x: { scale: xScale, values: sourceRows.map((row) => row.xValue) },
+              y: { scale: yScale, values: sourceRows.map((row) => row.yValue) },
+              color: {
+                scale: 'color',
+                values:
+                  options.color === 'density'
+                    ? [0, ...colorValues.filter(isChartKey)]
+                    : colorValues.filter(isChartKey),
               },
-            ],
-          }),
-        }
-      },
-    }
-  }, options.motion)
+            },
+            render: ({ color: resolveColor }) => ({
+              nodes: [
+                {
+                  kind: 'group',
+                  key: id,
+                  className: 'ts-chart__area ts-chart__density-contour',
+                  ariaHidden: true,
+                  translateX: chart.x,
+                  translateY: chart.y,
+                  clip: {
+                    x: 0,
+                    y: 0,
+                    width: chart.width,
+                    height: chart.height,
+                  },
+                  children: contours.map((contour, index) =>
+                    contourNode(
+                      id,
+                      contour,
+                      index,
+                      derivedData,
+                      colorValues,
+                      resolveColor,
+                      options,
+                    ),
+                  ),
+                },
+              ],
+            }),
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 function createDensityEstimator<TDatum>(

@@ -1,8 +1,11 @@
 {
   "name": "@tanstack/charts",
-  "version": "0.11.0",
+  "version": "0.16.0",
   "private": false,
   "license": "MIT",
+  "keywords": [
+    "tanstack-intent"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/TanStack/charts.git",
@@ -13,6 +16,7 @@
   "files": [
     "dist",
     "docs",
+    "skills",
     "LICENSE",
     "README.md",
     "llms.txt"
@@ -95,6 +99,7 @@
     }
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.3.6",
     "@types/d3-array": "^3.2.2",
     "@types/d3-brush": "^3.0.6",
     "@types/d3-contour": "^3.0.6",
@@ -149,6 +154,7 @@
     "./link": "./src/link.ts",
     "./lit": "./src/lit.ts",
     "./motion": "./src/motion.ts",
+    "./motion/definition": "./src/motion-definition.ts",
     "./network/force": "./src/network-force.ts",
     "./network/sankey": "./src/network-sankey.ts",
     "./octane": "./src/octane.ts",
@@ -398,6 +404,10 @@
       "./motion": {
         "types": "./dist/motion.d.ts",
         "import": "./dist/motion.js"
+      },
+      "./motion/definition": {
+        "types": "./dist/motion-definition.d.ts",
+        "import": "./dist/motion-definition.js"
       },
       "./network/force": {
         "types": "./dist/network-force.d.ts",

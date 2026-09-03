@@ -1,4 +1,4 @@
-import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { TravelersRow } from '@tanstack/charts-data/travelers'
 
 export type SynchronizedCursorView = 'current' | 'previous'
 

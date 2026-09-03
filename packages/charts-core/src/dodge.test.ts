@@ -33,7 +33,10 @@ describe('dot dodge layouts', () => {
         ],
         guides: false,
         margin: 0,
-        x: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: null,
+        },
       }),
       { width: 100, height: 100 },
     )
@@ -70,7 +73,10 @@ describe('dot dodge layouts', () => {
           ],
           guides: false,
           margin: 0,
-          x: { scale: scaleLinear().domain([0, 10]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: null,
+          },
         }),
         { width: 200, height: 120 },
       )
@@ -110,7 +116,10 @@ describe('dot dodge layouts', () => {
         ],
         guides: false,
         margin: 0,
-        y: { scale: scaleBand<string>().domain(['A', 'B']) },
+        scales: {
+          x: null,
+          y: { scale: scaleBand<string>().domain(['A', 'B']) },
+        },
       }),
       { width: 120, height: 100 },
     )
@@ -156,7 +165,10 @@ describe('dot dodge layouts', () => {
         ],
         guides: false,
         margin: 0,
-        x: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: null,
+        },
       }),
       { width: 100, height: 80 },
     )
@@ -189,7 +201,10 @@ describe('dot dodge layouts', () => {
       ],
       guides: false,
       margin: 0,
-      x: { scale: scaleLinear().domain([0, 4]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 4]) },
+        y: null,
+      },
     })
     const first = createChartScene(definition, { width: 160, height: 80 })
     const second = createChartScene(definition, { width: 160, height: 80 })
@@ -230,13 +245,18 @@ describe('dot dodge layouts', () => {
               ],
               guides: false,
               margin: 0,
-              x: { scale: scaleLinear().domain([0, 2]) },
+              scales: {
+                x: { scale: scaleLinear().domain([0, 2]) },
+                y: null,
+              },
             }),
           }),
         ],
         guides: false,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 200, height: 100 },
     )
@@ -268,7 +288,10 @@ describe('dot dodge layouts', () => {
       defineChart({
         marks: [mark],
         guides: false,
-        x: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: null,
+        },
       }),
       { width: 120, height: 80 },
     )
@@ -324,7 +347,10 @@ describe('dot dodge layouts', () => {
               layout: dodgeY(),
             }),
           ],
-          x: { scale: scaleLinear() },
+          scales: {
+            x: { scale: scaleLinear() },
+            y: null,
+          },
         }),
         { width: 100, height: 100 },
       ),

@@ -61,6 +61,23 @@ describe('axis focus strategies', () => {
     ).toEqual(['a-focused', 'b'])
   })
 
+  it('groups axis focus by mapped pixels across named scales', () => {
+    const mappedPoints = [
+      point('primary', 10, 20, 'A', 1),
+      point('different-pixel', 30, 40, 'B', 1),
+      point('same-pixel', 10, 60, 'C', 99),
+    ]
+
+    expect(
+      focusGroupX
+        .group(mappedPoints, { point: mappedPoints[0]! })
+        .map((candidate) => candidate.key),
+    ).toEqual(['primary', 'same-pixel'])
+    expect(
+      focusGroupX.navigation(mappedPoints).map((candidate) => candidate.key),
+    ).toEqual(['primary', 'different-pixel'])
+  })
+
   it('can disable native datum focus without a case-local strategy', () => {
     expect(
       focusDisabled.resolve(points, { x: 10, y: 20, maxDistance: 100 }),

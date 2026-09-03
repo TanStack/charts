@@ -3,6 +3,7 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
 import { createChartCursor, cursorHost } from './cursor'
 import { lineY } from './line'
+import { motion } from './motion'
 import { mountChartRenderer } from './renderer'
 import { defineChart, findNearestPoint } from './scene'
 import { stack } from './stack'
@@ -11,6 +12,7 @@ import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartHostControlExtension,
   ChartRenderer,
+  ChartRendererCapabilities,
   ChartSurface,
   ChartSurfaceRenderOptions,
 } from './dom-types'
@@ -43,8 +45,10 @@ const definition = defineChart({
       stroke: '#2563eb',
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 1]) },
-  y: { scale: scaleLinear().domain([0, 8]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 8]) },
+  },
   guides: false,
 })
 
@@ -171,6 +175,287 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
     expect(fake.destroy).toHaveBeenCalledOnce()
     expect(container.childElementCount).toBe(0)
+  })
+
+  it('inherits chart spring motion for tooltip entry and exit', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animations: Array<{
+      cancel: ReturnType<typeof vi.fn>
+      onfinish: (() => void) | null
+    }> = []
+    const animate = vi.fn(
+      (frames: Keyframe[], options: KeyframeAnimationOptions) => {
+        const animation = { cancel: vi.fn(), onfinish: null }
+        animations.push(animation)
+        return animation as unknown as Animation
+      },
+    )
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: motion<Datum, number, number>({
+        initial: false,
+        transition: {
+          type: 'spring',
+          stiffness: 170,
+          damping: 18,
+          mass: 1,
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Spring tooltip',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      const enterFrames = animate.mock.calls[0]?.[0]
+      const enterOptions = animate.mock.calls[0]?.[1]
+      expect(enterFrames?.length).toBeGreaterThan(2)
+      expect(enterOptions).toMatchObject({ easing: 'linear', fill: 'both' })
+
+      host.interaction.setControlledFocus(null)
+      const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+      expect(animate).toHaveBeenCalledTimes(2)
+      expect(tooltip?.hidden).toBe(false)
+      animations.at(-1)?.onfinish?.()
+      expect(tooltip?.hidden).toBe(true)
+    } finally {
+      host.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('injects structurally compatible renderer tooltip motion', () => {
+    const fake = createFakeRenderer()
+    const beforePaint = vi.fn(() => ({
+      wasHidden: true,
+      showPresence: true,
+      movementX: 0,
+      movementY: 0,
+      velocityX: 0,
+      velocityY: 0,
+    }))
+    const afterPaint = vi.fn()
+    const hide = vi.fn(() => false)
+    const destroy = vi.fn()
+    const createController = vi.fn(() => ({
+      beforePaint,
+      afterPaint,
+      hide,
+      destroy,
+    }))
+    const capabilities = {
+      tooltipMotion: {
+        protocol: 1,
+        createController,
+      },
+    } satisfies ChartRendererCapabilities
+    Object.assign(fake.renderer, { capabilities })
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Injected tooltip motion',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      expect(createController).toHaveBeenCalledOnce()
+      expect(createController).toHaveBeenCalledWith({
+        container,
+        transition: expect.any(Function),
+      })
+      expect(beforePaint).toHaveBeenCalledOnce()
+      expect(afterPaint).toHaveBeenCalledOnce()
+
+      host.interaction.setControlledFocus(null)
+      expect(hide).toHaveBeenCalledOnce()
+    } finally {
+      host.destroy()
+      expect(destroy).toHaveBeenCalledOnce()
+    }
+  })
+
+  it('lets chart motion disable tooltip motion while a tooltip override re-enables it', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      onfinish: null,
+    }))
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const immediateContainer = document.createElement('div')
+    const immediate = mountChartRenderer(immediateContainer, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        motion: false,
+        tooltip: tooltipExtension,
+      }),
+      renderer: motion<Datum, number, number>({ initial: false }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Immediate tooltip',
+    })
+    const animatedContainer = document.createElement('div')
+    const animated = mountChartRenderer(animatedContainer, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        motion: false,
+        tooltip: {
+          use: tooltipExtension,
+          motion: { type: 'tween', duration: 100 },
+        },
+      }),
+      renderer: motion<Datum, number, number>({ initial: false }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Animated tooltip override',
+    })
+
+    try {
+      immediate.interaction.setControlledFocus(immediate.getScene().points[0]!)
+      expect(animate).not.toHaveBeenCalled()
+      animated.interaction.setControlledFocus(animated.getScene().points[0]!)
+      expect(animate).toHaveBeenCalledOnce()
+    } finally {
+      immediate.destroy()
+      animated.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('keeps tooltips immediate without a renderer motion capability', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animate = vi.fn()
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        motion: {
+          transition: { type: 'spring', stiffness: 170, damping: 18 },
+        },
+        tooltip: {
+          use: tooltipExtension,
+          motion: { type: 'spring', stiffness: 200 },
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static tooltip',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      host.interaction.setControlledFocus(null)
+
+      expect(animate).not.toHaveBeenCalled()
+      expect(
+        container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
+      ).toBe(true)
+    } finally {
+      host.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('retargets tooltip springs from the live position and velocity', () => {
+    let currentTime = 1_000
+    const frames: Array<FrameRequestCallback> = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    const performanceNow = vi
+      .spyOn(window.performance, 'now')
+      .mockImplementation(() => currentTime)
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: motion<Datum, number, number>({
+        initial: false,
+        transition: {
+          type: 'spring',
+          stiffness: 170,
+          damping: 18,
+          mass: 1,
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Retargeted spring tooltip',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+      if (!tooltip) throw new Error('Expected chart tooltip')
+      const firstLeft = Number.parseFloat(tooltip.style.left)
+
+      host.interaction.setControlledFocus(host.getScene().points[1]!)
+      const secondLeft = Number.parseFloat(tooltip.style.left)
+      expect(secondLeft).not.toBe(firstLeft)
+      expect(requestFrame).toHaveBeenCalled()
+
+      frames.at(-1)?.(1_016)
+      currentTime = 1_016
+      const movingX = Number.parseFloat(tooltip.style.translate)
+      const visualLeftBeforeRetarget = secondLeft + movingX
+
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      const retargetedLeft = Number.parseFloat(tooltip.style.left)
+      const retargetedX = Number.parseFloat(tooltip.style.translate)
+      expect(retargetedLeft + retargetedX).toBeCloseTo(
+        visualLeftBeforeRetarget,
+        5,
+      )
+
+      frames.at(-1)?.(1_017)
+      expect(Number.parseFloat(tooltip.style.translate)).toBeGreaterThan(
+        retargetedX,
+      )
+    } finally {
+      host.destroy()
+      requestFrame.mockRestore()
+      cancelFrame.mockRestore()
+      performanceNow.mockRestore()
+    }
   })
 
   it('delegates controlled client coordinate conversion to the mounted surface', () => {
@@ -349,8 +634,10 @@ describe('renderer-neutral chart host', () => {
             layout: stack({ order: rows.map((row) => row.id) }),
           }),
         ],
-        x: { scale: scaleBand<number>().domain([0]) },
-        y: { scale: scaleLinear().domain([0, 160]) },
+        scales: {
+          x: { scale: scaleBand<number>().domain([0]) },
+          y: { scale: scaleLinear().domain([0, 160]) },
+        },
         guides: false,
         margin: 0,
         focus: 'group-x',
@@ -555,8 +842,10 @@ describe('renderer-neutral chart host', () => {
               key: 'id',
             }),
           ],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 8]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 8]) },
+          },
           guides: false,
           maxFocusDistance: 1,
         },
@@ -887,11 +1176,13 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(container, {
       definition: defineChart({
         marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate: 30 },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate: 30 },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         tooltip: {
           use: tooltipExtension,
@@ -923,11 +1214,13 @@ describe('renderer-neutral chart host', () => {
     const makeDefinition = (translate: number) =>
       defineChart({
         marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         focus: 'nearest-x',
         maxFocusDistance: 1,
@@ -976,11 +1269,13 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(container, {
       definition: defineChart({
         marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2] },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2] },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         focus: 'nearest-x',
       }),
@@ -1015,11 +1310,13 @@ describe('renderer-neutral chart host', () => {
             { x: 'x', y: 'y', key: 'id' },
           ),
         ],
-        x: {
-          scale: scaleLinear().domain([0, 1]),
-          viewport: { domain: [0, 1] },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            viewport: { domain: [0, 1] },
+          },
+          y: { scale: scaleLinear().domain([0, 1]) },
         },
-        y: { scale: scaleLinear().domain([0, 1]) },
         guides: false,
         maxFocusDistance: 0,
       }),
@@ -1049,11 +1346,13 @@ describe('renderer-neutral chart host', () => {
     const makeDefinition = (translate: number) =>
       defineChart({
         marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
-        x: {
-          scale: scaleLinear().domain([0, 3]),
-          viewport: { domain: [1, 2], translate },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 3]),
+            viewport: { domain: [1, 2], translate },
+          },
+          y: { scale: scaleLinear().domain([0, 3]) },
         },
-        y: { scale: scaleLinear().domain([0, 3]) },
         guides: false,
         maxFocusDistance: 0,
       })
@@ -1111,11 +1410,13 @@ describe('renderer-neutral chart host', () => {
     })
     const viewportDefinition = defineChart({
       marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
-      x: {
-        scale: scaleLinear().domain([0, 1]),
-        viewport: { domain: [0, 1] },
+      scales: {
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          viewport: { domain: [0, 1] },
+        },
+        y: { scale: scaleLinear().domain([0, 8]) },
       },
-      y: { scale: scaleLinear().domain([0, 8]) },
       guides: false,
     })
     const host = mountChartRenderer(container, {
@@ -1251,6 +1552,167 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('dismisses a pinned tooltip when the pointer is pressed outside the chart', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const outside = document.createElement('button')
+    document.body.append(container, outside)
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Outside dismissal tooltip',
+      onFocusChange,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      pinned: true,
+    })
+
+    outside.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'pointer',
+      pinned: false,
+    })
+
+    host.destroy()
+    outside.remove()
+    container.remove()
+  })
+
+  it('keeps application-controlled focus pinned when automatic pointer handling is disabled', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const outside = document.createElement('button')
+    document.body.append(container, outside)
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        pointer: false,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Controlled focus tooltip',
+    })
+    const point = host.getScene().points[0]
+    if (!point) throw new Error('Expected a chart point')
+    host.interaction.setControlledFocus(point, { pinned: true })
+    const paintCount = fake.paintFocus.mock.calls.length
+
+    outside.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCount)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      pinned: true,
+    })
+    host.destroy()
+    outside.remove()
+    container.remove()
+  })
+
+  it('recognizes chart pointer presses through a shadow boundary', () => {
+    const fake = createFakeRenderer()
+    const shadowHost = document.createElement('div')
+    const container = document.createElement('div')
+    shadowHost.attachShadow({ mode: 'open' }).append(container)
+    document.body.append(shadowHost)
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Shadow tooltip',
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        composed: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        composed: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const paintCount = fake.paintFocus.mock.calls.length
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true, composed: true }),
+    )
+
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCount)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      pinned: true,
+    })
+    host.destroy()
+    shadowHost.remove()
+  })
+
+  it('does not install outside dismissal when initial rendering fails', () => {
+    const fake = createFakeRenderer()
+    fake.render.mockImplementationOnce(() => {
+      throw new Error('initial render failed')
+    })
+    const container = document.createElement('div')
+    const addEventListener = vi.spyOn(
+      container.ownerDocument,
+      'addEventListener',
+    )
+
+    expect(() =>
+      mountChartRenderer(container, {
+        definition,
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Failed chart',
+      }),
+    ).toThrow('initial render failed')
+    expect(
+      addEventListener.mock.calls.filter(([type]) => type === 'pointerdown'),
+    ).toHaveLength(0)
+    addEventListener.mockRestore()
+  })
+
   it('uses the tooltip as a top-layer popover, retains ancestry, and reopens it while active', () => {
     const popover = installPopoverMock(window)
     const viewport = installVisualViewport(window, {
@@ -1370,6 +1832,7 @@ describe('renderer-neutral chart host', () => {
     const second = createFakeRenderer()
     const firstContainer = document.createElement('div')
     const secondContainer = document.createElement('div')
+    document.body.append(firstContainer, secondContainer)
     const bounds = {
       x: 0,
       y: 0,
@@ -2059,6 +2522,11 @@ describe('renderer-neutral chart host', () => {
       source: 'pointer',
       pinned: true,
     })
+    const pinned = controller.getState()
+    first.element.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true, composed: true }),
+    )
+    expect(controller.getState()).toBe(pinned)
     const firstPaintCount = first.paintFocus.mock.calls.length
     const secondPaintCount = second.paintFocus.mock.calls.length
     first.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
@@ -2080,6 +2548,8 @@ describe('renderer-neutral chart host', () => {
 
     firstHost.destroy()
     secondHost.destroy()
+    firstContainer.remove()
+    secondContainer.remove()
   })
 
   it('projects, pins, and clears a free cursor without datum focus or keyboard stepping', () => {
@@ -2850,8 +3320,10 @@ const categoricalDefinition = defineChart({
       key: 'id',
     }),
   ],
-  x: { scale: scaleBand<string>().domain(['Alpha']) },
-  y: { scale: scaleLinear().domain([0, 4]) },
+  scales: {
+    x: { scale: scaleBand<string>().domain(['Alpha']) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  },
 })
 
 if (false) {

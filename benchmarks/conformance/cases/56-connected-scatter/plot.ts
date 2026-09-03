@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { driving } from '@charts-poc/demo-data/driving'
+import { driving } from '@tanstack/charts-data/driving'
 import { directionSegments } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'

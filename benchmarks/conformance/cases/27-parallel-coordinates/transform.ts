@@ -1,6 +1,6 @@
 import { extent } from 'd3-array'
 import { decathlonEvents, timedEvents } from './selection'
-import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
+import type { DecathlonRow } from '@tanstack/charts-data/decathlon'
 import type { DecathlonEvent } from './selection'
 
 export interface NormalizedDecathlonResult {

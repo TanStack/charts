@@ -8,12 +8,13 @@ import {
 } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { barY } from './bar'
+import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
 import { lineY } from './line'
 import { ruleY } from './rule'
 import { resolveScaleInput } from './scale-input'
 import type {
-  ChartAxisOptions,
+  ChartPositionScaleOptions,
   ChartScale,
   ChartSpec,
   ConfiguredScaleLike,
@@ -30,8 +31,10 @@ describe('configured scales', () => {
   it('accepts D3 scales directly', () => {
     const definition = defineChart({
       marks: [lineY([4, 9, 7])],
-      x: { scale: scaleLinear().domain([0, 2]) },
-      y: { scale: scaleLinear().domain([0, 10]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
     })
     const scene = createChartScene(definition, {
       width: 480,
@@ -52,8 +55,10 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY(rows, { x: 'category', y: 'value' })],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -70,8 +75,10 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY(rows, { x: 'date', y: 'value' })],
-        x: { scale: scaleUtc, nice: true },
-        y: { scale: () => scaleLinear().clamp(true), nice: true },
+        scales: {
+          x: { scale: scaleUtc, nice: true },
+          y: { scale: () => scaleLinear().clamp(true), nice: true },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -85,8 +92,10 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([10, 20, 30])],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 100]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -100,12 +109,14 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY(rows, { x: 'x', y: 'y' })],
-        x: {
-          scale: scaleLinear,
-          viewport: { domain: [10, 20], translate: 24 },
-          axis: { ticks: { count: 3 } },
+        scales: {
+          x: {
+            scale: scaleLinear,
+            viewport: { domain: [10, 20], translate: 24 },
+            axis: { ticks: { count: 3 } },
+          },
+          y: { scale: scaleLinear().domain([0, 10]) },
         },
-        y: { scale: scaleLinear().domain([0, 10]) },
       }),
       { width: 480, height: 260 },
     )
@@ -141,8 +152,10 @@ describe('configured scales', () => {
             { x: 'at', y: 'value' },
           ),
         ],
-        x: { scale: source, viewport: { domain: [middle, end] } },
-        y: { scale: scaleLinear().domain([0, 3]) },
+        scales: {
+          x: { scale: source, viewport: { domain: [middle, end] } },
+          y: { scale: scaleLinear().domain([0, 3]) },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -169,12 +182,14 @@ describe('configured scales', () => {
             { x: 'at', y: 'value' },
           ),
         ],
-        x: {
-          scale: scaleUtc().domain([start, end]),
-          viewport: { domain: viewportDomain, translate: -10 },
-          reverse: true,
+        scales: {
+          x: {
+            scale: scaleUtc().domain([start, end]),
+            viewport: { domain: viewportDomain, translate: -10 },
+            reverse: true,
+          },
+          y: { scale: scaleLinear().domain([0, 2]) },
         },
-        y: { scale: scaleLinear().domain([0, 2]) },
       }),
       { width: 480, height: 260 },
     )
@@ -195,11 +210,13 @@ describe('configured scales', () => {
     const numeric = createChartScene(
       defineChart({
         marks: [lineY([0, 10, 20, 30])],
-        x: { scale: scaleLinear().domain([0, 3]) },
-        y: {
-          scale: scaleLinear().domain([0, 30]),
-          viewport: { domain: [10, 20], translate: 12 },
-          reverse: true,
+        scales: {
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: {
+            scale: scaleLinear().domain([0, 30]),
+            viewport: { domain: [10, 20], translate: 12 },
+            reverse: true,
+          },
         },
       }),
       { width: 480, height: 260 },
@@ -221,11 +238,13 @@ describe('configured scales', () => {
               y: 'value',
             }),
           ],
-          x: {
-            scale: scaleBand<string>,
-            viewport: { domain: ['A', 'B'] },
-          } as unknown as ChartAxisOptions<any>,
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: {
+              scale: scaleBand<string>,
+              viewport: { domain: ['A', 'B'] },
+            } as unknown as ChartPositionScaleOptions<any>,
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         }),
         { width: 480, height: 260 },
       ),
@@ -240,8 +259,10 @@ describe('configured scales', () => {
         createChartScene(
           defineChart({
             marks: [lineY([0, 1])],
-            x: { scale: scaleLinear, viewport },
-            y: { scale: scaleLinear().domain([0, 1]) },
+            scales: {
+              x: { scale: scaleLinear, viewport },
+              y: { scale: scaleLinear().domain([0, 1]) },
+            },
           }),
           { width: 480, height: 260 },
         ),
@@ -254,11 +275,13 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 100])],
-          x: {
-            scale: scaleQuantize<number>().domain([0, 100]),
-            viewport: { domain: [20, 80] },
+          scales: {
+            x: {
+              scale: scaleQuantize<number>().domain([0, 100]),
+              viewport: { domain: [20, 80] },
+            },
+            y: { scale: scaleLinear().domain([0, 100]) },
           },
-          y: { scale: scaleLinear().domain([0, 100]) },
         }),
         { width: 480, height: 260 },
       ),
@@ -268,11 +291,13 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 100])],
-          x: {
-            scale: scaleLinear().domain([0, 100]).clamp(true),
-            viewport: { domain: [20, 80] },
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 100]).clamp(true),
+              viewport: { domain: [20, 80] },
+            },
+            y: { scale: scaleLinear().domain([0, 100]) },
           },
-          y: { scale: scaleLinear().domain([0, 100]) },
         }),
         { width: 480, height: 260 },
       ),
@@ -282,11 +307,13 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 100])],
-          x: {
-            scale: scaleIdentity().domain([0, 100]),
-            viewport: { domain: [20, 80] },
+          scales: {
+            x: {
+              scale: scaleIdentity().domain([0, 100]),
+              viewport: { domain: [20, 80] },
+            },
+            y: { scale: scaleLinear().domain([0, 100]) },
           },
-          y: { scale: scaleLinear().domain([0, 100]) },
         }),
         { width: 480, height: 260 },
       ),
@@ -316,11 +343,13 @@ describe('configured scales', () => {
               { x: 'x', y: 'y' },
             ),
           ],
-          x: {
-            scale: scaleLog().domain(contentDomain),
-            viewport: { domain: viewportDomain },
+          scales: {
+            x: {
+              scale: scaleLog().domain(contentDomain),
+              viewport: { domain: viewportDomain },
+            },
+            y: { scale: scaleLinear().domain([0, 100]) },
           },
-          y: { scale: scaleLinear().domain([0, 100]) },
         }),
         { width: 480, height: 260 },
       )
@@ -361,11 +390,13 @@ describe('configured scales', () => {
         createChartScene(
           defineChart({
             marks: [lineY([1, 10])],
-            x: {
-              scale: scaleLog().domain(contentDomain),
-              viewport: { domain: viewportDomain },
+            scales: {
+              x: {
+                scale: scaleLog().domain(contentDomain),
+                viewport: { domain: viewportDomain },
+              },
+              y: { scale: scaleLinear().domain([0, 10]) },
             },
-            y: { scale: scaleLinear().domain([0, 10]) },
           }),
           { width: 480, height: 260 },
         ),
@@ -377,11 +408,13 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([0, 100])],
-        x: {
-          scale: mutableDomainScale(),
-          viewport: { domain: [20, 80] },
+        scales: {
+          x: {
+            scale: mutableDomainScale(),
+            viewport: { domain: [20, 80] },
+          },
+          y: { scale: scaleLinear().domain([0, 100]) },
         },
-        y: { scale: scaleLinear().domain([0, 100]) },
       }),
       { width: 480, height: 260 },
     )
@@ -395,11 +428,13 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 100])],
-          x: {
-            scale: mutableDomainScale(true),
-            viewport: { domain: [0, 100] },
+          scales: {
+            x: {
+              scale: mutableDomainScale(true),
+              viewport: { domain: [0, 100] },
+            },
+            y: { scale: scaleLinear().domain([0, 100]) },
           },
-          y: { scale: scaleLinear().domain([0, 100]) },
         }),
         { width: 480, height: 260 },
       ),
@@ -418,11 +453,13 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([0, 1])],
-          x: {
-            scale: customScale,
-            viewport: { domain: [0, 1] },
+          scales: {
+            x: {
+              scale: customScale,
+              viewport: { domain: [0, 1] },
+            },
+            y: { scale: scaleLinear().domain([0, 1]) },
           },
-          y: { scale: scaleLinear().domain([0, 1]) },
         }),
         { width: 480, height: 260 },
       ),
@@ -455,8 +492,10 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([0, 10])],
-        x: { scale: customScale },
-        y: { scale: scaleLinear().domain([0, 10]) },
+        scales: {
+          x: { scale: customScale },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
         guides: false,
       }),
       { width: 480, height: 260 },
@@ -485,8 +524,10 @@ describe('configured scales', () => {
             y: 'value',
           }),
         ],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -499,8 +540,10 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [barY([12])],
-          x: { scale: scaleBand<number> },
-          y: { scale: scaleLog },
+          scales: {
+            x: { scale: scaleBand<number> },
+            y: { scale: scaleLog },
+          },
         }),
         { width: 480, height: 260 },
       ),
@@ -511,8 +554,10 @@ describe('configured scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([])],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -526,8 +571,10 @@ describe('configured scales', () => {
       createChartScene(
         defineChart({
           marks: [lineY([1, 2, 3])],
-          x: { scale: (() => 42) as never },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: (() => 42) as never },
+            y: { scale: scaleLinear },
+          },
         }),
         { width: 480, height: 260 },
       ),
@@ -546,8 +593,10 @@ describe('configured scales', () => {
               y: 'value',
             }),
           ],
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
         }),
         { width: 480, height: 260 },
       ),
@@ -593,11 +642,13 @@ describe('configured scales', () => {
           },
         ),
       ],
-      x: {
-        scale: xSource,
-      },
-      y: {
-        scale: scaleLinear().domain([0, 10]),
+      scales: {
+        x: {
+          scale: xSource,
+        },
+        y: {
+          scale: scaleLinear().domain([0, 10]),
+        },
       },
     })
     const scene = createChartScene(definition, {
@@ -634,8 +685,10 @@ describe('configured scales', () => {
             },
           ),
         ],
-        x: { scale: scaleUtc().domain([start, end]) },
-        y: { scale: xSource },
+        scales: {
+          x: { scale: scaleUtc().domain([start, end]) },
+          y: { scale: xSource },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -662,8 +715,10 @@ describe('configured scales', () => {
             },
           ),
         ],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 320, height: 180 },
     )
@@ -681,7 +736,7 @@ describe('configured scales', () => {
         width: 480,
         height: 260,
       }),
-    ).toThrow(/requires a configured scale/)
+    ).toThrow(/must define reserved `x` and `y` entries/)
   })
 
   it('supports explicit null axes only for unused dimensions', () => {
@@ -689,8 +744,10 @@ describe('configured scales', () => {
       defineChart({
         marks: [],
         guides: false,
-        x: null,
-        y: null,
+        scales: {
+          x: null,
+          y: null,
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -701,7 +758,10 @@ describe('configured scales', () => {
     const oneDimensional = createChartScene(
       defineChart({
         marks: [ruleY([1, 2])],
-        y: { scale: scaleLinear },
+        scales: {
+          x: null,
+          y: { scale: scaleLinear },
+        },
       }),
       { width: 480, height: 260 },
     )
@@ -712,15 +772,51 @@ describe('configured scales', () => {
 
     expect(() =>
       createChartScene(
-        // @ts-expect-error Materialized x channels cannot omit their scale.
+        // @ts-expect-error Materialized x channels cannot use a null reserved scale.
         defineChart({
           marks: [lineY([])],
-          x: null,
-          y: { scale: scaleLinear().domain([0, 1]) },
+          scales: {
+            x: null,
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
         }),
         { width: 480, height: 260 },
       ),
     ).toThrow(/cannot be null/)
+  })
+
+  it('keeps configured scales for deferred custom marks and erased definitions', () => {
+    const deferred = createMark<never, number, number>(() => ({
+      id: 'deferred',
+      channels: {},
+      render: () => ({ nodes: [] }),
+    }))
+    const deferredScene = createChartScene(
+      defineChart({
+        marks: [deferred],
+        guides: false,
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    expect(deferredScene.scales.x.type).toBe('configured')
+    expect(deferredScene.scales.y.type).toBe('configured')
+
+    const erasedPositionless = {
+      marks: [],
+      guides: false,
+      scales: {
+        x: { scale: scaleLinear() },
+        y: null,
+      },
+    } as unknown as ChartSpec
+    expect(
+      createChartScene(erasedPositionless, { width: 480, height: 260 }).scales.x
+        .type,
+    ).toBe('configured')
   })
 })
 

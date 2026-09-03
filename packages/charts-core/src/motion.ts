@@ -29,8 +29,13 @@ import {
 } from './svg-focus-guide-layer'
 import type {
   ChartRenderer,
+  ChartRendererCapabilities,
+  ChartRendererTooltipMotionCapability,
   ChartSurface,
   ChartSurfaceRenderOptions,
+  ChartTooltipMotionController,
+  ChartTooltipMotionSnapshot,
+  UniversalChartRenderer,
 } from './dom-types'
 import type {
   ChartFocusState,
@@ -70,10 +75,12 @@ export type {
   ChartMotionTransition,
   ChartMotionTweenTransition,
 } from './types'
+export { stagger } from './motion-definition'
+export type { ChartMotionStaggerOptions } from './motion-definition'
 
 export interface ChartMotionOptions {
-  /** Animate the first client render. Server-rendered SVG is always adopted. */
-  initial?: boolean
+  /** Animate the first client render. Use `always` to replay adopted server-rendered SVG. */
+  initial?: boolean | 'always'
   /** Default transition. Definition-local motion can refine or replace it. */
   transition?: ChartMotionTransition
   /** Snap when the user requests reduced motion. Defaults to true. */
@@ -105,13 +112,14 @@ interface ChartSvgMotionFragmentContext<TDatum = unknown> {
 
 interface ChartSvgMotionDriver<TDatum = unknown> {
   readonly id: string
-  readonly initial: boolean
+  readonly initial: boolean | 'always'
   readonly resize: boolean
   readonly respectReducedMotion: boolean
   animateSvg: (context: ChartSvgMotionContext<TDatum>) => () => void
   animateSvgFragment: (
     context: ChartSvgMotionFragmentContext<TDatum>,
   ) => () => void
+  createTooltip: ChartRendererTooltipMotionCapability['createController']
 }
 
 interface MotionValueState {
@@ -127,6 +135,7 @@ interface MotionValueBinding {
 }
 
 interface MotionTrack {
+  disabled: boolean
   delay: number
   transition: ResolvedTransition
   values: MotionValueBinding[]
@@ -177,6 +186,7 @@ type SceneMotionSource = readonly [
 ]
 
 type ResolvedTiming = Pick<MotionTrack, 'delay' | 'transition'> & {
+  disabled: boolean
   path: ChartMotionPath
 }
 type TimingResolver = (context: ChartMotionContext) => ResolvedTiming
@@ -226,6 +236,8 @@ function createSvgMotionRuntime(
   return {
     id: 'svg-motion',
     ...policy,
+    createTooltip: (context) =>
+      createTooltipMotionController(options, policy, context),
     animateSvg(context) {
       let runtime = runtimes.get(context.container)
       if (!runtime) {
@@ -266,7 +278,9 @@ function createSvgMotionRuntime(
       )
       const tracks = [
         ...createBarTracks(root, context.scene, points, timing, runtime),
-        ...createLineTracks(root, context.scene, timing),
+        ...createCartesianPathTracks(root, context.scene, timing),
+        ...createRadialPathTracks(root, context.scene, timing),
+        ...createArcTracks(root, context.scene, timing),
       ]
       const presentation = createPresentationTracks(
         root,
@@ -323,21 +337,453 @@ function createSvgMotionRuntime(
   }
 }
 
+function createTooltipMotionController(
+  options: ResolvedMotionOptions,
+  policy: Pick<ChartSvgMotionDriver, 'respectReducedMotion'>,
+  context: {
+    container: HTMLElement
+    transition: () => false | ChartMotionTransition | undefined
+  },
+): ChartTooltipMotionController {
+  const view = context.container.ownerDocument.defaultView
+  let presenceAnimation: Animation | undefined
+  let presencePhase: 'enter' | 'exit' | undefined
+  let movementAnimation: Animation | undefined
+  let movementFrame: number | undefined
+  let springMovement: TooltipSpringMovement | undefined
+  let hideGeneration = 0
+
+  const prefersReducedMotion = () =>
+    policy.respectReducedMotion &&
+    Boolean(view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+
+  const transition = (override: false | ChartMotionTransition | undefined) => {
+    if (override === false || prefersReducedMotion()) return undefined
+    const inherited = override ?? context.transition()
+    if (inherited === false) return undefined
+    return resolveTransition(
+      inherited,
+      defaultDuration,
+      undefined,
+      options.transition,
+    )
+  }
+
+  const now = () => view?.performance.now() ?? Date.now()
+
+  const stopMovement = (element: HTMLElement | undefined) => {
+    if (movementFrame !== undefined) {
+      view?.cancelAnimationFrame?.(movementFrame)
+      movementFrame = undefined
+    }
+    movementAnimation?.cancel()
+    movementAnimation = undefined
+    springMovement = undefined
+    element?.style.removeProperty('translate')
+  }
+
+  const sampleSpringMovement = (
+    timestamp: number,
+    element: HTMLElement,
+  ): TooltipMovementSnapshot => {
+    const movement = springMovement
+    if (!movement) return emptyTooltipMovement
+    const elapsed = Math.max(0, timestamp - movement.startedAt)
+    const x = movement.spring.sample(elapsed, {
+      from: movement.fromX,
+      to: 0,
+      velocity: movement.velocityX,
+    })
+    const y = movement.spring.sample(elapsed, {
+      from: movement.fromY,
+      to: 0,
+      velocity: movement.velocityY,
+    })
+    const snapshot = {
+      x: x.value,
+      y: y.value,
+      velocityX: x.velocity,
+      velocityY: y.velocity,
+    }
+    element.style.translate = `${snapshot.x}px ${snapshot.y}px`
+    if (x.done && y.done) {
+      springMovement = undefined
+      element.style.removeProperty('translate')
+      return emptyTooltipMovement
+    }
+    return snapshot
+  }
+
+  const sampleSpringFrame = (timestamp: number, element: HTMLElement) => {
+    movementFrame = undefined
+    sampleSpringMovement(timestamp, element)
+    if (!springMovement) return
+    movementFrame = view?.requestAnimationFrame((nextTimestamp) => {
+      sampleSpringFrame(nextTimestamp, element)
+    })
+  }
+
+  const captureMovement = (element: HTMLElement) => {
+    let snapshot: TooltipMovementSnapshot
+    if (springMovement) {
+      snapshot = sampleSpringMovement(now(), element)
+    } else if (movementAnimation) {
+      snapshot = {
+        ...readTooltipTranslate(element),
+        velocityX: 0,
+        velocityY: 0,
+      }
+    } else {
+      snapshot = emptyTooltipMovement
+    }
+    stopMovement(element)
+    return snapshot
+  }
+
+  const animateMovement = (
+    element: HTMLElement,
+    resolved: ResolvedTransition,
+    movement: TooltipMovementSnapshot,
+  ) => {
+    const { x, y, velocityX, velocityY } = movement
+    if (Math.abs(x) < 0.5 && Math.abs(y) < 0.5) {
+      element.style.removeProperty('translate')
+      return
+    }
+    if (resolved.type === 'tween') {
+      element.style.translate = `${x}px ${y}px`
+      if (typeof element.animate !== 'function') {
+        element.style.removeProperty('translate')
+        return
+      }
+      const sampled = tooltipMotionSamples(resolved)
+      const animation = element.animate(
+        sampled.values.map((progress, index) => ({
+          offset: sampled.offsets[index],
+          translate: `${interpolate(x, 0, progress)}px ${interpolate(y, 0, progress)}px`,
+        })),
+        {
+          duration: sampled.duration,
+          easing: 'linear',
+          fill: 'both',
+        },
+      )
+      movementAnimation = animation
+      animation.onfinish = () => {
+        if (movementAnimation !== animation) return
+        element.style.removeProperty('translate')
+        movementAnimation = undefined
+      }
+      return
+    }
+    if (!view?.requestAnimationFrame) {
+      element.style.removeProperty('translate')
+      return
+    }
+    springMovement = {
+      spring: resolved.spring,
+      startedAt: now(),
+      fromX: x,
+      fromY: y,
+      velocityX,
+      velocityY,
+    }
+    element.style.translate = `${x}px ${y}px`
+    movementFrame = view.requestAnimationFrame((timestamp) => {
+      sampleSpringFrame(timestamp, element)
+    })
+  }
+
+  const animatePresence = (
+    element: HTMLElement,
+    resolved: ResolvedTransition,
+    from: TooltipPresenceState,
+    to: TooltipPresenceState,
+  ) => {
+    if (typeof element.animate !== 'function') return undefined
+    const sampled = tooltipMotionSamples(resolved)
+    return element.animate(
+      sampled.values.map((progress, index) => ({
+        offset: sampled.offsets[index],
+        opacity: interpolate(from.opacity, to.opacity, progress),
+        transform: `scale(${interpolate(from.scale, to.scale, progress)})`,
+      })),
+      {
+        duration: sampled.duration,
+        easing: 'linear',
+        fill: 'both',
+      },
+    )
+  }
+
+  return {
+    beforePaint(element) {
+      const wasHidden = element.hasAttribute('hidden')
+      const resumingExit = presencePhase === 'exit'
+      const previousLeft = finiteStyleNumber(element.style.left)
+      const previousTop = finiteStyleNumber(element.style.top)
+      const movement = captureMovement(element)
+      const presence = resumingExit
+        ? readTooltipPresenceState(element)
+        : undefined
+      if (resumingExit) {
+        presenceAnimation?.cancel()
+        presenceAnimation = undefined
+        presencePhase = undefined
+      }
+      hideGeneration += 1
+      return {
+        wasHidden,
+        showPresence: wasHidden || resumingExit,
+        previousLeft,
+        previousTop,
+        movementX: movement.x,
+        movementY: movement.y,
+        velocityX: movement.velocityX,
+        velocityY: movement.velocityY,
+        presence,
+      }
+    },
+    afterPaint(element, snapshot, override) {
+      const resolved = transition(override)
+      if (!resolved) {
+        stopMovement(element)
+        presenceAnimation?.cancel()
+        presenceAnimation = undefined
+        presencePhase = undefined
+        element.style.removeProperty('opacity')
+        element.style.removeProperty('transform')
+        return
+      }
+      const nextLeft = finiteStyleNumber(element.style.left)
+      const nextTop = finiteStyleNumber(element.style.top)
+      animateMovement(element, resolved, {
+        x:
+          snapshot.wasHidden ||
+          snapshot.previousLeft === undefined ||
+          nextLeft === undefined
+            ? 0
+            : snapshot.previousLeft + snapshot.movementX - nextLeft,
+        y:
+          snapshot.wasHidden ||
+          snapshot.previousTop === undefined ||
+          nextTop === undefined
+            ? 0
+            : snapshot.previousTop + snapshot.movementY - nextTop,
+        velocityX: snapshot.velocityX,
+        velocityY: snapshot.velocityY,
+      })
+      if (!snapshot.showPresence) return
+      presenceAnimation?.cancel()
+      presencePhase = 'enter'
+      const animation = animatePresence(
+        element,
+        resolved,
+        snapshot.presence ?? { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1 },
+      )
+      presenceAnimation = animation
+      if (!animation) {
+        presencePhase = undefined
+        element.style.removeProperty('opacity')
+        element.style.removeProperty('transform')
+        return
+      }
+      animation.onfinish = () => {
+        if (presenceAnimation !== animation) return
+        element.style.removeProperty('opacity')
+        element.style.removeProperty('transform')
+        presenceAnimation = undefined
+        presencePhase = undefined
+      }
+    },
+    hide(element, override, complete) {
+      const resolved = transition(override)
+      if (!resolved) {
+        stopMovement(element)
+        presenceAnimation?.cancel()
+        presenceAnimation = undefined
+        presencePhase = undefined
+        element.style.removeProperty('opacity')
+        element.style.removeProperty('transform')
+        return false
+      }
+      const generation = ++hideGeneration
+      const from = readTooltipPresenceState(element)
+      presenceAnimation?.cancel()
+      presencePhase = 'exit'
+      const animation = animatePresence(element, resolved, from, {
+        opacity: 0,
+        scale: 0.96,
+      })
+      presenceAnimation = animation
+      if (!animation) {
+        presencePhase = undefined
+        stopMovement(element)
+        return false
+      }
+      animation.onfinish = () => {
+        if (generation !== hideGeneration) return
+        complete()
+        element.style.removeProperty('opacity')
+        element.style.removeProperty('transform')
+        presenceAnimation = undefined
+        presencePhase = undefined
+        stopMovement(element)
+      }
+      return true
+    },
+    destroy(element) {
+      hideGeneration += 1
+      presenceAnimation?.cancel()
+      presenceAnimation = undefined
+      presencePhase = undefined
+      stopMovement(element)
+      element?.style.removeProperty('opacity')
+      element?.style.removeProperty('transform')
+    },
+  }
+}
+
+interface TooltipPresenceState {
+  opacity: number
+  scale: number
+}
+
+interface TooltipMovementSnapshot {
+  x: number
+  y: number
+  velocityX: number
+  velocityY: number
+}
+
+interface TooltipSpringMovement {
+  spring: ChartSpring
+  startedAt: number
+  fromX: number
+  fromY: number
+  velocityX: number
+  velocityY: number
+}
+
+const emptyTooltipMovement: TooltipMovementSnapshot = {
+  x: 0,
+  y: 0,
+  velocityX: 0,
+  velocityY: 0,
+}
+
+function tooltipMotionSamples(transition: ResolvedTransition) {
+  if (transition.type === 'tween') {
+    const offsets = Array.from({ length: 31 }, (_, index) => index / 30)
+    return {
+      duration: transition.duration,
+      offsets,
+      values: offsets.map(transition.easing),
+    }
+  }
+  const offsets: number[] = []
+  const values: number[] = []
+  let duration = 0
+  for (let elapsed = 0; elapsed <= 2_000; elapsed += 16) {
+    const sample = transition.spring.sample(elapsed)
+    duration = elapsed
+    offsets.push(elapsed)
+    values.push(sample.value)
+    if (sample.done && elapsed > 0) break
+  }
+  if (duration === 0) {
+    return { duration: 0, offsets: [0, 1], values: [0, 1] }
+  }
+  offsets[offsets.length - 1] = duration
+  values[values.length - 1] = 1
+  return {
+    duration,
+    offsets: offsets.map((elapsed) => elapsed / duration),
+    values,
+  }
+}
+
+function interpolate(from: number, to: number, progress: number) {
+  return from + (to - from) * progress
+}
+
+function finiteStyleNumber(value: string) {
+  const number = Number.parseFloat(value)
+  return Number.isFinite(number) ? number : undefined
+}
+
+function readTooltipPresenceState(element: HTMLElement): TooltipPresenceState {
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element)
+  return {
+    opacity: finiteStyleNumber(style?.opacity ?? '') ?? 1,
+    scale: readTransformScale(style?.transform ?? ''),
+  }
+}
+
+function readTooltipTranslate(element: HTMLElement) {
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element)
+  const value = style?.translate || element.style.translate
+  if (!value || value === 'none') return { x: 0, y: 0 }
+  const values = value.match(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi)?.map(Number)
+  return {
+    x: values?.[0] ?? 0,
+    y: values?.[1] ?? 0,
+  }
+}
+
+function readTransformScale(value: string) {
+  if (!value || value === 'none') return 1
+  const values = value.match(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi)?.map(Number)
+  if (!values?.length) return 1
+  if (value.startsWith('matrix3d(')) {
+    return Math.hypot(values[0] ?? 1, values[1] ?? 0, values[2] ?? 0)
+  }
+  if (value.startsWith('matrix(')) {
+    return Math.hypot(values[0] ?? 1, values[1] ?? 0)
+  }
+  return value.startsWith('scale(') ? (values[0] ?? 1) : 1
+}
+
 function parseSvgFragment(current: SVGElement, markup: string) {
   const template = current.ownerDocument.createElement('template')
   template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
   return template.content.firstElementChild?.firstElementChild ?? undefined
 }
 
+export function motion(options?: ChartMotionOptions): UniversalChartRenderer
 export function motion<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(options: ChartMotionOptions = {}): ChartRenderer<TDatum, TXValue, TYValue> {
-  return createMotionSvgChartRenderer<TDatum, TXValue, TYValue>(
-    createSvgMotionDriver(options),
-    renderChartSvgWithResources,
-  )
+>(options?: ChartMotionOptions): ChartRenderer<TDatum, TXValue, TYValue>
+export function motion(
+  options: ChartMotionOptions = {},
+): UniversalChartRenderer {
+  const capabilityDriver = createSvgMotionDriver(options)
+  const capabilities: ChartRendererCapabilities = {
+    tooltipMotion: {
+      protocol: 1,
+      createController: capabilityDriver.createTooltip,
+    },
+  }
+  const renderer: UniversalChartRenderer = {
+    id: `svg:${capabilityDriver.id}`,
+    capabilities,
+    prerender: renderChartSvgWithResources,
+    mount<
+      TDatum,
+      TXValue extends ChartValue = ChartValue,
+      TYValue extends ChartValue = ChartValue,
+    >(container: HTMLElement, requestRender: (force?: boolean) => void) {
+      return createMotionSvgChartRenderer<TDatum, TXValue, TYValue>(
+        createSvgMotionDriver<TDatum>(options),
+        renderChartSvgWithResources,
+        renderer,
+      ).mount(container, requestRender)
+    },
+  }
+  return renderer
 }
 
 function createMotionSvgChartRenderer<
@@ -351,9 +797,16 @@ function createMotionSvgChartRenderer<
     TXValue,
     TYValue
   > = renderChartSvgWithResources,
+  ownerRenderer?: ChartRenderer<TDatum, TXValue, TYValue>,
 ): ChartRenderer<TDatum, TXValue, TYValue> {
   const renderer: ChartRenderer<TDatum, TXValue, TYValue> = {
     id: `svg:${motion.id}`,
+    capabilities: {
+      tooltipMotion: {
+        protocol: 1,
+        createController: motion.createTooltip,
+      },
+    },
     prerender: renderSvg,
     mount(container) {
       const adoptedRoot =
@@ -483,7 +936,7 @@ function createMotionSvgChartRenderer<
         return presented.scene
       }
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
-        renderer,
+        renderer: ownerRenderer ?? renderer,
         get element() {
           return svgElement()
         },
@@ -504,7 +957,7 @@ function createMotionSvgChartRenderer<
           const animate =
             !reduced &&
             (initial
-              ? motion.initial && !adoptedRoot
+              ? motion.initial && (!adoptedRoot || motion.initial === 'always')
               : motion.resize || !resized)
           const viewportMoved = Boolean(
             previousScene &&
@@ -837,17 +1290,138 @@ function createBarTracks(
   return tracks
 }
 
-function createLineTracks(
+function createCartesianPathTracks(
   root: SVGSVGElement,
   scene: ChartScene,
   timingFor: TimingResolver,
 ): MotionTrack[] {
-  const groups = [...root.querySelectorAll<SVGGElement>('g.ts-chart__line')]
+  const groups = [
+    ...root.querySelectorAll<SVGGElement>(
+      'g.ts-chart__line:not(.ts-chart__radial-line), g.ts-chart__area:not(.ts-chart__radial-area)',
+    ),
+  ]
   return groups.map((group, seriesIndex) => {
-    const seriesKey = group.getAttribute('data-ts-key') ?? `line:${seriesIndex}`
+    const role: ChartMotionRole = group.classList.contains('ts-chart__area')
+      ? 'area'
+      : 'line'
+    const seriesKey =
+      group.getAttribute('data-ts-key') ?? `${role}:${seriesIndex}`
     const timing = timingFor({
       phase: 'enter',
-      role: 'line',
+      role,
+      key: seriesKey,
+      markId: motionMarkId(scene, seriesKey),
+      seriesKey,
+      seriesIndex,
+      datumIndex: 0,
+      datumCount: 1,
+      datum: undefined,
+      point: undefined,
+    })
+    const horizontal = scenePathAffinity(scene, seriesKey) === 'y'
+    const baseline = resolvePathBaseline(scene, horizontal)
+    const previousTransform = group.getAttribute('transform')
+    group.dataset.tsMotionRole = role
+    const apply = (values: readonly number[]) => {
+      const progress = values[0] ?? 0
+      const transform = horizontal
+        ? `matrix(${formatNumber(progress)} 0 0 1 ${formatNumber(baseline * (1 - progress))} 0)`
+        : `matrix(1 0 0 ${formatNumber(progress)} 0 ${formatNumber(baseline * (1 - progress))})`
+      group.setAttribute(
+        'transform',
+        previousTransform ? `${previousTransform} ${transform}` : transform,
+      )
+    }
+    const cleanup = () => {
+      if (previousTransform === null) group.removeAttribute('transform')
+      else group.setAttribute('transform', previousTransform)
+      delete group.dataset.tsMotionRole
+    }
+    apply([0])
+    return {
+      ...timing,
+      values: bindMotionValues(undefined, [0], [1]),
+      apply,
+      finish: cleanup,
+      cancel: cleanup,
+    }
+  })
+}
+
+function createRadialPathTracks(
+  root: SVGSVGElement,
+  scene: ChartScene,
+  timingFor: TimingResolver,
+): MotionTrack[] {
+  const groups = [
+    ...root.querySelectorAll<SVGGElement>(
+      'g.ts-chart__radial-line, g.ts-chart__radial-area, g.ts-chart__radial-dot',
+    ),
+  ]
+  return groups.map((group, seriesIndex) => {
+    const role: ChartMotionRole = group.classList.contains(
+      'ts-chart__radial-area',
+    )
+      ? 'area'
+      : group.classList.contains('ts-chart__radial-dot')
+        ? 'dot'
+        : 'line'
+    const seriesKey =
+      group.getAttribute('data-ts-key') ?? `${role}:${seriesIndex}`
+    const timing = timingFor({
+      phase: 'enter',
+      role,
+      key: seriesKey,
+      markId: motionMarkId(scene, seriesKey),
+      seriesKey,
+      seriesIndex,
+      datumIndex: 0,
+      datumCount: 1,
+      datum: undefined,
+      point: undefined,
+    })
+    const previousTransform = group.getAttribute('transform')
+    group.dataset.tsMotionRole = role
+    const apply = (values: readonly number[]) => {
+      const progress = values[0] ?? 0
+      const transform = `scale(${formatNumber(progress)})`
+      group.setAttribute(
+        'transform',
+        previousTransform ? `${previousTransform} ${transform}` : transform,
+      )
+    }
+    const cleanup = () => {
+      if (previousTransform === null) group.removeAttribute('transform')
+      else group.setAttribute('transform', previousTransform)
+      delete group.dataset.tsMotionRole
+    }
+    apply([0])
+    return {
+      ...timing,
+      values: bindMotionValues(undefined, [0], [1]),
+      apply,
+      finish: cleanup,
+      cancel: cleanup,
+    }
+  })
+}
+
+function createArcTracks(
+  root: SVGSVGElement,
+  scene: ChartScene,
+  timingFor: TimingResolver,
+): MotionTrack[] {
+  const groups = [...root.querySelectorAll<SVGGElement>('g.ts-chart__arc')]
+  return groups.flatMap((group, seriesIndex) => {
+    const seriesKey = group.getAttribute('data-ts-key') ?? `arc:${seriesIndex}`
+    const geometry = sceneArcGeometry(scene, seriesKey)
+    if (!geometry) return []
+    const role: ChartMotionRole = group.classList.contains('ts-chart__bar')
+      ? 'bar'
+      : 'arc'
+    const timing = timingFor({
+      phase: 'enter',
+      role,
       key: seriesKey,
       markId: motionMarkId(scene, seriesKey),
       seriesKey,
@@ -859,51 +1433,177 @@ function createLineTracks(
     })
     const document = root.ownerDocument
     let definitions = root.querySelector<SVGDefsElement>('defs')
-    let ownsDefinitions = false
     if (!definitions) {
       definitions = document.createElementNS(
         'http://www.w3.org/2000/svg',
         'defs',
       )
+      definitions.dataset.tsMotionDefs = ''
       root.prepend(definitions)
-      ownsDefinitions = true
     }
     const clip = document.createElementNS(
       'http://www.w3.org/2000/svg',
       'clipPath',
     )
-    const rectangle = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'rect',
-    )
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
     const id = `ts-chart-motion-clip-${++clipId}`
     clip.id = id
-    rectangle.setAttribute('x', formatNumber(scene.chart.x))
-    rectangle.setAttribute('y', formatNumber(scene.chart.y))
-    rectangle.setAttribute('width', '0')
-    rectangle.setAttribute('height', formatNumber(scene.chart.height))
-    clip.append(rectangle)
+    clip.append(path)
     definitions.append(clip)
     const previousClip = group.getAttribute('clip-path')
     group.setAttribute('clip-path', `url(#${id})`)
-    group.dataset.tsMotionRole = 'line'
+    group.dataset.tsMotionRole = role
+    const apply = (values: readonly number[]) => {
+      const progress = Math.max(0, Math.min(1, values[0] ?? 0))
+      path.setAttribute(
+        'd',
+        radialSweepClipPath(
+          geometry.startAngle,
+          geometry.sweep * progress,
+          geometry.radius,
+        ),
+      )
+    }
     const cleanup = () => {
       if (previousClip === null) group.removeAttribute('clip-path')
       else group.setAttribute('clip-path', previousClip)
       delete group.dataset.tsMotionRole
       clip.remove()
-      if (ownsDefinitions && !definitions?.children.length) definitions.remove()
+      if (
+        definitions?.dataset.tsMotionDefs !== undefined &&
+        !definitions.children.length
+      ) {
+        definitions.remove()
+      }
     }
-    return {
-      ...timing,
-      values: bindMotionValues(undefined, [0], [scene.chart.width]),
-      apply(values) {
-        rectangle.setAttribute('width', formatNumber(values[0] ?? 0))
+    apply([0])
+    return [
+      {
+        ...timing,
+        values: bindMotionValues(undefined, [0], [1]),
+        apply,
+        finish: cleanup,
+        cancel: cleanup,
       },
-      finish: cleanup,
-      cancel: cleanup,
-    }
+    ]
   })
+}
+
+function resolvePathBaseline(scene: ChartScene, horizontal: boolean) {
+  const chartStart = horizontal ? scene.chart.x : scene.chart.y
+  const chartSize = horizontal ? scene.chart.width : scene.chart.height
+  const fallback = horizontal ? chartStart : chartStart + chartSize
+  const scale = scene.scales[horizontal ? 'x' : 'y']
+  if (!scale) return fallback
+  const zero = scale.map(0)
+  return Number.isFinite(zero) &&
+    zero >= chartStart &&
+    zero <= chartStart + chartSize
+    ? zero
+    : fallback
+}
+
+function scenePathAffinity(
+  scene: ChartScene,
+  key: string,
+): 'x' | 'y' | 'xy' | 'geometry' | undefined {
+  const node = findSceneNodeContext(scene.nodes, key)?.node
+  if (!node) return undefined
+  const visit = (
+    candidate: SceneNode,
+  ): 'x' | 'y' | 'xy' | 'geometry' | undefined => {
+    if (candidate.kind === 'group') {
+      for (const child of candidate.children) {
+        const affinity = visit(child)
+        if (affinity) return affinity
+      }
+      return undefined
+    }
+    return 'interaction' in candidate
+      ? candidate.interaction?.affinity
+      : undefined
+  }
+  return visit(node)
+}
+
+function sceneArcGeometry(
+  scene: ChartScene,
+  key: string,
+): { startAngle: number; sweep: number; radius: number } | undefined {
+  const node = findSceneNodeContext(scene.nodes, key)?.node
+  if (!node) return undefined
+  const pointSets: (readonly (readonly [number, number])[])[] = []
+  const visit = (candidate: SceneNode) => {
+    if (candidate.kind === 'group') {
+      candidate.children.forEach(visit)
+      return
+    }
+    if (candidate.kind === 'area' && candidate.points.length) {
+      pointSets.push(candidate.points)
+    }
+  }
+  visit(node)
+  const firstSet = pointSets.find((points) => points.length > 1)
+  const firstPoint = firstSet?.[0]
+  if (!firstSet || !firstPoint) return undefined
+  const startAngle = polarPointAngle(firstPoint)
+  let direction = 0
+  for (let index = 1; index < firstSet.length; index += 1) {
+    const point = firstSet[index]
+    if (!point) continue
+    const delta = signedAngleDelta(startAngle, polarPointAngle(point))
+    if (Math.abs(delta) > 1e-4) {
+      direction = Math.sign(delta)
+      break
+    }
+  }
+  if (!direction) return undefined
+  let sweep = 0
+  let radius = 0
+  for (const points of pointSets) {
+    for (const point of points) {
+      const angle = polarPointAngle(point)
+      const distance =
+        direction > 0
+          ? positiveAngle(angle - startAngle)
+          : positiveAngle(startAngle - angle)
+      sweep = Math.max(sweep, distance)
+      radius = Math.max(radius, Math.hypot(point[0], point[1]))
+    }
+  }
+  const tau = Math.PI * 2
+  if (sweep > tau - Math.PI / 12) sweep = tau
+  if (sweep <= 1e-4 || radius <= 0) return undefined
+  return { startAngle, sweep: sweep * direction, radius: radius + 2 }
+}
+
+function polarPointAngle(point: readonly [number, number]) {
+  return Math.atan2(point[0], -point[1])
+}
+
+function signedAngleDelta(from: number, to: number) {
+  const tau = Math.PI * 2
+  return ((((to - from + Math.PI) % tau) + tau) % tau) - Math.PI
+}
+
+function positiveAngle(angle: number) {
+  const tau = Math.PI * 2
+  return ((angle % tau) + tau) % tau
+}
+
+function radialSweepClipPath(
+  startAngle: number,
+  sweep: number,
+  radius: number,
+) {
+  if (Math.abs(sweep) <= 1e-6) return 'M0 0Z'
+  const steps = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 24)))
+  let path = 'M0 0'
+  for (let index = 0; index <= steps; index += 1) {
+    const angle = startAngle + (sweep * index) / steps
+    path += `L${formatNumber(Math.sin(angle) * radius)} ${formatNumber(-Math.cos(angle) * radius)}`
+  }
+  return `${path}Z`
 }
 
 function reconcileMotionSvg(
@@ -1045,12 +1745,13 @@ function scenePathSnapshot(
   const points =
     interaction && 'points' in interaction ? (interaction.points ?? []) : []
   if (!points.length) return undefined
+  const yScaleId = motionPointScaleId(scene, points[0], 'y') ?? 'y'
   return {
     kind: node.kind,
     points,
     geometry: node.points,
     chart: scene.chart,
-    yScale: scene.scales.y!,
+    yScale: scene.scales[yScaleId]!,
     viewportTranslate: {
       x: context.translateX,
       y: context.translateY,
@@ -1058,6 +1759,23 @@ function scenePathSnapshot(
     clipped: context.clipped,
     customPath: node.path !== undefined,
   }
+}
+
+function motionPointScaleId(
+  scene: ChartScene,
+  point: ChartPoint | undefined,
+  channel: 'x' | 'y',
+): string | undefined {
+  if (!point) return undefined
+  const initialized = motionSceneSource(scene)?.[1]
+  const mark = initialized
+    ?.filter(
+      (candidate) =>
+        point.markId === candidate.id ||
+        point.markId.startsWith(`${candidate.id}:`),
+    )
+    .sort((left, right) => right.id.length - left.id.length)[0]
+  return mark?.channels[channel]?.scale
 }
 
 function findSceneNodeContext(
@@ -1940,31 +2658,28 @@ function guideOrMarkTimingContext(
 
   const axes = element.closest<SVGGElement>('g.ts-chart__axes')
   const grid = element.closest<SVGGElement>('g.ts-chart__grid')
-  const axis = key.startsWith('x-')
-    ? 'x'
-    : key.startsWith('y-')
-      ? 'y'
-      : undefined
-  if (axis && (axes || grid)) {
+  const scaleId = guideScaleId(scene, key)
+  const axis = scaleId ? guideScaleChannel(scene, scaleId) : undefined
+  if (scaleId && axis && (axes || grid)) {
     const role: ChartMotionRole = grid
       ? 'grid'
-      : key === `${axis}-axis`
+      : key === `${scaleId}-axis`
         ? 'axis'
-        : key.startsWith(`${axis}-tick-rule:`)
+        : key.startsWith(`${scaleId}-tick-rule:`)
           ? 'tick'
-          : key.startsWith(`${axis}-tick-label:`)
+          : key.startsWith(`${scaleId}-tick-label:`)
             ? 'tick-label'
-            : key === `${axis}-label`
+            : key === `${scaleId}-label`
               ? 'axis-label'
               : 'axis'
     const parent = grid ?? axes
     const prefix =
       role === 'grid'
-        ? `${axis}-grid:`
+        ? `${scaleId}-grid:`
         : role === 'tick'
-          ? `${axis}-tick-rule:`
+          ? `${scaleId}-tick-rule:`
           : role === 'tick-label'
-            ? `${axis}-tick-label:`
+            ? `${scaleId}-tick-label:`
             : key
     const peers = parent
       ? [...parent.querySelectorAll<Element>('[data-ts-key]')].filter(
@@ -1977,8 +2692,9 @@ function guideOrMarkTimingContext(
       role,
       key,
       axis,
-      seriesKey: `${role}:${axis}`,
-      seriesIndex: axis === 'x' ? 0 : 1,
+      scaleId,
+      seriesKey: `${role}:${scaleId}`,
+      seriesIndex: Math.max(0, Object.keys(scene.scales).indexOf(scaleId)),
       datumIndex: Math.max(0, peers.indexOf(element)),
       datumCount: Math.max(1, peers.length),
       datum: undefined,
@@ -2024,6 +2740,28 @@ function guideOrMarkTimingContext(
     datum: point?.datum,
     point,
   }
+}
+
+function guideScaleId(scene: ChartScene, key: string): string | undefined {
+  return Object.keys(scene.scales)
+    .filter(
+      (id) =>
+        key === `${id}-axis` ||
+        key === `${id}-label` ||
+        key.startsWith(`${id}-tick-rule:`) ||
+        key.startsWith(`${id}-tick-label:`) ||
+        key.startsWith(`${id}-grid:`),
+    )
+    .sort((left, right) => right.length - left.length)[0]
+}
+
+function guideScaleChannel(
+  scene: ChartScene,
+  scaleId: string,
+): 'x' | 'y' | undefined {
+  if (scaleId === 'x' || scaleId === 'y') return scaleId
+  const definition = motionSceneSource(scene)?.[0]
+  return definition?.scales?.[scaleId]?.channel
 }
 
 function retargetFocusContext(
@@ -2633,11 +3371,26 @@ function resolveTiming(
   let delay = automaticDelay
   let transition = options.transition
   let path: ChartMotionPath = 'morph'
+  let disabled = false
   const apply = (definition: ChartMotionDefinition<any> | undefined) => {
     const authored =
       typeof definition === 'function' ? definition(context) : definition
-    if (!authored) return
-    if (authored.delay !== undefined) delay = nonNegative(authored.delay, delay)
+    if (authored === undefined) return
+    if (authored === false) {
+      delay = automaticDelay
+      transition = options.transition
+      path = 'morph'
+      disabled = true
+      return
+    }
+    disabled = false
+    const authoredDelay =
+      typeof authored.delay === 'function'
+        ? authored.delay(context)
+        : authored.delay
+    if (authoredDelay !== undefined) {
+      delay = nonNegative(authoredDelay, delay)
+    }
     if (authored.path !== undefined) path = authored.path
     transition = resolveTransition(
       authored.transition,
@@ -2658,10 +3411,11 @@ function resolveTiming(
       .sort((left, right) => right.length - left.length)[0]
     if (markId) apply(definitions.marks[markId])
   }
-  if (context.axis) {
-    apply(definitions?.guides?.[`axis:${context.axis}`])
+  const guideId = context.scaleId ?? context.axis
+  if (guideId) {
+    apply(definitions?.guides?.[`axis:${guideId}`])
     if (context.role !== 'axis') {
-      apply(definitions?.guides?.[`${context.role}:${context.axis}`])
+      apply(definitions?.guides?.[`${context.role}:${guideId}`])
     }
   }
   apply(overrides?.default)
@@ -2679,7 +3433,7 @@ function resolveTiming(
   // A delayed physical retarget would freeze the sampled velocity. Spring
   // updates therefore begin immediately; use delay for enter/exit choreography.
   if (context.phase === 'update' && transition.type === 'spring') delay = 0
-  return { delay, transition, path }
+  return { disabled, delay, transition, path }
 }
 
 function createTimingResolver(
@@ -2722,29 +3476,29 @@ function motionDefinitions(
   const guides: Record<string, ChartMotionDefinition<any>> = {}
   if (source) {
     const [definition] = source
-    for (const axis of ['x', 'y'] as const) {
-      const configured = definition[axis]
+    const configuredScales = definition.scales
+    for (const [scaleId, configured] of Object.entries(configuredScales)) {
       const presentation =
         !configured || configured.axis === false
           ? undefined
           : (configured.axis ?? {})
       if (presentation?.motion !== undefined) {
-        guides[`axis:${axis}`] = presentation.motion
+        guides[`axis:${scaleId}`] = presentation.motion
       }
       if (presentation?.ticks && presentation.ticks.motion !== undefined) {
-        guides[`tick:${axis}`] = presentation.ticks.motion
+        guides[`tick:${scaleId}`] = presentation.ticks.motion
       }
       if (
         presentation?.tickLabels &&
         presentation.tickLabels.motion !== undefined
       ) {
-        guides[`tick-label:${axis}`] = presentation.tickLabels.motion
+        guides[`tick-label:${scaleId}`] = presentation.tickLabels.motion
       }
       if (
         typeof presentation?.label === 'object' &&
         presentation.label.motion !== undefined
       ) {
-        guides[`axis-label:${axis}`] = presentation.label.motion
+        guides[`axis-label:${scaleId}`] = presentation.label.motion
       }
     }
   }
@@ -2787,7 +3541,13 @@ function runTracks(
   tracks: readonly MotionTrack[],
   lifecycle: { publish?: () => void; finish?: () => void } = {},
 ) {
-  if (!tracks.length) {
+  const activeTracks = tracks.filter((track) => {
+    if (!track.disabled) return true
+    completeMotionTrack(track)
+    return false
+  })
+  if (activeTracks.length !== tracks.length) lifecycle.publish?.()
+  if (!activeTracks.length) {
     lifecycle.finish?.()
     return () => {}
   }
@@ -2795,13 +3555,13 @@ function runTracks(
   const requestFrame = view?.requestAnimationFrame?.bind(view)
   const cancelFrame = view?.cancelAnimationFrame?.bind(view)
   if (!requestFrame || !cancelFrame) {
-    tracks.forEach(completeMotionTrack)
+    activeTracks.forEach(completeMotionTrack)
     lifecycle.finish?.()
     return () => {}
   }
 
   const safetyLimit = Math.max(
-    ...tracks.map(
+    ...activeTracks.map(
       (track) =>
         track.delay +
         (track.transition.type === 'tween'
@@ -2810,7 +3570,7 @@ function runTracks(
     ),
   )
   if (safetyLimit <= 0) {
-    tracks.forEach(completeMotionTrack)
+    activeTracks.forEach(completeMotionTrack)
     lifecycle.finish?.()
     return () => {}
   }
@@ -2826,7 +3586,7 @@ function runTracks(
     if (cancelled) return
     start ??= time
     const elapsed = time - start
-    for (const track of tracks) {
+    for (const track of activeTracks) {
       if (finished.has(track)) continue
       if (sampleMotionTrack(track, elapsed)) {
         completeMotionTrack(track)
@@ -2834,12 +3594,12 @@ function runTracks(
       }
     }
     lifecycle.publish?.()
-    root.dataset.tsMotionProgress = String(finished.size / tracks.length)
-    if (finished.size < tracks.length && elapsed < safetyLimit) {
+    root.dataset.tsMotionProgress = String(finished.size / activeTracks.length)
+    if (finished.size < activeTracks.length && elapsed < safetyLimit) {
       frame = requestFrame(tick)
       return
     }
-    for (const track of tracks) {
+    for (const track of activeTracks) {
       if (!finished.has(track)) completeMotionTrack(track)
     }
     lifecycle.finish?.()
@@ -2852,7 +3612,7 @@ function runTracks(
     if (cancelled) return
     cancelled = true
     cancelFrame(frame)
-    tracks.forEach((track) => {
+    activeTracks.forEach((track) => {
       if (!finished.has(track)) track.cancel?.()
     })
     lifecycle.publish?.()

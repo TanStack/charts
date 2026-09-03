@@ -37,18 +37,21 @@ const letterFrequencyChart = defineChart({
       y: 'frequency',
     }),
   ],
-  x: {
-    scale: () => scaleBand().padding(0.18),
-  },
-  y: {
-    scale: scaleLinear,
-    nice: true,
-    grid: true,
-    axis: {
-      label: 'Frequency',
-      ticks: { format: (value) => percent.format(value) },
+  scales: {
+    x: {
+      scale: () => scaleBand().padding(0.18),
+    },
+    y: {
+      scale: scaleLinear,
+      nice: true,
+      grid: true,
+      axis: {
+        label: 'Frequency',
+        ticks: { format: (value) => percent.format(value) },
+      },
     },
   },
+
   tooltip,
 })
 
@@ -131,13 +134,16 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
           fill: accent,
         }),
       ],
-      x: {
-        scale: () => scaleBand().padding(0.18),
+      scales: {
+        x: {
+          scale: () => scaleBand().padding(0.18),
+        },
+        y: {
+          scale: scaleLinear,
+          nice: true,
+        },
       },
-      y: {
-        scale: scaleLinear,
-        nice: true,
-      },
+
       svgAnimation: true,
       tooltip,
     })

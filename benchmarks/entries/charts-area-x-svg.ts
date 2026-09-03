@@ -19,8 +19,10 @@ const definition = defineChart({
       curve: d3AreaXCurve(curveBasis),
     }),
   ],
-  x: { scale: scaleLinear().domain([0, 2]) },
-  y: { scale: scaleLinear().domain([0, 4]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 2]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  },
 })
 
 export function render(width: number, height: number) {

@@ -39,8 +39,9 @@ registering `Alpine.plugin(charts)`.
 
 The directive element itself becomes `.ts-chart-host`; normal HTML class and
 style attributes own its presentation. The `className` chart option applies
-to the rendered SVG surface. The package exposes the SVG directive only; use
-`renderSvg` to replace SVG serialization without replacing the shared host.
+to the rendered chart surface. The directive starts with SVG and can compose
+marks that use `canvasChartRenderer`. Use `renderSvg` to replace SVG
+serialization without replacing the shared host.
 
 Exports: `charts`, `ChartOptions`, `ChartTooltipBodyRenderContext`,
 `AlpineChartTooltipBody`, `ChartDefinition`, and `ChartPoint`.

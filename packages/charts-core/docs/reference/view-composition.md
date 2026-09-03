@@ -59,8 +59,16 @@ const summaryDefinition = defineChart({
           key: 'status',
         }),
       ],
+      scales: {
+        angle: null,
+        radius: null,
+      },
     }),
   ],
+  scales: {
+    x: null,
+    y: null,
+  },
   guides: false,
   margin: 0,
 })

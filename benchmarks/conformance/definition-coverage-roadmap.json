@@ -91,7 +91,7 @@
       "dependsOn": [],
       "frictionIds": ["F-184"],
       "evidence": [
-        "cases/116-geometry-morph/tanstack.ts",
+        "cases/116-geometry-morph/example.tsx",
         "cases/116-geometry-morph/tanstack.test.ts"
       ]
     },
@@ -221,7 +221,7 @@
       "entryPoint": "@tanstack/charts/stack",
       "bundleFixture": "benchmarks/entries/charts-transform-stack.ts",
       "evidence": [
-        "cases/26-diverging-likert/tanstack.ts",
+        "cases/26-diverging-likert/example.tsx",
         "../../packages/charts-core/src/stack-internal.test.ts",
         "../entries/charts-transform-stack.ts"
       ]
@@ -254,7 +254,7 @@
       "entryPoint": "@tanstack/charts",
       "bundleFixture": "benchmarks/entries/charts-core.ts",
       "evidence": [
-        "cases/70-composed-chart/tanstack.ts",
+        "cases/70-composed-chart/example.tsx",
         "cases/70-composed-chart/tanstack.test.ts",
         "../../packages/charts-core/src/marks.test.ts",
         "../../docs/reference/marks/bar-and-rect.md"
@@ -272,7 +272,7 @@
       "entryPoint": "@tanstack/charts/box",
       "bundleFixture": "benchmarks/entries/charts-box-svg.ts",
       "evidence": [
-        "cases/15-boxplot/tanstack.ts",
+        "cases/15-boxplot/example.tsx",
         "../../packages/charts-core/src/box.test.ts",
         "../entries/charts-box-svg.ts"
       ]
@@ -305,7 +305,7 @@
       "entryPoint": "@tanstack/charts/regression",
       "bundleFixture": "benchmarks/entries/charts-regression-svg.ts",
       "evidence": [
-        "cases/31-linear-regression/tanstack.ts",
+        "cases/31-linear-regression/example.tsx",
         "../../packages/charts-core/src/regression.test.ts",
         "../entries/charts-regression-svg.ts"
       ]
@@ -322,7 +322,7 @@
       "entryPoint": "@tanstack/charts/difference",
       "bundleFixture": "benchmarks/entries/charts-difference-svg.ts",
       "evidence": [
-        "cases/33-difference-chart/tanstack.ts",
+        "cases/33-difference-chart/example.tsx",
         "../../packages/charts-core/src/difference.test.ts",
         "../entries/charts-difference-svg.ts"
       ]
@@ -339,7 +339,7 @@
       "entryPoint": "@tanstack/charts/ridgeline",
       "bundleFixture": "benchmarks/entries/charts-ridgeline-svg.ts",
       "evidence": [
-        "cases/62-ridgeline-density/tanstack.ts",
+        "cases/62-ridgeline-density/example.tsx",
         "cases/62-ridgeline-density/tanstack.test.ts",
         "../../packages/charts-core/src/ridgeline.test.ts",
         "../../packages/charts-core/src/mapped-spacing-internal.test.ts",
@@ -358,7 +358,7 @@
       "entryPoint": "@tanstack/charts/violin",
       "bundleFixture": "benchmarks/entries/charts-violin-svg.ts",
       "evidence": [
-        "cases/63-violin-distributions/tanstack.ts",
+        "cases/63-violin-distributions/example.tsx",
         "cases/63-violin-distributions/tanstack.test.ts",
         "../../packages/charts-core/src/violin.test.ts",
         "../../packages/charts-core/src/tick.test.ts",
@@ -378,7 +378,7 @@
       "entryPoint": "@tanstack/charts/transform/mosaic",
       "bundleFixture": "benchmarks/entries/charts-transform-mosaic.ts",
       "evidence": [
-        "cases/64-marimekko-mosaic/tanstack.ts",
+        "cases/64-marimekko-mosaic/example.tsx",
         "cases/64-marimekko-mosaic/tanstack.test.ts",
         "../../packages/charts-core/src/transform-mosaic.test.ts",
         "../../packages/charts-core/src/proportional-interval-internal.test.ts",
@@ -446,7 +446,7 @@
       "entryPoint": "@tanstack/charts",
       "bundleFixture": "benchmarks/entries/charts-tick-label-accessors.ts",
       "evidence": [
-        "cases/118-token-usage-calendar/tanstack.ts",
+        "cases/118-token-usage-calendar/example.tsx",
         "cases/118-token-usage-calendar/tanstack.test.ts",
         "../../packages/charts-core/src/scene-layout.test.ts",
         "../../packages/charts-core/src/facet.test.ts",
@@ -466,7 +466,7 @@
       "entryPoint": "@tanstack/charts/waffle",
       "bundleFixture": "benchmarks/entries/charts-waffle-svg.ts",
       "evidence": [
-        "cases/41-waffle-unit-chart/tanstack.ts",
+        "cases/41-waffle-unit-chart/example.tsx",
         "../../packages/charts-core/src/waffle.test.ts",
         "../entries/charts-waffle-svg.ts"
       ]
@@ -483,7 +483,7 @@
       "entryPoint": "@tanstack/charts/dodge",
       "bundleFixture": "benchmarks/entries/charts-dodge-svg.ts",
       "evidence": [
-        "cases/52-beeswarm-dodge/tanstack.ts",
+        "cases/52-beeswarm-dodge/example.tsx",
         "../../packages/charts-core/src/dodge.test.ts",
         "../entries/charts-dodge-svg.ts"
       ]
@@ -500,7 +500,7 @@
       "entryPoint": "@tanstack/charts/spatial/delaunay",
       "bundleFixture": "benchmarks/entries/charts-spatial-delaunay-svg.ts",
       "evidence": [
-        "cases/37-delaunay-network/tanstack.ts",
+        "cases/37-delaunay-network/example.tsx",
         "../../packages/charts-core/src/spatial-delaunay.test.ts",
         "../entries/charts-spatial-delaunay-svg.ts"
       ]
@@ -517,7 +517,7 @@
       "entryPoint": "@tanstack/charts/spatial/contour",
       "bundleFixture": "benchmarks/entries/charts-spatial-contour-svg.ts",
       "evidence": [
-        "cases/38-contour-topography/tanstack.ts",
+        "cases/38-contour-topography/example.tsx",
         "../../packages/charts-core/src/spatial-contour.test.ts",
         "../entries/charts-spatial-contour-svg.ts"
       ]
@@ -534,7 +534,7 @@
       "entryPoint": "@tanstack/charts/spatial/density",
       "bundleFixture": "benchmarks/entries/charts-spatial-density-svg.ts",
       "evidence": [
-        "cases/39-density-contours/tanstack.ts",
+        "cases/39-density-contours/example.tsx",
         "../../packages/charts-core/src/spatial-density.test.ts",
         "../entries/charts-spatial-density-svg.ts"
       ]
@@ -551,7 +551,7 @@
       "entryPoint": "@tanstack/charts/spatial/hexbin",
       "bundleFixture": "benchmarks/entries/charts-spatial-hexbin-svg.ts",
       "evidence": [
-        "cases/43-hexbin-density/tanstack.ts",
+        "cases/43-hexbin-density/example.tsx",
         "../../packages/charts-core/src/spatial-hexbin.test.ts",
         "../entries/charts-spatial-hexbin-svg.ts"
       ]
@@ -568,7 +568,7 @@
       "entryPoint": "@tanstack/charts/spatial/voronoi",
       "bundleFixture": "benchmarks/entries/charts-spatial-voronoi-svg.ts",
       "evidence": [
-        "cases/65-voronoi-nearest-tooltip/tanstack.ts",
+        "cases/65-voronoi-nearest-tooltip/example.tsx",
         "../../packages/charts-core/src/spatial-voronoi.test.ts",
         "../entries/charts-spatial-voronoi-svg.ts"
       ]
@@ -585,7 +585,7 @@
       "entryPoint": "@tanstack/charts/hierarchy/tree",
       "bundleFixture": "benchmarks/entries/charts-hierarchy-tree.ts",
       "evidence": [
-        "cases/36-hierarchy-tree/tanstack.ts",
+        "cases/36-hierarchy-tree/example.tsx",
         "../../packages/charts-core/src/hierarchy-tree.test.ts",
         "../entries/charts-hierarchy-tree.ts"
       ]
@@ -602,7 +602,7 @@
       "entryPoint": "@tanstack/charts/hierarchy/treemap",
       "bundleFixture": "benchmarks/entries/charts-hierarchy-treemap.ts",
       "evidence": [
-        "cases/74-recharts-treemap/tanstack.ts",
+        "cases/74-recharts-treemap/example.tsx",
         "../../packages/charts-core/src/hierarchy-treemap.test.ts",
         "../entries/charts-hierarchy-treemap.ts"
       ]
@@ -619,8 +619,8 @@
       "entryPoint": "@tanstack/charts/hierarchy/sunburst",
       "bundleFixture": "benchmarks/entries/charts-hierarchy-sunburst.ts",
       "evidence": [
-        "cases/101-sunburst/tanstack.ts",
-        "cases/126-drillable-sunburst/tanstack.ts",
+        "cases/101-sunburst/example.tsx",
+        "cases/126-drillable-sunburst/example.tsx",
         "../../packages/charts-core/src/hierarchy-sunburst.test.ts",
         "../entries/charts-hierarchy-sunburst.ts"
       ]
@@ -637,7 +637,7 @@
       "entryPoint": "@tanstack/charts/network/force",
       "bundleFixture": "benchmarks/entries/charts-network-force.ts",
       "evidence": [
-        "cases/40-force-directed-network/tanstack.ts",
+        "cases/40-force-directed-network/example.tsx",
         "../../packages/charts-core/src/network-force.test.ts",
         "../entries/charts-network-force.ts"
       ]
@@ -654,8 +654,8 @@
       "entryPoint": "@tanstack/charts/network/sankey",
       "bundleFixture": "benchmarks/entries/charts-network-sankey.ts",
       "evidence": [
-        "cases/111-basic-sankey/tanstack.ts",
-        "cases/111-sankey-flow/tanstack.ts",
+        "cases/111-basic-sankey/example.tsx",
+        "cases/111-sankey-flow/example.tsx",
         "../../packages/charts-core/src/network-sankey.test.ts",
         "../entries/charts-network-sankey.ts"
       ]
@@ -672,7 +672,7 @@
       "entryPoint": "@tanstack/charts/legend",
       "bundleFixture": "benchmarks/entries/charts-interactive-legend.ts",
       "evidence": [
-        "cases/81-recharts-interactive-legend/tanstack.ts",
+        "cases/81-recharts-interactive-legend/example.tsx",
         "cases/81-recharts-interactive-legend/tanstack.test.ts",
         "../../packages/charts-core/src/interactive-legend.test.ts",
         "../entries/charts-interactive-legend.ts"
@@ -690,7 +690,7 @@
       "entryPoint": "@tanstack/charts/selection",
       "bundleFixture": "benchmarks/entries/charts-keyed-selection.ts",
       "evidence": [
-        "cases/82-chart-table-selection/tanstack.ts",
+        "cases/82-chart-table-selection/example.tsx",
         "cases/82-chart-table-selection/tanstack.test.ts",
         "../../packages/charts-core/src/selection.test.ts"
       ]
@@ -729,7 +729,7 @@
         "../../packages/charts-core/src/crosshair.test.ts",
         "../../packages/charts-core/src/svg-surface.test.ts",
         "../entries/charts-crosshair-kernel.ts",
-        "cases/119-stacked-bar-band-cursor/chart.ts",
+        "cases/119-stacked-bar-band-cursor/example.tsx",
         "cases/119-stacked-bar-band-cursor/model.test.ts"
       ]
     },
@@ -816,14 +816,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/01-line-gaps/tanstack.ts"],
+      "evidence": ["cases/01-line-gaps/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Native line channels treat null values as discontinuities; scales, path segmentation, and focus lineage remain inside the ordinary definition."
         }
       ]
@@ -835,14 +835,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/02-multi-line-end-labels/tanstack.ts"],
+      "evidence": ["cases/02-multi-line-end-labels/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Select each series endpoint through the public grouped select transform."
         }
       ]
@@ -854,14 +854,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/03-temperature-range-band/tanstack.ts"],
+      "evidence": ["cases/03-temperature-range-band/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose one native interval area and two native lines over the same temperature observations; no range DTO or custom path is needed."
         }
       ]
@@ -873,14 +873,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/04-stacked-time-area/tanstack.ts"],
+      "evidence": ["cases/04-stacked-time-area/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Let native area stacking, color grouping, rule, scales, guides, and legend consume tidy industry rows directly."
         }
       ]
@@ -892,14 +892,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/13-interval-timeline/tanstack.ts"],
+      "evidence": ["cases/13-interval-timeline/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Express open-to-close intervals with native barX endpoint channels and an ordinary categorical band."
         }
       ]
@@ -912,7 +912,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/14-error-bars/tanstack.ts",
+        "cases/14-error-bars/example.tsx",
         "cases/14-error-bars/tanstack.test.ts"
       ],
       "work": [
@@ -921,7 +921,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Group contributing observations once through public mean and sample-deviation reducers with direct source lineage."
         },
         {
@@ -929,7 +929,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the one-deviation estimator, singleton fallback, and endpoint arithmetic as authored statistical meaning."
         }
       ]
@@ -942,7 +942,7 @@
       "status": "verified",
       "capabilities": ["composite-mark", "box-mark"],
       "evidence": [
-        "cases/15-boxplot/tanstack.ts",
+        "cases/15-boxplot/example.tsx",
         "cases/15-boxplot/tanstack.test.ts",
         "../../packages/charts-core/src/box.test.ts",
         "../entries/charts-box-svg.ts"
@@ -965,14 +965,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/16-lollipop/tanstack.ts"],
+      "evidence": ["cases/16-lollipop/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native links from zero to value with source-bound dots; no lollipop-specific mark or prepared geometry is warranted."
         }
       ]
@@ -984,14 +984,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/17-dumbbell/tanstack.ts"],
+      "evidence": ["cases/17-dumbbell/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose one native endpoint link and two source-bound dot layers for each city row."
         }
       ]
@@ -1003,14 +1003,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/18-cumulative-histogram/tanstack.ts"],
+      "evidence": ["cases/18-cumulative-histogram/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public binX and cumulative transforms before an ordinary rect mark while preserving transform lineage."
         }
       ]
@@ -1022,14 +1022,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/19-moving-average-line/tanstack.ts"],
+      "evidence": ["cases/19-moving-average-line/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compute the authored fourteen-day means through the public window transform and feed its rows to native lines."
         }
       ]
@@ -1041,14 +1041,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/20-normalized-stacked-area/tanstack.ts"],
+      "evidence": ["cases/20-normalized-stacked-area/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use the public normalized stack layout directly on native areaY with ordinary scales, guides, and legend."
         }
       ]
@@ -1061,7 +1061,7 @@
       "status": "verified",
       "capabilities": ["inside-out-wiggle-stack"],
       "evidence": [
-        "cases/21-streamgraph/tanstack.ts",
+        "cases/21-streamgraph/example.tsx",
         "cases/21-streamgraph/tanstack.test.ts",
         "../../packages/charts-core/src/stack-internal.test.ts",
         "../entries/charts-transform-stack.ts"
@@ -1086,7 +1086,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/22-bollinger-band/tanstack.ts",
+        "cases/22-bollinger-band/example.tsx",
         "cases/22-bollinger-band/tanstack.test.ts"
       ],
       "work": [
@@ -1095,7 +1095,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compute the full trailing mean and sample deviation once through the public window transform with direct source lineage."
         },
         {
@@ -1103,7 +1103,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the twenty-day scope, two-deviation multiplier, and lower/upper channel arithmetic as authored financial meaning."
         }
       ]
@@ -1115,14 +1115,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/24-quantitative-binned-heatmap/tanstack.ts"],
+      "evidence": ["cases/24-quantitative-binned-heatmap/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public binXY for authored thresholds and count reduction, then render its semantic intervals with native rect cells."
         }
       ]
@@ -1134,14 +1134,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/25-calendar-heatmap/tanstack.ts"],
+      "evidence": ["cases/25-calendar-heatmap/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Keep calendar week and weekday accessors as authored semantics while native cells, band scales, color, and legend own geometry."
         }
       ]
@@ -1154,7 +1154,7 @@
       "status": "verified",
       "capabilities": ["anchored-stack"],
       "evidence": [
-        "cases/26-diverging-likert/tanstack.ts",
+        "cases/26-diverging-likert/example.tsx",
         "cases/26-diverging-likert/tanstack.test.ts",
         "../../packages/charts-core/src/stack-internal.test.ts",
         "../entries/charts-transform-stack.ts"
@@ -1192,7 +1192,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["selection.ts", "tanstack.ts"],
+          "sources": ["selection.ts", "example.tsx"],
           "summary": "Retain event order, metric direction, and last-row country selection."
         }
       ]
@@ -1204,14 +1204,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/28-candlestick/tanstack.ts"],
+      "evidence": ["cases/28-candlestick/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native high-low and open-close links from source rows; gain/loss partitioning is presentation policy, not a layout engine."
         }
       ]
@@ -1224,7 +1224,7 @@
       "status": "verified",
       "capabilities": ["waterfall-layout"],
       "evidence": [
-        "cases/29-waterfall/tanstack.ts",
+        "cases/29-waterfall/example.tsx",
         "cases/29-waterfall/tanstack.test.ts",
         "../../packages/charts-core/src/transform-waterfall.test.ts",
         "../entries/charts-transform-waterfall.ts"
@@ -1262,7 +1262,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["selection.ts", "tanstack.ts"],
+          "sources": ["selection.ts", "example.tsx"],
           "summary": "Retain field-to-year display mapping and final-endpoint label policy."
         }
       ]
@@ -1275,7 +1275,7 @@
       "status": "verified",
       "capabilities": ["composite-mark", "line-x-mark", "regression-mark"],
       "evidence": [
-        "cases/31-linear-regression/tanstack.ts",
+        "cases/31-linear-regression/example.tsx",
         "cases/31-linear-regression/tanstack.test.ts",
         "../../packages/charts-core/src/regression.test.ts",
         "../entries/charts-regression-svg.ts"
@@ -1298,14 +1298,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/32-change-arrows/tanstack.ts"],
+      "evidence": ["cases/32-change-arrows/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use native arrow endpoint channels for the two authored direction classes without precomputed paths."
         }
       ]
@@ -1323,7 +1323,7 @@
         "difference-mark"
       ],
       "evidence": [
-        "cases/33-difference-chart/tanstack.ts",
+        "cases/33-difference-chart/example.tsx",
         "cases/33-difference-chart/tanstack.test.ts",
         "../../packages/charts-core/src/difference.test.ts",
         "../entries/charts-difference-svg.ts"
@@ -1346,14 +1346,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/34-pointer-tooltip/tanstack.ts"],
+      "evidence": ["cases/34-pointer-tooltip/example.tsx"],
       "work": [
         {
           "kind": "interaction-controller",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "resolved-plot",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Configure point focus, decorative line geometry, keyboard operation, and native point tooltip in the chart definition; host probing remains conformance tooling."
         }
       ]
@@ -1365,14 +1365,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/35-grouped-tooltip/tanstack.ts"],
+      "evidence": ["cases/35-grouped-tooltip/example.tsx"],
       "work": [
         {
           "kind": "interaction-controller",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "resolved-plot",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Configure grouped focus, decorative lines, ordered grouped tooltip content, and portal placement through native definition behavior."
         }
       ]
@@ -1385,7 +1385,7 @@
       "status": "verified",
       "capabilities": ["hierarchy-tree"],
       "evidence": [
-        "cases/36-hierarchy-tree/tanstack.ts",
+        "cases/36-hierarchy-tree/example.tsx",
         "../../packages/charts-core/src/hierarchy-tree.test.ts",
         "../entries/charts-hierarchy-tree.ts"
       ],
@@ -1409,7 +1409,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "spatial-delaunay"],
       "evidence": [
-        "cases/37-delaunay-network/tanstack.ts",
+        "cases/37-delaunay-network/example.tsx",
         "../../packages/charts-core/src/spatial-delaunay.test.ts",
         "../entries/charts-spatial-delaunay-svg.ts"
       ],
@@ -1433,7 +1433,7 @@
       "status": "verified",
       "capabilities": ["spatial-contour"],
       "evidence": [
-        "cases/38-contour-topography/tanstack.ts",
+        "cases/38-contour-topography/example.tsx",
         "../../packages/charts-core/src/spatial-contour.test.ts",
         "../entries/charts-spatial-contour-svg.ts"
       ],
@@ -1465,7 +1465,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "spatial-density"],
       "evidence": [
-        "cases/39-density-contours/tanstack.ts",
+        "cases/39-density-contours/example.tsx",
         "../../packages/charts-core/src/spatial-density.test.ts",
         "../entries/charts-spatial-density-svg.ts"
       ],
@@ -1489,7 +1489,7 @@
       "status": "verified",
       "capabilities": ["network-force"],
       "evidence": [
-        "cases/40-force-directed-network/tanstack.ts",
+        "cases/40-force-directed-network/example.tsx",
         "../../packages/charts-core/src/network-force.test.ts",
         "../entries/charts-network-force.ts"
       ],
@@ -1512,14 +1512,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/40-geojson-map/tanstack.ts"],
+      "evidence": ["cases/40-geojson-map/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Pass GeoJSON features and a public geoIdentity projection descriptor to geoShape; Charts owns fitting and path rendering."
         }
       ]
@@ -1532,7 +1532,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "waffle-mark"],
       "evidence": [
-        "cases/41-waffle-unit-chart/tanstack.ts",
+        "cases/41-waffle-unit-chart/example.tsx",
         "../../packages/charts-core/src/waffle.test.ts",
         "../entries/charts-waffle-svg.ts"
       ],
@@ -1555,7 +1555,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/42-vector-field/tanstack.ts",
+        "cases/42-vector-field/example.tsx",
         "cases/42-vector-field/tanstack.test.ts"
       ],
       "work": [
@@ -1564,7 +1564,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Pass the authored sample grid to native vector channels; Charts owns one rendered vector and interaction point per source observation."
         }
       ]
@@ -1577,7 +1577,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "spatial-hexbin"],
       "evidence": [
-        "cases/43-hexbin-density/tanstack.ts",
+        "cases/43-hexbin-density/example.tsx",
         "../../packages/charts-core/src/spatial-hexbin.test.ts",
         "../entries/charts-spatial-hexbin-svg.ts"
       ],
@@ -1599,14 +1599,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/44-framed-scatter/tanstack.ts"],
+      "evidence": ["cases/44-framed-scatter/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose the native frame and dot marks over configured Cartesian scales without custom border geometry."
         }
       ]
@@ -1619,7 +1619,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/50-empirical-cdf/tanstack.ts",
+        "cases/50-empirical-cdf/example.tsx",
         "cases/50-empirical-cdf/tanstack.test.ts"
       ],
       "work": [
@@ -1628,7 +1628,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public rank with explicit tied-rank probability mapping, then render the ordered rows with a native stepped line."
         }
       ]
@@ -1641,7 +1641,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/51-faceted-distributions/tanstack.ts",
+        "cases/51-faceted-distributions/example.tsx",
         "cases/51-faceted-distributions/tanstack.test.ts"
       ],
       "work": [
@@ -1650,7 +1650,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public binning, facet-local normalization, and facet marks."
         }
       ]
@@ -1663,7 +1663,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "dodge-layout"],
       "evidence": [
-        "cases/52-beeswarm-dodge/tanstack.ts",
+        "cases/52-beeswarm-dodge/example.tsx",
         "../../packages/charts-core/src/dodge.test.ts",
         "../entries/charts-dodge-svg.ts"
       ],
@@ -1686,7 +1686,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/53-log-scale-scatter/tanstack.ts",
+        "cases/53-log-scale-scatter/example.tsx",
         "cases/53-log-scale-scatter/tanstack.test.ts"
       ],
       "work": [
@@ -1695,7 +1695,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Keep the positive-domain guard explicit and feed source rows directly to a native dot mark with a configured log scale."
         }
       ]
@@ -1708,7 +1708,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/54-bump-ranking/tanstack.ts",
+        "cases/54-bump-ranking/example.tsx",
         "cases/54-bump-ranking/tanstack.test.ts"
       ],
       "work": [
@@ -1717,7 +1717,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public ranking and order-independent maximum-date selection with native line, dot, and text marks."
         }
       ]
@@ -1730,7 +1730,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/55-indexed-multi-line/tanstack.ts",
+        "cases/55-indexed-multi-line/example.tsx",
         "cases/55-indexed-multi-line/tanstack.test.ts"
       ],
       "work": [
@@ -1739,7 +1739,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public first-value normalization and grouped endpoint selection."
         }
       ]
@@ -1752,7 +1752,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/56-connected-scatter/tanstack.ts",
+        "cases/56-connected-scatter/example.tsx",
         "cases/56-connected-scatter/tanstack.test.ts"
       ],
       "work": [
@@ -1761,7 +1761,7 @@
           "stage": "before-definition",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use the public two-row window output with native arrows."
         },
         {
@@ -1769,7 +1769,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the editorial choice of which direction segments receive arrows."
         }
       ]
@@ -1782,7 +1782,7 @@
       "status": "verified",
       "capabilities": ["view-composition"],
       "evidence": [
-        "cases/57-scatter-marginal-histograms/tanstack.ts",
+        "cases/57-scatter-marginal-histograms/example.tsx",
         "cases/57-scatter-marginal-histograms/tanstack.test.ts",
         "../../packages/charts-core/src/view.test.ts",
         "../../packages/charts-core/src/scene-embed-internal.test.ts"
@@ -1804,7 +1804,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public binX and binY transforms for the two marginal distributions."
         }
       ]
@@ -1817,7 +1817,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/58-select-extrema/tanstack.ts",
+        "cases/58-select-extrema/example.tsx",
         "cases/58-select-extrema/tanstack.test.ts"
       ],
       "work": [
@@ -1826,7 +1826,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Feed public minimum and maximum selections as original rows directly to separate dot and text marks."
         }
       ]
@@ -1838,14 +1838,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/59-grouped-reducer-bars/tanstack.ts"],
+      "evidence": ["cases/59-grouped-reducer-bars/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public groupBy mean reduction and feed its rows directly to native bars and labels."
         }
       ]
@@ -1857,14 +1857,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/60-lag-autocorrelation/tanstack.ts"],
+      "evidence": ["cases/60-lag-autocorrelation/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public two-row window output for lag pairs and compose native dots with an authored identity reference line."
         }
       ]
@@ -1877,7 +1877,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/61-quantile-ribbon/tanstack.ts",
+        "cases/61-quantile-ribbon/example.tsx",
         "cases/61-quantile-ribbon/tanstack.test.ts"
       ],
       "work": [
@@ -1886,7 +1886,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Feed public grouped quantile reducers directly to area and line marks."
         }
       ]
@@ -1899,7 +1899,7 @@
       "status": "verified",
       "capabilities": ["ridgeline-mark"],
       "evidence": [
-        "cases/62-ridgeline-density/tanstack.ts",
+        "cases/62-ridgeline-density/example.tsx",
         "cases/62-ridgeline-density/tanstack.test.ts",
         "../../packages/charts-core/src/ridgeline.test.ts"
       ],
@@ -1909,7 +1909,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public grouped binX and max normalization while retaining nested raw lineage."
         },
         {
@@ -1933,7 +1933,7 @@
       "status": "verified",
       "capabilities": ["violin-mark"],
       "evidence": [
-        "cases/63-violin-distributions/tanstack.ts",
+        "cases/63-violin-distributions/example.tsx",
         "cases/63-violin-distributions/tanstack.test.ts",
         "../../packages/charts-core/src/violin.test.ts"
       ],
@@ -1943,7 +1943,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public grouped binY, max normalization, and grouped median reduction while retaining nested raw lineage."
         },
         {
@@ -1968,7 +1968,7 @@
       "status": "verified",
       "capabilities": ["mosaic-layout"],
       "evidence": [
-        "cases/64-marimekko-mosaic/tanstack.ts",
+        "cases/64-marimekko-mosaic/example.tsx",
         "cases/64-marimekko-mosaic/tanstack.test.ts",
         "../../packages/charts-core/src/transform-mosaic.test.ts",
         "../entries/charts-transform-mosaic.ts"
@@ -1990,7 +1990,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Keep count policy explicit through groupBy, derive labels by select, and render the resulting cells with ordinary rect and text marks."
         }
       ]
@@ -2003,7 +2003,7 @@
       "status": "verified",
       "capabilities": ["spatial-voronoi"],
       "evidence": [
-        "cases/65-voronoi-nearest-tooltip/tanstack.ts",
+        "cases/65-voronoi-nearest-tooltip/example.tsx",
         "../../packages/charts-core/src/spatial-voronoi.test.ts",
         "../entries/charts-spatial-voronoi-svg.ts"
       ],
@@ -2027,7 +2027,7 @@
       "status": "verified",
       "capabilities": ["bar-max-thickness"],
       "evidence": [
-        "cases/70-composed-chart/tanstack.ts",
+        "cases/70-composed-chart/example.tsx",
         "cases/70-composed-chart/tanstack.test.ts"
       ],
       "work": [
@@ -2049,7 +2049,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/71-recharts-population-pyramid/tanstack.ts",
+        "cases/71-recharts-population-pyramid/example.tsx",
         "cases/71-recharts-population-pyramid/tanstack.test.ts"
       ],
       "work": [
@@ -2058,7 +2058,7 @@
           "stage": "before-definition",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public groupBy counts, a signed value accessor, and one native diverging bar stack while retaining raw-observation lineage."
         }
       ]
@@ -2070,14 +2070,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/72-recharts-mixed-bars/tanstack.ts"],
+      "evidence": ["cases/72-recharts-mixed-bars/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native grouped and stacked bar intervals with one public group layout; no case-owned slot coordinates are needed."
         }
       ]
@@ -2090,7 +2090,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/73-many-point-scatter/tanstack.ts",
+        "cases/73-many-point-scatter/example.tsx",
         "cases/73-many-point-scatter/tanstack.test.ts"
       ],
       "work": [
@@ -2099,7 +2099,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Feed selected source rows to one native dot mark with explicit stable keys and a configured radius scale."
         }
       ]
@@ -2112,7 +2112,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "hierarchy-treemap"],
       "evidence": [
-        "cases/74-recharts-treemap/tanstack.ts",
+        "cases/74-recharts-treemap/example.tsx",
         "../../packages/charts-core/src/hierarchy-treemap.test.ts",
         "../entries/charts-hierarchy-treemap.ts"
       ],
@@ -2150,7 +2150,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["selection.ts", "tanstack.ts"],
+          "sources": ["selection.ts", "example.tsx"],
           "summary": "Retain event order, timed-event direction, first-profile selection, the same-reference 1.1px angle-label offset, and compact margins; angleGrid already owns label context plus default anchor and baseline, so no shared helper is warranted."
         }
       ]
@@ -2238,7 +2238,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/80-echarts-axis-pointer/tanstack.ts",
+        "cases/80-echarts-axis-pointer/example.tsx",
         "cases/80-echarts-axis-pointer/tanstack.test.ts",
         "../../packages/charts-core/src/focus-guide.test.ts",
         "../../packages/charts-core/src/runtime.test.ts"
@@ -2249,7 +2249,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose grouped x focus, native tooltip content and placement, keyboard policy, continuous snap reach, and the categorical legend in the definition."
         },
         {
@@ -2270,7 +2270,7 @@
       "status": "verified",
       "capabilities": ["controlled-signals", "interactive-legend"],
       "evidence": [
-        "cases/81-recharts-interactive-legend/tanstack.ts",
+        "cases/81-recharts-interactive-legend/example.tsx",
         "cases/81-recharts-interactive-legend/tanstack.test.ts",
         "../../packages/charts-core/src/interactive-legend.test.ts",
         "cases/81-recharts-interactive-legend/view.tsx"
@@ -2292,7 +2292,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the controlled visibility snapshot and surrounding conformance region."
         }
       ]
@@ -2305,7 +2305,7 @@
       "status": "verified",
       "capabilities": ["controlled-signals", "keyed-selection"],
       "evidence": [
-        "cases/82-chart-table-selection/tanstack.ts",
+        "cases/82-chart-table-selection/example.tsx",
         "cases/82-chart-table-selection/tanstack.test.ts",
         "../../packages/charts-core/src/selection.test.ts",
         "cases/82-chart-table-selection/view.tsx"
@@ -2328,7 +2328,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the selected snapshot, semantic HTML table, status, clear action, and persistence as application UI."
         },
         {
@@ -2354,7 +2354,7 @@
         "brush-x"
       ],
       "evidence": [
-        "cases/83-focus-context-window/tanstack.ts",
+        "cases/83-focus-context-window/example.tsx",
         "cases/83-focus-context-window/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-brush.test.ts",
         "../../packages/charts-core/src/renderer.test.ts",
@@ -2388,7 +2388,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the accepted four-month policy, range input, status, persistence, and two warranted chart hosts: the independently sized detail and overview have different rows, domains, axes, margins, and behavior."
         }
       ]
@@ -2401,7 +2401,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/84-pinned-nested-chart-tooltip/tanstack.ts",
+        "cases/84-pinned-nested-chart-tooltip/example.tsx",
         "cases/84-pinned-nested-chart-tooltip/model.test.ts",
         "../../packages/charts-core/src/runtime.test.ts",
         "../../packages/charts-core/src/svg-surface.test.ts",
@@ -2428,7 +2428,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain representative and same-species cohort policy, close-button presentation, and nested child-chart composition."
         }
       ]
@@ -2441,9 +2441,9 @@
       "status": "accepted-boundary",
       "capabilities": ["application-boundary"],
       "evidence": [
-        "cases/85-scrollable-resource-lanes/tanstack.ts",
+        "cases/85-scrollable-resource-lanes/example.tsx",
         "cases/85-scrollable-resource-lanes/tanstack.test.ts",
-        "cases/85-scrollable-resource-lanes/shell.ts",
+        "cases/85-scrollable-resource-lanes/view.tsx",
         "DEFINITION-COVERAGE-PLAN.md"
       ],
       "work": [
@@ -2452,7 +2452,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["shell.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain native overflow, content-width and scroll-preservation policy, the fixed rail and legend, persistent task summary, and complete schedule alternative."
         },
         {
@@ -2460,7 +2460,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["tanstack.ts", "shell.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use the chart-owned focused point to reveal an offscreen task in the parent scroll viewport and update the persistent summary."
         }
       ]
@@ -2484,7 +2484,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["model.ts", "view.tsx"],
+          "sources": ["model.ts", "example.tsx"],
           "summary": "Retain data arrival, complete history, locked/latest/all viewport policy, controls, and announcements; share only pure case-local viewport and status helpers."
         }
       ]
@@ -2497,7 +2497,7 @@
       "status": "verified",
       "capabilities": ["view-composition", "focus-guide", "decorative-mark"],
       "evidence": [
-        "cases/87-echarts-synchronized-cursors/tanstack.ts",
+        "cases/87-echarts-synchronized-cursors/example.tsx",
         "cases/87-echarts-synchronized-cursors/tanstack.test.ts",
         "../../packages/charts-core/src/view.test.ts",
         "../../packages/charts-core/src/focus-guide.test.ts",
@@ -2509,7 +2509,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose one grouped-x focus lifecycle, sticky pinning, keyboard navigation, and semantic restoration across both child views."
         },
         {
@@ -2529,7 +2529,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["summary.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the cross-view live value summary as an observer of chart-owned focus and selection events."
         }
       ]
@@ -2548,7 +2548,7 @@
       "evidence": [
         "DEFINITION-COVERAGE-AUDIT.md",
         "DEFINITION-COVERAGE-PLAN.md",
-        "cases/88-echarts-free-cursor/tanstack.ts",
+        "cases/88-echarts-free-cursor/example.tsx",
         "cases/88-echarts-free-cursor/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-cursor.test.ts"
       ],
@@ -2566,7 +2566,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["controls.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain domain-specific semantic sliders and live status text over the same controlled position."
         }
       ]
@@ -2585,7 +2585,7 @@
       "evidence": [
         "DEFINITION-COVERAGE-AUDIT.md",
         "DEFINITION-COVERAGE-PLAN.md",
-        "cases/89-brush-range-selection/tanstack.ts",
+        "cases/89-brush-range-selection/example.tsx",
         "cases/89-brush-range-selection/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-brush.test.ts"
       ],
@@ -2604,7 +2604,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["model.ts", "tanstack.ts"],
+          "sources": ["model.ts", "example.tsx"],
           "summary": "Retain monthly cohort selection, accepted range state, the live financial summary, and conformance observation."
         }
       ]
@@ -2624,7 +2624,7 @@
         "DEFINITION-COVERAGE-AUDIT.md",
         "DEFINITION-COVERAGE-PLAN.md",
         "cases/90-zoomable-time-window/case.json",
-        "cases/90-zoomable-time-window/tanstack.ts",
+        "cases/90-zoomable-time-window/example.tsx",
         "cases/90-zoomable-time-window/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-zoom.test.ts"
       ],
@@ -2643,7 +2643,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["model.ts", "tanstack.ts"],
+          "sources": ["model.ts", "example.tsx"],
           "summary": "Retain accepted-window state, visible-row and y-domain policy, status, reset, conformance observation, and persistence."
         }
       ]
@@ -2669,12 +2669,12 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts", "model.ts"],
+          "sources": ["example.tsx", "model.ts"],
           "summary": "Retain the accepted frame, playback timing, transport controls, status, and announcements."
         }
       ],
       "evidence": [
-        "cases/91-timeline-playback-scrubber/tanstack.ts",
+        "cases/91-timeline-playback-scrubber/example.tsx",
         "cases/91-timeline-playback-scrubber/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-handle.test.ts"
       ]
@@ -2700,12 +2700,12 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts", "controls.ts", "model.ts"],
+          "sources": ["example.tsx", "model.ts"],
           "summary": "Retain the date input, validation, event constraint, accepted end, commit transaction, status, and exact-value alternative."
         }
       ],
       "evidence": [
-        "cases/92-editable-event-range/tanstack.ts",
+        "cases/92-editable-event-range/example.tsx",
         "cases/92-editable-event-range/tanstack.test.ts",
         "../../packages/charts-core/src/interaction-handle.test.ts"
       ]
@@ -2768,7 +2768,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the semantic selected-frequency total and center-label presentation."
         }
       ]
@@ -2835,7 +2835,7 @@
       "status": "verified",
       "capabilities": ["radial-bars"],
       "evidence": [
-        "cases/97-rose/tanstack.ts",
+        "cases/97-rose/example.tsx",
         "cases/97-rose/tanstack.test.ts",
         "../../packages/charts-core/src/polar-radial-bar.test.ts"
       ],
@@ -2913,7 +2913,7 @@
           "stage": "definition-builder",
           "owner": "case",
           "coordinateSpace": "none",
-          "sources": ["selection.ts", "tanstack.ts"],
+          "sources": ["selection.ts", "example.tsx"],
           "summary": "Retain event order, metric direction, country filter, first-profile selection, the same-reference 1.1px angle-label offset, and compact margins; angleGrid already owns label context plus default anchor and baseline, so no shared helper is warranted."
         }
       ]
@@ -2958,7 +2958,7 @@
       "status": "verified",
       "capabilities": ["hierarchy-sunburst"],
       "evidence": [
-        "cases/101-sunburst/tanstack.ts",
+        "cases/101-sunburst/example.tsx",
         "cases/101-sunburst/tanstack.test.ts",
         "../../packages/charts-core/src/hierarchy-sunburst.test.ts"
       ],
@@ -2990,14 +2990,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/102-world-choropleth/tanstack.ts"],
+      "evidence": ["cases/102-world-choropleth/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose land, joined country features, and sphere through geoShape with a public Equal Earth descriptor and threshold color scale."
         }
       ]
@@ -3009,14 +3009,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/103-bubble-map/tanstack.ts"],
+      "evidence": ["cases/103-bubble-map/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose land, source-linked geographic points, and sphere through geoShape with a public projection descriptor and radius channel."
         }
       ]
@@ -3028,14 +3028,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/104-orthographic-globe/tanstack.ts"],
+      "evidence": ["cases/104-orthographic-globe/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Layer sphere, graticule, and land through geoShape with one authored orthographic projection descriptor per mark."
         }
       ]
@@ -3047,14 +3047,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/105-route-map/tanstack.ts"],
+      "evidence": ["cases/105-route-map/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Layer land, graticule, route, and sphere through geoShape with a shared public Equal Earth projection descriptor."
         }
       ]
@@ -3066,14 +3066,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/106-polar-line/tanstack.ts"],
+      "evidence": ["cases/106-polar-line/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native polar grids and a radial line from semantic day-angle and temperature-radius channels."
         }
       ]
@@ -3085,14 +3085,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/107-polar-scatter/tanstack.ts"],
+      "evidence": ["cases/107-polar-scatter/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native polar grids and radial dots from semantic wind direction, latitude band, and speed channels."
         }
       ]
@@ -3104,14 +3104,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/108-country-choropleth/tanstack.ts"],
+      "evidence": ["cases/108-country-choropleth/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Render joined country features through geoShape with a public Equal Earth descriptor and quantized color definition."
         }
       ]
@@ -3124,7 +3124,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/109-us-state-choropleth/tanstack.ts",
+        "cases/109-us-state-choropleth/example.tsx",
         "cases/109-us-state-choropleth/tanstack.test.ts"
       ],
       "work": [
@@ -3133,7 +3133,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Pass county features and the public Albers USA projection descriptor to geoShape; Charts owns fitting, paths, and quantile color mapping."
         }
       ]
@@ -3146,7 +3146,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/110-projection-gallery/tanstack.ts",
+        "cases/110-projection-gallery/example.tsx",
         "cases/110-projection-gallery/tanstack.test.ts",
         "../../packages/charts-core/src/facet.test.ts"
       ],
@@ -3182,7 +3182,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "network-sankey"],
       "evidence": [
-        "cases/111-basic-sankey/tanstack.ts",
+        "cases/111-basic-sankey/example.tsx",
         "cases/111-basic-sankey/tanstack.test.ts",
         "../../packages/charts-core/src/network-sankey.test.ts"
       ],
@@ -3206,7 +3206,7 @@
       "status": "verified",
       "capabilities": ["resolved-mark-layout", "network-sankey"],
       "evidence": [
-        "cases/111-sankey-flow/tanstack.ts",
+        "cases/111-sankey-flow/example.tsx",
         "cases/111-sankey-flow/tanstack.test.ts",
         "../../packages/charts-core/src/network-sankey.test.ts"
       ],
@@ -3225,7 +3225,7 @@
           "stage": "resolved-layout",
           "owner": "case",
           "coordinateSpace": "resolved-plot",
-          "sources": ["tanstack.ts", "layout.ts"],
+          "sources": ["example.tsx", "layout.ts"],
           "dependencies": [],
           "summary": "Retain authored compact wording, label side and offsets, two-line values, backdrop measurement, title placement, and semantic paint."
         }
@@ -3239,7 +3239,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/112-motion-entrance/tanstack.ts",
+        "cases/112-motion-entrance/example.tsx",
         "cases/112-motion-entrance/tanstack.test.ts",
         "shared/motion.ts"
       ],
@@ -3249,7 +3249,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain replay and demo settings while motion stays definition-local."
         }
       ]
@@ -3262,7 +3262,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/113-motion-updates/tanstack.ts",
+        "cases/113-motion-updates/example.tsx",
         "cases/113-motion-updates/tanstack.test.ts",
         "shared/motion.ts"
       ],
@@ -3272,7 +3272,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain stage controls while keyed update motion stays declarative."
         }
       ]
@@ -3285,7 +3285,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/114-spring-line-motion/tanstack.ts",
+        "cases/114-spring-line-motion/example.tsx",
         "cases/114-spring-line-motion/tanstack.test.ts",
         "shared/motion.ts"
       ],
@@ -3295,7 +3295,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain demo controls while line morph and spring overrides stay declarative."
         }
       ]
@@ -3308,7 +3308,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/115-definition-motion/tanstack.ts",
+        "cases/115-definition-motion/example.tsx",
         "cases/115-definition-motion/tanstack.test.ts",
         "shared/motion.ts"
       ],
@@ -3318,7 +3318,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain controls while chart, mark, datum, axis, tick, and label motion stay definition-owned."
         }
       ]
@@ -3332,7 +3332,7 @@
       "capabilities": ["inline-custom-boundary"],
       "evidence": [
         "DEFINITION-COVERAGE-AUDIT.md",
-        "cases/116-geometry-morph/tanstack.ts",
+        "cases/116-geometry-morph/example.tsx",
         "cases/116-geometry-morph/tanstack.test.ts"
       ],
       "work": [
@@ -3341,7 +3341,7 @@
           "stage": "mark-render",
           "owner": "case",
           "coordinateSpace": "resolved-plot",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the deliberately bespoke normalized topology for cross-shape path morphing."
         }
       ]
@@ -3354,7 +3354,7 @@
       "status": "verified",
       "capabilities": ["focus-guide"],
       "evidence": [
-        "cases/117-focus-cursor-motion/tanstack.ts",
+        "cases/117-focus-cursor-motion/example.tsx",
         "cases/117-focus-cursor-motion/tanstack.test.ts",
         "../../packages/charts-core/src/focus-guide.test.ts",
         "../../packages/charts-core/src/focus-mark.test.ts",
@@ -3377,7 +3377,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the visible aria-live status and update it from host focus events."
         }
       ]
@@ -3390,7 +3390,7 @@
       "status": "verified",
       "capabilities": ["axis-tick-label-accessors"],
       "evidence": [
-        "cases/118-token-usage-calendar/tanstack.ts",
+        "cases/118-token-usage-calendar/example.tsx",
         "cases/118-token-usage-calendar/tanstack.test.ts",
         "cases/118-token-usage-calendar/shell.test.ts",
         "../../packages/charts-core/src/scene-layout.test.ts",
@@ -3415,7 +3415,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["layout.ts", "shell.ts"],
+          "sources": ["layout.ts", "example.tsx"],
           "summary": "Retain width-derived host sizing and tooltip presentation."
         }
       ]
@@ -3428,7 +3428,7 @@
       "status": "verified",
       "capabilities": ["crosshair"],
       "evidence": [
-        "cases/119-stacked-bar-band-cursor/chart.ts",
+        "cases/119-stacked-bar-band-cursor/example.tsx",
         "cases/119-stacked-bar-band-cursor/model.test.ts",
         "cases/119-stacked-bar-band-cursor/case.json",
         "../../packages/charts-core/src/crosshair.test.ts",
@@ -3446,7 +3446,7 @@
             "packages/charts-core/src/crosshair.ts",
             "packages/charts-core/src/crosshair-resolver.ts",
             "packages/charts-core/src/focus-presentation.ts",
-            "chart.ts"
+            "example.tsx"
           ],
           "summary": "Resolve stable categorical bands, endpoint rules, labels, grouped focus, and keyed motion through renderer-native crosshair guides."
         },
@@ -3468,8 +3468,8 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/120-themed-interactive-area/chart.ts",
-        "cases/120-themed-interactive-area/tanstack.ts",
+        "cases/120-themed-interactive-area/example.tsx",
+        "cases/120-themed-interactive-area/example.tsx",
         "cases/120-themed-interactive-area/tanstack.test.ts"
       ],
       "work": [
@@ -3478,7 +3478,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["chart.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose the gradient area, line, focus points, sparse guides, tooltip, and keyed spring policy through the current definition API."
         },
         {
@@ -3486,7 +3486,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Retain the traffic card, range controls, and selected time-window state as application UI."
         }
       ]
@@ -3499,7 +3499,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/121-active-bar-dashboard/chart.ts",
+        "cases/121-active-bar-dashboard/example.tsx",
         "cases/121-active-bar-dashboard/tanstack.test.ts",
         "cases/121-active-bar-dashboard/view.tsx"
       ],
@@ -3509,7 +3509,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["chart.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose gradient bars, focus states, the animated band ring, sparse guides, tooltip, and keyed spring updates as one native definition."
         },
         {
@@ -3517,7 +3517,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the KPI totals and desktop/mobile selector as accessible application controls."
         }
       ]
@@ -3530,7 +3530,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/122-premium-kpi-sparklines/chart.ts",
+        "cases/122-premium-kpi-sparklines/example.tsx",
         "cases/122-premium-kpi-sparklines/tanstack.test.ts",
         "cases/122-premium-kpi-sparklines/view.tsx"
       ],
@@ -3540,7 +3540,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["chart.ts"],
+          "sources": ["example.tsx"],
           "summary": "Build the three guide-free line and area sparklines from ordinary marks, gradients, CSS-variable paints, and keyed spring motion."
         },
         {
@@ -3548,7 +3548,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain metric labels, values, trend annotations, and responsive card layout as application content."
         }
       ]
@@ -3561,7 +3561,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/123-active-donut-metric/chart.ts",
+        "cases/123-active-donut-metric/example.tsx",
         "cases/123-active-donut-metric/tanstack.test.ts",
         "cases/123-active-donut-metric/view.tsx"
       ],
@@ -3571,7 +3571,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["chart.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose source-linked pie allocation, rounded arcs, an expanded wedge, detached ring, center text, tooltip, and spring motion without custom SVG paths."
         },
         {
@@ -3579,7 +3579,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the browser legend buttons and persistent selected-browser policy as accessible application state."
         }
       ]
@@ -3592,7 +3592,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/124-theme-palette-matrix/chart.ts",
+        "cases/124-theme-palette-matrix/example.tsx",
         "cases/124-theme-palette-matrix/tanstack.test.ts",
         "cases/124-theme-palette-matrix/view.tsx"
       ],
@@ -3602,7 +3602,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["chart.ts"],
+          "sources": ["example.tsx"],
           "summary": "Render identical area, comparison line, terminal dot, gradient, and motion geometry through three scoped definition themes."
         },
         {
@@ -3610,7 +3610,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["view.tsx"],
+          "sources": ["example.tsx"],
           "summary": "Retain the responsive three-card matrix and palette labels as application composition around real chart surfaces."
         }
       ]
@@ -3623,7 +3623,7 @@
       "status": "verified",
       "capabilities": ["current-definition-api"],
       "evidence": [
-        "cases/125-sales-funnel/tanstack.ts",
+        "cases/125-sales-funnel/example.tsx",
         "cases/125-sales-funnel/model.test.ts",
         "cases/125-sales-funnel/case.json"
       ],
@@ -3641,7 +3641,7 @@
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native areaX groups and direct text labels over explicit linear domains with stable stage keys."
         }
       ]
@@ -3654,7 +3654,7 @@
       "status": "verified",
       "capabilities": ["hierarchy-sunburst"],
       "evidence": [
-        "cases/126-drillable-sunburst/tanstack.ts",
+        "cases/126-drillable-sunburst/example.tsx",
         "cases/126-drillable-sunburst/tanstack.test.ts",
         "cases/126-drillable-sunburst/model.test.ts",
         "../../packages/charts-core/src/hierarchy-sunburst.test.ts"
@@ -3674,8 +3674,2493 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["model.ts", "center.ts", "tanstack.ts"],
+          "sources": ["model.ts", "example.tsx"],
           "summary": "Retain selected-root state, semantic drill selection, the center back control, and conformance observation."
+        }
+      ]
+    },
+    {
+      "id": "127-shadcn-dashboard",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/127-shadcn-dashboard/example.tsx",
+        "cases/127-shadcn-dashboard/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/127-shadcn-dashboard/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn dashboard variant as a self-contained native dashboard chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/127-shadcn-dashboard/example.tsx",
+            "benchmarks/conformance/cases/127-shadcn-dashboard/dashboard.tsx"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "133-shadcn-area-axes",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/133-shadcn-area-axes/example.tsx",
+        "cases/133-shadcn-area-axes/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/133-shadcn-area-axes/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-axes variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/133-shadcn-area-axes/example.tsx",
+            "benchmarks/conformance/cases/133-shadcn-area-axes/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "134-shadcn-area-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/134-shadcn-area-default/example.tsx",
+        "cases/134-shadcn-area-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/134-shadcn-area-default/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-default variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/134-shadcn-area-default/example.tsx",
+            "benchmarks/conformance/cases/134-shadcn-area-default/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "135-shadcn-area-gradient",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/135-shadcn-area-gradient/example.tsx",
+        "cases/135-shadcn-area-gradient/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/135-shadcn-area-gradient/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-gradient variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/135-shadcn-area-gradient/example.tsx",
+            "benchmarks/conformance/cases/135-shadcn-area-gradient/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "136-shadcn-area-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/136-shadcn-area-icons/example.tsx",
+        "cases/136-shadcn-area-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/136-shadcn-area-icons/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-icons variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/136-shadcn-area-icons/example.tsx",
+            "benchmarks/conformance/cases/136-shadcn-area-icons/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "137-shadcn-area-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/137-shadcn-area-interactive/example.tsx",
+        "cases/137-shadcn-area-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/137-shadcn-area-interactive/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-interactive variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/137-shadcn-area-interactive/example.tsx",
+            "benchmarks/conformance/cases/137-shadcn-area-interactive/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "138-shadcn-area-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/138-shadcn-area-legend/example.tsx",
+        "cases/138-shadcn-area-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/138-shadcn-area-legend/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-legend variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/138-shadcn-area-legend/example.tsx",
+            "benchmarks/conformance/cases/138-shadcn-area-legend/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "139-shadcn-area-linear",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/139-shadcn-area-linear/example.tsx",
+        "cases/139-shadcn-area-linear/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/139-shadcn-area-linear/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-linear variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/139-shadcn-area-linear/example.tsx",
+            "benchmarks/conformance/cases/139-shadcn-area-linear/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "140-shadcn-area-stacked-expand",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/140-shadcn-area-stacked-expand/example.tsx",
+        "cases/140-shadcn-area-stacked-expand/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-stacked-expand variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/example.tsx",
+            "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "141-shadcn-area-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/141-shadcn-area-stacked/example.tsx",
+        "cases/141-shadcn-area-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/141-shadcn-area-stacked/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-stacked variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/141-shadcn-area-stacked/example.tsx",
+            "benchmarks/conformance/cases/141-shadcn-area-stacked/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "142-shadcn-area-step",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/142-shadcn-area-step/example.tsx",
+        "cases/142-shadcn-area-step/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/142-shadcn-area-step/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-area-step variant as a self-contained native area chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/142-shadcn-area-step/example.tsx",
+            "benchmarks/conformance/cases/142-shadcn-area-step/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "143-shadcn-bar-active",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/143-shadcn-bar-active/example.tsx",
+        "cases/143-shadcn-bar-active/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/143-shadcn-bar-active/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-active variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/143-shadcn-bar-active/example.tsx",
+            "benchmarks/conformance/cases/143-shadcn-bar-active/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "144-shadcn-bar-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/144-shadcn-bar-default/example.tsx",
+        "cases/144-shadcn-bar-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/144-shadcn-bar-default/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-default variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/144-shadcn-bar-default/example.tsx",
+            "benchmarks/conformance/cases/144-shadcn-bar-default/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "145-shadcn-bar-horizontal",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/145-shadcn-bar-horizontal/example.tsx",
+        "cases/145-shadcn-bar-horizontal/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/145-shadcn-bar-horizontal/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-horizontal variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/145-shadcn-bar-horizontal/example.tsx",
+            "benchmarks/conformance/cases/145-shadcn-bar-horizontal/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "146-shadcn-bar-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/146-shadcn-bar-interactive/example.tsx",
+        "cases/146-shadcn-bar-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/146-shadcn-bar-interactive/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-interactive variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/146-shadcn-bar-interactive/example.tsx",
+            "benchmarks/conformance/cases/146-shadcn-bar-interactive/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "147-shadcn-bar-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/147-shadcn-bar-label-custom/example.tsx",
+        "cases/147-shadcn-bar-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/147-shadcn-bar-label-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-label-custom variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/147-shadcn-bar-label-custom/example.tsx",
+            "benchmarks/conformance/cases/147-shadcn-bar-label-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "148-shadcn-bar-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/148-shadcn-bar-label/example.tsx",
+        "cases/148-shadcn-bar-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/148-shadcn-bar-label/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-label variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/148-shadcn-bar-label/example.tsx",
+            "benchmarks/conformance/cases/148-shadcn-bar-label/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "149-shadcn-bar-mixed",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/149-shadcn-bar-mixed/example.tsx",
+        "cases/149-shadcn-bar-mixed/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/149-shadcn-bar-mixed/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-mixed variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/149-shadcn-bar-mixed/example.tsx",
+            "benchmarks/conformance/cases/149-shadcn-bar-mixed/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "128-shadcn-bar-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/128-shadcn-bar-multiple/example.tsx",
+        "cases/128-shadcn-bar-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/128-shadcn-bar-multiple/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-multiple variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/128-shadcn-bar-multiple/example.tsx",
+            "benchmarks/conformance/cases/128-shadcn-bar-multiple/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "150-shadcn-bar-negative",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/150-shadcn-bar-negative/example.tsx",
+        "cases/150-shadcn-bar-negative/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/150-shadcn-bar-negative/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-negative variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/150-shadcn-bar-negative/example.tsx",
+            "benchmarks/conformance/cases/150-shadcn-bar-negative/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "151-shadcn-bar-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/151-shadcn-bar-stacked/example.tsx",
+        "cases/151-shadcn-bar-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/151-shadcn-bar-stacked/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-bar-stacked variant as a self-contained native bar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/151-shadcn-bar-stacked/example.tsx",
+            "benchmarks/conformance/cases/151-shadcn-bar-stacked/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "152-shadcn-line-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/152-shadcn-line-default/example.tsx",
+        "cases/152-shadcn-line-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/152-shadcn-line-default/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-default variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/152-shadcn-line-default/example.tsx",
+            "benchmarks/conformance/cases/152-shadcn-line-default/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "153-shadcn-line-dots-colors",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/153-shadcn-line-dots-colors/example.tsx",
+        "cases/153-shadcn-line-dots-colors/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/153-shadcn-line-dots-colors/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-dots-colors variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/153-shadcn-line-dots-colors/example.tsx",
+            "benchmarks/conformance/cases/153-shadcn-line-dots-colors/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "154-shadcn-line-dots-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/154-shadcn-line-dots-custom/example.tsx",
+        "cases/154-shadcn-line-dots-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/154-shadcn-line-dots-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-dots-custom variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/154-shadcn-line-dots-custom/example.tsx",
+            "benchmarks/conformance/cases/154-shadcn-line-dots-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "155-shadcn-line-dots",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/155-shadcn-line-dots/example.tsx",
+        "cases/155-shadcn-line-dots/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/155-shadcn-line-dots/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-dots variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/155-shadcn-line-dots/example.tsx",
+            "benchmarks/conformance/cases/155-shadcn-line-dots/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "156-shadcn-line-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/156-shadcn-line-interactive/example.tsx",
+        "cases/156-shadcn-line-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/156-shadcn-line-interactive/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-interactive variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/156-shadcn-line-interactive/example.tsx",
+            "benchmarks/conformance/cases/156-shadcn-line-interactive/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "157-shadcn-line-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/157-shadcn-line-label-custom/example.tsx",
+        "cases/157-shadcn-line-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/157-shadcn-line-label-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-label-custom variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/157-shadcn-line-label-custom/example.tsx",
+            "benchmarks/conformance/cases/157-shadcn-line-label-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "158-shadcn-line-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/158-shadcn-line-label/example.tsx",
+        "cases/158-shadcn-line-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/158-shadcn-line-label/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-label variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/158-shadcn-line-label/example.tsx",
+            "benchmarks/conformance/cases/158-shadcn-line-label/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "159-shadcn-line-linear",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/159-shadcn-line-linear/example.tsx",
+        "cases/159-shadcn-line-linear/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/159-shadcn-line-linear/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-linear variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/159-shadcn-line-linear/example.tsx",
+            "benchmarks/conformance/cases/159-shadcn-line-linear/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "160-shadcn-line-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/160-shadcn-line-multiple/example.tsx",
+        "cases/160-shadcn-line-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/160-shadcn-line-multiple/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-multiple variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/160-shadcn-line-multiple/example.tsx",
+            "benchmarks/conformance/cases/160-shadcn-line-multiple/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "161-shadcn-line-step",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/161-shadcn-line-step/example.tsx",
+        "cases/161-shadcn-line-step/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/161-shadcn-line-step/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-line-step variant as a self-contained native line chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/161-shadcn-line-step/example.tsx",
+            "benchmarks/conformance/cases/161-shadcn-line-step/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "162-shadcn-pie-donut-active",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/162-shadcn-pie-donut-active/example.tsx",
+        "cases/162-shadcn-pie-donut-active/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/162-shadcn-pie-donut-active/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-donut-active variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/162-shadcn-pie-donut-active/example.tsx",
+            "benchmarks/conformance/cases/162-shadcn-pie-donut-active/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "129-shadcn-pie-donut-text",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/129-shadcn-pie-donut-text/example.tsx",
+        "cases/129-shadcn-pie-donut-text/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/129-shadcn-pie-donut-text/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-donut-text variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/129-shadcn-pie-donut-text/example.tsx",
+            "benchmarks/conformance/cases/129-shadcn-pie-donut-text/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "163-shadcn-pie-donut",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/163-shadcn-pie-donut/example.tsx",
+        "cases/163-shadcn-pie-donut/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/163-shadcn-pie-donut/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-donut variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/163-shadcn-pie-donut/example.tsx",
+            "benchmarks/conformance/cases/163-shadcn-pie-donut/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "164-shadcn-pie-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/164-shadcn-pie-interactive/example.tsx",
+        "cases/164-shadcn-pie-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/164-shadcn-pie-interactive/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-interactive variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/164-shadcn-pie-interactive/example.tsx",
+            "benchmarks/conformance/cases/164-shadcn-pie-interactive/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "165-shadcn-pie-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/165-shadcn-pie-label-custom/example.tsx",
+        "cases/165-shadcn-pie-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/165-shadcn-pie-label-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-label-custom variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/165-shadcn-pie-label-custom/example.tsx",
+            "benchmarks/conformance/cases/165-shadcn-pie-label-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "166-shadcn-pie-label-list",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/166-shadcn-pie-label-list/example.tsx",
+        "cases/166-shadcn-pie-label-list/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/166-shadcn-pie-label-list/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-label-list variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/166-shadcn-pie-label-list/example.tsx",
+            "benchmarks/conformance/cases/166-shadcn-pie-label-list/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "167-shadcn-pie-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/167-shadcn-pie-label/example.tsx",
+        "cases/167-shadcn-pie-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/167-shadcn-pie-label/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-label variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/167-shadcn-pie-label/example.tsx",
+            "benchmarks/conformance/cases/167-shadcn-pie-label/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "168-shadcn-pie-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/168-shadcn-pie-legend/example.tsx",
+        "cases/168-shadcn-pie-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/168-shadcn-pie-legend/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-legend variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/168-shadcn-pie-legend/example.tsx",
+            "benchmarks/conformance/cases/168-shadcn-pie-legend/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "169-shadcn-pie-separator-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/169-shadcn-pie-separator-none/example.tsx",
+        "cases/169-shadcn-pie-separator-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/169-shadcn-pie-separator-none/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-separator-none variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/169-shadcn-pie-separator-none/example.tsx",
+            "benchmarks/conformance/cases/169-shadcn-pie-separator-none/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "170-shadcn-pie-simple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/170-shadcn-pie-simple/example.tsx",
+        "cases/170-shadcn-pie-simple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/170-shadcn-pie-simple/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-simple variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/170-shadcn-pie-simple/example.tsx",
+            "benchmarks/conformance/cases/170-shadcn-pie-simple/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "171-shadcn-pie-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/171-shadcn-pie-stacked/example.tsx",
+        "cases/171-shadcn-pie-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/171-shadcn-pie-stacked/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-pie-stacked variant as a self-contained native pie chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/171-shadcn-pie-stacked/example.tsx",
+            "benchmarks/conformance/cases/171-shadcn-pie-stacked/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "172-shadcn-radar-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/172-shadcn-radar-default/example.tsx",
+        "cases/172-shadcn-radar-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/172-shadcn-radar-default/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-default variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/172-shadcn-radar-default/example.tsx",
+            "benchmarks/conformance/cases/172-shadcn-radar-default/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "173-shadcn-radar-dots",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/173-shadcn-radar-dots/example.tsx",
+        "cases/173-shadcn-radar-dots/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/173-shadcn-radar-dots/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-dots variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/173-shadcn-radar-dots/example.tsx",
+            "benchmarks/conformance/cases/173-shadcn-radar-dots/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "174-shadcn-radar-grid-circle-fill",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/174-shadcn-radar-grid-circle-fill/example.tsx",
+        "cases/174-shadcn-radar-grid-circle-fill/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-circle-fill variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/example.tsx",
+            "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "175-shadcn-radar-grid-circle-no-lines",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/175-shadcn-radar-grid-circle-no-lines/example.tsx",
+        "cases/175-shadcn-radar-grid-circle-no-lines/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-circle-no-lines variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/example.tsx",
+            "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "176-shadcn-radar-grid-circle",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/176-shadcn-radar-grid-circle/example.tsx",
+        "cases/176-shadcn-radar-grid-circle/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-circle variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/example.tsx",
+            "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "177-shadcn-radar-grid-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/177-shadcn-radar-grid-custom/example.tsx",
+        "cases/177-shadcn-radar-grid-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-custom variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/example.tsx",
+            "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "178-shadcn-radar-grid-fill",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/178-shadcn-radar-grid-fill/example.tsx",
+        "cases/178-shadcn-radar-grid-fill/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-fill variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/example.tsx",
+            "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "179-shadcn-radar-grid-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/179-shadcn-radar-grid-none/example.tsx",
+        "cases/179-shadcn-radar-grid-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/179-shadcn-radar-grid-none/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-grid-none variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/179-shadcn-radar-grid-none/example.tsx",
+            "benchmarks/conformance/cases/179-shadcn-radar-grid-none/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "180-shadcn-radar-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/180-shadcn-radar-icons/example.tsx",
+        "cases/180-shadcn-radar-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/180-shadcn-radar-icons/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-icons variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/180-shadcn-radar-icons/example.tsx",
+            "benchmarks/conformance/cases/180-shadcn-radar-icons/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "181-shadcn-radar-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/181-shadcn-radar-label-custom/example.tsx",
+        "cases/181-shadcn-radar-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/181-shadcn-radar-label-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-label-custom variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/181-shadcn-radar-label-custom/example.tsx",
+            "benchmarks/conformance/cases/181-shadcn-radar-label-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "182-shadcn-radar-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/182-shadcn-radar-legend/example.tsx",
+        "cases/182-shadcn-radar-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/182-shadcn-radar-legend/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-legend variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/182-shadcn-radar-legend/example.tsx",
+            "benchmarks/conformance/cases/182-shadcn-radar-legend/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "183-shadcn-radar-lines-only",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/183-shadcn-radar-lines-only/example.tsx",
+        "cases/183-shadcn-radar-lines-only/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/183-shadcn-radar-lines-only/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-lines-only variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/183-shadcn-radar-lines-only/example.tsx",
+            "benchmarks/conformance/cases/183-shadcn-radar-lines-only/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "130-shadcn-radar-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/130-shadcn-radar-multiple/example.tsx",
+        "cases/130-shadcn-radar-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/130-shadcn-radar-multiple/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-multiple variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/130-shadcn-radar-multiple/example.tsx",
+            "benchmarks/conformance/cases/130-shadcn-radar-multiple/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "184-shadcn-radar-radius",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/184-shadcn-radar-radius/example.tsx",
+        "cases/184-shadcn-radar-radius/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/184-shadcn-radar-radius/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radar-radius variant as a self-contained native radar chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/184-shadcn-radar-radius/example.tsx",
+            "benchmarks/conformance/cases/184-shadcn-radar-radius/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "185-shadcn-radial-grid",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/185-shadcn-radial-grid/example.tsx",
+        "cases/185-shadcn-radial-grid/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/185-shadcn-radial-grid/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-grid variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/185-shadcn-radial-grid/example.tsx",
+            "benchmarks/conformance/cases/185-shadcn-radial-grid/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "186-shadcn-radial-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/186-shadcn-radial-label/example.tsx",
+        "cases/186-shadcn-radial-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/186-shadcn-radial-label/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-label variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/186-shadcn-radial-label/example.tsx",
+            "benchmarks/conformance/cases/186-shadcn-radial-label/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "187-shadcn-radial-shape",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/187-shadcn-radial-shape/example.tsx",
+        "cases/187-shadcn-radial-shape/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/187-shadcn-radial-shape/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-shape variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/187-shadcn-radial-shape/example.tsx",
+            "benchmarks/conformance/cases/187-shadcn-radial-shape/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "188-shadcn-radial-simple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/188-shadcn-radial-simple/example.tsx",
+        "cases/188-shadcn-radial-simple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/188-shadcn-radial-simple/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-simple variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/188-shadcn-radial-simple/example.tsx",
+            "benchmarks/conformance/cases/188-shadcn-radial-simple/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "189-shadcn-radial-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/189-shadcn-radial-stacked/example.tsx",
+        "cases/189-shadcn-radial-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/189-shadcn-radial-stacked/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-stacked variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/189-shadcn-radial-stacked/example.tsx",
+            "benchmarks/conformance/cases/189-shadcn-radial-stacked/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "131-shadcn-radial-text",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/131-shadcn-radial-text/example.tsx",
+        "cases/131-shadcn-radial-text/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/131-shadcn-radial-text/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-radial-text variant as a self-contained native radial chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/131-shadcn-radial-text/example.tsx",
+            "benchmarks/conformance/cases/131-shadcn-radial-text/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "132-shadcn-tooltip-advanced",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/132-shadcn-tooltip-advanced/example.tsx",
+        "cases/132-shadcn-tooltip-advanced/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-advanced variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/example.tsx",
+            "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "190-shadcn-tooltip-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/190-shadcn-tooltip-default/example.tsx",
+        "cases/190-shadcn-tooltip-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/190-shadcn-tooltip-default/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-default variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/190-shadcn-tooltip-default/example.tsx",
+            "benchmarks/conformance/cases/190-shadcn-tooltip-default/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "191-shadcn-tooltip-formatter",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/191-shadcn-tooltip-formatter/example.tsx",
+        "cases/191-shadcn-tooltip-formatter/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-formatter variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/example.tsx",
+            "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "192-shadcn-tooltip-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/192-shadcn-tooltip-icons/example.tsx",
+        "cases/192-shadcn-tooltip-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/192-shadcn-tooltip-icons/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-icons variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/192-shadcn-tooltip-icons/example.tsx",
+            "benchmarks/conformance/cases/192-shadcn-tooltip-icons/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "193-shadcn-tooltip-indicator-line",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/193-shadcn-tooltip-indicator-line/example.tsx",
+        "cases/193-shadcn-tooltip-indicator-line/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-indicator-line variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/example.tsx",
+            "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "194-shadcn-tooltip-indicator-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/194-shadcn-tooltip-indicator-none/example.tsx",
+        "cases/194-shadcn-tooltip-indicator-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-indicator-none variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/example.tsx",
+            "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "195-shadcn-tooltip-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/195-shadcn-tooltip-label-custom/example.tsx",
+        "cases/195-shadcn-tooltip-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-label-custom variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/example.tsx",
+            "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "196-shadcn-tooltip-label-formatter",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/196-shadcn-tooltip-label-formatter/example.tsx",
+        "cases/196-shadcn-tooltip-label-formatter/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-label-formatter variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/example.tsx",
+            "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
+        }
+      ]
+    },
+    {
+      "id": "197-shadcn-tooltip-label-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/197-shadcn-tooltip-label-none/example.tsx",
+        "cases/197-shadcn-tooltip-label-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/example.tsx"
+          ],
+          "summary": "Define the pinned shadcn chart-tooltip-label-none variant as a self-contained native tooltip chart example."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": [
+            "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/example.tsx",
+            "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/styles.css"
+          ],
+          "summary": "Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example."
         }
       ]
     },
@@ -3686,14 +6171,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/bar-grouped/tanstack.ts"],
+      "evidence": ["cases/bar-grouped/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public grouped reduction and grouped bar layout inside the responsive definition; width only controls tick-label presentation."
         }
       ]
@@ -3705,14 +6190,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/bar-horizontal-ranking/tanstack.ts"],
+      "evidence": ["cases/bar-horizontal-ranking/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Keep authored row ordering beside native horizontal bars, baseline rule, band scale, and automatic label measurement."
         }
       ]
@@ -3724,14 +6209,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/bar-stacked/tanstack.ts"],
+      "evidence": ["cases/bar-stacked/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose public fold and stack transforms directly with native bars while retaining authored cause order and colors."
         }
       ]
@@ -3743,14 +6228,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/bar-vertical-sorted/tanstack.ts"],
+      "evidence": ["cases/bar-vertical-sorted/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Feed sorted category rows directly to native vertical bars; responsive definition input only rotates crowded tick labels."
         }
       ]
@@ -3762,14 +6247,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/facets-anscombe/tanstack.ts"],
+      "evidence": ["cases/facets-anscombe/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use the native facet mark to create four child definitions with shared authored domains and source-bound dots."
         }
       ]
@@ -3781,14 +6266,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/heatmap-labeled/tanstack.ts"],
+      "evidence": ["cases/heatmap-labeled/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Compose native cells and text over explicit category domains, including authored missing-value and contrast policies."
         }
       ]
@@ -3800,14 +6285,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/histogram/tanstack.ts"],
+      "evidence": ["cases/histogram/example.tsx"],
       "work": [
         {
           "kind": "data-transform",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "data",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Use public binX output directly as semantic rect intervals with native scales and focus lineage."
         }
       ]
@@ -3819,14 +6304,14 @@
       "phase": "phase-0",
       "status": "verified",
       "capabilities": ["current-definition-api"],
-      "evidence": ["cases/scatter-bubble/tanstack.ts"],
+      "evidence": ["cases/scatter-bubble/example.tsx"],
       "work": [
         {
           "kind": "definition-composition",
           "stage": "definition-builder",
           "owner": "charts",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts"],
+          "sources": ["example.tsx"],
           "summary": "Feed model rows directly to a native dot mark with color and radius channels plus ordinary legends and scales."
         }
       ]

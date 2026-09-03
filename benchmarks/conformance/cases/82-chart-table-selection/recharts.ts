@@ -2,7 +2,7 @@ import { createElement, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from 'recharts'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import {
   isSelectionId,
   penguinSelectionId,

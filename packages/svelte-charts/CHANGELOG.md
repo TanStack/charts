@@ -1,5 +1,54 @@
 # @tanstack/svelte-charts
 
+## 0.16.0
+
+### Patch Changes
+
+- Updated dependencies [[`3df87d7`](https://github.com/TanStack/charts/commit/3df87d71f0305e5a450c10b66940f76f3e14259a)]:
+  - @tanstack/charts@0.16.0
+
+## 0.15.0
+
+### Patch Changes
+
+- Updated dependencies [[`7bb0b76`](https://github.com/TanStack/charts/commit/7bb0b762e4d6d7ac7b1b9b8904fb5def482940f3)]:
+  - @tanstack/charts@0.15.0
+
+## 0.14.0
+
+### Patch Changes
+
+- Updated dependencies [[`91e2eef`](https://github.com/TanStack/charts/commit/91e2eef1772dc06118ce5aa1e0b388d12bf91918), [`b7f0710`](https://github.com/TanStack/charts/commit/b7f0710557ac050727feb3503f36aa820ee50a1e)]:
+  - @tanstack/charts@0.14.0
+
+## 0.13.0
+
+### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+## 0.11.2
+
+### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
 ## 0.11.0
 
 ### Patch Changes

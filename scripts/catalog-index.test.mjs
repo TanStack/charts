@@ -22,7 +22,7 @@ describe('catalog index', () => {
 
     expect(validateCatalogIndex(index)).toEqual({ caseCount: 1 })
     expect(index).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       source: {
         repo: 'tanstack/charts',
         pathRoot: 'benchmarks/conformance/',
@@ -31,11 +31,7 @@ describe('catalog index', () => {
         {
           ...metadata,
           entries: {
-            tanstack: 'benchmarks/conformance/cases/01-line/tanstack.ts',
-            reference: {
-              renderer: 'observable-plot',
-              path: 'benchmarks/conformance/cases/01-line/plot.ts',
-            },
+            example: 'benchmarks/conformance/cases/01-line/example.tsx',
           },
         },
       ],
@@ -45,10 +41,32 @@ describe('catalog index', () => {
     expect(index.cases[0]).not.toHaveProperty('preview')
   })
 
+  it('includes explicit collection metadata when provided', () => {
+    const index = createCatalogIndex(cases, new Map([[metadata.id, 'shadcn']]))
+
+    expect(validateCatalogIndex(index)).toEqual({ caseCount: 1 })
+    expect(index.cases[0]).toMatchObject({
+      id: metadata.id,
+      collection: 'shadcn',
+    })
+  })
+
+  it('rejects invalid collection IDs', () => {
+    expect(() =>
+      createCatalogIndex(cases, new Map([[metadata.id, 'Shad CN']])),
+    ).toThrow('catalog collection for 01-line has an invalid ID')
+  })
+
+  it('rejects collection members that are not catalog cases', () => {
+    expect(() =>
+      createCatalogIndex(cases, new Map([['missing-case', 'shadcn']])),
+    ).toThrow('catalog collection references missing-case')
+  })
+
   it('rejects source entries that drift from the case ID', () => {
     const index = createCatalogIndex(cases)
-    index.cases[0].entries.tanstack =
-      'benchmarks/conformance/cases/other/tanstack.ts'
+    index.cases[0].entries.example =
+      'benchmarks/conformance/cases/other/example.tsx'
 
     expect(() => validateCatalogIndex(index)).toThrow(
       'catalog index case 01-line has invalid source entries',

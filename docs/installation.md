@@ -3,11 +3,12 @@ title: Installation
 description: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
 ---
 
-These docs follow unreleased `main`. The latest published pre-alpha is TanStack
-Charts `0.11.0`; use its
-[release-source docs](https://github.com/TanStack/charts/tree/v0.11.0/docs)
-for the exact surface. Install TanStack Charts in each application that authors
-chart definitions:
+These docs follow unreleased `main`, the official Alpha line. The latest
+published release is TanStack Charts `0.16.0`; use its
+[release-source docs](https://github.com/TanStack/charts/tree/v0.16.0/docs)
+for the exact surface. Alpha releases use regular `0.x` versions and may break
+APIs between minor releases. Install TanStack Charts in each application that
+authors chart definitions:
 
 ```sh
 pnpm add @tanstack/charts
@@ -296,8 +297,10 @@ const values = [4, 9, 7]
 
 const chart = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
 })
 ```
 
@@ -326,8 +329,10 @@ import { createChartScene, defineChart, lineY } from '@tanstack/charts'
 
 const chart = defineChart({
   marks: [lineY([2, 5, 3])],
-  x: { scale: scaleLinear },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleLinear },
+    y: { scale: scaleLinear },
+  },
 })
 
 const scene = createChartScene(chart, { width: 640, height: 320 })

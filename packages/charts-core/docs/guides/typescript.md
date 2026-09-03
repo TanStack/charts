@@ -31,8 +31,10 @@ const definition = defineChart({
       y: 'temperature',
     }),
   ],
-  x: { scale: scaleTime },
-  y: { scale: scaleLinear },
+  scales: {
+    x: { scale: scaleTime },
+    y: { scale: scaleLinear },
+  },
 })
 ```
 
@@ -51,8 +53,10 @@ function createTrafficDefinition(rows: readonly Reading[]) {
         y: 'temperature',
       }),
     ],
-    x: { scale: scaleTime },
-    y: { scale: scaleLinear },
+    scales: {
+      x: { scale: scaleTime },
+      y: { scale: scaleLinear },
+    },
   })
 }
 ```
@@ -78,8 +82,11 @@ function createTrafficDefinition(rows: readonly Reading[]) {
         y: 'temperature',
       }),
     ],
-    x: { scale: scaleTime },
-    y: { scale: scaleLinear },
+    scales: {
+      x: { scale: scaleTime },
+      y: { scale: scaleLinear },
+    },
+
     margin: width < 480 ? 24 : 40,
   }))
 }
@@ -98,10 +105,10 @@ Avoid annotating an intermediate object as broad `ChartSpec` before passing it
 to `defineChart`. That discards the literal mark tuple used for axis and
 callback inference.
 
-The mark tuple also determines which positional scales are required. Cartesian
-marks require every dimension they materialize. Positionless geo, polar, and
-facet marks omit both axes; one-dimensional marks such as `ruleY` require only
-`y`.
+The mark tuple determines the value type accepted by each reserved positional
+scale. `scales.x` and `scales.y` are always present in canonical definitions.
+Use `null` for a dimension that no mark materializes. Named scale selectors on
+marks keep those values out of the reserved entry's inferred type.
 
 ## Callback types
 
@@ -148,10 +155,13 @@ union manually. The exact utility contracts are listed in
 
 ## Custom marks
 
-`createMark<TDatum, TXValue, TYValue>` keeps interaction points and scale
-values aligned for the common case. Use the advanced scale-value factory when
-the materialized axis domain differs from the point anchor or when a custom
-mark is positionless and declares both scale value types as `never`.
+`createMark<TDatum, TXValue, TYValue, TXScaleId, TYScaleId>` keeps interaction
+points and scale values aligned for the common case. The scale ID parameters
+default to `x` and `y`. Provide them when a custom mark selects named scales so
+its values do not widen the reserved scale types. Use the advanced scale-value
+factory when the materialized axis domain differs from the point anchor or
+when a custom mark is positionless and declares both scale value types as
+`never`.
 
 See [Custom Marks and Renderers](./custom-marks-and-renderers.md). A custom
 extension that requires `as unknown as`, a private import, or suppressed type

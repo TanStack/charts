@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react'
 import { Chart } from '@tanstack/charts/react/core'
 import { settleChartMotion } from '../../shared/motion'
-import { createPremiumKpiRenderer, premiumKpiDefinition } from './chart'
+import { createPremiumKpiRenderer, premiumKpiDefinition } from './example'
 import { premiumKpisForRevision } from './model'
 import { reactMount } from '../../shared/react-mount'
 import type { CSSProperties, RefObject } from 'react'

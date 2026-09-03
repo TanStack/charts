@@ -162,12 +162,7 @@ function sliderLabel(
   return label
 }
 
-export function formatFreeCursorValue(axis: string, value: number) {
-  return `${axis} ${value.toLocaleString(undefined, {
-    maximumFractionDigits: 1,
-  })}`
-}
-
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.max(minimum, Math.min(maximum, value))
 }
+import { formatFreeCursorValue } from './format'

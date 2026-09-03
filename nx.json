@@ -240,6 +240,10 @@
       "cache": true,
       "inputs": ["catalogSource"]
     },
+    "catalog-example-check": {
+      "cache": true,
+      "inputs": ["catalogSource"]
+    },
     "catalog-preview-check": {
       "cache": true,
       "inputs": ["catalogSource"]

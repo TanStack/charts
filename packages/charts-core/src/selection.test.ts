@@ -152,8 +152,10 @@ describe('controlled keyed selection', () => {
         }),
         selectedMark,
       ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
       selection,
     })
     const scene = createChartScene(definition, { width: 400, height: 240 })
@@ -208,8 +210,10 @@ describe('controlled keyed selection', () => {
     const scene = createChartScene(
       defineChart({
         marks: [selectedMark],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         selection,
       }),
       { width: 320, height: 180 },
@@ -259,8 +263,10 @@ describe('controlled keyed selection', () => {
             selection,
           ),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
         selection,
@@ -300,8 +306,10 @@ describe('controlled keyed selection', () => {
             selection,
           ),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
         selection,
@@ -345,8 +353,10 @@ describe('controlled keyed selection', () => {
             selection,
           ),
         ],
-        x: { scale: scaleBand<string> },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
         selection,
@@ -397,8 +407,10 @@ describe('controlled keyed selection', () => {
     const scene = createChartScene(
       defineChart({
         marks: [selectedMark],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
         selection,
@@ -454,8 +466,10 @@ describe('controlled keyed selection', () => {
     const scene = createChartScene(
       defineChart({
         marks: [selectedMark],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         guides: false,
         focusRing: false,
         selection,
@@ -507,8 +521,10 @@ describe('controlled keyed selection', () => {
             selection,
           ),
         ],
-        x: { scale: scaleLinear },
-        y: { scale: scaleLinear },
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
         selection,
       }),
       { width: 360, height: 200 },
@@ -556,6 +572,7 @@ describe('controlled keyed selection', () => {
             selection,
           ),
         ],
+        scales: { x: null, y: null },
         guides: false,
         focusRing: false,
         selection,
@@ -601,8 +618,10 @@ describe('controlled keyed selection', () => {
               selection,
             ),
           ],
-          x: { scale: scaleLinear },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleLinear },
+            y: { scale: scaleLinear },
+          },
           color: {
             domain: ['shown', 'hidden'],
             range: ['#2563eb', '#f97316'],
@@ -656,8 +675,10 @@ describe('controlled keyed selection', () => {
       return {
         definition: defineChart({
           marks: [dot(rows, { x: 'x', y: 'y', key: 'id' })],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
           maxFocusDistance: 8,
           selection,
         }),
@@ -754,8 +775,10 @@ describe('controlled keyed selection', () => {
               selection,
             ),
           ],
-          x: { scale: scaleLinear().domain([0, 1]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
           maxFocusDistance: 8,
           selection,
         }),

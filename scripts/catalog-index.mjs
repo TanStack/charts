@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { format as formatWithPrettier } from 'prettier'
 import { parseConformanceCaseMeta } from '../benchmarks/conformance/metadata.ts'
 
-export const catalogIndexSchemaVersion = 1
+export const catalogIndexSchemaVersion = 2
 export const catalogIndexSourceRepository = 'tanstack/charts'
 export const catalogIndexSourcePathRoot = 'benchmarks/conformance/'
 
@@ -24,7 +24,15 @@ const catalogIndexPath = path.join(
   'conformance',
   'catalog-index.json',
 )
+const shadcnCatalogPath = path.join(
+  rootDirectory,
+  'benchmarks',
+  'conformance',
+  'shadcn',
+  'catalog.json',
+)
 const caseIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const collectionIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 export async function readCatalogCases() {
   const directories = (
@@ -61,8 +69,9 @@ export async function readCatalogCases() {
   )
 }
 
-export function createCatalogIndex(cases) {
+export function createCatalogIndex(cases, collectionsByCaseId = new Map()) {
   validateAuthoredCases(cases)
+  validateCatalogCollections(cases, collectionsByCaseId)
 
   return {
     schemaVersion: catalogIndexSchemaVersion,
@@ -73,23 +82,27 @@ export function createCatalogIndex(cases) {
     cases: [...cases]
       .sort((left, right) => left.metadata.order - right.metadata.order)
       .map(({ metadata }) => {
-        const referenceRenderer =
-          metadata.referenceRenderer ?? 'observable-plot'
+        const collection = collectionsByCaseId.get(metadata.id)
 
         return {
           ...metadata,
+          ...(collection ? { collection } : {}),
           entries: {
-            tanstack: caseSourcePath(metadata.id, 'tanstack'),
-            reference: {
-              renderer: referenceRenderer,
-              path: caseSourcePath(
-                metadata.id,
-                rendererFileName(referenceRenderer),
-              ),
-            },
+            example: caseSourcePath(metadata.id, 'example'),
           },
         }
       }),
+  }
+}
+
+function validateCatalogCollections(cases, collectionsByCaseId) {
+  const authoredIds = new Set(cases.map(({ metadata }) => metadata.id))
+  for (const [caseId, collection] of collectionsByCaseId) {
+    assert(authoredIds.has(caseId), `catalog collection references ${caseId}`)
+    assert(
+      typeof collection === 'string' && collectionIdPattern.test(collection),
+      `catalog collection for ${caseId} has an invalid ID`,
+    )
   }
 }
 
@@ -120,6 +133,13 @@ export function validateCatalogIndex(index) {
 
   for (const entry of index.cases) {
     const metadata = parseConformanceCaseMeta(entry, 'catalog-index.json')
+    if ('collection' in entry) {
+      assert(
+        typeof entry.collection === 'string' &&
+          collectionIdPattern.test(entry.collection),
+        `catalog index case ${metadata.id} has an invalid collection`,
+      )
+    }
     assert(
       caseIdPattern.test(metadata.id),
       `catalog index case ${metadata.id} has an invalid ID`,
@@ -141,14 +161,10 @@ export function validateCatalogIndex(index) {
     orders.add(metadata.order)
     previousOrder = metadata.order
 
-    const referenceRenderer = metadata.referenceRenderer ?? 'observable-plot'
     assert(
       isRecord(entry.entries) &&
-        entry.entries.tanstack === caseSourcePath(metadata.id, 'tanstack') &&
-        isRecord(entry.entries.reference) &&
-        entry.entries.reference.renderer === referenceRenderer &&
-        entry.entries.reference.path ===
-          caseSourcePath(metadata.id, rendererFileName(referenceRenderer)),
+        Object.keys(entry.entries).length === 1 &&
+        entry.entries.example === caseSourcePath(metadata.id, 'example'),
       `catalog index case ${metadata.id} has invalid source entries`,
     )
     assert(
@@ -164,12 +180,41 @@ export function validateCatalogIndex(index) {
 }
 
 export async function createCatalogIndexSource() {
-  const index = createCatalogIndex(await readCatalogCases())
+  const index = createCatalogIndex(
+    await readCatalogCases(),
+    await readCatalogCollections(),
+  )
   validateCatalogIndex(index)
   await validateCatalogIndexSourceEntries(index)
   return formatWithPrettier(`${JSON.stringify(index, null, 2)}\n`, {
     filepath: catalogIndexPath,
   })
+}
+
+async function readCatalogCollections() {
+  const source = await fs.readFile(shadcnCatalogPath, 'utf8')
+  const catalog = JSON.parse(source)
+  assert(
+    Array.isArray(catalog.cases),
+    'shadcn catalog must contain a cases array',
+  )
+
+  const caseIds = [
+    '127-shadcn-dashboard',
+    ...catalog.cases.map((entry) => entry.localCaseId),
+  ]
+  assert(
+    caseIds.every(
+      (caseId) => typeof caseId === 'string' && caseIdPattern.test(caseId),
+    ),
+    'shadcn catalog contains an invalid local case ID',
+  )
+  assert(
+    new Set(caseIds).size === caseIds.length,
+    'shadcn catalog contains duplicate local case IDs',
+  )
+
+  return new Map(caseIds.map((caseId) => [caseId, 'shadcn']))
 }
 
 export async function writeCatalogIndex() {
@@ -204,10 +249,7 @@ export async function checkCatalogIndex() {
 
 async function validateCatalogIndexSourceEntries(index) {
   for (const entry of index.cases) {
-    for (const sourcePath of [
-      entry.entries.tanstack,
-      entry.entries.reference.path,
-    ]) {
+    for (const sourcePath of [entry.entries.example]) {
       const sourceFile = path.join(rootDirectory, ...sourcePath.split('/'))
       let stats
       try {
@@ -252,12 +294,9 @@ function validateAuthoredCases(cases) {
   }
 }
 
-function rendererFileName(renderer) {
-  return renderer === 'observable-plot' ? 'plot' : renderer
-}
-
 function caseSourcePath(id, rendererFile) {
-  return `benchmarks/conformance/cases/${id}/${rendererFile}.ts`
+  const extension = rendererFile === 'example' ? 'tsx' : 'ts'
+  return `benchmarks/conformance/cases/${id}/${rendererFile}.${extension}`
 }
 
 function isRecord(value) {

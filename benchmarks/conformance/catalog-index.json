@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": {
     "repo": "tanstack/charts",
     "pathRoot": "benchmarks/conformance/"
@@ -35,11 +35,7 @@
         "maintain": "Change which calendar months are treated as missing while keeping the AAPL rows untouched, the accessor explicit, and compact and wide layouts readable."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/01-line-gaps/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/01-line-gaps/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/01-line-gaps/example.tsx"
       }
     },
     {
@@ -77,11 +73,7 @@
         "maintain": "Move the direct labels from the newest dated observation to the oldest dated observation of each industry while retaining industry colors, inferred callback data, and readable label space."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/02-multi-line-end-labels/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/02-multi-line-end-labels/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/02-multi-line-end-labels/example.tsx"
       }
     },
     {
@@ -119,11 +111,7 @@
         "maintain": "Add a 32-degree freezing reference rule and make the band react to light and dark themes while preserving the explicit low/high interval, boundary line geometry, and cast-free field inference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/03-temperature-range-band/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/03-temperature-range-band/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/03-temperature-range-band/example.tsx"
       }
     },
     {
@@ -160,11 +148,7 @@
         "maintain": "Convert the chart to a normalized 100% stack while keeping both implementations on the same imported industry observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/04-stacked-time-area/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/04-stacked-time-area/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/04-stacked-time-area/example.tsx"
       }
     },
     {
@@ -196,11 +180,7 @@
         "maintain": "Change bar presentation while preserving the source letter and frequency channels, descending order, zero baseline, and visible labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-vertical-sorted/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-vertical-sorted/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-vertical-sorted/example.tsx"
       }
     },
     {
@@ -236,11 +216,7 @@
         "maintain": "Change the selected metros or container width while keeping the population rank correct and every source label visible."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-horizontal-ranking/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-horizontal-ranking/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-horizontal-ranking/example.tsx"
       }
     },
     {
@@ -284,11 +260,7 @@
         "maintain": "Change the selected observations or width without stacking or overlapping the two sex groups within each species."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-grouped/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-grouped/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-grouped/example.tsx"
       }
     },
     {
@@ -330,11 +302,7 @@
         "maintain": "Change the visible date range while keeping cause order, monthly boundaries, inferred colors, and the zero baseline correct."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-stacked/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-stacked/example.tsx"
       }
     },
     {
@@ -366,11 +334,7 @@
         "maintain": "Change the species palette and radius range without renaming or reshaping the imported observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/scatter-bubble/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/scatter-bubble/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/scatter-bubble/example.tsx"
       }
     },
     {
@@ -402,11 +366,7 @@
         "maintain": "Change the threshold boundaries while retaining the imported rows and keeping the Plot and TanStack transforms semantically equivalent."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/histogram/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/histogram/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/histogram/example.tsx"
       }
     },
     {
@@ -443,11 +403,7 @@
         "maintain": "Change the color treatment or label contrast while preserving all 600 imported episodes, source fields, cells, and labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/heatmap-labeled/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/heatmap-labeled/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/heatmap-labeled/example.tsx"
       }
     },
     {
@@ -487,11 +443,7 @@
         "maintain": "Change the facet layout while preserving shared domains, series order, and all 44 source observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/facets-anscombe/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/facets-anscombe/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/facets-anscombe/example.tsx"
       }
     },
     {
@@ -524,11 +476,7 @@
         "maintain": "Change the selected trading window without changing the source data model, clipping date labels, or introducing casts."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/13-interval-timeline/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/13-interval-timeline/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/13-interval-timeline/example.tsx"
       }
     },
     {
@@ -575,11 +523,7 @@
         "maintain": "Change the authored uncertainty estimator while retaining contributing-observation lineage, typed reducer outputs, and automatic species spacing."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/14-error-bars/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/14-error-bars/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/14-error-bars/example.tsx"
       }
     },
     {
@@ -629,11 +573,7 @@
         "maintain": "Switch to boxX while preserving raw-row lineage, Tukey whisker semantics, outliers, stable Run identity, and inferred category types."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/15-boxplot/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/15-boxplot/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/15-boxplot/example.tsx"
       }
     },
     {
@@ -674,11 +614,7 @@
         "maintain": "Switch between horizontal and vertical orientation while retaining the source letter and frequency fields, sorted order, and zero baseline."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/16-lollipop/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/16-lollipop/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/16-lollipop/example.tsx"
       }
     },
     {
@@ -714,11 +650,7 @@
         "maintain": "Change the metro selection while preserving the imported wide row model, chronological endpoint colors, and source field names."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/17-dumbbell/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/17-dumbbell/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/17-dumbbell/example.tsx"
       }
     },
     {
@@ -751,11 +683,7 @@
         "maintain": "Convert the cumulative count to cumulative proportion without reshaping the imported observations or replacing data-driven bin inference with authored boundaries."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/18-cumulative-histogram/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/18-cumulative-histogram/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/18-cumulative-histogram/example.tsx"
       }
     },
     {
@@ -793,11 +721,7 @@
         "maintain": "Change the rolling window and alignment while preserving separate high and low calculations and the same imported observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/19-moving-average-line/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/19-moving-average-line/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/19-moving-average-line/example.tsx"
       }
     },
     {
@@ -834,11 +758,7 @@
         "maintain": "Change the industry order while keeping each month normalized to 100%, colors stable, the percent guide accurate, and the imported rows untouched."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/20-normalized-stacked-area/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/20-normalized-stacked-area/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/20-normalized-stacked-area/example.tsx"
       }
     },
     {
@@ -872,11 +792,7 @@
         "maintain": "Change the stack order or offset while retaining raw industry rows, source identity, equivalent zero-origin wiggle semantics, and inferred interval points."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/21-streamgraph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/21-streamgraph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/21-streamgraph/example.tsx"
       }
     },
     {
@@ -915,11 +831,7 @@
         "maintain": "Change the authored window or deviation multiplier while preserving direct source lineage, full trailing-window semantics, and one shared transformed row set for the area and mean line."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/22-bollinger-band/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/22-bollinger-band/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/22-bollinger-band/example.tsx"
       }
     },
     {
@@ -952,11 +864,7 @@
         "maintain": "Change the bin interval while preserving equivalent Plot and granular d3-array boundaries, continuous color semantics, and inferred endpoint types."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/example.tsx"
       }
     },
     {
@@ -989,11 +897,7 @@
         "maintain": "Change the selected weather window while preserving UTC week alignment, raw date and precipitation fields, complete daily cells, and responsive labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/25-calendar-heatmap/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/25-calendar-heatmap/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/25-calendar-heatmap/example.tsx"
       }
     },
     {
@@ -1026,11 +930,7 @@
         "maintain": "Reorder response categories while keeping the neutral anchor, response-count lineage, stable colors, and categorical keys explicit in the chart definition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/26-diverging-likert/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/26-diverging-likert/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/26-diverging-likert/example.tsx"
       }
     },
     {
@@ -1070,11 +970,7 @@
         "maintain": "Add or reorder metrics while preserving authored metric direction, last-row country selection, normalized quantitative domains, and stable country-event identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/27-parallel-coordinates/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/27-parallel-coordinates/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/27-parallel-coordinates/example.tsx"
       }
     },
     {
@@ -1111,11 +1007,7 @@
         "maintain": "Change the selected trading window while preserving all 60 interval segments, raw AAPL field names, date identity, and typed endpoint channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/28-candlestick/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/28-candlestick/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/28-candlestick/example.tsx"
       }
     },
     {
@@ -1148,11 +1040,7 @@
         "maintain": "Change the year window while keeping adjacent difference semantics, cumulative interval ownership, stable year identity, direct lineage, and the zero-based net total explicit."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/29-waterfall/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/29-waterfall/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/29-waterfall/example.tsx"
       }
     },
     {
@@ -1195,11 +1083,7 @@
         "maintain": "Change the periods while retaining explicit field-to-year display mapping, nyt_display colors, stable metro-period identity, and the visible fold and selection transforms."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/30-slopegraph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/30-slopegraph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/30-slopegraph/example.tsx"
       }
     },
     {
@@ -1239,11 +1123,7 @@
         "maintain": "Change the selected automobiles while retaining raw source rows, source field names, aggregate regression lineage, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/31-linear-regression/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/31-linear-regression/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/31-linear-regression/example.tsx"
       }
     },
     {
@@ -1276,11 +1156,7 @@
         "maintain": "Change the metro selection or arrowhead size while retaining the source endpoint fields, one semantic arrow per metro, and stable identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/32-change-arrows/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/32-change-arrows/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/32-change-arrows/example.tsx"
       }
     },
     {
@@ -1317,11 +1193,7 @@
         "maintain": "Change the selected date window or rolling period without losing exact crossing boundaries, semantic colors, the original Date and Close fields, inferred extents, or cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/33-difference-chart/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/33-difference-chart/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/33-difference-chart/example.tsx"
       }
     },
     {
@@ -1405,11 +1277,7 @@
         "maintain": "Make the tooltip sticky on selection while keeping the raw stock observations, pointer, keyboard, and update behavior aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/34-pointer-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/34-pointer-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/34-pointer-tooltip/example.tsx"
       }
     },
     {
@@ -1498,11 +1366,7 @@
         "maintain": "Add another industry while preserving one swatch and value per group, keyboard navigation by month, and top-layer responsive tooltip positioning."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/35-grouped-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/35-grouped-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/35-grouped-tooltip/example.tsx"
       }
     },
     {
@@ -1544,11 +1408,7 @@
         "maintain": "Change the selected Flare rows while preserving raw-row lineage, stable path and link identities, deterministic static coordinates, and mirrored branch and leaf labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/36-hierarchy-tree/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/36-hierarchy-tree/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/36-hierarchy-tree/example.tsx"
       }
     },
     {
@@ -1585,11 +1445,7 @@
         "maintain": "Change the selected cars while preserving final-screen topology, both endpoint records, stable point-derived edge keys, and cast-free source channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/37-delaunay-network/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/37-delaunay-network/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/37-delaunay-network/example.tsx"
       }
     },
     {
@@ -1622,11 +1478,7 @@
         "maintain": "Change the selected longitude window while keeping the threshold sequence, source grid dimensions, vertical orientation, and literal contour palette aligned across both implementations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/38-contour-topography/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/38-contour-topography/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/38-contour-topography/example.tsx"
       }
     },
     {
@@ -1658,11 +1510,7 @@
         "maintain": "Preserve D3-native density thresholds, pixel bandwidth, scale domains, structured multipolygon output, and responsive final-screen estimation."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/39-density-contours/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/39-density-contours/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/39-density-contours/example.tsx"
       }
     },
     {
@@ -1696,11 +1544,7 @@
         "maintain": "Preserve source feature ids and properties, responsive planar fitting, one path per published feature, and the geo entrypoint boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/40-geojson-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/40-geojson-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/40-geojson-map/example.tsx"
       }
     },
     {
@@ -1743,11 +1587,7 @@
         "maintain": "Change force strengths or the selected subgraph while preserving raw id, group, source, target, and value fields, stable identities, deterministic static layout, and padded quantitative domains."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/40-force-directed-network/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/40-force-directed-network/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/40-force-directed-network/example.tsx"
       }
     },
     {
@@ -1779,11 +1619,7 @@
         "maintain": "Change the unit precision while preserving the source letter and frequency fields, cumulative rounding, one stable position per unit, responsive near-square cells, and consistent letter colors."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/41-waffle-unit-chart/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/41-waffle-unit-chart/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/41-waffle-unit-chart/example.tsx"
       }
     },
     {
@@ -1816,11 +1652,7 @@
         "maintain": "Change the field density and vector anchor while retaining typed channels, responsive scales, and one semantic vector per sample."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/42-vector-field/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/42-vector-field/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/42-vector-field/example.tsx"
       }
     },
     {
@@ -1852,11 +1684,7 @@
         "maintain": "Change bin width and thresholds while preserving raw-row lineage, fixed-pixel bins, stable keys, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/43-hexbin-density/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/43-hexbin-density/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/43-hexbin-density/example.tsx"
       }
     },
     {
@@ -1893,11 +1721,7 @@
         "maintain": "Change frame inset and styling while retaining the imported rows, source fields, responsive inner-bound alignment, and suppressed guides."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/44-framed-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/44-framed-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/44-framed-scatter/example.tsx"
       }
     },
     {
@@ -1930,11 +1754,7 @@
         "maintain": "Split the distribution by cylinders while computing ranks within each group and retaining the imported rows and explicit zero-to-one probability domains."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/50-empirical-cdf/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/50-empirical-cdf/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/50-empirical-cdf/example.tsx"
       }
     },
     {
@@ -1968,11 +1788,7 @@
         "maintain": "Change the fixed bin boundaries while preserving explicit species order, facet-local sum normalization, aggregate source lineage, and shared outer scale semantics."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/51-faceted-distributions/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/51-faceted-distributions/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/51-faceted-distributions/example.tsx"
       }
     },
     {
@@ -2005,11 +1821,7 @@
         "maintain": "Change the dot radius while retaining the source field and updating both collision distance and mark radius for deterministic responsive layout."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/52-beeswarm-dodge/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/52-beeswarm-dodge/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/52-beeswarm-dodge/example.tsx"
       }
     },
     {
@@ -2042,11 +1854,7 @@
         "maintain": "Change the selected Flare rows, log base, or domain while rejecting non-positive sizes and preserving the linear hierarchy-depth encoding."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/53-log-scale-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/53-log-scale-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/53-log-scale-scatter/example.tsx"
       }
     },
     {
@@ -2087,11 +1895,7 @@
         "maintain": "Change the industry or year selection while retaining the original date, industry, and unemployed fields through the ranking transform, stable series colors, and labels at the newest observation."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/54-bump-ranking/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/54-bump-ranking/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/54-bump-ranking/example.tsx"
       }
     },
     {
@@ -2132,11 +1936,7 @@
         "maintain": "Change the industry selection or index date while retaining the original date, industry, and unemployed fields through normalization, stable colors, inferred channels, and percentage labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/55-indexed-multi-line/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/55-indexed-multi-line/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/55-indexed-multi-line/example.tsx"
       }
     },
     {
@@ -2181,11 +1981,7 @@
         "maintain": "Change label cadence and arrow sampling while retaining chronological order, responsive quantitative scales, and a single inferred row type."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/56-connected-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/56-connected-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/56-connected-scatter/example.tsx"
       }
     },
     {
@@ -2223,11 +2019,7 @@
         "maintain": "Change the bin boundaries while retaining complete boundary semantics, responsive shared scales, inferred fields, and separate scatter and marginal regions."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/57-scatter-marginal-histograms/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/57-scatter-marginal-histograms/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/57-scatter-marginal-histograms/example.tsx"
       }
     },
     {
@@ -2268,11 +2060,7 @@
         "maintain": "Change the selected date window while preserving the original Date and Close fields, unique extrema selection, stable point keys, inferred extents, and labels that stay inside the plot."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/58-select-extrema/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/58-select-extrema/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/58-select-extrema/example.tsx"
       }
     },
     {
@@ -2310,11 +2098,7 @@
         "maintain": "Add another reducer or change the species order while preserving the original source fields, source category order, zero baseline, and inferred aggregate rows."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/59-grouped-reducer-bars/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/59-grouped-reducer-bars/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/59-grouped-reducer-bars/example.tsx"
       }
     },
     {
@@ -2352,11 +2136,7 @@
         "maintain": "Change the date window or lag interval while preserving the original Date and Close fields through the pair transform, input order, incomplete-pair removal, stable keys, explicit equal domains, and the identity reference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/60-lag-autocorrelation/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/60-lag-autocorrelation/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/60-lag-autocorrelation/example.tsx"
       }
     },
     {
@@ -2395,11 +2175,7 @@
         "maintain": "Change the percentile interval while preserving the original date, industry, and unemployed fields through the reducer, UTC grouping, inferred extents, stable keys, and matching D3 quantile semantics."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/61-quantile-ribbon/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/61-quantile-ribbon/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/61-quantile-ribbon/example.tsx"
       }
     },
     {
@@ -2440,11 +2216,7 @@
         "maintain": "Change the selected seasons while keeping semantic category baselines, grouped bin lineage, normalization, labels, identity, colors, and responsive overlap geometry aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/62-ridgeline-density/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/62-ridgeline-density/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/62-ridgeline-density/example.tsx"
       }
     },
     {
@@ -2491,11 +2263,7 @@
         "maintain": "Change the authored body-mass boundaries while preserving bin and summary lineage, semantic species centers, normalized widths, median indicators, colors, and responsive symmetry."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/63-violin-distributions/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/63-violin-distributions/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/63-violin-distributions/example.tsx"
       }
     },
     {
@@ -2533,11 +2301,7 @@
         "maintain": "Add a question or response while preserving semantic categories, both normalization denominators, explicit Likert ordering, nested source lineage, stable cell identity, labels, colors, and complete zero-to-one bounds."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/64-marimekko-mosaic/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/64-marimekko-mosaic/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/64-marimekko-mosaic/example.tsx"
       }
     },
     {
@@ -2612,11 +2376,7 @@
         "maintain": "Change the selected cars while retaining bounded structured cells, stable source identity, dot-owned nearest focus, matching color domains, typed tooltip rows, responsive clipping, and keyboard focus."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/example.tsx"
       }
     },
     {
@@ -2624,15 +2384,16 @@
       "referenceRenderer": "recharts",
       "order": 700,
       "id": "70-composed-chart",
-      "title": "Layered Seattle weather chart",
+      "title": "Seattle weather with three y axes",
       "family": "composition",
-      "intent": "Compare daily maximum temperature, precipitation, minimum temperature, and wind using an area, bars, a line, and points.",
+      "intent": "Compare daily temperature, precipitation, and wind without forcing unlike units onto one y scale.",
       "support": "composed",
       "features": [
         "mixed marks",
+        "independent y scales",
+        "left axis and stacked right axes",
         "daily observations",
         "monotone curves",
-        "shared numeric scale",
         "resolved maximum bar thickness"
       ],
       "geometry": [
@@ -2658,15 +2419,11 @@
         "url": "https://recharts.github.io/en-US/examples/LineBarAreaComposedChart/"
       },
       "ai": {
-        "create": "Create one chart from Seattle weather observations that layers maximum temperature as an area, precipitation as bars, minimum temperature as a monotone line, and wind as red points.",
-        "maintain": "Select a different weather window while preserving source dates and measures, mark order, colors, and cast-free channel inference."
+        "create": "Create one chart from Seattle weather observations that uses a left temperature axis, an independent right precipitation axis for bars, and a second right wind axis for points.",
+        "maintain": "Select a different weather window while preserving source dates, units, named scale bindings, stacked right axes, mark order, colors, and cast-free channel inference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/70-composed-chart/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/70-composed-chart/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/70-composed-chart/example.tsx"
       }
     },
     {
@@ -2701,11 +2458,7 @@
         "maintain": "Select a different observation window while preserving grouped-count lineage, the signed channel, explicit stack and color order, symmetric domain, species order, and absolute count tick labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/71-recharts-population-pyramid/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/71-recharts-population-pyramid/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/71-recharts-population-pyramid/example.tsx"
       }
     },
     {
@@ -2738,11 +2491,7 @@
         "maintain": "Select a different weather window while preserving source dates and measures, explicit stack intervals, shared group placement, fixed colors, and inferred numeric extent."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/72-recharts-mixed-bars/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/72-recharts-mixed-bars/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/72-recharts-mixed-bars/example.tsx"
       }
     },
     {
@@ -2775,11 +2524,7 @@
         "maintain": "Change the selected car window while preserving raw field names, stable model identity, inferred extents, cylinder colors, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/73-many-point-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/73-many-point-scatter/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/73-many-point-scatter/example.tsx"
       }
     },
     {
@@ -2819,11 +2564,7 @@
         "maintain": "Change the selected Flare subtree while preserving authored order, raw-row lineage, deterministic squarification, stable leaf identity, colors, and fitted label placement."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/74-recharts-treemap/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/74-recharts-treemap/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/74-recharts-treemap/example.tsx"
       }
     },
     {
@@ -2865,11 +2606,7 @@
         "maintain": "Change the subject or events while preserving authored metric direction, source population, event order, percentage guide values, stable event identity, and label placement."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/75-radar/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/75-radar/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/75-radar/example.tsx"
       }
     },
     {
@@ -2906,11 +2643,7 @@
         "maintain": "Change the selected letters while preserving raw field names, source order, full-circle orientation, responsive radius, stable identities, and exact categorical fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/76-pie/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/76-pie/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/76-pie/example.tsx"
       }
     },
     {
@@ -2947,11 +2680,7 @@
         "maintain": "Change the selected letters while preserving raw field names, flat source lineage, the inner-radius ratio, clockwise source order, stable identities, and exact categorical fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/77-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/77-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/77-donut/example.tsx"
       }
     },
     {
@@ -2989,11 +2718,7 @@
         "maintain": "Change the selected question while preserving the visible reducer, flat source lineage, partial sweep, responsive radii, stable agreement and remainder identities, and exact fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/78-gauge/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/78-gauge/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/78-gauge/example.tsx"
       }
     },
     {
@@ -3188,11 +2913,7 @@
         "maintain": "Change the selected industries while preserving semantic date anchors, native grouped focus, the definition-owned focus guide and tooltip, SVG accessibility, and the original observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/80-echarts-axis-pointer/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/80-echarts-axis-pointer/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/80-echarts-axis-pointer/example.tsx"
       }
     },
     {
@@ -3440,11 +3161,7 @@
         "maintain": "Keep one grouped line mark over the raw selected rows, stable series IDs, the full categorical and quantitative domains, and application-owned controlled visibility through the native interactive legend."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/81-recharts-interactive-legend/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/81-recharts-interactive-legend/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/81-recharts-interactive-legend/example.tsx"
       }
     },
     {
@@ -3740,11 +3457,7 @@
         "maintain": "Keep one raw observation dataset, stable semantic keys, controlled selection, and the decorative selected mark in the definition. Retain the semantic HTML table, status announcement, clear action, representative-row policy, and persistence in the application shell."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/82-chart-table-selection/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/82-chart-table-selection/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/82-chart-table-selection/example.tsx"
       }
     },
     {
@@ -4346,11 +4059,7 @@
         "maintain": "Keep the selected date and window as application state, preserve them across catalog updates and resizes, and resolve test targets through chart coordinates rather than DOM order."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/83-focus-context-window/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/83-focus-context-window/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/83-focus-context-window/example.tsx"
       }
     },
     {
@@ -4721,11 +4430,7 @@
         "maintain": "Preserve twelve stable month IDs, two stacked generation bars per month, the gray consumption area and line, the compact two-row summary, always-visible solar-coverage footer, six detailed rows, four-bar nested chart, native inert/status versus interactive/dialog semantics, reduced-motion behavior, and Escape plus close-button dismissal."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/example.tsx"
       }
     },
     {
@@ -5017,11 +4722,7 @@
         "maintain": "Keep browser scrolling in the application layer, use the resolved y scale to align the fixed lane rail, retain stable task IDs and explicit UTC and band scales, and preserve scroll position across updates."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/85-scrollable-resource-lanes/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/85-scrollable-resource-lanes/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/85-scrollable-resource-lanes/example.tsx"
       }
     },
     {
@@ -5351,11 +5052,7 @@
         "maintain": "Use each observation date as stable identity, derive the visible slice from the explicit viewport, and advance through source rows independently from the locked scale domain."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/86-streaming-window-preservation/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/86-streaming-window-preservation/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/86-streaming-window-preservation/example.tsx"
       }
     },
     {
@@ -5722,11 +5419,7 @@
         "maintain": "Keep source dates as row identity, group points by view, and let one view-grid definition own linked focus guides and pinning while the semantic summary only observes native focus changes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/example.tsx"
       }
     },
     {
@@ -5995,11 +5688,7 @@
         "maintain": "Keep transient cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and express cursor geometry and scale inversion through the continuous cursor behavior."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/88-echarts-free-cursor/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/88-echarts-free-cursor/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/88-echarts-free-cursor/example.tsx"
       }
     },
     {
@@ -6460,11 +6149,7 @@
         "maintain": "Keep the semantic range controlled by the application, let the brush behavior own resolved-scale mapping, snapping, painting, handles, and gesture lifecycle, and keep the range summary outside the renderer."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/89-brush-range-selection/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/89-brush-range-selection/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/89-brush-range-selection/example.tsx"
       }
     },
     {
@@ -7168,11 +6853,7 @@
         "maintain": "Keep the semantic window controlled by the application, let zoomX own resolved-scale inversion and gesture lifecycle, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, and keep status, reset, visible-row, and persistence policy outside the renderer."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/90-zoomable-time-window/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/90-zoomable-time-window/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/90-zoomable-time-window/example.tsx"
       }
     },
     {
@@ -7836,11 +7517,7 @@
         "maintain": "Keep the playback clock and transport controls in the application, let handleX own final-scale placement, irregular-date snapping, direct manipulation, cancellation, and slider semantics, and preserve the semantic frame across catalog updates and resizes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/91-timeline-playback-scrubber/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/91-timeline-playback-scrubber/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/91-timeline-playback-scrubber/example.tsx"
       }
     },
     {
@@ -8405,11 +8082,7 @@
         "maintain": "Keep scale-resolved placement, candidate snapping, direct manipulation, cancellation, and slider semantics in handleX; keep event IDs, date constraints, validation, and duration status in application-owned state."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/92-editable-event-range/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/92-editable-event-range/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/92-editable-event-range/example.tsx"
       }
     },
     {
@@ -8457,11 +8130,7 @@
         "maintain": "Change the selected letters while preserving raw letter and frequency fields, source order, arc identity, responsive offsets, side-aware text anchors, and label-to-slice color."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/93-labeled-pie/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/93-labeled-pie/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/93-labeled-pie/example.tsx"
       }
     },
     {
@@ -8504,11 +8173,7 @@
         "maintain": "Change the selected letters while preserving flat source lineage, semantic letter identities, the responsive inner-radius ratio, and a center total recomputed from the same selected rows."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/94-center-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/94-center-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/94-center-donut/example.tsx"
       }
     },
     {
@@ -8546,11 +8211,7 @@
         "maintain": "Change the selected letters while preserving flat source lineage, raw letter and frequency fields, explicit gap size, responsive radii, rounded corners, source order, and semantic arc identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/95-rounded-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/95-rounded-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/95-rounded-donut/example.tsx"
       }
     },
     {
@@ -8587,11 +8248,7 @@
         "maintain": "Keep domain-specific family aggregation in the case while preserving independent declarative allocation, aligned family totals, ring order, flat lineage, semantic keys, the inter-ring gap, and responsive radii."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/96-nested-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/96-nested-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/96-nested-donut/example.tsx"
       }
     },
     {
@@ -8630,11 +8287,7 @@
         "maintain": "Change the selected letters without changing source order, the dataset-wide maximum, the responsive 30%-to-100% radial range, the physical zero-radius baseline, raw row identity, or semantic letter keys and colors."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/97-rose/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/97-rose/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/97-rose/example.tsx"
       }
     },
     {
@@ -8686,11 +8339,7 @@
         "maintain": "Change the selected county without changing threshold or tick boundaries; preserve semantic mark keys, flat pie lineage, the zero-to-thirty-percent angle domain, the responsive radius, and native polar mark ownership."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/98-needle-gauge/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/98-needle-gauge/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/98-needle-gauge/example.tsx"
       }
     },
     {
@@ -8735,11 +8384,7 @@
         "maintain": "Update either profile while preserving authored metric direction, event order, first-row country selection, stable country-event identity, the fixed zero-to-one radial domain, and shared guide geometry."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/99-comparative-radar/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/99-comparative-radar/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/99-comparative-radar/example.tsx"
       }
     },
     {
@@ -8776,11 +8421,7 @@
         "maintain": "Change the selected letters without changing radius-band order or the shared angular domain; preserve raw field names, responsive radius ranges, semantic keys, and exact per-letter fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/100-radial-bars/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/100-radial-bars/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/100-radial-bars/example.tsx"
       }
     },
     {
@@ -8817,11 +8458,7 @@
         "maintain": "Change the selected Flare rows while preserving raw row lineage, hierarchy order, global angular allocation, responsive rings, stable node identity, and branch color inheritance."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/101-sunburst/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/101-sunburst/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/101-sunburst/example.tsx"
       }
     },
     {
@@ -8857,11 +8494,7 @@
         "maintain": "Preserve source field names, the explicit country-name aliases, missing-atlas behavior for tiny states, threshold color semantics, and one shared topology conversion."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/102-world-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/102-world-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/102-world-choropleth/example.tsx"
       }
     },
     {
@@ -8897,11 +8530,7 @@
         "maintain": "Keep the join and centroid transform visible, preserve source population values, draw larger symbols first, and use the same square-root radius range in both renderers."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/103-bubble-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/103-bubble-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/103-bubble-map/example.tsx"
       }
     },
     {
@@ -8937,11 +8566,7 @@
         "maintain": "Keep the real land topology conversion, sphere, D3 graticule, rotation, clipping, responsive fit, and paint order aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/104-orthographic-globe/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/104-orthographic-globe/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/104-orthographic-globe/example.tsx"
       }
     },
     {
@@ -8977,11 +8602,7 @@
         "maintain": "Preserve the published coordinate order, visible route construction, ten-degree rotation, antimeridian clipping, D3 geographic resampling, and responsive sphere fitting."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/105-route-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/105-route-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/105-route-map/example.tsx"
       }
     },
     {
@@ -9022,11 +8643,7 @@
         "maintain": "Keep source rows and field names intact, preserve chronological order, explicit calendar and temperature domains, responsive center and radius, and visible year selection."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/106-polar-line/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/106-polar-line/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/106-polar-line/example.tsx"
       }
     },
     {
@@ -9066,11 +8683,7 @@
         "maintain": "Keep source longitude, latitude, u, and v fields intact; preserve the visible band selection, fixed direction and speed domains, responsive layout, and constant symbol size."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/107-polar-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/107-polar-scatter/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/107-polar-scatter/example.tsx"
       }
     },
     {
@@ -9108,11 +8721,7 @@
         "maintain": "Preserve source field names, explicit name aliases, atlas identity, responsive projection fitting, stable country keys, quantized colors, and theme-aware borders."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/108-country-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/108-country-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/108-country-choropleth/example.tsx"
       }
     },
     {
@@ -9150,11 +8759,7 @@
         "maintain": "Preserve all source rates and names, visible TopoJSON conversion and FIPS join, the explicit Albers-USA territory filter, stable county identity, Alaska and Hawaii insets, quantile colors, and one path per projected county."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/109-us-state-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/109-us-state-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/109-us-state-choropleth/example.tsx"
       }
     },
     {
@@ -9192,11 +8797,7 @@
         "maintain": "Preserve pane order, shared real land geometry, per-projection identity, responsive fitting, sphere outlines, and theme-aware borders while updating paint."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/110-projection-gallery/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/110-projection-gallery/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/110-projection-gallery/example.tsx"
       }
     },
     {
@@ -9239,11 +8840,7 @@
         "maintain": "Keep this example intentionally minimal: preserve the simple split-and-recombine dataset, a revision-varying split with a total of 10, flow conservation, responsive bounds, flat link caps, one label per node, and native link/rect/text composition without adding semantic color overrides or decorative labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/111-basic-sankey/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/111-basic-sankey/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/111-basic-sankey/example.tsx"
       }
     },
     {
@@ -9287,11 +8884,7 @@
         "maintain": "Change statement values through the bounded revision model while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, and native link/rect/text composition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/111-sankey-flow/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/111-sankey-flow/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/111-sankey-flow/example.tsx"
       }
     },
     {
@@ -9330,11 +8923,7 @@
         "maintain": "Preserve the eight stable datum keys, baseline growth, independent line timing, featured-datum override, reduced-motion behavior, and direct @tanstack/charts/motion renderer boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/112-motion-entrance/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/112-motion-entrance/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/112-motion-entrance/example.tsx"
       }
     },
     {
@@ -9374,11 +8963,7 @@
         "maintain": "Preserve stable datum keys, enter/update/exit phase semantics, value and velocity continuity during interrupted springs, rest-based settling, presentation-aware pointer resolution, and the direct @tanstack/charts/motion renderer boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/113-motion-updates/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/113-motion-updates/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/113-motion-updates/example.tsx"
       }
     },
     {
@@ -9411,11 +8996,7 @@
         "maintain": "Keep both series keyed, preserve value and velocity on spring interruption, and let the comparison series use a distinct transition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/114-spring-line-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/114-spring-line-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/114-spring-line-motion/example.tsx"
       }
     },
     {
@@ -9454,11 +9035,7 @@
         "maintain": "Keep motion configuration renderer-neutral, preserve spring momentum on interrupted mark updates, and keep guide transitions as local definition overrides."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/115-definition-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/115-definition-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/115-definition-motion/example.tsx"
       }
     },
     {
@@ -9495,11 +9072,7 @@
         "maintain": "Keep every datum keyed across modes, preserve the fixed path sample count, and verify that an interrupted spring carries path-token velocity into the next chart form."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/116-geometry-morph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/116-geometry-morph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/116-geometry-morph/example.tsx"
       }
     },
     {
@@ -9636,11 +9209,7 @@
         "maintain": "Keep focus semantics in mark states, preserve spring velocity and label alignment during rapid pointer retargeting, and support the same focus movement from the keyboard."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/117-focus-cursor-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/117-focus-cursor-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/117-focus-cursor-motion/example.tsx"
       }
     },
     {
@@ -9718,11 +9287,7 @@
         "maintain": "Preserve the explicit UTC day domain, 364 complete daily cells, transform lineage, deterministic revisions, Sunday week alignment, twelve month labels, weekday order, accessible color meaning, late-timeline activity shape, and consistent zero-usage treatment."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/118-token-usage-calendar/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/118-token-usage-calendar/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/118-token-usage-calendar/example.tsx"
       }
     },
     {
@@ -10001,11 +9566,7 @@
         "maintain": "Keep the labeled x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered four-pixel outset plus label alignment across responsive sizes and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/example.tsx"
       }
     },
     {
@@ -10183,11 +9744,7 @@
         "maintain": "Preserve stable date keys across range changes, motion with reduced-motion fallback, three-label 288 by 192 preview readability, and complete visual ownership through theme tokens rather than custom SVG overlays."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/120-themed-interactive-area/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/120-themed-interactive-area/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/120-themed-interactive-area/example.tsx"
       }
     },
     {
@@ -10304,11 +9861,7 @@
         "maintain": "Preserve 24 stable day keys, metric-specific totals and tooltips, keyboard-operable selectors, reduced-motion behavior, and one native chart definition rather than drawing the active state in React."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/121-active-bar-dashboard/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/121-active-bar-dashboard/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/121-active-bar-dashboard/example.tsx"
       }
     },
     {
@@ -10364,11 +9917,7 @@
         "maintain": "Preserve the three stable keyed series, spring continuity across revisions, reduced-motion behavior, inherited light and dark tokens, restrained metric copy, and responsive three-surface preview."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/122-premium-kpi-sparklines/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/122-premium-kpi-sparklines/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/122-premium-kpi-sparklines/example.tsx"
       }
     },
     {
@@ -10488,11 +10037,7 @@
         "maintain": "Preserve stable browser identities, native pie allocation, CSS-variable colors, the seven-arc composition, synchronized center and legend state, spring continuity, and reduced-motion behavior without custom SVG paths."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/123-active-donut-metric/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/123-active-donut-metric/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/123-active-donut-metric/example.tsx"
       }
     },
     {
@@ -10535,11 +10080,7 @@
         "maintain": "Preserve one shared row array per revision, three real SVG chart surfaces, stable datum keys, palette-scoped CSS variables with light-dark fallbacks, unique resource prefixes, reduced-motion handling, and matching geometry across treatments."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/124-theme-palette-matrix/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/124-theme-palette-matrix/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/124-theme-palette-matrix/example.tsx"
       }
     },
     {
@@ -10580,11 +10121,7 @@
         "maintain": "Keep stage order, semantic keys, proportional widths, centered extents, direct labels, raw values, and the tapered final edge stable across responsive sizes and data revisions."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/125-sales-funnel/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/125-sales-funnel/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/125-sales-funnel/example.tsx"
       }
     },
     {
@@ -10624,11 +10161,2240 @@
         "maintain": "Keep the full flat hierarchy as source data, preserve canonical node IDs and ancestry across root changes, leave navigation state and the center back control in the application, and keep motion centered by interpolating sector angles and radii before regenerating each path."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/126-drillable-sunburst/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/126-drillable-sunburst/recharts.ts"
+        "example": "benchmarks/conformance/cases/126-drillable-sunburst/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "height": 860,
+      "order": 1280,
+      "id": "127-shadcn-dashboard",
+      "title": "shadcn dashboard",
+      "family": "application",
+      "intent": "Reproduce shadcn/ui's canonical dashboard shell and interactive stacked-area card while replacing only Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "responsive dashboard shell",
+        "stacked area chart",
+        "natural curves",
+        "linear gradient fills",
+        "grouped tooltip",
+        "responsive time-range controls",
+        "CSS-variable theming",
+        "application-level catalog viewport"
+      ],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
         }
+      ],
+      "source": {
+        "title": "shadcn/ui dashboard-01",
+        "url": "https://ui.shadcn.com/examples/dashboard"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui dashboard-01 layout and data. Keep the dashboard shell independent of the chart renderer, then implement its filtered, stacked, gradient area chart with TanStack Charts.",
+        "maintain": "Preserve the official dashboard data, responsive sidebar, metric cards, time-range behavior, table shell, natural stacked-area geometry, gradients, axis labels, tooltip content, light and dark themes, and a renderer-only compact catalog preview."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/127-shadcn-dashboard/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1290,
+      "id": "128-shadcn-bar-multiple",
+      "title": "shadcn Bar Chart - Multiple",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-multiple example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "multiple", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 12
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar multiple treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/128-shadcn-bar-multiple/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1300,
+      "id": "129-shadcn-pie-donut-text",
+      "title": "shadcn Pie Chart - Donut with Text",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut-text example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "donut text", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut-text",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut-text"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie donut text treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1310,
+      "id": "130-shadcn-radar-multiple",
+      "title": "shadcn Radar Chart - Multiple",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-multiple example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "multiple", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar multiple treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/130-shadcn-radar-multiple/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1320,
+      "id": "131-shadcn-radial-text",
+      "title": "shadcn Radial Chart - Text",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-text example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "text", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 1,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-text",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-text"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial text treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/131-shadcn-radial-text/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1330,
+      "id": "132-shadcn-tooltip-advanced",
+      "title": "shadcn Tooltip - Advanced",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-advanced example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "advanced", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-advanced",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-advanced"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip advanced treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1340,
+      "id": "133-shadcn-area-axes",
+      "title": "shadcn Area Chart - Axes",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-axes example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "axes", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-axes",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-axes"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-axes card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area axes treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/133-shadcn-area-axes/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1350,
+      "id": "134-shadcn-area-default",
+      "title": "shadcn Area Chart",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area default treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/134-shadcn-area-default/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1360,
+      "id": "135-shadcn-area-gradient",
+      "title": "shadcn Area Chart - Gradient",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-gradient example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "gradient", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-gradient",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-gradient"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-gradient card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area gradient treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/135-shadcn-area-gradient/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1370,
+      "id": "136-shadcn-area-icons",
+      "title": "shadcn Area Chart - Icons",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area icons treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/136-shadcn-area-icons/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1380,
+      "id": "137-shadcn-area-interactive",
+      "title": "shadcn Area Chart - Interactive",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/137-shadcn-area-interactive/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1390,
+      "id": "138-shadcn-area-legend",
+      "title": "shadcn Area Chart - Legend",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area legend treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/138-shadcn-area-legend/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1400,
+      "id": "139-shadcn-area-linear",
+      "title": "shadcn Area Chart - Linear",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-linear example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "linear", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-linear",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-linear"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-linear card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area linear treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/139-shadcn-area-linear/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1410,
+      "id": "140-shadcn-area-stacked-expand",
+      "title": "shadcn Area Chart - Stacked Expanded",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-stacked-expand example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "stacked expand", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 3
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-stacked-expand",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-stacked-expand"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-stacked-expand card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area stacked expand treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1420,
+      "id": "141-shadcn-area-stacked",
+      "title": "shadcn Area Chart - Stacked",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/141-shadcn-area-stacked/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1430,
+      "id": "142-shadcn-area-step",
+      "title": "shadcn Area Chart - Step",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-step example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "step", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-step",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-step"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-step card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area step treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/142-shadcn-area-step/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1440,
+      "id": "143-shadcn-bar-active",
+      "title": "shadcn Bar Chart - Active",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-active example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "active", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-active",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-active"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-active card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar active treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/143-shadcn-bar-active/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1450,
+      "id": "144-shadcn-bar-default",
+      "title": "shadcn Bar Chart",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar default treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/144-shadcn-bar-default/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1460,
+      "id": "145-shadcn-bar-horizontal",
+      "title": "shadcn Bar Chart - Horizontal",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-horizontal example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "horizontal", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-horizontal",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-horizontal"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-horizontal card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar horizontal treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1470,
+      "id": "146-shadcn-bar-interactive",
+      "title": "shadcn Bar Chart - Interactive",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/146-shadcn-bar-interactive/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1480,
+      "id": "147-shadcn-bar-label-custom",
+      "title": "shadcn Bar Chart - Custom Label",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1490,
+      "id": "148-shadcn-bar-label",
+      "title": "shadcn Bar Chart - Label",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar label treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/148-shadcn-bar-label/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1500,
+      "id": "149-shadcn-bar-mixed",
+      "title": "shadcn Bar Chart - Mixed",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-mixed example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "mixed", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-mixed",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-mixed"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-mixed card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar mixed treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/149-shadcn-bar-mixed/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1510,
+      "id": "150-shadcn-bar-negative",
+      "title": "shadcn Bar Chart - Negative",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-negative example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "negative", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-negative",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-negative"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-negative card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar negative treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/150-shadcn-bar-negative/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1520,
+      "id": "151-shadcn-bar-stacked",
+      "title": "shadcn Bar Chart - Stacked + Legend",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 12
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/151-shadcn-bar-stacked/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1530,
+      "id": "152-shadcn-line-default",
+      "title": "shadcn Line Chart",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line default treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/152-shadcn-line-default/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1540,
+      "id": "153-shadcn-line-dots-colors",
+      "title": "shadcn Line Chart - Dots Colors",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots-colors example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots colors", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots-colors",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots-colors"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots-colors card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots colors treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1550,
+      "id": "154-shadcn-line-dots-custom",
+      "title": "shadcn Line Chart - Custom Dots",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1560,
+      "id": "155-shadcn-line-dots",
+      "title": "shadcn Line Chart - Dots",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/155-shadcn-line-dots/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1570,
+      "id": "156-shadcn-line-interactive",
+      "title": "shadcn Line Chart - Interactive",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/156-shadcn-line-interactive/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1580,
+      "id": "157-shadcn-line-label-custom",
+      "title": "shadcn Line Chart - Custom Label",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/157-shadcn-line-label-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1590,
+      "id": "158-shadcn-line-label",
+      "title": "shadcn Line Chart - Label",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line label treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/158-shadcn-line-label/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1600,
+      "id": "159-shadcn-line-linear",
+      "title": "shadcn Line Chart - Linear",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-linear example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "linear", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-linear",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-linear"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-linear card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line linear treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/159-shadcn-line-linear/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1610,
+      "id": "160-shadcn-line-multiple",
+      "title": "shadcn Line Chart - Multiple",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-multiple example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "multiple", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line multiple treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/160-shadcn-line-multiple/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1620,
+      "id": "161-shadcn-line-step",
+      "title": "shadcn Line Chart - Step",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-step example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "step", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-step",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-step"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-step card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line step treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/161-shadcn-line-step/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1630,
+      "id": "162-shadcn-pie-donut-active",
+      "title": "shadcn Pie Chart - Donut Active",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut-active example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "donut active", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut-active",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut-active"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut-active card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie donut active treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1640,
+      "id": "163-shadcn-pie-donut",
+      "title": "shadcn Pie Chart - Donut",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "donut", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie donut treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/163-shadcn-pie-donut/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1650,
+      "id": "164-shadcn-pie-interactive",
+      "title": "shadcn Pie Chart - Interactive",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/164-shadcn-pie-interactive/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1660,
+      "id": "165-shadcn-pie-label-custom",
+      "title": "shadcn Pie Chart - Custom Label",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1670,
+      "id": "166-shadcn-pie-label-list",
+      "title": "shadcn Pie Chart - Label List",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label-list example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label list", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label-list",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label-list"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label-list card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label list treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/166-shadcn-pie-label-list/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1680,
+      "id": "167-shadcn-pie-label",
+      "title": "shadcn Pie Chart - Label",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/167-shadcn-pie-label/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1690,
+      "id": "168-shadcn-pie-legend",
+      "title": "shadcn Pie Chart - Legend",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie legend treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/168-shadcn-pie-legend/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1700,
+      "id": "169-shadcn-pie-separator-none",
+      "title": "shadcn Pie Chart - Separator None",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-separator-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "separator none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-separator-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-separator-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-separator-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie separator none treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1710,
+      "id": "170-shadcn-pie-simple",
+      "title": "shadcn Pie Chart",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-simple example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-simple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-simple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-simple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie simple treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/170-shadcn-pie-simple/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1720,
+      "id": "171-shadcn-pie-stacked",
+      "title": "shadcn Pie Chart - Stacked",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/171-shadcn-pie-stacked/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1730,
+      "id": "172-shadcn-radar-default",
+      "title": "shadcn Radar Chart",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar default treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/172-shadcn-radar-default/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1740,
+      "id": "173-shadcn-radar-dots",
+      "title": "shadcn Radar Chart - Dots",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-dots example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "dots", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-dots",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-dots"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-dots card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar dots treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/173-shadcn-radar-dots/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1750,
+      "id": "174-shadcn-radar-grid-circle-fill",
+      "title": "shadcn Radar Chart - Grid Circle Filled",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-fill example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle fill", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle-fill",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle-fill"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-fill card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle fill treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1760,
+      "id": "175-shadcn-radar-grid-circle-no-lines",
+      "title": "shadcn Radar Chart - Grid Circle - No lines",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-no-lines example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle no lines", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle-no-lines",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle-no-lines"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-no-lines card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle no lines treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1770,
+      "id": "176-shadcn-radar-grid-circle",
+      "title": "shadcn Radar Chart - Grid Circle",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1780,
+      "id": "177-shadcn-radar-grid-custom",
+      "title": "shadcn Radar Chart - Grid Custom",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1790,
+      "id": "178-shadcn-radar-grid-fill",
+      "title": "shadcn Radar Chart - Grid Filled",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-fill example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid fill", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-fill",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-fill"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-fill card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid fill treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1800,
+      "id": "179-shadcn-radar-grid-none",
+      "title": "shadcn Radar Chart - Grid None",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid none treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1810,
+      "id": "180-shadcn-radar-icons",
+      "title": "shadcn Radar Chart - Icons",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar icons treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/180-shadcn-radar-icons/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1820,
+      "id": "181-shadcn-radar-label-custom",
+      "title": "shadcn Radar Chart - Custom Label",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1830,
+      "id": "182-shadcn-radar-legend",
+      "title": "shadcn Radar Chart - Legend",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar legend treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/182-shadcn-radar-legend/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1840,
+      "id": "183-shadcn-radar-lines-only",
+      "title": "shadcn Radar Chart - Lines Only",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-lines-only example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "lines only", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-lines-only",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-lines-only"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-lines-only card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar lines only treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1850,
+      "id": "184-shadcn-radar-radius",
+      "title": "shadcn Radar Chart - Radius Axis",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-radius example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "radius", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-radius",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-radius"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-radius card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar radius treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/184-shadcn-radar-radius/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1860,
+      "id": "185-shadcn-radial-grid",
+      "title": "shadcn Radial Chart - Grid",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-grid example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "grid", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-grid",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-grid"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-grid card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial grid treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/185-shadcn-radial-grid/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1870,
+      "id": "186-shadcn-radial-label",
+      "title": "shadcn Radial Chart - Label",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial label treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/186-shadcn-radial-label/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1880,
+      "id": "187-shadcn-radial-shape",
+      "title": "shadcn Radial Chart - Shape",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-shape example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "shape", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-shape",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-shape"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-shape card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial shape treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/187-shadcn-radial-shape/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1890,
+      "id": "188-shadcn-radial-simple",
+      "title": "shadcn Radial Chart",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-simple example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 1,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-simple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-simple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-simple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial simple treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/188-shadcn-radial-simple/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1900,
+      "id": "189-shadcn-radial-stacked",
+      "title": "shadcn Radial Chart - Stacked",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/189-shadcn-radial-stacked/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1910,
+      "id": "190-shadcn-tooltip-default",
+      "title": "shadcn Tooltip - Default",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip default treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/190-shadcn-tooltip-default/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1920,
+      "id": "191-shadcn-tooltip-formatter",
+      "title": "shadcn Tooltip - Formatter",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-formatter example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "formatter", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-formatter",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-formatter"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-formatter card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip formatter treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1930,
+      "id": "192-shadcn-tooltip-icons",
+      "title": "shadcn Tooltip - Icons",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip icons treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1940,
+      "id": "193-shadcn-tooltip-indicator-line",
+      "title": "shadcn Tooltip - Line Indicator",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-line example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "indicator line", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-indicator-line",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-indicator-line"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-line card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip indicator line treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1950,
+      "id": "194-shadcn-tooltip-indicator-none",
+      "title": "shadcn Tooltip - No Indicator",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "indicator none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-indicator-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-indicator-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip indicator none treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1960,
+      "id": "195-shadcn-tooltip-label-custom",
+      "title": "shadcn Tooltip - Custom label",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1970,
+      "id": "196-shadcn-tooltip-label-formatter",
+      "title": "shadcn Tooltip - Label Formatter",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-formatter example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label formatter", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-formatter",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-formatter"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-formatter card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label formatter treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/example.tsx"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1980,
+      "id": "197-shadcn-tooltip-label-none",
+      "title": "shadcn Tooltip - No Label",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label none treatment, card dimensions, and light and dark tokens."
+      },
+      "collection": "shadcn",
+      "entries": {
+        "example": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/example.tsx"
       }
     }
   ]

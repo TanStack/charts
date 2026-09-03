@@ -58,11 +58,11 @@ describe('native scrollable resource timeline geometry', () => {
       'benchmarks/conformance/cases/85-scrollable-resource-lanes',
     )
     const shell = readFileSync(resolve(directory, 'shell.ts'), 'utf8')
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     expect(shell).not.toContain("from 'd3-scale'")
     expect(source).toContain('scene.scales.y.map(lane)')
-    expect(source).toContain('onFocusChange: updateFocusedTask')
+    expect(source).toContain('onFocusChange={updateFocusedTask}')
     expect(source).not.toContain('onFocusGroupChange')
   })
 })

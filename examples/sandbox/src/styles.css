@@ -1042,6 +1042,10 @@ button {
   min-height: 322px;
 }
 
+.multi-axis-card {
+  grid-column: 1 / -1;
+}
+
 .triage-chart {
   padding: 3px 16px 0;
 }

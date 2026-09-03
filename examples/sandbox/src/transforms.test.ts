@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import { survey } from '@charts-poc/demo-data/survey'
+import { aapl } from '@tanstack/charts-data/aapl'
+import { survey } from '@tanstack/charts-data/survey'
 import { createDashboardData, surveyResponses } from './transforms'
 
 describe('sandbox real-data transforms', () => {

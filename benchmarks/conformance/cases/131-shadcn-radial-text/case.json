@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1320,
+  "id": "131-shadcn-radial-text",
+  "title": "shadcn Radial Chart - Text",
+  "family": "radial",
+  "intent": "Reproduce shadcn/ui's chart-radial-text example with TanStack Charts.",
+  "support": "native",
+  "features": ["radial chart", "text", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 1,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radial-text",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-text"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radial text treatment, card dimensions, and light and dark tokens."
+  }
+}

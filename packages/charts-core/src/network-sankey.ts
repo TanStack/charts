@@ -28,6 +28,7 @@ import type {
   ChartMarkPointY,
   ChartMotionContext,
   ChartMotionDefinition,
+  ChartMarkMotionOptions,
 } from './types'
 
 type AnyChartMark = ChartMark<any, any, any, any, any>
@@ -195,7 +196,7 @@ export interface SankeyDiagramOptions<
   TTarget extends TransformValue<TLink, ChartKey>,
   TValue extends TransformValue<TLink, number>,
   TMarks extends SankeyMarks,
-> {
+> extends ChartMarkMotionOptions<ChartMarkDatum<TMarks[number]>> {
   readonly id?: string
   readonly nodes: Iterable<TNode>
   readonly links: Iterable<TLink>
@@ -231,7 +232,6 @@ export interface SankeyDiagramOptions<
   readonly marks: (
     context: SankeyDiagramContext<TNode, TLink, ResolvedKey<TNode, TNodeKey>>,
   ) => TMarks
-  readonly motion?: ChartMotionDefinition<ChartMarkDatum<TMarks[number]>>
 }
 
 /** Resolves a proportional flow layout, then composes ordinary pixel marks. */
@@ -297,113 +297,117 @@ export function sankeyDiagram<
     ChartMarkPointY<TMarks[number]>,
     never,
     never
-  >(({ markIndex }) => {
-    const id = options.id ?? `sankey-${markIndex}`
-    let childMotions = new Map<string, ChartMotionDefinition<any>>()
-    const motion = (
-      context: ChartMotionContext<ChartMarkDatum<TMarks[number]>>,
-    ) => resolveCompositeChildMotion(options.motion, childMotions, context)
-    return {
-      id,
-      channels: {},
-      motion,
-      resolveLayout: ({ chart }) => {
-        const nodeWidth = resolveLayoutNumber(
-          options.nodeWidth,
-          chart,
-          24,
-          'nodeWidth',
-          true,
-        )
-        const nodePadding = resolveLayoutNumber(
-          options.nodePadding,
-          chart,
-          8,
-          'nodePadding',
-          false,
-        )
-        const inset = resolveInset(options.inset, chart)
-        const extent = {
-          x0: chart.x + inset.left,
-          y0: chart.y + inset.top,
-          x1: chart.x + chart.width - inset.right,
-          y1: chart.y + chart.height - inset.bottom,
-        }
-        if (extent.x1 - extent.x0 < nodeWidth) {
-          throw new TypeError(
-            'sankeyDiagram: inset leaves less horizontal space than nodeWidth',
+  >(
+    ({ markIndex }) => {
+      const id = options.id ?? `sankey-${markIndex}`
+      let childMotions = new Map<string, ChartMotionDefinition<any>>()
+      const motion = (
+        context: ChartMotionContext<ChartMarkDatum<TMarks[number]>>,
+      ) => resolveCompositeChildMotion(options.motion, childMotions, context)
+      return {
+        id,
+        channels: {},
+        motion,
+        resolveLayout: ({ chart }) => {
+          const nodeWidth = resolveLayoutNumber(
+            options.nodeWidth,
+            chart,
+            24,
+            'nodeWidth',
+            true,
           )
-        }
-        if (extent.y1 <= extent.y0) {
-          throw new TypeError(
-            'sankeyDiagram: inset leaves no vertical layout space',
+          const nodePadding = resolveLayoutNumber(
+            options.nodePadding,
+            chart,
+            8,
+            'nodePadding',
+            false,
           )
-        }
+          const inset = resolveInset(options.inset, chart)
+          const extent = {
+            x0: chart.x + inset.left,
+            y0: chart.y + inset.top,
+            x1: chart.x + chart.width - inset.right,
+            y1: chart.y + chart.height - inset.bottom,
+          }
+          if (extent.x1 - extent.x0 < nodeWidth) {
+            throw new TypeError(
+              'sankeyDiagram: inset leaves less horizontal space than nodeWidth',
+            )
+          }
+          if (extent.y1 <= extent.y0) {
+            throw new TypeError(
+              'sankeyDiagram: inset leaves no vertical layout space',
+            )
+          }
 
-        const laidOut =
-          graph.nodes.length === 0
-            ? { nodes: [], links: [] }
-            : createSankey<WorkingNode<TNode>, WorkingLink<TLink>>()
-                .nodeId((node) => node.key)
-                .nodeAlign((node, columnCount) =>
-                  aligner(
-                    node as unknown as SankeyAlignmentNode<
-                      TNode,
-                      TLink,
-                      TResolvedNodeKey
-                    >,
-                    columnCount,
-                  ),
-                )
-                .nodeWidth(nodeWidth)
-                .nodePadding(nodePadding)
-                .extent([
-                  [extent.x0, extent.y0],
-                  [extent.x1, extent.y1],
-                ])
-                .iterations(iterations)
-                .nodeSort(resolveNodeSort(options.nodeSort))
-                .linkSort(resolveLinkSort(options.linkSort))({
-                nodes: graph.nodes.map((data, index) => ({
-                  data,
-                  key: graph.nodeKeys[index] as TResolvedNodeKey,
-                  sourceIndex: index,
-                })),
-                links: graph.links.map((data, index) => ({
-                  data,
-                  key: linkKeys[index] as ChartKey,
-                  source: graph.sourceKeys[index] as TResolvedNodeKey,
-                  target: graph.targetKeys[index] as TResolvedNodeKey,
-                  value: values[index] as number,
-                  sourceIndex: index,
-                })),
-              })
-        const output = materializeSankey<TNode, TLink, TResolvedNodeKey>(
-          laidOut.nodes,
-          laidOut.links,
-          graph.nodeIndexes,
-        )
-        const marks = options.marks({ id, chart, ...output })
-        if (!Array.isArray(marks) || marks.length === 0) {
-          throw new TypeError(
-            'sankeyDiagram: marks must return at least one chart mark',
+          const laidOut =
+            graph.nodes.length === 0
+              ? { nodes: [], links: [] }
+              : createSankey<WorkingNode<TNode>, WorkingLink<TLink>>()
+                  .nodeId((node) => node.key)
+                  .nodeAlign((node, columnCount) =>
+                    aligner(
+                      node as unknown as SankeyAlignmentNode<
+                        TNode,
+                        TLink,
+                        TResolvedNodeKey
+                      >,
+                      columnCount,
+                    ),
+                  )
+                  .nodeWidth(nodeWidth)
+                  .nodePadding(nodePadding)
+                  .extent([
+                    [extent.x0, extent.y0],
+                    [extent.x1, extent.y1],
+                  ])
+                  .iterations(iterations)
+                  .nodeSort(resolveNodeSort(options.nodeSort))
+                  .linkSort(resolveLinkSort(options.linkSort))({
+                  nodes: graph.nodes.map((data, index) => ({
+                    data,
+                    key: graph.nodeKeys[index] as TResolvedNodeKey,
+                    sourceIndex: index,
+                  })),
+                  links: graph.links.map((data, index) => ({
+                    data,
+                    key: linkKeys[index] as ChartKey,
+                    source: graph.sourceKeys[index] as TResolvedNodeKey,
+                    target: graph.targetKeys[index] as TResolvedNodeKey,
+                    value: values[index] as number,
+                    sourceIndex: index,
+                  })),
+                })
+          const output = materializeSankey<TNode, TLink, TResolvedNodeKey>(
+            laidOut.nodes,
+            laidOut.links,
+            graph.nodeIndexes,
           )
-        }
-        const children = marks.map((mark, childIndex) =>
-          mark.initialize({ markIndex: childIndex }),
-        )
-        const composition = composeResolvedChildMarks(id, children)
-        childMotions = new Map(
-          children.flatMap((child, childIndex) => {
-            const childMotion = child.motion ?? marks[childIndex]?.motion
-            if (childMotion === undefined) return []
-            return [[resolvedChildMarkId(id, child.id), childMotion] as const]
-          }),
-        )
-        return composition
-      },
-    }
-  }, options.motion)
+          const marks = options.marks({ id, chart, ...output })
+          if (!Array.isArray(marks) || marks.length === 0) {
+            throw new TypeError(
+              'sankeyDiagram: marks must return at least one chart mark',
+            )
+          }
+          const children = marks.map((mark, childIndex) =>
+            mark.initialize({ markIndex: childIndex }),
+          )
+          const composition = composeResolvedChildMarks(id, children)
+          childMotions = new Map(
+            children.flatMap((child, childIndex) => {
+              const childMotion = child.motion ?? marks[childIndex]?.motion
+              if (childMotion === undefined) return []
+              return [[resolvedChildMarkId(id, child.id), childMotion] as const]
+            }),
+          )
+          return composition
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
 }
 
 interface WorkingNode<TNode> {

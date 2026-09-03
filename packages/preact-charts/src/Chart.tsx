@@ -143,7 +143,8 @@ function toHostOptions<
   } = props
   const handleRender = onRender
     ? (context: ChartRendererRenderContext<TDatum, TXValue, TYValue>): void => {
-        const element = context.surface.element
+        const element =
+          context.surface.defaultElement ?? context.surface.element
         const SvgElement =
           context.container.ownerDocument.defaultView?.SVGSVGElement
         if (!SvgElement || !(element instanceof SvgElement)) {
@@ -152,6 +153,7 @@ function toHostOptions<
         onRender({
           container: context.container,
           scene: context.scene,
+          surface: context.surface,
           svg: element,
           interaction: context.interaction,
         })

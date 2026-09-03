@@ -45,8 +45,11 @@ const definition = defineChart({
     ),
   ],
   guides: false,
-  x: { scale: scaleLinear().domain([0, 4]) },
-  y: { scale: scaleLinear().domain([0, 5]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 4]) },
+    y: { scale: scaleLinear().domain([0, 5]) },
+  },
+
   selection,
 })
 

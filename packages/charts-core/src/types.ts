@@ -11,9 +11,10 @@ export interface ChartCurve {
 
 export interface ChartScaleResolveContext {
   id: string
+  channel: ChartPositionChannel
   values: readonly unknown[]
   range: readonly [number, number]
-  options: ChartAxisOptions<any> | undefined
+  options: ChartPositionScaleOptions<any> | undefined
   tickCount: number
   includeZero: boolean
 }
@@ -107,6 +108,14 @@ export type ChannelOutput<TDatum, TChannel, TFallback extends ChartValue> =
       ? WidenChartValue<NonNullable<TDatum[TChannel]>>
       : WidenChartValue<TFallback>
 
+export type MarkChannelOutput<
+  TDatum,
+  TChannel,
+  TFallback extends ChartValue,
+> = [TChannel] extends [never]
+  ? WidenChartValue<TFallback>
+  : ChannelOutput<TDatum, TChannel, TFallback>
+
 export type OptionChannelOutput<
   TDatum,
   TOptions,
@@ -117,6 +126,23 @@ export type OptionChannelOutput<
     ? ChannelOutput<TDatum, TOptions[TKey], TFallback>
     : WidenChartValue<TFallback>
   : never
+
+export type MarkCallOptions<TOptions, TInferred> = Omit<
+  TOptions,
+  keyof TInferred
+> & {
+  [TKey in keyof TInferred]:
+    | TInferred[TKey]
+    | NoInfer<TKey extends keyof TOptions ? TOptions[TKey] : never>
+}
+
+export type MarkScaleBindings<
+  TXScaleId extends string | undefined = 'x',
+  TYScaleId extends string | undefined = 'y',
+> = {
+  xScale?: TXScaleId
+  yScale?: TYScaleId
+}
 
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
@@ -402,6 +428,25 @@ export interface ChartAxisOptions<TValue extends ChartValue = any> {
   axis?: false | ChartAxisPresentationOptions<TValue>
 }
 
+export type ChartPositionChannel = 'x' | 'y'
+export type ChartAxisSide = 'top' | 'right' | 'bottom' | 'left'
+
+export interface ChartPositionScaleOptions<
+  TValue extends ChartValue = any,
+> extends ChartAxisOptions<TValue> {
+  /** Required for named scales other than the reserved `x` and `y` defaults. */
+  channel?: ChartPositionChannel
+  /** Defaults to `bottom` for x scales and `left` for y scales. */
+  side?: ChartAxisSide
+}
+
+export interface CartesianScaleBindings {
+  /** Named x scale. Omit to use the reserved `x` scale. */
+  xScale?: string
+  /** Named y scale. Omit to use the reserved `y` scale. */
+  yScale?: string
+}
+
 export interface ChartColorOptions {
   /**
    * A D3 color-scale factory infers its domain from color channels.
@@ -551,31 +596,84 @@ export interface ChartLinearGradient {
   stops: readonly ChartGradientStop[]
 }
 
-export type ChartMarkScaleX<TMark> =
-  TMark extends ChartMark<any, any, any, infer TValue, any> ? TValue : never
+/** A scale-contributing mark that does not own interactive chart points. */
+export type DecorativeChartMark<
+  TMark extends ChartMark<any, any, any, any, any, any, any>,
+> = TMark & {
+  readonly __decorativeMark: TMark
+}
 
-export type ChartMarkScaleY<TMark> =
-  TMark extends ChartMark<any, any, any, any, infer TValue> ? TValue : never
+interface DecorativeChartMarkBrand {
+  readonly __decorativeMark: ChartMark<any, any, any, any, any, any, any>
+}
 
-export type ChartMarkPointX<TMark> =
-  TMark extends ChartMark<infer TDatum, infer TXValue, any, any, any>
+export type ChartMarkScaleX<TMark> = TMark extends {
+  readonly __decorativeMark: infer TSource
+}
+  ? ChartMarkScaleX<TSource>
+  : TMark extends ChartMark<
+        any,
+        any,
+        any,
+        infer TValue,
+        any,
+        infer TScaleId,
+        any
+      >
+    ? 'x' extends TScaleId
+      ? TValue
+      : never
+    : never
+
+export type ChartMarkScaleY<TMark> = TMark extends {
+  readonly __decorativeMark: infer TSource
+}
+  ? ChartMarkScaleY<TSource>
+  : TMark extends ChartMark<
+        any,
+        any,
+        any,
+        any,
+        infer TValue,
+        any,
+        infer TScaleId
+      >
+    ? 'y' extends TScaleId
+      ? TValue
+      : never
+    : never
+
+export type ChartMarkPointX<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<
+        infer TDatum,
+        infer TXValue,
+        any,
+        any,
+        any,
+        any,
+        any
+      >
     ? [TDatum] extends [never]
       ? never
       : TXValue
     : never
 
-export type ChartMarkPointY<TMark> =
-  TMark extends ChartMark<infer TDatum, any, infer TYValue, any, any>
+export type ChartMarkPointY<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<
+        infer TDatum,
+        any,
+        infer TYValue,
+        any,
+        any,
+        any,
+        any
+      >
     ? [TDatum] extends [never]
       ? never
       : TYValue
     : never
-
-/** @deprecated Prefer ChartMarkPointX when distinguishing point and scale values. */
-export type ChartMarkX<TMark> = ChartMarkPointX<TMark>
-
-/** @deprecated Prefer ChartMarkPointY when distinguishing point and scale values. */
-export type ChartMarkY<TMark> = ChartMarkPointY<TMark>
 
 type IsAny<TValue> = 0 extends 1 & TValue ? true : false
 
@@ -588,7 +686,7 @@ export type ChartAxisValue<TValue> =
         ? any
         : WidenChartValue<TValue>
 
-type AnyChartMarks = readonly ChartMark<unknown, any, any>[]
+type AnyChartMarks = readonly ChartMark<any, any, any, any, any, any, any>[]
 
 type IsUnion<TValue, TWhole = TValue> = TValue extends TWhole
   ? [TWhole] extends [TValue]
@@ -598,16 +696,20 @@ type IsUnion<TValue, TWhole = TValue> = TValue extends TWhole
 
 type ChartXOptionsForMarks<TMarks extends AnyChartMarks> =
   IsUnion<TMarks> extends false
-    ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleX<TMarks[number]>>>
+    ? ChartPositionScaleOptions<ChartAxisValue<ChartMarkScaleX<TMarks[number]>>>
     : TMarks extends AnyChartMarks
-      ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleX<TMarks[number]>>>
+      ? ChartPositionScaleOptions<
+          ChartAxisValue<ChartMarkScaleX<TMarks[number]>>
+        >
       : never
 
 type ChartYOptionsForMarks<TMarks extends AnyChartMarks> =
   IsUnion<TMarks> extends false
-    ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
+    ? ChartPositionScaleOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
     : TMarks extends AnyChartMarks
-      ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
+      ? ChartPositionScaleOptions<
+          ChartAxisValue<ChartMarkScaleY<TMarks[number]>>
+        >
       : never
 
 interface ChartSpecBase {
@@ -658,6 +760,8 @@ export interface ChartMotionContext<TDatum = unknown> {
   datum: TDatum | undefined
   point: ChartPoint<TDatum> | undefined
   axis?: 'x' | 'y'
+  /** Positional scale that owns an axis or grid element. */
+  scaleId?: string
 }
 
 export interface ChartMotionTweenTransition {
@@ -687,46 +791,65 @@ export interface ChartRollingPathMotion {
 
 export type ChartMotionPath = 'morph' | ChartRollingPathMotion
 
-export interface ChartMotionTiming {
-  delay?: number
+export interface ChartMotionTiming<TDatum = unknown> {
+  delay?: number | ((context: ChartMotionContext<TDatum>) => number | undefined)
   transition?: ChartMotionTransition
   /** How line and area paths move between compatible keyed updates. */
   path?: ChartMotionPath
 }
 
 export type ChartMotionDefinition<TDatum = unknown> =
-  | ChartMotionTiming
-  | ((context: ChartMotionContext<TDatum>) => ChartMotionTiming | undefined)
+  | false
+  | ChartMotionTiming<TDatum>
+  | ((
+      context: ChartMotionContext<TDatum>,
+    ) => false | ChartMotionTiming<TDatum> | undefined)
 
-export interface ChartMarkMotionOptions<TDatum = unknown> {
+/** Renderer capability a mark can select without importing a DOM contract. */
+export interface ChartMarkRenderer {
+  readonly kind: 'chart-layer-renderer'
+  readonly id: string
+}
+
+export interface ChartMarkOptions {
+  /** Paints this mark through a renderer that can compose with the chart host. */
+  renderer?: ChartMarkRenderer
+}
+
+export interface ChartMarkMotionOptions<
+  TDatum = unknown,
+> extends ChartMarkOptions {
   motion?: ChartMotionDefinition<TDatum>
 }
 
-interface StoredChartSpec extends ChartSpecBase {
-  marks: readonly ChartMark<unknown, any, any>[]
-  x?: ChartAxisOptions<any> | null
-  y?: ChartAxisOptions<any> | null
-}
-
-type ChartXSpec<TMarks extends AnyChartMarks> =
+type ChartXScaleSpec<TMarks extends AnyChartMarks> =
   IsAny<ChartMarkScaleX<TMarks[number]>> extends true
     ? { x: ChartXOptionsForMarks<TMarks> | null }
     : [ChartMarkScaleX<TMarks[number]>] extends [never]
-      ? { x?: null }
+      ? { x: null }
       : { x: ChartXOptionsForMarks<TMarks> }
 
-type ChartYSpec<TMarks extends AnyChartMarks> =
+type ChartYScaleSpec<TMarks extends AnyChartMarks> =
   IsAny<ChartMarkScaleY<TMarks[number]>> extends true
     ? { y: ChartYOptionsForMarks<TMarks> | null }
     : [ChartMarkScaleY<TMarks[number]>] extends [never]
-      ? { y?: null }
+      ? { y: null }
       : { y: ChartYOptionsForMarks<TMarks> }
+
+export type ChartScales<TMarks extends AnyChartMarks = AnyChartMarks> =
+  Readonly<Record<string, ChartPositionScaleOptions | null>> &
+    ChartXScaleSpec<TMarks> &
+    ChartYScaleSpec<TMarks>
 
 type ChartSpecForMarks<TMarks extends AnyChartMarks> = {
   marks: TMarks
-} & ChartSpecBase &
-  ChartXSpec<TMarks> &
-  ChartYSpec<TMarks>
+  scales: ChartScales<TMarks>
+} & ChartSpecBase
+
+interface StoredChartSpec extends ChartSpecBase {
+  marks: AnyChartMarks
+  scales: Readonly<Record<string, ChartPositionScaleOptions | null>>
+}
 
 export type ChartSpec<TMarks extends AnyChartMarks | undefined = undefined> = [
   TMarks,
@@ -809,7 +932,7 @@ export interface StaticChartDefinition<
   TTooltipHost extends string = string,
 >
   extends StoredChartSpec, StoredChartDefinitionOptions<TTooltipHost> {
-  marks: readonly ChartMark<unknown, any, any>[]
+  marks: AnyChartMarks
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
   readonly __yValue?: TYValue
@@ -885,8 +1008,11 @@ export type DomChartDefinition<
   TYValue extends ChartValue = ChartValue,
 > = ChartDefinitionForTooltipHost<TDatum, TXValue, TYValue, 'dom'>
 
-export type ChartMarkDatum<TMark> =
-  TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
+export type ChartMarkDatum<TMark> = TMark extends DecorativeChartMarkBrand
+  ? never
+  : TMark extends ChartMark<infer TDatum, any, any, any, any, any, any>
+    ? TDatum
+    : never
 
 export type ChartSpecDatum<TSpec extends StoredChartSpec> =
   '__datum' extends keyof TSpec
@@ -989,16 +1115,52 @@ export interface ChartMark<
   TYPointValue extends ChartValue = ChartValue,
   TXScaleValue extends ChartValue = TXPointValue,
   TYScaleValue extends ChartValue = TYPointValue,
+  TXScaleId extends string = 'x',
+  TYScaleId extends string = 'y',
 > {
   initialize: (
     context: MarkInitializeContext,
   ) => InitializedMark<TDatum, TXPointValue, TYPointValue>
   motion?: ChartMotionDefinition<any>
+  renderer?: ChartMarkRenderer
   readonly __xValue?: TXPointValue
   readonly __yValue?: TYPointValue
   readonly __xScaleValue?: TXScaleValue
   readonly __yScaleValue?: TYScaleValue
+  readonly __xScaleId?: TXScaleId
+  readonly __yScaleId?: TYScaleId
 }
+
+export type OptionScaleId<
+  TOptions,
+  TKey extends PropertyKey,
+  TFallback extends string,
+> = TOptions extends unknown
+  ? TKey extends keyof TOptions
+    ? [NonNullable<TOptions[TKey]>] extends [never]
+      ? TFallback
+      : NonNullable<TOptions[TKey]> extends string
+        ? NonNullable<TOptions[TKey]>
+        : TFallback
+    : TFallback
+  : never
+
+export type CartesianChartMark<
+  TDatum,
+  TXPointValue extends ChartValue,
+  TYPointValue extends ChartValue,
+  TXScaleValue extends ChartValue,
+  TYScaleValue extends ChartValue,
+  TOptions,
+> = ChartMark<
+  TDatum,
+  TXPointValue,
+  TYPointValue,
+  TXScaleValue,
+  TYScaleValue,
+  OptionScaleId<TOptions, 'xScale', 'x'>,
+  OptionScaleId<TOptions, 'yScale', 'y'>
+>
 
 interface InitializedMarkBase<
   TDatum = unknown,
@@ -1211,6 +1373,8 @@ export interface SceneFocusGuide {
   chart: ChartBounds
   surface: ChartBounds
   placement: 'under' | 'over'
+  /** Renderer selected by the guide's owning mark. */
+  renderer?: ChartMarkRenderer
   x?: SceneFocusGuideAxis
   y?: SceneFocusGuideAxis
   marker?: SceneFocusGuideMarker
@@ -1233,6 +1397,8 @@ export interface ChartFocusPresentation {
 
 interface SceneNodeBase {
   key: string
+  /** Renderer selected by the mark that owns this scene subtree. */
+  renderer?: ChartMarkRenderer
   className?: string
   style?: SceneStyle
   ariaHidden?: boolean
@@ -1403,6 +1569,8 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  /** Overrides tooltip motion from the active motion renderer; `false` keeps it immediate. */
+  motion?: false | ChartMotionTransition
   portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>

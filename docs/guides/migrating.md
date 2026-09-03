@@ -7,6 +7,35 @@ Migration is a semantic exercise, not a component-name translation. First
 describe what the existing chart means and how users operate it. Then express
 that behavior with data preparation, scales, marks, and host options.
 
+## Move pre-Alpha root scales into the registry
+
+Alpha definitions require Cartesian scale and axis options under `scales`:
+
+```ts
+const definition = defineChart({
+  marks,
+  scales: {
+    x: { scale: xScale },
+    y: { scale: yScale, grid: true },
+  },
+})
+```
+
+When updating from a pre-Alpha release, move root `x` to `scales.x` and root
+`y` to `scales.y`. Every definition must provide both reserved entries. Use
+`null` when the chart does not use one of the Cartesian dimensions.
+
+Polar definitions follow the same migration. Move pre-Alpha root `angle` and
+`radius` options into `polar({ scales: { angle, radius } })`. Every polar
+definition must provide both reserved entries. If neither positional scale is
+used, write `scales: { angle: null, radius: null }`.
+
+Custom mark type code should replace `ChartMarkX` and `ChartMarkY` with
+`ChartMarkPointX` and `ChartMarkPointY` from
+`@tanstack/charts/mark/scale-values`. A polar length callback should replace
+`layout.angle` with `layout.scales.angle` and `layout.radiusScale` with
+`layout.scales.radius`.
+
 ## Inventory the current contract
 
 Record:

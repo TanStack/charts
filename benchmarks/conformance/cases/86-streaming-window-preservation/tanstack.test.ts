@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { downloads } from '@charts-poc/demo-data/downloads'
+import { downloads } from '@tanstack/charts-data/downloads'
 import { createChartScene, mountChart } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { streamingViewportForMode, visibleStreamingData } from './model'
 import { streamingData } from './selection'
 import { streamingWindowDefinition } from './tanstack'
 import type { ChartDefinition, ChartPoint, SceneNode } from '@tanstack/charts'
-import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
+import type { DownloadsRow } from '@tanstack/charts-data/downloads'
 
 const size = { width: 640, height: 360 }
 
@@ -130,10 +130,12 @@ describe('definition-owned streaming window', () => {
       'benchmarks/conformance/cases/86-streaming-window-preservation',
     )
     const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
+    const example = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const echarts = readFileSync(resolve(directory, 'echarts.ts'), 'utf8')
 
+    expect(view).toContain("from './example'")
     expect(view).toContain('streamingWindowDefinition(')
-    expect(view).toContain('decorative(')
+    expect(example).toContain('decorative(')
     expect(view).not.toContain('<svg')
     expect(view).not.toContain("key: 'date'")
     for (const source of [view, echarts]) {

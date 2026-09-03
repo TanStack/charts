@@ -23,9 +23,12 @@ import { materializeLayoutXYRows } from './resolved-layout-position'
 import type {
   Channel,
   ChannelOutput,
+  CartesianChartMark,
   ChartKey,
   ChartMark,
   ChartValue,
+  MarkCallOptions,
+  MarkScaleBindings,
 } from './types'
 
 export interface DelaunayLinkDatum<
@@ -59,16 +62,20 @@ export type DelaunayLinkOptions<TDatum> = {
   'x1' | 'y1' | 'x2' | 'y2' | 'z' | 'key'
 >
 
-type DelaunayXOutput<TDatum, TOptions> = ChannelOutput<
+type DelaunayLinkCallOptions<
   TDatum,
-  TOptions extends { x: infer TChannel } ? TChannel : never,
-  number
->
-
-type DelaunayYOutput<TDatum, TOptions> = ChannelOutput<
-  TDatum,
-  TOptions extends { y: infer TChannel } ? TChannel : never,
-  number
+  TXChannel,
+  TYChannel,
+  TXScaleId extends string | undefined,
+  TYScaleId extends string | undefined,
+> = MarkCallOptions<
+  DelaunayLinkOptions<NoInfer<TDatum>>,
+  {
+    x: TXChannel
+    y: TYChannel
+    xScale?: TXScaleId
+    yScale?: TYScaleId
+  }
 >
 
 type PreparedDelaunayRow<TDatum> = LayoutXYSourceRow<
@@ -87,84 +94,122 @@ type ProjectedDelaunayRow<TDatum> = PreparedDelaunayRow<TDatum> &
 /** Connects final-screen Delaunay neighbors while retaining semantic endpoints. */
 export function delaunayLink<
   TDatum,
-  const TOptions extends DelaunayLinkOptions<NoInfer<TDatum>>,
+  const TXChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TYChannel extends Channel<
+    NoInfer<TDatum>,
+    ChartValue | null | undefined
+  >,
+  const TXScaleId extends string | undefined = undefined,
+  const TYScaleId extends string | undefined = undefined,
 >(
   source: Iterable<TDatum>,
-  options: TOptions,
-): ChartMark<
+  options: DelaunayLinkCallOptions<
+    TDatum,
+    TXChannel,
+    TYChannel,
+    TXScaleId,
+    TYScaleId
+  >,
+): CartesianChartMark<
   DelaunayLinkDatum<
     TDatum,
-    DelaunayXOutput<TDatum, TOptions>,
-    DelaunayYOutput<TDatum, TOptions>
+    ChannelOutput<TDatum, TXChannel, number>,
+    ChannelOutput<TDatum, TYChannel, number>
   >,
-  DelaunayXOutput<TDatum, TOptions>,
-  DelaunayYOutput<TDatum, TOptions>
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  ChannelOutput<TDatum, TXChannel, number>,
+  ChannelOutput<TDatum, TYChannel, number>,
+  MarkScaleBindings<TXScaleId, TYScaleId>
 >
 export function delaunayLink<TDatum>(
   source: Iterable<TDatum>,
   options: DelaunayLinkOptions<NoInfer<TDatum>>,
-): ChartMark<DelaunayLinkDatum<TDatum>> {
+): CartesianChartMark<
+  DelaunayLinkDatum<TDatum>,
+  any,
+  any,
+  any,
+  any,
+  DelaunayLinkOptions<TDatum>
+> {
   const data = Array.isArray(source) ? source : Array.from(source)
   const xValues = channelValues(data, options.x, () => undefined)
   const yValues = channelValues(data, options.y, () => undefined)
   const zValues = channelValues(data, options.z, () => null)
   const completeRows = materializeLayoutXYRows(data, xValues, yValues)
-  const { x: _x, y: _y, z: _z, key: _key, motion, ...presentation } = options
+  const {
+    x: _x,
+    y: _y,
+    z: _z,
+    key: _key,
+    motion,
+    renderer,
+    ...presentation
+  } = options
+  const xScale = options.xScale ?? 'x'
+  const yScale = options.yScale ?? 'y'
 
-  return createMark<DelaunayLinkDatum<TDatum>>(({ markIndex }) => {
-    const id = options.id ?? `delaunay-link-${markIndex}`
-    const groups = data.map((_datum, index) => {
-      const group = zValues[index]
-      return isChartKey(group) ? group : null
-    })
-    const keys = inferredKeyValues(data, options.key, {
-      groups,
-      markId: id,
-      warningIdentity: options,
-    })
-    const sourceRows: readonly PreparedDelaunayRow<TDatum>[] = completeRows.map(
-      (row) => ({
-        ...row,
-        group: groups[row.sourceIndex] ?? null,
-        key: keys[row.sourceIndex] ?? row.sourceIndex,
-      }),
-    )
+  return createMark<DelaunayLinkDatum<TDatum>>(
+    ({ markIndex }) => {
+      const id = options.id ?? `delaunay-link-${markIndex}`
+      const groups = data.map((_datum, index) => {
+        const group = zValues[index]
+        return isChartKey(group) ? group : null
+      })
+      const keys = inferredKeyValues(data, options.key, {
+        groups,
+        markId: id,
+        warningIdentity: options,
+      })
+      const sourceRows: readonly PreparedDelaunayRow<TDatum>[] =
+        completeRows.map((row) => ({
+          ...row,
+          group: groups[row.sourceIndex] ?? null,
+          key: keys[row.sourceIndex] ?? row.sourceIndex,
+        }))
 
-    return {
-      id,
-      channels: {
-        x: { scale: 'x', values: completeRows.map((row) => row.xValue) },
-        y: { scale: 'y', values: completeRows.map((row) => row.yValue) },
-      },
-      resolveLayout: ({ scales }) => {
-        const xScale = scales.x
-        const yScale = scales.y
-        if (!xScale || !yScale) {
-          throw new TypeError('delaunayLink: x and y scales are required')
-        }
-        const rows = projectLayoutY(
-          projectLayoutX(sourceRows, xValues, xScale),
-          yValues,
-          yScale,
-        )
-        const edges = groupRowsByChartKey(rows)
-          .flatMap(({ rows: groupRows }) => createEdges(groupRows))
-          .sort((left, right) => compareText(left.edgeKey, right.edgeKey))
-        const child = link(edges, {
-          ...presentation,
-          id,
-          x1: 'x1',
-          y1: 'y1',
-          x2: 'x2',
-          y2: 'y2',
-          z: 'group',
-          key: 'edgeKey',
-        })
+      return {
+        id,
+        channels: {
+          x: { scale: xScale, values: completeRows.map((row) => row.xValue) },
+          y: { scale: yScale, values: completeRows.map((row) => row.yValue) },
+        },
+        resolveLayout: ({ scales }) => {
+          const resolvedXScale = scales[xScale]
+          const resolvedYScale = scales[yScale]
+          if (!resolvedXScale || !resolvedYScale) {
+            throw new TypeError('delaunayLink: x and y scales are required')
+          }
+          const rows = projectLayoutY(
+            projectLayoutX(sourceRows, xValues, resolvedXScale),
+            yValues,
+            resolvedYScale,
+          )
+          const edges = groupRowsByChartKey(rows)
+            .flatMap(({ rows: groupRows }) => createEdges(groupRows))
+            .sort((left, right) => compareText(left.edgeKey, right.edgeKey))
+          const child = link(edges, {
+            ...presentation,
+            id,
+            x1: 'x1',
+            y1: 'y1',
+            x2: 'x2',
+            y2: 'y2',
+            z: 'group',
+            key: 'edgeKey',
+          })
 
-        return adoptResolvedChildMark(child.initialize({ markIndex }))
-      },
-    }
-  }, motion)
+          return adoptResolvedChildMark(child.initialize({ markIndex }))
+        },
+      }
+    },
+    motion,
+    renderer,
+  )
 }
 
 function createEdges<TDatum>(

@@ -6,16 +6,28 @@ export function whenFocused<
   TYPointValue extends ChartValue,
   TXScaleValue extends ChartValue,
   TYScaleValue extends ChartValue,
+  TXScaleId extends string,
+  TYScaleId extends string,
 >(
   mark: ChartMark<
     TDatum,
     TXPointValue,
     TYPointValue,
     TXScaleValue,
-    TYScaleValue
+    TYScaleValue,
+    TXScaleId,
+    TYScaleId
   >,
   options: ChartFocusFilter = {},
-): ChartMark<TDatum, TXPointValue, TYPointValue, TXScaleValue, TYScaleValue> {
+): ChartMark<
+  TDatum,
+  TXPointValue,
+  TYPointValue,
+  TXScaleValue,
+  TYScaleValue,
+  TXScaleId,
+  TYScaleId
+> {
   return {
     ...mark,
     initialize(context) {

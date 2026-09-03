@@ -46,10 +46,10 @@ dimensions deterministic.
 ## Presentation and rendering
 
 `class` and the string `style` prop apply to the outer host. `className`
-applies to the rendered SVG surface. Interaction hooks such as
+applies to the rendered chart surface. Interaction hooks such as
 `onFocusChange` are callback props, not dispatched Svelte events. The package
-exposes the SVG component only; use `renderSvg` to replace SVG serialization
-without replacing the shared host.
+starts with SVG and can compose marks that use `canvasChartRenderer`. Use
+`renderSvg` to replace SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `ChartTooltipBodySnippetContext`, `ChartDefinition`, and `ChartPoint`.

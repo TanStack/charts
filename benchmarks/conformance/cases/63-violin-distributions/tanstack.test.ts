@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { isPenguinMass, massBoundaries, violinSpecies } from './selection'
-import { violinDefinition } from './tanstack'
+import { createExampleChart } from './tanstack'
 import type { ViolinSpecies } from './selection'
 import type {
   ChartPoint,
@@ -27,9 +27,7 @@ describe('violin distribution comparison', () => {
       const observations = penguins
         .filter(isPenguinMass)
         .slice(revision * 8, revision * 8 + 320)
-      const definition = violinDefinition({
-        width: 720,
-        height: 480,
+      const definition = createExampleChart({
         revision,
       })
       type Datum = ChartSpecDatum<typeof definition>
@@ -121,10 +119,10 @@ describe('violin distribution comparison', () => {
   it.each([320, 640, 960])(
     'keeps envelopes and median ticks symmetric in category-step units at %spx',
     (width) => {
-      const scene = createChartScene(
-        violinDefinition({ width, height: 480, revision: 0 }),
-        { width, height: 480 },
-      )
+      const scene = createChartScene(createExampleChart({ revision: 0 }), {
+        width,
+        height: 480,
+      })
       const areas = sceneAreas(scene.nodes)
       const rules = sceneRules(scene.nodes).filter((rule) =>
         rule.key.startsWith('median-ticks:'),
@@ -171,9 +169,7 @@ describe('violin distribution comparison', () => {
   )
 
   it('keeps semantic identities stable while resizing', () => {
-    const definition = violinDefinition({
-      width: 640,
-      height: 480,
+    const definition = createExampleChart({
       revision: 0,
     })
     const narrow = createChartScene(definition, { width: 320, height: 360 })
@@ -200,7 +196,7 @@ describe('violin distribution comparison', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/63-violin-distributions/tanstack.ts',
+        'benchmarks/conformance/cases/63-violin-distributions/example.tsx',
       ),
       'utf8',
     )

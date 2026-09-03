@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { aapl } from '@charts-poc/demo-data/aapl'
+import { aapl } from '@tanstack/charts-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { selectBollingerData } from './selection'

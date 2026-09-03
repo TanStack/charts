@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1960,
+  "id": "195-shadcn-tooltip-label-custom",
+  "title": "shadcn Tooltip - Custom label",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-label-custom example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "label custom", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-label-custom",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-custom"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-label-custom card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip label custom treatment, card dimensions, and light and dark tokens."
+  }
+}

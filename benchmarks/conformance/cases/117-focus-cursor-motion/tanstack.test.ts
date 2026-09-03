@@ -10,6 +10,7 @@ import {
   type ChartSpecDatum,
   type SceneNode,
 } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { focusMotionRows } from './model'
 import { catalogCase, focusCursorMotionDefinition, mount } from './tanstack'
@@ -125,7 +126,10 @@ describe('definition-owned focus cursor motion', () => {
       height: 400,
       revision: 0,
     } satisfies ConformanceInput
-    const mounted = mount(container, input)
+    let mounted!: ReturnType<typeof mount>
+    act(() => {
+      mounted = mount(container, input)
+    })
     const status = container.querySelector<HTMLOutputElement>(
       'output[aria-live="polite"]',
     )
@@ -137,17 +141,23 @@ describe('definition-owned focus cursor motion', () => {
     expect(status.parentElement).not.toBe(svg.parentElement)
     expect(status.style.display).toBe('')
 
-    mounted.update({ ...input, width: 720, revision: 1 })
+    act(() => {
+      mounted.update({ ...input, width: 720, revision: 1 })
+    })
     expect(
       container.querySelector<HTMLOutputElement>('output[aria-live="polite"]'),
     ).toBe(status)
     expect(status.isConnected).toBe(true)
 
-    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    act(() => {
+      svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    })
     expect(status.textContent).toMatch(/^Mon · (Alpha|Beta|Gamma) · 3 grouped$/)
     expect(status.isConnected).toBe(true)
 
-    mounted.destroy()
+    act(() => {
+      mounted.destroy()
+    })
     expect(status.isConnected).toBe(false)
     container.remove()
   })
@@ -182,17 +192,14 @@ describe('definition-owned focus cursor motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/117-focus-cursor-motion/tanstack.ts',
+        'benchmarks/conformance/cases/117-focus-cursor-motion/example.tsx',
       ),
       'utf8',
     )
     const definitionStart = source.indexOf(
       'export function focusCursorMotionDefinition()',
     )
-    const shellStart = source.indexOf(
-      'function createFocusStatus',
-      definitionStart,
-    )
+    const shellStart = source.length
     const definitionSource = source.slice(definitionStart, shellStart)
 
     expect(definitionSource).toContain('crosshair<string, number>({')
@@ -206,7 +213,15 @@ describe('definition-owned focus cursor motion', () => {
     expect(source).not.toContain('requestAnimationFrame')
     expect(source).not.toContain('createElementNS')
     expect(source).not.toContain('CrosshairOverlay')
-    expect(source).toContain('onRender(context')
+    const view = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/117-focus-cursor-motion/view.tsx',
+      ),
+      'utf8',
+    )
+    expect(view).toContain('onRender={(context) =>')
+    expect(view).toContain('<output')
   })
 })
 

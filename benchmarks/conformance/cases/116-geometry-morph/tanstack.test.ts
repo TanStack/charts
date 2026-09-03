@@ -171,7 +171,7 @@ describe('normalized-topology geometry morph', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/116-geometry-morph/tanstack.ts',
+        'benchmarks/conformance/cases/116-geometry-morph/example.tsx',
       ),
       'utf8',
     )
@@ -182,13 +182,23 @@ describe('normalized-topology geometry morph', () => {
       'function normalizedTopologyMark(',
       definitionStart,
     )
-    const shellStart = source.indexOf('function createControls', markStart)
+    const shellStart = source.indexOf(
+      'export function modeForRevision',
+      markStart,
+    )
     const definitionSource = source.slice(definitionStart, markStart)
     const customSource = source.slice(markStart, shellStart)
 
-    expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('settleChartMotion(chart')
-    expect(source).not.toContain('function settleMotion')
+    const view = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/116-geometry-morph/view.tsx',
+      ),
+      'utf8',
+    )
+    expect(view).toContain("from '../../shared/motion'")
+    expect(view).toContain('settleChartMotion(')
+    expect(view).not.toContain('function settleMotion')
     expect(source).not.toContain("from 'd3-shape'")
     expect(source).not.toContain("from 'd3-interpolate'")
     expect(definitionSource).toContain('defineChart({')
@@ -248,7 +258,7 @@ function motionContext(
 function resolveMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }
 

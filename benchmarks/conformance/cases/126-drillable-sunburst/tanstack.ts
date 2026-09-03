@@ -1,9 +1,7 @@
-import { defineChart } from '@tanstack/charts'
-import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+import { drillableSunburstDefinition } from './example'
+export { drillableSunburstDefinition } from './example'
 import { motion } from '@tanstack/charts/motion'
-import { polar } from '@tanstack/charts/polar'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { tooltip } from '@tanstack/charts/tooltip'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import {
   createSunburstCenterControl,
@@ -15,88 +13,17 @@ import {
   flareAggregateValue,
   flareHasChildren,
   flareLabel,
-  flareNodeColor,
   flareParentId,
   flarePreviewRootId,
-  flareRows,
-  flareVisibleDepth,
-  flareVisibleRingCount,
-  formatFlareValue,
 } from './model'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
+import type { FlareRow } from '@tanstack/charts-data/flare'
 import type { SunburstNode } from '@tanstack/charts/hierarchy/sunburst'
 import type { ChartPoint, ChartRendererHostOptions } from '@tanstack/charts'
-import type {
-  ConformanceInput,
-  ConformanceMount,
-  ConformanceTestDriver,
-} from '../../types'
+import type { ConformanceMount, ConformanceTestDriver } from '../../types'
+
+export { default as Example } from './example'
 
 type DrillDatum = SunburstNode<FlareRow>
-
-const tau = Math.PI * 2
-const ringPadding = 2
-
-export function drillableSunburstDefinition(rootId: string) {
-  const ringCount = flareVisibleRingCount(rootId)
-
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio: 0.92,
-        startAngle: Math.PI / 2,
-        endAngle: Math.PI / 2 - tau,
-        marks: [
-          sunburst(flareRows(), {
-            id: 'drillable-sunburst-arcs',
-            path: 'name',
-            delimiter: '.',
-            value: 'size',
-            rootId,
-            visibleDepth: flareVisibleDepth(rootId),
-            sort: (left, right) =>
-              right.value - left.value || left.name.localeCompare(right.name),
-            innerRadius: ({ radius }) => radius * 0.32,
-            outerRadius: ({ radius }) => {
-              const innerRadius = radius * 0.32
-              return (
-                innerRadius +
-                ((radius - innerRadius) * ringCount) / (ringCount + 1) +
-                Math.max(0, ringCount - 1) * ringPadding
-              )
-            },
-            ringPadding,
-            fill: (node) => flareNodeColor(node.id),
-            stroke: 'Canvas',
-            strokeOpacity: 0.9,
-            strokeWidth: 2,
-            motion(context) {
-              return {
-                delay:
-                  context.phase === 'enter'
-                    ? Math.min(context.datumIndex * 18, 160)
-                    : 0,
-                transition:
-                  context.phase === 'exit'
-                    ? { type: 'tween', duration: 320, easing: 'ease-out' }
-                    : undefined,
-              }
-            },
-          }),
-        ],
-      }),
-    ],
-    motion: {
-      transition: { type: 'tween', duration: 720, easing: 'ease-in-out' },
-    },
-    tooltip: {
-      use: tooltip,
-      format: ({ datum }) => `${datum.name} · ${formatFlareValue(datum.value)}`,
-    },
-    keyboard: true,
-    margin: 0,
-  })
-}
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

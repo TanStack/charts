@@ -42,8 +42,14 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/band.ts:BandXOptions', 'color fill key x z'],
     ['@tanstack/charts:src/band.ts:BandYOptions', 'color fill key y z'],
-    ['@tanstack/charts:src/bar.ts:BarXOptions', 'color fill key x x1 x2 y z'],
-    ['@tanstack/charts:src/bar.ts:BarYOptions', 'color fill key x y y1 y2 z'],
+    [
+      '@tanstack/charts:src/bar.ts:BarXOptions',
+      'color fill key stroke strokeDasharray x x1 x2 y z',
+    ],
+    [
+      '@tanstack/charts:src/bar.ts:BarYOptions',
+      'color fill key stroke strokeDasharray x y y1 y2 z',
+    ],
     ['@tanstack/charts:src/box.ts:BoxOptions', 'key'],
     ['@tanstack/charts:src/box.ts:BoxXCallOptions', 'motion'],
     ['@tanstack/charts:src/box.ts:BoxXOptions', 'x y'],
@@ -51,7 +57,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/box.ts:BoxYOptions', 'x y'],
     [
       '@tanstack/charts:src/difference.ts:DifferenceOptions',
-      'comparisonStroke key motion negativeFill positiveFill stroke z',
+      'comparisonStroke key negativeFill positiveFill stroke z',
     ],
     ['@tanstack/charts:src/difference.ts:DifferenceXOptions', 'x1 x2 y'],
     ['@tanstack/charts:src/difference.ts:DifferenceYOptions', 'x y1 y2'],
@@ -65,6 +71,10 @@ const callbackInventory = {
       'measureText onFocusChange onFocusGroupChange onRender onSelect onTooltipBodyChange',
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount.requestRender'],
+    [
+      '@tanstack/charts:src/dom-types.ts:UniversalChartRenderer',
+      'mount.requestRender',
+    ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartSurface',
       'subscribePresentationPoints.listener',
@@ -82,6 +92,10 @@ const callbackInventory = {
       'group navigation resolve',
     ],
     ['@tanstack/charts:src/focus.ts:axisFocus', 'group navigation resolve'],
+    [
+      '@tanstack/charts:src/polar-focus-internal.ts:focusGroupAngle',
+      'group navigation resolve',
+    ],
     ['@tanstack/charts:src/geo.ts:GeoProjectionDescriptor', 'type'],
     ['@tanstack/charts:src/geo.ts:GeoProjectionInput', '$call'],
     [
@@ -183,7 +197,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/network-force.ts:ForceFactoryDescriptor', 'create'],
     [
       '@tanstack/charts:src/network-sankey.ts:SankeyDiagramOptions',
-      'inset linkKey marks motion nodePadding nodeWidth',
+      'inset linkKey marks nodePadding nodeWidth',
     ],
     ['@tanstack/charts:src/network-sankey.ts:SankeyLayoutValue', '$call'],
     ['@tanstack/charts:src/polar.ts:AngleGridOptions', 'format'],
@@ -194,13 +208,11 @@ const callbackInventory = {
       'labelAnchor labelBaseline labelDx labelDy labelRotate',
     ],
     ['@tanstack/charts:src/polar.ts:PolarLength', '$call'],
-    [
-      '@tanstack/charts:src/polar-mark-internal.ts:PolarMark',
-      'initialize motion',
-    ],
+    ['@tanstack/charts:src/polar.ts:PolarMark', 'initialize motion'],
+    ['@tanstack/charts:src/polar.ts:InitializedPolarMark', 'render'],
     [
       '@tanstack/charts:src/polar-mark-internal.ts:InitializedPolarMark',
-      'motion render',
+      'motion',
     ],
     ['@tanstack/charts:src/polar-pie.ts:PieOptions', 'value'],
     [
@@ -336,6 +348,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:ChartMarkStateValue', '$call'],
     ['@tanstack/charts:src/types.ts:ChartMotionDefinition', '$call'],
+    ['@tanstack/charts:src/types.ts:ChartMotionTiming', 'delay'],
     ['@tanstack/charts:src/types.ts:ChartMotionTweenTransition', 'easing'],
     ['@tanstack/charts:src/types.ts:ChartScale', 'resolve'],
     ['@tanstack/charts:src/types.ts:ChartScaleResolver', '$call'],
@@ -357,6 +370,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:ResponsiveChartConfig', 'chart'],
     ['@tanstack/charts:src/types.ts:ResponsiveChartDefinition', 'chart'],
+    ['@tanstack/charts:src/scene.ts:DefinedResponsiveChart', 'chart'],
     ['@tanstack/charts:src/types.ts:InitializedMark', 'render resolveLayout'],
     [
       '@tanstack/charts:src/types.ts:InitializedMarkBase',
@@ -567,10 +581,7 @@ const callbackInventory = {
   // Consumer-called handles and lifecycle/service protocols are methods, not
   // application callbacks.
   serviceMethod: [
-    [
-      '@tanstack/angular-charts:src/Chart.ts:Chart',
-      'ngAfterViewInit ngOnChanges ngOnDestroy',
-    ],
+    ['@tanstack/angular-charts:src/Chart.ts:Chart', 'ngOnChanges ngOnDestroy'],
     [
       '@tanstack/angular-charts:src/ChartTooltipBody.ts:ChartTooltipBodyDirective',
       'ngTemplateContextGuard',
@@ -597,7 +608,24 @@ const callbackInventory = {
       'clear clearOwnedTransient createFocusState createFreeState destroy getState owns publish resolveFocus resolvePresentation subscribe subscribe.$return',
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartHost', 'destroy getScene update'],
+    ['@tanstack/charts:src/dom-types.ts:ChartLayerRenderer', 'compose'],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount prerender'],
+    [
+      '@tanstack/charts:src/dom-types.ts:ChartRendererTooltipMotionCapability',
+      'createController transition',
+    ],
+    [
+      '@tanstack/charts:src/dom-types.ts:ChartTooltipMotionController',
+      'afterPaint beforePaint destroy hide hide.complete',
+    ],
+    [
+      '@tanstack/charts:src/dom-types.ts:UniversalChartRenderer',
+      'mount prerender',
+    ],
+    [
+      '@tanstack/charts:src/dom-types.ts:UniversalChartLayerRenderer',
+      'compose',
+    ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartRendererHost',
       'destroy getScene update',

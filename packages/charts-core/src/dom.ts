@@ -40,13 +40,19 @@ export function mountChart<
       renderer,
       onRender: onRender
         ? ({ container: hostContainer, scene, surface, interaction }) => {
-            const svg = surface.element
+            const svg = surface.defaultElement ?? surface.element
             const SvgElement =
               container.ownerDocument.defaultView?.SVGSVGElement
             if (!SvgElement || !(svg instanceof SvgElement)) {
               throw new TypeError('Expected the SVG chart surface.')
             }
-            onRender({ container: hostContainer, scene, svg, interaction })
+            onRender({
+              container: hostContainer,
+              scene,
+              surface,
+              svg,
+              interaction,
+            })
           }
         : undefined,
     }

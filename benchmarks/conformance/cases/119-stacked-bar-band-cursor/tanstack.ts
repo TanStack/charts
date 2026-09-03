@@ -1,5 +1,5 @@
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { createStackedCursorRenderer, stackedCursorDefinition } from './chart'
+import { createStackedCursorRenderer, createExampleChart } from './example'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { tanstackCase } from '../../shared/mount'
 import {
@@ -14,9 +14,10 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
+export { default as Example } from './example'
+
 export const catalogCase = tanstackCase(
-  (input) =>
-    stackedCursorDefinition(stackedCursorRowsForRevision(input.revision)),
+  (input) => createExampleChart(stackedCursorRowsForRevision(input.revision)),
   'Crimean War deaths with x band and y rule cursors',
   true,
   {
@@ -42,8 +43,8 @@ export const mount: ConformanceMount = (container, input) => {
     return {
       definition:
         nextInput.preview === true
-          ? catalogPreviewDefinition(stackedCursorDefinition(rows))
-          : stackedCursorDefinition(rows),
+          ? catalogPreviewDefinition(createExampleChart(rows))
+          : createExampleChart(rows),
       renderer,
       width: nextInput.width,
       height: nextInput.height,

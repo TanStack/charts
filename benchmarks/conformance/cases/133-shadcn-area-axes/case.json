@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1340,
+  "id": "133-shadcn-area-axes",
+  "title": "shadcn Area Chart - Axes",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-axes example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "axes", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-axes",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-axes"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-axes card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area axes treatment, card dimensions, and light and dark tokens."
+  }
+}

@@ -259,6 +259,50 @@ describe('native mark and channel scene', () => {
     ).toBe(true)
   })
 
+  it('infers raw static and responsive specs before checking behaviors', () => {
+    const primary = [{ id: 'a', x: 0, y: 1 }]
+    const secondary = [{ name: 'b', x: 1, value: 2 }]
+    const marks = [
+      lineY(primary, { x: 'x', y: 'y' }),
+      lineY(secondary, { x: 'x', y: 'value' }),
+    ] as const
+    const tooltipExtension = {
+      id: 'test-tooltip',
+      create() {},
+      __chartExtensionType: 'tooltip',
+      __chartTooltipHost: 'dom',
+    } as const
+    const staticDefinition = defineChart(
+      { marks, ...linearAxes([0, 1], [0, 2]) },
+      {
+        keyboard: true,
+        tooltip: {
+          use: tooltipExtension,
+          format: ({ datum }) => ('id' in datum ? datum.id : datum.name),
+        },
+      },
+    )
+    const responsiveDefinition = defineChart(
+      () => ({ marks, ...linearAxes([0, 1], [0, 2]) }),
+      {
+        keyboard: true,
+        tooltip: {
+          use: tooltipExtension,
+          format: ({ datum }) => ('id' in datum ? datum.id : datum.name),
+        },
+      },
+    )
+
+    type Datum = (typeof primary)[number] | (typeof secondary)[number]
+    expectTypeOf(staticDefinition).toMatchTypeOf<ChartDefinition<Datum>>()
+    expectTypeOf(responsiveDefinition).toMatchTypeOf<ChartDefinition<Datum>>()
+    expect(responsiveDefinition.chart).toBeTypeOf('function')
+    expect(responsiveDefinition.keyboard).toBe(true)
+    expect(responsiveDefinition.tooltip).toMatchObject({
+      use: tooltipExtension,
+    })
+  })
+
   it('collects dense channels and interaction points without argument spreading', () => {
     const count = 200_000
     const values = Array<number>(count).fill(0)
@@ -329,12 +373,14 @@ describe('native mark and channel scene', () => {
               key: 'id',
             }),
           ],
-          x: {
-            scale: linearAxes([0, 30], [0, 10]).x.scale,
-            viewport: { domain: [10, 20], translate },
-            grid: true,
+          scales: {
+            x: {
+              scale: linearAxes([0, 30], [0, 10]).scales.x.scale,
+              viewport: { domain: [10, 20], translate },
+              grid: true,
+            },
+            y: { ...linearAxes([0, 30], [0, 10]).scales.y, grid: true },
           },
-          y: { ...linearAxes([0, 30], [0, 10]).y, grid: true },
         }),
         { width: 480, height: 260 },
       )
@@ -453,11 +499,13 @@ describe('native mark and channel scene', () => {
           }),
           lineY(history, { id: 'history-x', x: 'x', y: 'y', key: 'id' }),
         ],
-        x: {
-          scale: axes.x.scale,
-          viewport: { domain: [2, 8], translate: 36 },
+        scales: {
+          x: {
+            scale: axes.scales.x.scale,
+            viewport: { domain: [2, 8], translate: 36 },
+          },
+          y: axes.scales.y,
         },
-        y: axes.y,
         guides: false,
       }),
       { width: 480, height: 260 },
@@ -474,10 +522,12 @@ describe('native mark and channel scene', () => {
           }),
           lineY(history, { id: 'history-y', x: 'x', y: 'y', key: 'id' }),
         ],
-        x: axes.x,
-        y: {
-          scale: axes.y.scale,
-          viewport: { domain: [2, 8], translate: -24 },
+        scales: {
+          x: axes.scales.x,
+          y: {
+            scale: axes.scales.y.scale,
+            viewport: { domain: [2, 8], translate: -24 },
+          },
         },
         guides: false,
       }),
@@ -508,20 +558,22 @@ describe('native mark and channel scene', () => {
               key: 'id',
             }),
           ],
-          x:
-            axis === 'x'
-              ? {
-                  scale: axes.x.scale,
-                  viewport: { domain: [2, 8], translate: 0 },
-                }
-              : axes.x,
-          y:
-            axis === 'y'
-              ? {
-                  scale: axes.y.scale,
-                  viewport: { domain: [2, 8], translate: 0 },
-                }
-              : axes.y,
+          scales: {
+            x:
+              axis === 'x'
+                ? {
+                    scale: axes.scales.x.scale,
+                    viewport: { domain: [2, 8], translate: 0 },
+                  }
+                : axes.scales.x,
+            y:
+              axis === 'y'
+                ? {
+                    scale: axes.scales.y.scale,
+                    viewport: { domain: [2, 8], translate: 0 },
+                  }
+                : axes.scales.y,
+          },
           guides: false,
         }),
         { width: 480, height: 260 },
@@ -609,11 +661,13 @@ describe('native mark and channel scene', () => {
               : []),
             lineY(rows, { id: 'history-b', x: 'x', y: 'y', key: 'id' }),
           ],
-          x: {
-            scale: linearAxes([0, 10], [0, 10]).x.scale,
-            viewport: { domain: [2, 8], translate: 12 },
+          scales: {
+            x: {
+              scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+              viewport: { domain: [2, 8], translate: 12 },
+            },
+            y: linearAxes([0, 10], [0, 10]).scales.y,
           },
-          y: linearAxes([0, 10], [0, 10]).y,
           guides: false,
         }),
         { width: 480, height: 260 },
@@ -672,11 +726,13 @@ describe('native mark and channel scene', () => {
           annotation('fixed-annotation', 'fixed', true),
           annotation('content-annotation', 'content', false),
         ],
-        x: {
-          scale: linearAxes([0, 10], [0, 1]).x.scale,
-          viewport: { domain: [2, 8], translate: 20 },
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 1]).scales.x.scale,
+            viewport: { domain: [2, 8], translate: 20 },
+          },
+          y: linearAxes([0, 10], [0, 1]).scales.y,
         },
-        y: linearAxes([0, 10], [0, 1]).y,
         guides: false,
       }),
       { width: 480, height: 260 },
@@ -745,11 +801,13 @@ describe('native mark and channel scene', () => {
           lineY(rows, { id: 'history', x: 'x', y: 'y', key: 'id' }),
           fixed,
         ],
-        x: {
-          scale: linearAxes([0, 10], [0, 10]).x.scale,
-          viewport: { domain: [4, 6] },
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+            viewport: { domain: [4, 6] },
+          },
+          y: linearAxes([0, 10], [0, 10]).scales.y,
         },
-        y: linearAxes([0, 10], [0, 10]).y,
         guides: false,
       }),
       { width: 400, height: 200 },
@@ -795,11 +853,13 @@ describe('native mark and channel scene', () => {
             { x: 'x', y: 'y', text: 'label', key: 'id', anchor: 'end' },
           ),
         ],
-        x: {
-          scale: linearAxes([-100, 100], [0, 1]).x.scale,
-          viewport: { domain: [0, 1] },
+        scales: {
+          x: {
+            scale: linearAxes([-100, 100], [0, 1]).scales.x.scale,
+            viewport: { domain: [0, 1] },
+          },
+          y: linearAxes([-100, 100], [0, 1]).scales.y,
         },
-        y: linearAxes([-100, 100], [0, 1]).y,
         guides: false,
       }),
       { width: 400, height: 200 },
@@ -852,8 +912,10 @@ describe('native mark and channel scene', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([1, 3, 2])],
-        x: { ...linearAxes([0, 2], [0, 3]).x, grid: true },
-        y: { ...linearAxes([0, 2], [0, 3]).y, grid: true },
+        scales: {
+          x: { ...linearAxes([0, 2], [0, 3]).scales.x, grid: true },
+          y: { ...linearAxes([0, 2], [0, 3]).scales.y, grid: true },
+        },
       }),
       { width: 480, height: 260 },
     )

@@ -34,8 +34,10 @@ const revenue = [
 
 const chart = defineChart({
   marks: [barY(revenue, { x: 'month', y: 'value' })],
-  x: { scale: () => scaleBand<string>().padding(0.2) },
-  y: { scale: scaleLinear, nice: true, grid: true },
+  scales: {
+    x: { scale: () => scaleBand<string>().padding(0.2) },
+    y: { scale: scaleLinear, nice: true, grid: true },
+  },
 })
 ```
 

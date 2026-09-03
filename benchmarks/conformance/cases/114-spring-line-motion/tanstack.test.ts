@@ -165,21 +165,28 @@ describe('declarative spring line motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/114-spring-line-motion/tanstack.ts',
+        'benchmarks/conformance/cases/114-spring-line-motion/example.tsx',
       ),
       'utf8',
     )
     const start = source.indexOf('export function springLineMotionDefinition(')
-    const end = source.indexOf('function createControls', start)
+    const end = source.indexOf('export default function', start)
     const definitionSource = source.slice(start, end)
 
-    expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('controls.transition.addEventListener')
-    expect(source).toContain('controls.interrupt.addEventListener')
-    expect(source).toContain('controls.replay.addEventListener')
-    expect(source).toContain('setTimeout(() =>')
-    expect(source).toContain('settleChartMotion(chart')
-    expect(source).not.toContain('function settleMotion')
+    const view = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/114-spring-line-motion/view.tsx',
+      ),
+      'utf8',
+    )
+    expect(view).toContain("from '../../shared/motion'")
+    expect(view).toContain('onChange={(event) =>')
+    expect(view).toContain('onClick={interrupt}')
+    expect(view).toContain('onClick={replay}')
+    expect(view).toContain('window.setTimeout(() =>')
+    expect(view).toContain('settleChartMotion(')
+    expect(view).not.toContain('function settleMotion')
     expect(definitionSource).toContain('defineChart({')
     expect(definitionSource).toContain("id: 'primary'")
     expect(definitionSource).toContain("id: 'comparison'")
@@ -239,7 +246,7 @@ function motionContext(
 function resolveMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }
 

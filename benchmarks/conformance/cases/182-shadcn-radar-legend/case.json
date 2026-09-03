@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1830,
+  "id": "182-shadcn-radar-legend",
+  "title": "shadcn Radar Chart - Legend",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-legend example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "legend", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-legend",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-legend"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-legend card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar legend treatment, card dimensions, and light and dark tokens."
+  }
+}

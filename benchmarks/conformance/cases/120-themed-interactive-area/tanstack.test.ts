@@ -1,6 +1,6 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { themedInteractiveAreaDefinition } from './chart'
+import { createExampleChart } from './example'
 import { themedAreaRows } from './model'
 import { catalogCase, mount } from './tanstack'
 import type { ConformanceInput } from '../../types'
@@ -22,11 +22,7 @@ describe('themed interactive area', () => {
 
   it('owns its gradient, smooth geometry, sparse guides, and focus cursor', () => {
     const rows = themedAreaRows('30d')
-    const definition = themedInteractiveAreaDefinition(rows, {
-      width: 288,
-      height: 192,
-      preview: true,
-    })
+    const definition = createExampleChart('30d', 0, 288, 192, true)
     const scene = createChartRuntime<
       (typeof rows)[number],
       Date,
@@ -45,14 +41,14 @@ describe('themed interactive area', () => {
     expect(definition.motion).toMatchObject({
       transition: { type: 'spring', stiffness: 190, damping: 24 },
     })
-    expect(definition.x?.axis).toMatchObject({
+    expect(definition.scales.x?.axis).toMatchObject({
       line: false,
       ticks: { values: expect.any(Array), size: 0 },
     })
-    expect(definition.x?.axis).toMatchObject({
+    expect(definition.scales.x?.axis).toMatchObject({
       ticks: { values: expect.objectContaining({ length: 3 }) },
     })
-    expect(definition.y?.axis).toMatchObject({
+    expect(definition.scales.y?.axis).toMatchObject({
       line: false,
       ticks: { values: expect.arrayContaining([0]), size: 0 },
       tickLabels: false,

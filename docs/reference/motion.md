@@ -17,6 +17,8 @@ const renderer = motion({
 ```
 
 ```ts
+function motion(options?: ChartMotionOptions): UniversalChartRenderer
+
 function motion<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -24,28 +26,44 @@ function motion<
 >(options?: ChartMotionOptions): ChartRenderer<TDatum, TXValue, TYValue>
 
 interface ChartMotionOptions {
-  initial?: boolean
+  initial?: boolean | 'always'
   transition?: ChartMotionTransition
   respectReducedMotion?: boolean
   resize?: boolean
 }
 ```
 
-| Option                 | Default                                       | Meaning                                            |
-| ---------------------- | --------------------------------------------- | -------------------------------------------------- |
-| `initial`              | `true`                                        | Animate the first client render                    |
-| `transition`           | 1,100 ms tween with the default entrance ease | Renderer-wide fallback                             |
-| `respectReducedMotion` | `true`                                        | Snap when `prefers-reduced-motion: reduce` matches |
-| `resize`               | `false`                                       | Animate updates caused only by a chart size change |
+Use `motion(options)` beside a typed definition and let the host infer its
+datum and axis values. The explicit generic overload remains available when a
+low-level caller must type the renderer before it has a definition.
 
-Server-rendered SVG is adopted without replaying entrance motion. Keyed updates
-start from painted geometry. An interrupted spring carries its sampled value and
-velocity into the new target. A spring has no duration; it finishes when both
-`restSpeed` and `restDelta` are satisfied, with a 10-second safety limit.
+| Option                 | Default                                       | Meaning                                                       |
+| ---------------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| `initial`              | `true`                                        | Animate first client paint; `always` also replays adopted SVG |
+| `transition`           | 1,100 ms tween with the default entrance ease | Renderer-wide fallback                                        |
+| `respectReducedMotion` | `true`                                        | Snap when `prefers-reduced-motion: reduce` matches            |
+| `resize`               | `false`                                       | Animate updates caused only by a chart size change            |
+
+Server-rendered SVG is adopted without replaying entrance motion by default.
+Set `initial: 'always'` when a hydrated chart should replay the same entrance
+as a client-only mount. Keyed updates start from painted geometry. An
+interrupted spring carries its sampled value and velocity into the new target.
+A spring has no duration; it finishes when both `restSpeed` and `restDelta` are
+satisfied, with a 10-second safety limit.
+
+Initial choreography follows geometry: Cartesian bars and paths grow from
+their semantic baseline, radial lines and areas grow from the polar center,
+and arcs sweep through their authored angle. Keyed removals stay painted
+through their exit transition.
 
 Data-less `crosshair` marks use the same keyed focus-motion path. Rapid pointer
 or keyboard retargeting preserves the guide elements and incoming spring
 velocity; labels remain aligned to their moving rules.
+
+The built-in HTML tooltip also consumes this renderer's transition. Entry,
+movement, retargeting, and exit therefore use the same spring without copying
+the transition into the chart definition. A static renderer keeps the tooltip
+immediate and does not import the motion runtime.
 
 Use the renderer-neutral host in vanilla applications:
 
@@ -63,13 +81,19 @@ const host = mountChartRenderer(container, {
 ```
 
 React and Octane applications use their `/core` component entry and pass the
-same renderer. Other adapters currently expose their default SVG surface.
+same renderer. Other adapters start with their default SVG renderer, and a
+definition may still select Canvas for individual marks.
 
 ## Definition-local motion
 
 `motion` on a definition, mark, axis, tick collection, tick-label collection,
 or axis label is inert policy. The optional renderer consumes it. Definitions
 remain valid for static SVG and Canvas, which paint the final state.
+
+This stays true in a mixed chart. A mark that selects `canvasChartRenderer`
+keeps its authored motion option, but the Canvas layer paints the final scene
+instead of running the tween or spring policy. The optional `motion()` renderer
+still animates the default-renderer layers it owns.
 
 ```ts
 import { scaleBand } from '@tanstack/charts/scales/band'
@@ -98,19 +122,23 @@ const definition = defineChart({
       },
     }),
   ],
-  x: {
-    scale: scaleBand,
-    axis: {
-      ticks: { motion: { transition: { type: 'tween', duration: 180 } } },
-      tickLabels: { motion: { delay: 40 } },
+  scales: {
+    x: {
+      scale: scaleBand,
+      axis: {
+        ticks: { motion: { transition: { type: 'tween', duration: 180 } } },
+        tickLabels: { motion: { delay: 40 } },
+      },
     },
+    y: { scale: scaleLinear },
   },
-  y: { scale: scaleLinear },
 })
 ```
 
 The cascade is renderer default, chart, mark, axis, specific guide, then the
 active focus-state transition. Same-type transitions inherit omitted fields.
+Set `motion: false` at any definition scope to suppress inherited motion for
+that scope. A more specific child can re-enable motion with its own definition.
 An authored `delay` replaces automatic entrance staggering for that target.
 Spring updates begin immediately even when a definition returns a delay, so a
 retarget cannot freeze incoming momentum. Spring enter and exit delays, and
@@ -118,6 +146,62 @@ tween delays in every phase, are honored.
 
 All built-in marks accept `ChartMarkMotionOptions<TDatum>`. Nested polar marks
 also accept `motion`; their timing is merged below the parent `polar` mark.
+
+| Scope                          | Motion input                                         |
+| ------------------------------ | ---------------------------------------------------- |
+| Renderer fallback              | `motion({ transition })`                             |
+| Whole chart                    | `defineChart({ motion })`                            |
+| Any built-in mark              | The mark's `motion` option                           |
+| Axis, including its grid lines | `x.axis.motion` or `y.axis.motion`                   |
+| Tick rules                     | `axis.ticks.motion`                                  |
+| Tick labels                    | `axis.tickLabels.motion`                             |
+| Axis label                     | `axis.label.motion` when `label` is an object        |
+| Crosshair or focus guide       | The guide mark's `motion` option                     |
+| HTML tooltip                   | Inherits chart motion; `tooltip.motion` overrides it |
+
+Grid lines use their axis policy because they are part of that axis's guide
+system. `tooltip.motion: false` keeps the tooltip immediate even when chart
+geometry animates. Legends and application-owned controls are not marks and do
+not currently participate in the motion cascade.
+
+## Spreading timing utilities
+
+Use the isolated timing entry when the definition only needs motion policy:
+
+```ts
+import { stagger } from '@tanstack/charts/motion/definition'
+
+const definition = defineChart({
+  motion: {
+    path: 'morph',
+    ...stagger({ each: 35, by: 'series', roles: ['arc', 'bar'] }),
+  },
+  marks,
+  scales: {
+    x: null,
+    y: null,
+  },
+})
+```
+
+`stagger()` returns one context-aware `delay` field for direct object spread.
+It uses `datumIndex` by default, can use `seriesIndex`, defaults to the `enter`
+phase, and can filter by phase and semantic role. `offset` delays the first
+target. Normal object-spread order controls precedence, so an explicit `delay`
+written after `...stagger()` replaces it.
+
+```ts
+interface ChartMotionStaggerOptions {
+  each: number
+  offset?: number
+  by?: 'datum' | 'series'
+  phase?: ChartMotionPhase | readonly ChartMotionPhase[]
+  roles?: ChartMotionRole | readonly ChartMotionRole[]
+}
+```
+
+`stagger()` is also exported from `@tanstack/charts/motion`. The dedicated
+`/motion/definition` entry excludes the SVG renderer and spring solver.
 
 ## Timing types
 
@@ -152,15 +236,18 @@ interface ChartRollingPathMotion {
 
 type ChartMotionPath = 'morph' | ChartRollingPathMotion
 
-interface ChartMotionTiming {
-  delay?: number
+interface ChartMotionTiming<TDatum = unknown> {
+  delay?: number | ((context: ChartMotionContext<TDatum>) => number | undefined)
   transition?: ChartMotionTransition
   path?: ChartMotionPath
 }
 
 type ChartMotionDefinition<TDatum = unknown> =
-  | ChartMotionTiming
-  | ((context: ChartMotionContext<TDatum>) => ChartMotionTiming | undefined)
+  | false
+  | ChartMotionTiming<TDatum>
+  | ((
+      context: ChartMotionContext<TDatum>,
+    ) => false | ChartMotionTiming<TDatum> | undefined)
 
 interface ChartMarkMotionOptions<TDatum = unknown> {
   motion?: ChartMotionDefinition<TDatum>
@@ -196,8 +283,11 @@ const definition = defineChart({
     transition: { type: 'tween', duration: 800, easing: 'linear' },
   },
   marks: [lineY(rows, { x: 'time', y: 'value', key: 'id' })],
-  x: { scale: scaleUtc().domain([visibleStart, visibleEnd]) },
-  y: { scale: scaleLinear().domain([0, 100]) },
+  scales: {
+    x: { scale: scaleUtc().domain([visibleStart, visibleEnd]) },
+    y: { scale: scaleLinear().domain([0, 100]) },
+  },
+
   clip: true,
 })
 ```

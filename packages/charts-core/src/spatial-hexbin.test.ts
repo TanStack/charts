@@ -29,8 +29,10 @@ describe('spatial hexbin', () => {
       ],
       guides: false,
       focusRing: false,
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear },
+      scales: {
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      },
       color: {
         scale: scaleLinear<string>,
         range: ['#dbeafe', '#1d4ed8'],
@@ -77,8 +79,10 @@ describe('spatial hexbin', () => {
       marks: [hexbin(rows, { x: 'x', y: 'y', binWidth: 44 })],
       guides: false,
       focusRing: false,
-      x: { scale: scaleLinear().domain([0, 100]) },
-      y: { scale: scaleLinear().domain([0, 100]) },
+      scales: {
+        x: { scale: scaleLinear().domain([0, 100]) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+      },
     })
     const narrow = createChartScene(definition, { width: 220, height: 160 })
     const wide = createChartScene(definition, { width: 880, height: 160 })
@@ -112,8 +116,10 @@ describe('spatial hexbin', () => {
         defineChart({
           marks: [hexbin(rows, { x: 'x', y: 'y' })],
           guides: false,
-          x: { scale: scaleBand<number> },
-          y: { scale: scaleLinear },
+          scales: {
+            x: { scale: scaleBand<number> },
+            y: { scale: scaleLinear },
+          },
         }),
         { width: 320, height: 180 },
       ),

@@ -36,8 +36,10 @@ import { tooltip } from '@tanstack/charts/react-native/tooltip'
 
 const definition = defineChart({
   marks: [lineY([4, 9, 7])],
-  x: { scale: scaleLinear().domain([0, 2]) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  scales: {
+    x: { scale: scaleLinear().domain([0, 2]) },
+    y: { scale: scaleLinear().domain([0, 10]) },
+  },
   tooltip: { use: tooltip, sticky: true },
 })
 

@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-11
+Last updated: 2026-08-26
 
 ## Triage rule
 
@@ -52,7 +52,7 @@ Each entry records:
 | F-013 | Bar series identity also changed bar geometry                  | API                   | resolved   |
 | F-014 | Responsive nicing duplicates layout calculations               | API                   | resolved   |
 | F-015 | Legacy scale helpers compete with the D3-first API             | API                   | resolved   |
-| F-016 | Stats animated export still renders through Plot               | Integration/API       | resolved   |
+| F-016 | Stats animated export still renders through Plot               | Integration/API       | monitoring |
 | F-017 | React migration rebuilt a static definition                    | Documentation         | resolved   |
 | F-018 | Stats derivations still invalidate dynamic input               | Application           | resolved   |
 | F-019 | Custom tooltip formatting leaked float artifacts               | Application           | resolved   |
@@ -298,12 +298,39 @@ Each entry records:
 | F-259 | Chart resources cannot declare patterns                        | API                   | open       |
 | F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
-| F-262 | Mark inference accepted an unsupported style option            | API                   | open       |
+| F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 | F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
 | F-265 | Sunburst motion lost hierarchy across enter and exit           | API                   | resolved   |
 | F-266 | Path-token motion distorted polar sectors                      | API/Tooling           | resolved   |
 | F-267 | Stress timeouts entered a class temporal dead zone             | Tooling               | resolved   |
+| F-268 | Animated arc flags became invalid fractional path values       | API                   | resolved   |
+| F-269 | Angular mounted its browser host during server rendering       | API                   | resolved   |
+| F-270 | Catalog migration left generated release evidence stale        | Tooling               | resolved   |
+| F-271 | Radial focus collapsed angular cross-sections to centroids     | API                   | resolved   |
+| F-272 | Pointer probes armed between transient inactive frames         | Tooling               | resolved   |
+| F-273 | Catalog cases could not declare an application viewport height | Tooling               | resolved   |
+| F-274 | Upstream example clones had no drift boundary                  | Tooling               | resolved   |
+| F-275 | Preview transparency validation rejected semantic IDs          | Tooling               | resolved   |
+| F-276 | Definition coverage assumed a combined renderer module         | Tooling               | resolved   |
+| F-277 | Preview errors omitted the failing catalog case                | Tooling               | resolved   |
+| F-278 | Renderer checks could validate matching approximations         | Tooling               | resolved   |
+| F-279 | Radial grids could not render authored fills                   | API                   | resolved   |
+| F-280 | Chart motion did not reach HTML tooltips                       | API                   | resolved   |
+| F-281 | Bars could not express an authored outline                     | API                   | resolved   |
+| F-282 | Collection actions followed the viewport instead of the card   | Application           | resolved   |
+| F-283 | Interactive chart shells rendered inert controls               | Application           | resolved   |
+| F-284 | Stagger timing required repeated callback arithmetic           | API                   | resolved   |
+| F-285 | Absolute catalog links lost their docs navigation tab          | Documentation         | resolved   |
+| F-286 | Browser imports treated raw JSON as a source module            | Tooling               | resolved   |
+| F-287 | Motion renderers required definition type extraction           | API                   | resolved   |
+| F-288 | Generated examples exposed shared implementation scaffolding   | Tooling/API           | resolved   |
+| F-289 | Catalog workbenches exposed runtime bootstrap files            | Tooling               | resolved   |
+| F-290 | Public examples imported a private workspace package           | Tooling               | resolved   |
+| F-291 | Renderer capability injection depended on module identity      | API/Tooling           | resolved   |
+| F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
+| F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
+| F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 
 ## Findings
 
@@ -349,14 +376,18 @@ Each entry records:
   had to describe an axis it could never materialize.
 - Decision: derive each axis requirement from the marks' scale phantoms. A
   materialized dimension requires a configured scale. A dimension whose marks
-  all expose `never` may be omitted or explicitly set to `null`, and rejects a
-  configured phantom axis. Mixed charts require every dimension materialized
-  by any constituent mark. The runtime mirrors the type contract and renders
-  guides only for configured axes.
+  all expose `never` requires an explicit `null` reserved entry and rejects a
+  configured phantom axis at the precise authored type boundary. Every
+  definition explicitly declares both reserved entries. Mixed charts require
+  every dimension materialized by any constituent mark. Runtime validation
+  requires both reserved entries, rejects `null` for channels that materialize,
+  and renders guides only for configured axes. It cannot recover type-only
+  scale phantoms after a custom mark or stored definition has been erased.
 - Verification: focused type-contract and configured-scale tests cover
-  required Cartesian axes, mixed charts, omitted positionless axes, rejected
-  phantom axes, one-dimensional rules, runtime guards, and guide suppression.
-  Root typecheck passes.
+  required Cartesian axes, mixed charts, explicit null positionless axes,
+  rejected configured phantom axes, one-dimensional rules, deferred custom
+  marks, erased definitions, runtime guards, and guide suppression. Root
+  typecheck passes.
 
 ### F-004 — A radius channel silently imported continuous D3
 
@@ -632,7 +663,7 @@ Each entry records:
 
 ### F-016 — Stats animated export still renders through Plot
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Integration/API
 - Observed in: TanStack Stats default-renderer cutover
@@ -820,7 +851,7 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
-- Owner: Tooling
+- Owner: Tooling/API
 - Observed in: cross-library bundle and browser comparison matrix; executable
   catalog production loading
 - Friction: re-exporting one benchmark mount from a module containing four
@@ -836,6 +867,11 @@ Each entry records:
   two broad `import.meta.glob('./cases/*/*.ts')` registries. Its default entry
   registered 584 implementation and raw-source imports, including every
   comparison renderer, data/helper modules, and a `tanstack.test.ts` file.
+  Even after the production graph was narrowed, its public source entry was
+  still the conformance `tanstack.ts` adapter. Opening an example in the docs
+  therefore started on mount plumbing and followed shared harness modules
+  instead of showing the chart definition; some sandboxes contained source
+  from unrelated examples.
 - Decision: give each chart type an isolated entry module and share only the
   renderer-free host setup. Renderer-specific helpers with runtime imports
   live in separate modules. Tier variants also use direct build-time globals;
@@ -865,13 +901,22 @@ Each entry records:
   Every published TanStack root receives the same static-closure
   comparison-package check. The schema-v3 artifact validator rejects
   unreferenced files, unsafe paths, missing imports, invalid preloads, invalid
-  authored-source roles, and a comparison module not marked debug-only.
+  authored-source roles, and a comparison module not marked debug-only. The
+  source catalog now publishes one case-local `example.tsx` root per case.
+  Conformance adapters import that public definition, while the docs runtime
+  supplies its own hidden React mount entry and rejects any relative import
+  that leaves the case directory. `pnpm catalog:examples:check` validates all
+  188 public roots, their default exports, definition-first source order,
+  adapter ownership, unused source, and isolated relative source closures. The
+  largest public TypeScript closure contains four files. The shadcn generator
+  prunes unused variant helpers before writing each public example, while
+  hidden catalog adapters retain deterministic preview framing and focus.
 
 ### F-025 — Bundle maintenance clobbered the full comparison report
 
 - Status: resolved
 - Severity: medium
-- Owner: Tooling
+- Owner: Tooling/API
 - Observed in: tiered cross-library benchmark validation
 - Friction: `benchmark:check` and `benchmark:update-baseline` wrote their
   size-only result to the canonical comparison paths. Running normal
@@ -1010,9 +1055,8 @@ Each entry records:
   rectangle endpoints remain inferred, widened rectangle options remain
   compatible, and custom marks and `ChartScale` retain the unchecked path.
   Public `ChartMarkPointX`/`ChartMarkPointY` helpers expose interaction values
-  separately from `ChartMarkScaleX`/`ChartMarkScaleY`. The pre-existing
-  `ChartMarkX`/`ChartMarkY` names remain point aliases rather than silently
-  changing meaning. The explicit helpers ship from the advanced
+  separately from `ChartMarkScaleX`/`ChartMarkScaleY`. The explicit helpers
+  ship from the advanced
   `mark/scale-values` subpath: exporting them from the ergonomic root changed
   esbuild symbol ordering by 1–5 gzip bytes despite erasing at runtime, so the
   exact ordinary-bundle gate rejected that shape.
@@ -4428,6 +4472,14 @@ Each entry records:
   `tree/v<version>` and `blob/v<version>` links as release references, validates
   their exact count, and advances them with the package version. The focused
   regression counts only the matching version tag.
+- `0.15.0` follow-up: all twelve shipped Intent skills still targeted 0.9.0.
+  Intent defines `metadata.library_version` as the source library version the
+  skill targets and reports drift against the currently published version. The
+  release synchronizer now includes every shipped `SKILL.md` with one exact
+  version reference. A focused regression discovers the shipped skill
+  directories and rejects any skill missing from the allowlist, then the normal
+  reference test checks that every tracked skill matches the current package
+  version.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -5237,32 +5289,38 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: Documentation/Tooling
-- Observed in: catalog review of the axis-pointer tooltip, interactive legend,
-  linked data table, focus/context window, pinned nested-chart tooltip,
-  streaming controls, synchronized and free cursors, range brush, and time zoom
+- Observed in: catalog review of the catalog application, axis-pointer
+  tooltip, interactive legend, linked data table, focus/context window, pinned
+  nested-chart tooltip, resource timeline, streaming controls, synchronized and
+  free cursors, range brush, time zoom, playback, editable range, motion, and
+  calendar examples
 - Friction: the public TanStack examples assembled application-owned legends,
   tables, tooltip rows, buttons, and nested chart containers with long
   `createElement`, mutation, and listener blocks. The chart grammar remained
   visible, but the surrounding composition was unfamiliar copy-paste material
   for the primary React audience and obscured the adapter's intended ownership
-  boundary.
-- Decision: render application-owned composition with React and
-  `@tanstack/react-charts`, while keeping chart-only examples and the direct
-  `mountChart` lifecycle framework-neutral. A small conformance-only React
-  mount adapter translates the benchmark's mount, update, driver, and destroy
-  contract without entering authored-source totals. Catalog source discovery,
-  artifact validation, and raw-source publication now follow `.tsx` support
-  modules and classify the React bridge as harness code.
-- Verification: the focused TypeScript build reports zero diagnostics; source
-  loader, artifact, source-file, and source-view suites pass; and the
-  schema-v4 catalog build publishes all 102 cases with valid recursive source
-  closures. The definition-shape check follows migrated `view.tsx` modules, and
-  the loading graph accepts their lazy `.tsx?raw` source entries. Chromium
-  quick-profile checks pass visual and semantic interaction scenarios for all
-  ten migrated cases at 320px and 640px across both data revisions. Their
-  authored-source ratios remain 0.80–1.17× of the selected references, and the
-  measured isolated bundles include React rather than silently treating it as
-  benchmark-external infrastructure.
+  boundary. The catalog application itself still used `innerHTML`, string
+  templates, selector rebinding, and manual listener cleanup, and later
+  interaction and motion examples repeated the same application-shell pattern.
+- Decision: assume React for the catalog application and all application-owned
+  example composition, using `@tanstack/charts/react`. Keep direct DOM access
+  only at actual browser integration boundaries such as metadata, measurement,
+  renderer mounting, and conformance inspection. Chart-only lifecycle fixtures
+  and third-party reference adapters may stay imperative when they do not
+  author application UI. A small conformance-only React mount adapter translates
+  the benchmark's mount, update, driver, and destroy contract without entering
+  authored-source totals. Catalog source discovery, artifact validation, and
+  raw-source publication follow `.tsx` support modules and classify the React
+  bridge as harness code.
+- Verification: root TypeScript reports zero diagnostics; the focused React
+  example, source-loader, source-file, source-view, and catalog-index suites
+  pass; and the production catalog build publishes all 111 cases with valid
+  recursive source closures. Chromium quick-profile checks pass visual and
+  semantic interaction scenarios for all 14 examples migrated in the follow-up
+  at 320px and 640px across both data revisions. The browser run also verifies
+  preserved horizontal scroll, semantic synchronized focus, free-cursor input
+  precision, brush and zoom controls, playback, editable dates, motion, and the
+  calendar shell.
 
 ### F-179 — Animation clocks drift at fixed frame indices
 
@@ -7772,7 +7830,7 @@ Each entry records:
 
 ### F-262 — Mark inference accepted an unsupported style option
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: hiding the unfocused dots in the themed area case 120
@@ -7780,10 +7838,20 @@ Each entry records:
   preserving generic options overload accepts extra keys, but `DotOptions`
   does not own base `opacity` and the renderer silently ignored it. State
   styles do accept `opacity`, so the boundary was especially easy to misread.
-- Current decision: case 120 sets both `fillOpacity` and `strokeOpacity` to
-  zero, then restores them in focused states. Keep an exact-options check or a
-  consistent base-opacity contract open for the mark family; do not add a
-  runtime-only special case for dots.
+- Decision: keep the distinct base style contracts and give public mark
+  factories fixed-key contextual option signatures. Per-property const
+  generics retain direct channel and named-scale inference, while fresh object
+  literals receive normal TypeScript excess-property checks. Generic
+  `Options` and `Options | undefined` forwarding wrappers remain assignable.
+  Predeclared structural supersets remain accepted, which matches standard
+  TypeScript behavior. The helpers are type-only and add no runtime code or
+  bundle weight.
+- Verification: `cartesian-scale-types.test.ts` infers named scale IDs across
+  every Cartesian built-in factory and a polar mark, keeps reserved scale IDs
+  for explicit `undefined`, and compiles whole-options and optional forwarding
+  wrappers. Negative type checks reject fresh dot `opacity` and unknown keys
+  on Cartesian, composite, and polar factories. The focused strict TypeScript
+  compile and the full workspace `pnpm typecheck` pass.
 
 ### F-263 — Chromium transport and context churn interrupted catalog previews
 
@@ -7892,3 +7960,548 @@ Each entry records:
   with the expected prototype, name, and duration message. The retry suite,
   stress-runner syntax check, full repository validation, and rerun GitHub
   stress partition pass.
+
+### F-268 — Animated arc flags became invalid fractional path values
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: GitHub issue #71 and the SVG reconciliation regression
+- Friction: the default motion renderer interpolated every number in a path's
+  `d` attribute. SVG arc flags are discrete `0` or `1` values, so a flag change
+  produced invalid fractional flags and could hide an arc during its tween.
+- Decision: identify the large-arc and sweep positions in every `A`/`a`
+  command, snap those values to the target flag, and continue interpolating the
+  remaining path geometry.
+- Verification: the focused reconciliation test changes both flags while
+  interpolating arc radii and endpoints, and asserts valid flags at the
+  midpoint and exact target geometry at completion. A second regression covers
+  the SVG grammar's adjacent `00` and `01` flag pairs. Bundle review attributes
+  250 minified and 133–145 gzip bytes across the four locked DOM consumers to the
+  shared correctness fix; the exact baselines and six complete-consumer
+  ceilings record that reviewed cost.
+
+### F-269 — Angular mounted its browser host during server rendering
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: GitHub issue #56 and Angular server-rendering regression
+- Friction: `ngAfterViewInit` runs during Angular SSR, so the adapter mounted
+  the DOM host against the server element and called browser-only measurement
+  or mutation methods.
+- Decision: keep synchronous SVG prerendering in the shared adapter and defer
+  only browser-host mounting through Angular's `afterNextRender`, which does
+  not run on the server.
+- Verification: the official Angular `renderApplication` pipeline emits the
+  complete labeled SVG without mounting the DOM host, while the existing
+  browser test still covers mount, update, and destroy.
+
+### F-270 — Catalog migration left generated release evidence stale
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: release validation after the React catalog migration in #84
+- Friction: the migration moved four application shells into React views and
+  renamed the token-calendar shell to TSX without updating roadmap ownership
+  or the audit link. It also changed catalog source inputs without refreshing
+  preview provenance. Current `main` therefore failed both the unit and
+  catalog-preview release gates.
+- Decision: point roadmap ownership at the active `view.tsx` and `shell.tsx`
+  files, repair the audit link, and regenerate catalog preview provenance.
+- Verification: the focused roadmap test and catalog preview check pass. The
+  only rendered asset change normalizes synchronized-cursor point keys from
+  timestamp labels to the migrated ISO date labels; geometry is unchanged.
+
+### F-271 — Radial focus collapsed angular cross-sections to centroids
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: radial tooltip interaction review
+- Friction: polar lines, areas, and dots exposed only Cartesian centroid
+  anchors to the default nearest-point resolver. Moving around one semantic
+  angle could select a different radius or adjacent angle, and grouped radial
+  tooltips had no equivalent of `group-x`. `radialArc` also emitted a centroid
+  without attaching its already available painted boundary, so pie and donut
+  focus could disagree with the visible slice.
+- Decision: export `focusGroupAngle` from the exact polar subpath. It selects
+  the nearest bounded radial ray, uses radius distance as the primary-point
+  tie-breaker, groups one point per series at the same semantic angle, and
+  orders keyboard tasks angularly. Keep the strategy out of ordinary and
+  universal barrels. Attach the existing D3-replayed interaction boundary to
+  every `radialArc`, including authored generators.
+- Verification: focused polar tests resolve two series from a one-pixel
+  angular ray while both anchors are farther away, preserve the closest radius
+  as primary, and reduce keyboard navigation to one task per semantic angle.
+  Arc tests hit the painted annulus at zero fallback distance, reject its hole,
+  and reuse the exact point attached to the scene geometry. Polar, radial-bar,
+  sunburst, callable-surface, documentation, and root TypeScript checks pass.
+  The measured polar arc is 15.06 KiB gzip, gauge 24.08, radial labels 20.66,
+  radial bars 24.17, and polar line/scatter 25.28; their isolated ceilings now
+  record those reviewed interaction costs while the locked representative-mark
+  bundle remains unchanged at 25.59 KiB gzip.
+
+### F-272 — Pointer probes armed between transient inactive frames
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: radial-focus release PR stress partition 3
+- Friction: the Chart.js grouped-pointer cell moved outside the chart and
+  accepted its first inactive frame as settled. Its activation timer then
+  observed the tooltip active again and failed before measuring the target.
+  The exact cell passed locally, confirming a scheduling race rather than a
+  radial-focus regression, but the correctness failure was intentionally not
+  retryable.
+- Decision: require two consecutive inactive animation frames before arming
+  pointer activation timing. Keep renderer and correctness failures
+  non-retryable; this stabilizes the measured precondition instead of hiding a
+  failed sample with another attempt.
+- Verification: the exact Chart.js grouped-pointer cell and the complete quick
+  partition 3 pass with trusted activation, exact grouped series values, and
+  zero recovered retries.
+
+### F-273 — Catalog cases could not declare an application viewport height
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: reproducing shadcn/ui's dashboard as a renderer-comparison case
+- Friction: the catalog fixed every case at 480 pixels tall, which clipped a
+  full application shell and made its Recharts and TanStack renderers impossible
+  to inspect as one shared viewport.
+- Decision: allow validated case metadata to declare an optional height and use
+  it for catalog cards, mounts, updates, and embeds while retaining 480 pixels
+  as the default.
+- Verification: metadata tests accept the dashboard's 860-pixel height, the
+  conformance example build passes, and Chromium renders both comparison panels
+  at 960 by 860 pixels without root overflow.
+
+### F-274 — Upstream example clones had no drift boundary
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: spiking a maintained TanStack clone of the shadcn chart catalog
+- Friction: an example's source URL recorded where it came from, but did not
+  identify the exact upstream revision or detect changed, added, and removed
+  examples. Visual clones could silently diverge from shadcn's 70-file catalog.
+- Decision: pin the upstream commit, registry blob, and each example's Git blob
+  SHA in one manifest. Keep normal validation offline and add an explicit remote
+  drift command that compares the manifest with shadcn's current Git tree.
+- Verification: the inventory test requires all 70 files, exact family counts,
+  unique local mappings, and reports synthetic source changes, additions, and
+  removals. The offline command verifies all five spike mappings.
+
+### F-275 — Preview transparency validation rejected semantic IDs
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: generating the shadcn radial-text catalog preview
+- Friction: the preview validator searched the complete SVG string for
+  `background:`. A valid semantic key such as `radial-background:object`
+  therefore failed the transparent-background gate.
+- Decision: detect an actual CSS `background` declaration after a rule or
+  declaration boundary, without reserving ordinary chart IDs.
+- Verification: the preview regression accepts the semantic background key and
+  continues to reject an authored CSS background declaration.
+
+### F-276 — Definition-shape coverage assumed a combined renderer module
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: isolating TanStack and Recharts bundle graphs for the shadcn
+  catalog spike
+- Friction: the definition-shape gate scanned `tanstack.ts`, `view.tsx`, and
+  `chart.ts`, but ignored a renderer-specific `tanstack-view.tsx`. Splitting the
+  two implementations for honest bundle measurement made five valid static
+  definitions disappear from coverage.
+- Decision: include renderer-specific TanStack view modules in the definition
+  scanner while retaining the existing entry and shared-view conventions.
+- Verification: the shape gate finds all 122 definitions again: 117 static and
+  five responsive.
+
+### F-277 — Preview errors omitted the failing catalog case
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: generating static previews for the 70-case shadcn collection
+- Friction: the renderer's clipped-label diagnostic described the labels and
+  bounds but omitted the case ID and theme. A full-catalog run therefore could
+  not identify which new example needed a margin correction.
+- Decision: wrap presentation-validation failures with the current case ID and
+  theme while retaining the original error as the cause.
+- Verification: the next full preview run reports any failed case directly.
+
+### F-278 — Renderer conformance could validate two matching approximations
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: expanding the shadcn chart collection from five measured cases
+  to all 70 upstream examples
+- Friction: geometry and paint checks compared TanStack Charts with a local
+  Recharts implementation built from the same simplified family spec. Both
+  renderers could agree while their card, data, layout, and variant behavior
+  visibly differed from the official shadcn output. The later whole-card gate
+  still allowed a wrong chart type to pass because white card pixels dominated
+  the score.
+- Decision: capture every official shadcn card at a fixed 640-pixel viewport
+  and compare the complete TanStack card screenshot against that committed
+  baseline. Require at least 90% pixel similarity and 70% similarity over the
+  union of non-white pixels in a fixed chart region for every case; retain
+  failed local and diff images for review.
+- Verification: the full gate passes all 70 whole-card and chart-region checks.
+  Whole-card similarity averages above 97%, and every chart-region score is
+  above 75%. The earlier wrong radial-stacked implementation would fail at
+  20.9%. The pinned inventory check also requires one baseline image per
+  catalog entry and an ordered 70-case reference manifest.
+
+### F-279 — Radial grids could not render authored fills
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: reproducing shadcn's filled polygon and circle radar grids
+- Friction: `RadialGridOptions` exposed only stroke styling and the renderer
+  hard-coded every ring to `fill: none`. Shadcn's filled-grid variants therefore
+  required a separate approximation instead of expressing their source grid.
+- Decision: expose `fill` and `fillOpacity` on `RadialGridOptions` and forward
+  both values to every generated ring.
+- Verification: the polar scene test asserts an authored radial-grid fill and
+  opacity, and the two filled shadcn radar variants pass the chart-foreground
+  visual gate above 97%.
+
+### F-280 — Chart motion did not reach HTML tooltips
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: applying the shadcn spring preset to the complete chart catalog
+- Friction: chart and mark motion animated renderer geometry, but the HTML
+  tooltip was owned by a separate extension and appeared, moved, and vanished
+  immediately. The first tooltip motion pass also restarted every move from the
+  prior target instead of the spring's live position and velocity, so crossing
+  points quickly produced visible jumps. Applying one motion policy therefore
+  produced a visibly split interaction.
+- Decision: let the optional `motion()` renderer attach an internal tooltip
+  motion controller to the host. The tooltip inherits that renderer's fallback
+  or a static chart-level transition, while `tooltip.motion` can override or
+  disable it. Keep translation independent from presence motion, and retarget
+  springs from their current sampled position and velocity. The public tooltip
+  extension contract stays renderer-neutral.
+- Verification: the renderer test asserts that a chart spring produces sampled
+  tooltip keyframes, keeps the tooltip mounted until its exit completes, and
+  preserves both visual position and travel direction across a mid-flight
+  retarget. The tooltip-only bundle retains neither `motion.ts` nor `spring.ts`
+  and measures 4.37 KiB gzip.
+
+### F-281 — Bars could not express an authored outline
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: reproducing shadcn's active-bar example
+- Friction: `barX` and `barY` exposed fill paint but not base stroke paint. The
+  selected Firefox bar therefore could not reproduce the upstream dashed
+  outline without replacing the mark or abusing focus-state styling.
+- Decision: expose visual `stroke` and `strokeDasharray` channels plus
+  `strokeOpacity` and `strokeWidth` on both bar orientations.
+- Verification: the bar scene test resolves per-datum outlines for horizontal
+  and vertical bars, and the active-bar screenshot passes at 98% whole-card and
+  97% chart-region similarity.
+
+### F-282 — Collection actions followed the viewport instead of the card
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: browsing the two-column ShadCN collection
+- Friction: every collection preview reserved the case's fixed conformance
+  viewport height, while the rendered ShadCN card was often much shorter. The
+  Code, Preview, and Original actions followed the reserved viewport rather
+  than the visible card, leaving roughly 280 pixels of empty space and making
+  the actions appear to belong to the next row.
+- Decision: retain the full height as the chart's rendering input, then size
+  the collection preview shell to the rendered card. Observe the card so the
+  shell follows responsive height changes without coupling the gallery to
+  per-case dimensions.
+- Verification: the live Radar collection now measures each preview shell to
+  its visible card and places the action row 14 pixels below it at both columns;
+  resizing continues to refit through the card observer.
+
+### F-283 — Interactive chart shells rendered inert controls
+
+- Status: resolved
+- Severity: high
+- Owner: Application
+- Observed in: the generated ShadCN area, bar, line, and pie interactive cases
+- Friction: the catalog reproduced the controls visually with static `div`
+  elements, but they had no input semantics or state. The pie month picker,
+  area range picker, and desktop/mobile metric panels could not change their
+  charts even though each case was explicitly named interactive.
+- Decision: keep interaction state in the shared React example shell and
+  rebuild the selected chart definition from that state. Use native select and
+  button semantics, preserve the official labels and active treatment, and
+  keep the four behaviors centralized rather than adding state code to every
+  generated case.
+- Verification: DOM regressions change the area range, both metric-series
+  charts, and the active pie month and assert the plotted geometry or paint
+  changes. Browser checks confirm the 7-day area path and ticks, mobile bar and
+  line geometry and colors, and May pie slice, swatch, and center value.
+
+### F-284 — Stagger timing required repeated callback arithmetic
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: evaluating optional entrance staggering for stacked radial and
+  pie compositions
+- Friction: every definition had to repeat phase filters, role filters, index
+  selection, and delay arithmetic. Combining that callback with an existing
+  transition or rolling-path definition required another handwritten merge.
+  An initial `composeMotion()` helper recovered composition but made ordinary
+  timing objects unnecessarily indirect.
+- Decision: allow `ChartMotionTiming.delay` to resolve from motion context and
+  make `stagger()` return that single partial timing field. It composes through
+  native object spread, whose order also defines conflict precedence. Export it
+  from `/motion` for convenience and `/motion/definition` as an isolated
+  policy-only entry.
+- Verification: unit tests cover datum and series staggering, phase and role
+  filters, offsets, invalid inputs, native spread, and field precedence. The
+  isolated entry is 0.26 KiB gzip and retains neither the SVG motion renderer
+  nor spring physics.
+
+### F-285 — Absolute catalog links lost their docs navigation tab
+
+- Status: resolved
+- Severity: low
+- Owner: Documentation
+- Observed in: adding the ShadCN collection to the Charts docs navigation
+- Friction: tanstack.com's fallback tab inference recognizes docs example
+  paths, but an absolute `/charts/catalog/collections/shadcn` link contains no
+  `examples` segment. The valid link was therefore assigned to Guides and
+  disappeared while browsing the catalog's Examples tab.
+- Decision: declare `tab: "examples"` on the collection link instead of relying
+  on path inference for a non-docs route.
+- Verification: the local tanstack.com collection route renders the
+  `shadcn/ui Charts` sidebar item as active under Examples.
+
+### F-286 — Browser imports treated raw JSON as a source module
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: opening the published ShadCN area-interactive catalog example
+- Friction: the example imported an extensionless JSON fixture through the
+  catalog's revision-pinned esm.sh source prefix. esm.sh returned 404 because
+  raw JSON was not a resolvable JavaScript entry, leaving the sandbox root
+  empty while its status remained Running. The same fixture affected the area,
+  bar, and line interactive examples.
+- Decision: expose the fixture as a TypeScript module and validate every
+  catalog demo-data import against a browser-loadable JavaScript or TypeScript
+  source module. JSON and declaration-only files no longer satisfy the public
+  example contract.
+- Verification: the catalog contract validates all example imports, and the
+  revision-pinned esm.sh URL for the fixture returns a JavaScript module that
+  renders the production sandbox.
+
+### F-287 — Motion renderers required definition type extraction
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: making every catalog example show its authored chart before its
+  React shell
+- Friction: `motion()` fixed its datum and axis generics when the renderer was
+  created, before `RendererChart` received the definition that already knew
+  those types. Seventy generated examples therefore extracted three conditional
+  types from the definition only to pass them back to `motion<...>()`.
+- Decision: let the optional motion factory return a definition-agnostic
+  renderer whose generic methods acquire chart types from the host. Preserve
+  the explicit generic overload for low-level callers.
+- Verification: the React type contract passes `motion()` directly beside a
+  typed definition, all 188 catalog entries typecheck, and no public example
+  contains a `motion<...>()` instantiation.
+
+### F-288 — Generated examples exposed shared implementation scaffolding
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: auditing the source shown for every catalog example
+- Friction: generated ShadCN entries copied a complete shared stylesheet,
+  repeated definition type aliases and null component branches, and wrapped
+  the actual definition in another `defineChart()` call. Eighty-five older
+  catalog entries also exposed a generated `definition()` →
+  `createExampleChart()` chain. Seventy-nine public factories retained a
+  generic `ExampleOptions` bag containing dimensions, preview flags, and other
+  fields the authored definition never read. Merging tooltip behavior into the chart object
+  during cleanup made callback datum inference fall back to `unknown`.
+  Decorative guides also polluted the inferred interactive datum union even
+  though they cannot own focus or tooltip points. The newly exercised
+  `defineChart(responsiveFactory, behaviors)` path also exposed a runtime bug:
+  the constructor spread the factory like an object and silently dropped it.
+- Decision: make each case-local `example.tsx` and stylesheet authoritative,
+  delete the 2,152-line shared ShadCN implementation and its source-extraction
+  script, and limit generation to metadata and conformance adapters. Collapse
+  every delegating definition factory into the public example factory, and
+  keep `defineChart(chart, behaviors)` as one call with two inference phases.
+  Raw static and responsive overloads infer the chart before behaviors, while
+  `decorative()` contributes scale types but no interactive datum type.
+  Preserve a responsive factory as the definition's `chart` callback when
+  separate behaviors are supplied.
+  Omit unused component branches, empty spreads, unused option fields, and
+  unused CSS. Name the remaining definition-driving input `ChartOptions`. Keep
+  conformance adapters and Recharts references outside the public import
+  closure; interaction tests import the real examples directly.
+- Verification: generation produces 70 entries whose public factory contains
+  the authored definition, the catalog contract rejects nested or locally
+  delegated definitions and validates 188 self-contained entries with a
+  largest TypeScript closure of four files. The cleanup is idempotent after a
+  fresh 70-case ShadCN metadata generation. A catalog-wide cleanup reduces all
+  79 legacy option bags to the properties their definitions actually read and
+  rejects the old `ExampleOptions` surface. The complete workspace typecheck, 1,877
+  unit tests, packed-package checks, 188 generated preview checks, and 70/70
+  ShadCN visual comparisons pass.
+
+### F-289 — Catalog workbenches exposed runtime bootstrap files
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: opening Charts examples on tanstack.com
+- Friction: `/__catalog.tsx` and `/index.html` are generated execution plumbing,
+  but the workbench displayed both beside authored source. They were also
+  retained as visible files after sharing an example.
+- Decision: mark generated bootstrap paths as hidden example metadata. Keep
+  them in the executable workspace while filtering them from initial-file
+  selection, tabs, the file explorer, and shared-project views.
+- Verification: tanstack.com catalog and shared-project contract tests preserve
+  the hidden paths while confirming both bootstrap files remain runnable.
+
+### F-290 — Public examples imported a private workspace package
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: opening all 188 catalog examples in the public workbench
+- Friction: 163 entries displayed `@charts-poc/demo-data`, exposing an internal
+  package name and requiring the host to understand a private convention.
+- Decision: expose revision-pinned fixture subpaths through the stable
+  `@tanstack/charts-data` catalog alias and reject private package imports from
+  every public source closure.
+- Verification: the catalog contract resolves every fixture subpath as a
+  browser module and reports no `@charts-poc/` import in any public example.
+
+### F-291 — Renderer capability injection depended on module identity
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: hovering the published ShadCN multiple-bar catalog example
+- Friction: tooltip motion was attached to the motion renderer through a
+  module-local symbol. The catalog loaded `/motion` and `/react/tooltip` from
+  separate esm.sh build namespaces, so each copy created a different symbol.
+  The chart geometry animated, but the host could not discover or inject the
+  renderer's tooltip motion controller.
+- Decision: make renderer capabilities an explicit, versioned structural
+  contract. The chart host creates the controller from
+  `renderer.capabilities.tooltipMotion` and injects it into the tooltip
+  extension context. Neither discovery nor consumption depends on shared
+  module identity.
+- Verification: the renderer regression supplies a structurally compatible
+  tooltip-motion capability, then asserts controller creation, paint, hide,
+  and destruction through the normal tooltip lifecycle. The existing spring
+  inheritance and tooltip override tests continue to pass.
+
+### F-292 — Fixed preview paints ignored the selected site theme
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: switching tanstack.com's generated catalog previews between
+  light and dark mode
+- Friction: the portable SVG media query followed the site's resolved
+  `color-scheme`, but 86 of 188 previews contained only fixed authored paint.
+  Their transparent chart pixels therefore remained identical while the card
+  background changed, which made the previews look light-only.
+- Decision: pair semantic catalog paints with their dark tokens in the preview
+  generator. Preserve other authored hues while raising low-contrast paint to
+  the 3:1 graphical threshold on the dark catalog surface; give already-valid
+  fixed paint a small dark-foreground tint. Keep both palettes in one SVG so
+  the site still serves one cacheable, revision-pinned asset per case.
+- Verification: generator unit tests cover semantic pairs, low-contrast paint,
+  fixed CSS-variable fallbacks, and theme-independent presentation checks.
+  Preview integrity validates all 188 assets. A Chromium canvas audit compares
+  transparent light and dark rasters and confirms that all 188 differ.
+- Follow-up evidence: the deployed ShadCN collection changed its series palette,
+  but retained labels and pie separators still referenced `--foreground`,
+  `--muted-foreground`, `--background`, and `--muted`. Those variables are
+  inherited in the live inline chart but were undefined inside the standalone
+  preview document, so SVG fallback paint rendered the labels black in both
+  themes.
+- Follow-up decision: bind those ShadCN semantic tokens to the existing portable
+  light/dark palette. Treat `--muted` as a surface and `--muted-foreground` as
+  text instead of overloading one token for both roles.
+- Follow-up verification: the generator contract covers all four tokens in both
+  palettes, and regenerated ShadCN donut, radial, radar, and authored-label
+  previews render readable dark text and theme-matched separators.
+
+### F-293 - Root scale slots blocked named axes
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: auditing the claimed TanStack Charts gaps against ECharts,
+  Observable Plot, and the existing React chart implementation
+- Friction: one root `x` slot and one root `y` slot could not describe multiple
+  unit-specific axes or bind different marks to independent scales. Polar marks
+  repeated the same limitation with one `angle` and one `radius` slot. Adding a
+  registry alone was not enough because composite marks could hide positional
+  identity, named callbacks could not see the resolved polar registry, and a
+  misspelled binding otherwise failed later with an undefined scale.
+- Decision: make `scales` the canonical Cartesian and polar registry, reserve
+  `x`, `y`, `angle`, and `radius` as readable defaults, and let marks bind to
+  named entries. Each named scale declares its positional channel and guide
+  side. Axes support all four sides and stack when they share one side. The
+  pre-Alpha release kept the old root options temporarily and warned with exact
+  migration instructions. The Alpha API removes those options, their runtime
+  adapters, and their deprecated aliases. Preserve positional identity through
+  composite channel namespacing and expose the public resolved polar registry
+  to length callbacks.
+- Verification: named scale, axis, grid, focus, facet, motion, composite, box,
+  regression, polar, and type-contract regressions pass. Every TanStack Charts
+  definition in examples, benchmarks, adapters, tests, and docs uses the
+  canonical registry. Alpha residue checks find no root scale compatibility
+  types, runtime fallback, warning, or deprecated public alias.
+
+### F-294 - Automatic mark renderers imposed shared host plumbing
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: adding Canvas rendering for dense marks while retaining SVG
+  guides, labels, focus, and accessibility
+- Friction: renderer choice belonged to the whole chart, and every DOM adapter
+  assumed one surface. A dense mark could not opt into Canvas without moving
+  axes and labels too, while nested compositions, SSR adoption, focus updates,
+  pointer geometry, and image export all depended on the original single-root
+  contract.
+- Decision: add a small universal renderer token to mark options and keep the
+  DOM compositor contract in the DOM layer. The compositor preserves authored
+  source order across nested SVG and Canvas layers, retains a default surface
+  for existing adapter callbacks, rebuilds complete interaction geometry after
+  focus presentation, and supports SSR, responsive updates, accessibility, and
+  mixed image export without importing Canvas into SVG-only bundles.
+- Verification: Canvas unit coverage includes nested ordering, remounting,
+  focus-guide layers, and a second geometry-only pointer resolution after a
+  mixed focus paint. The browser Canvas gate, packed declarations and runtime,
+  React Native Metro gates, and framework package checks pass. Bundle boundary
+  checks keep SVG-only entries free of Canvas and measure the opt-in mixed
+  representative and React consumers at 35.68 KiB and 41.63 KiB gzip.

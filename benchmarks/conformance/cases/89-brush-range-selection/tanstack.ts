@@ -1,9 +1,8 @@
-import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
-import { brushX } from '@tanstack/charts/interaction/brush'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { decorative } from '@tanstack/charts/mark/decorative'
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
+import type { BrushState } from './example'
+export { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
+export type { BrushState } from './example'
+import { aapl } from '@tanstack/charts-data/aapl'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -12,189 +11,37 @@ import { tanstackCase } from '../../shared/mount'
 import {
   brushDateFromAnchor,
   brushDateKey,
-  brushDomain,
   brushRangeSummary,
-  brushShortDate,
   initialBrushRange,
   monthlyAaplRows,
   observedBrushDates,
 } from './model'
-import { brushSelectionFill, normalizedElementFill } from './paint'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import type {
-  BrushRange,
-  BrushXChange,
-} from '@tanstack/charts/interaction/brush'
-import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
+import { normalizedElementFill } from './paint'
+import type { AaplRow } from '@tanstack/charts-data/aapl'
+import type { BrushRange } from '@tanstack/charts/interaction/brush'
+import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
-  ConformanceInput,
   ConformanceJsonObject,
-  ConformanceMount,
   ConformanceTarget,
   ConformanceTestDriver,
 } from '../../types'
 
-interface BrushState {
-  range: BrushRange<Date>
-  dragging: boolean
-}
+export { default as Example } from './example'
 
 const color = '#2563eb'
 const brushRows = monthlyAaplRows(aapl)
 const brushDates = observedBrushDates(brushRows)
-const fullDomain = brushDomain(brushDates)
-const brushMonthFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  timeZone: 'UTC',
-})
-
-export function brushRangeDefinition(
-  range: BrushRange<Date>,
-  onChange: (range: BrushRange<Date>, reason: BrushXChange<Date>) => void,
-) {
-  return defineChart({
-    marks: [
-      decorative(
-        lineY(brushRows, {
-          id: 'brush-series-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: color,
-          strokeWidth: 2.5,
-        }),
-      ),
-      dot(brushRows, {
-        id: 'brush-series-points',
-        x: 'Date',
-        y: 'Close',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(fullDomain),
-      axis: {
-        ticks: { format: (value) => brushMonthFormatter.format(value) },
-        label: 'Month',
-      },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
-    controls: [
-      brushX({
-        id: 'monthly-range',
-        range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
-          range,
-          (next, { reason }) => onChange(next, reason),
-        ),
-        values: brushDates,
-        ariaLabel:
-          'Monthly range brush. Drag to select; focus either handle and use arrow keys, Home, or End to adjust.',
-        startAriaLabel: 'Range start',
-        endAriaLabel: 'Range end',
-        format: brushDateKey,
-        handleSize: 16,
-        selectionStyle: {
-          fill: brushSelectionFill,
-          fillOpacity: 1,
-          stroke: color,
-          strokeWidth: 1,
-        },
-        handleStyle: {
-          fill: 'Canvas',
-          fillOpacity: 1,
-          stroke: color,
-          strokeWidth: 2,
-        },
-      }),
-    ],
-    svgAnimation: false,
-    keyboard: false,
-    focusRing: false,
-    margin: { top: 52, right: 24, bottom: 44, left: 58 },
-  })
-}
 
 export const catalogCase = tanstackCase(
   () => brushRangeDefinition(initialBrushRange(brushDates), () => {}),
   'Time series with a draggable horizontal range brush',
 )
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let accepted = copyRange(initialBrushRange(brushDates))
-  let state: BrushState = { range: copyRange(accepted), dragging: false }
-  let host: ChartHost<AaplRow, Date, number> | undefined
+export { mount } from './view'
 
-  const shell = container.ownerDocument.createElement('div')
-  const chartFrame = container.ownerDocument.createElement('div')
-  const status = createRangeStatus(container.ownerDocument)
-  shell.dataset.conformanceView = 'main'
-  shell.setAttribute('role', 'application')
-  shell.setAttribute(
-    'aria-label',
-    'Monthly time range brush with two adjustable handles',
-  )
-  shell.style.position = 'relative'
-  chartFrame.style.position = 'relative'
-  shell.append(chartFrame, status)
-  container.append(shell)
-  sizeShell(shell, chartFrame, input)
-
-  const handleBrushChange = (
-    next: BrushRange<Date>,
-    reason: BrushXChange<Date>,
-  ) => {
-    state = {
-      range: copyRange(next),
-      dragging: reason.type === 'preview',
-    }
-    updateRangeStatus(status, state.range)
-    if (reason.type === 'preview') return
-    accepted = copyRange(next)
-    host?.update(options())
-  }
-
-  const options = (): ChartHostOptions<AaplRow, Date, number> => ({
-    definition: brushRangeDefinition(accepted, handleBrushChange),
-    width: currentInput.width,
-    height: currentInput.height,
-    ariaLabel: 'Time series with a draggable horizontal range brush',
-  })
-
-  host = mountChart(chartFrame, options())
-  updateRangeStatus(status, state.range)
-
-  const driver = createDriver(
-    shell,
-    chartFrame,
-    () => host!.getScene(),
-    () => state,
-  )
-
-  return {
-    driver,
-    update(nextInput) {
-      currentInput = nextInput
-      sizeShell(shell, chartFrame, nextInput)
-      host!.update(options())
-      updateRangeStatus(status, state.range)
-    },
-    destroy() {
-      host!.destroy()
-      shell.remove()
-    },
-  }
-}
-
-function createDriver(
+export function createDriver(
   shell: HTMLElement,
   surface: HTMLElement,
   getScene: () => ChartScene<AaplRow, Date, number>,
@@ -327,44 +174,6 @@ function brushGeometry(
   ]
 }
 
-function createRangeStatus(document: Document) {
-  const status = document.createElement('output')
-  status.setAttribute('role', 'status')
-  status.setAttribute('aria-live', 'polite')
-  Object.assign(status.style, {
-    position: 'absolute',
-    right: '24px',
-    top: '10px',
-    zIndex: '4',
-    padding: '4px 8px',
-    border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
-    borderRadius: '999px',
-    background: 'Canvas',
-    color: 'CanvasText',
-    font: '600 12px/1.2 system-ui, sans-serif',
-    pointerEvents: 'none',
-  })
-  return status
-}
-
-function updateRangeStatus(status: HTMLOutputElement, range: BrushRange<Date>) {
-  const summary = brushRangeSummary(brushRows, range)
-  const label = `${brushShortDate(range.start)} → ${brushShortDate(range.end)} · ${summary.count} AAPL closes · avg $${summary.average.toFixed(1)}`
-  status.value = label
-  status.textContent = label
-  status.setAttribute(
-    'aria-label',
-    `${brushDateKey(range.start)} through ${brushDateKey(range.end)}, ${summary.count} AAPL closing prices, average $${summary.average.toFixed(1)}`,
-  )
-}
-
-function copyRange(range: BrushRange<Date>): BrushRange<Date> {
-  return {
-    start: new Date(range.start.getTime()),
-    end: new Date(range.end.getTime()),
-  }
-}
-
 function center(element: HTMLElement | SVGElement) {
   const bounds = element.getBoundingClientRect()
   return {
@@ -372,15 +181,4 @@ function center(element: HTMLElement | SVGElement) {
     y: bounds.top + bounds.height / 2,
     focusElement: element,
   }
-}
-
-function sizeShell(
-  shell: HTMLDivElement,
-  chartFrame: HTMLDivElement,
-  input: ConformanceInput,
-) {
-  shell.style.width = `${input.width}px`
-  shell.style.height = `${input.height}px`
-  chartFrame.style.width = `${input.width}px`
-  chartFrame.style.height = `${input.height}px`
 }

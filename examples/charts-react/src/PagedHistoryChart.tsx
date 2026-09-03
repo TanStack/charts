@@ -405,33 +405,36 @@ function createHistoryDefinition(page: HistoryPage, translate: number) {
         { match: 'x' },
       ),
     ],
-    x: {
-      scale: scaleUtc().domain([contentFirst.at, contentLast.at]),
-      viewport: {
-        domain: [first.at, last.at],
-        translate,
-      },
-      grid: false,
-      axis: {
-        line: false,
-        ticks: { count: 4, format: formatAxisDate, size: 0, padding: 9 },
-        tickLabels: { thin: { priority: 'ends', minGap: 28 } },
-      },
-    },
-    y: {
-      scale: scaleLinear().domain(historyDomain),
-      grid: true,
-      axis: {
-        line: false,
-        ticks: {
-          count: 4,
-          format: (value: number) => `$${Math.round(value / 1_000)}k`,
-          size: 0,
-          padding: 8,
+    scales: {
+      x: {
+        scale: scaleUtc().domain([contentFirst.at, contentLast.at]),
+        viewport: {
+          domain: [first.at, last.at],
+          translate,
         },
-        tickLabels: { thin: { priority: 'ends', minGap: 16 } },
+        grid: false,
+        axis: {
+          line: false,
+          ticks: { count: 4, format: formatAxisDate, size: 0, padding: 9 },
+          tickLabels: { thin: { priority: 'ends', minGap: 28 } },
+        },
+      },
+      y: {
+        scale: scaleLinear().domain(historyDomain),
+        grid: true,
+        axis: {
+          line: false,
+          ticks: {
+            count: 4,
+            format: (value: number) => `$${Math.round(value / 1_000)}k`,
+            size: 0,
+            padding: 8,
+          },
+          tickLabels: { thin: { priority: 'ends', minGap: 16 } },
+        },
       },
     },
+
     margin: chartMargin,
     clip: true,
   })

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { penguins } from '@charts-poc/demo-data/penguins'
+import { penguins } from '@tanstack/charts-data/penguins'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
@@ -128,10 +128,17 @@ describe('definition-owned chart selection', () => {
   })
 
   it('keeps the semantic table in the app and removes selection plumbing', () => {
-    const source = readFileSync(
+    const shellSource = readFileSync(
       resolve(
         process.cwd(),
         'benchmarks/conformance/cases/82-chart-table-selection/view.tsx',
+      ),
+      'utf8',
+    )
+    const exampleSource = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/82-chart-table-selection/example.tsx',
       ),
       'utf8',
     )
@@ -142,12 +149,14 @@ describe('definition-owned chart selection', () => {
       '...(selectedRows',
       'onSelect=',
     ]) {
-      expect(source).not.toContain(forbidden)
+      expect(exampleSource).not.toContain(forbidden)
+      expect(shellSource).not.toContain(forbidden)
     }
-    expect(source).toContain('keyedSelection')
-    expect(source).toContain('whenSelected')
-    expect(source).toContain('<table')
-    expect(source).toContain('data-clear-selection')
+    expect(shellSource).toContain("from './example'")
+    expect(exampleSource).toContain('keyedSelection')
+    expect(exampleSource).toContain('whenSelected')
+    expect(shellSource).toContain('<table')
+    expect(shellSource).toContain('data-clear-selection')
   })
 })
 
