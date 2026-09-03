@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png"
+      alt="TanStack Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # TanStack Charts
 
 A chart grammar for TypeScript and JavaScript. Marks consume your data
