@@ -824,6 +824,7 @@ async function verifyEsmRuntime() {
       }),
       extent: [0, 10],
       scaleExtent: [1, 8],
+      wheelActivation: 'modifier',
     })
     assert.equal(packedZoom.id, 'zoom-x')
     assert.equal(typeof packedZoom.resolve, 'function')
@@ -1688,6 +1689,7 @@ async function verifyDeclarations() {
       zoomX,
       type ZoomXChange,
       type ZoomXOptions,
+      type ZoomXWheelActivation,
       type ZoomXWindow,
     } from '@tanstack/charts/interaction/zoom'
     import {
@@ -2969,10 +2971,12 @@ async function verifyDeclarations() {
       { start: new Date('2026-01-01'), end: new Date('2026-02-01') },
       (_next, { reason }) => reason.action,
     )
+    const packedZoomWheelActivation: ZoomXWheelActivation = 'modifier'
     const packedZoomOptions: ZoomXOptions<Date> = {
       window: packedZoomWindow,
       extent: [new Date('2026-01-01'), new Date('2026-03-01')],
       scaleExtent: [1, 8],
+      wheelActivation: packedZoomWheelActivation,
     }
     const packedZoom = zoomX(packedZoomOptions)
     const packedSelectionOptions: KeyedSelectionOptions<
@@ -3021,6 +3025,7 @@ async function verifyDeclarations() {
       packedHandleOptions,
       packedHandle,
       packedZoomWindow,
+      packedZoomWheelActivation,
       packedZoomOptions,
       packedZoom,
       packedSelectionOptions,

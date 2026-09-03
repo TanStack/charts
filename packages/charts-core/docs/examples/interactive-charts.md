@@ -192,9 +192,11 @@ start and end values.
 
 Import `zoomX` from `@tanstack/charts/interaction/zoom`, bind its `window` to a
 controlled signal, and provide the full `extent` and allowed `scaleExtent`.
-The behavior owns final-scale inversion, focus-gated wheel capture,
+The behavior owns final-scale inversion, configurable wheel capture,
 pointer-anchored zoom, pan, touch and keyboard input, cancellation, clamping,
-and teardown.
+and teardown. Wheel capture defaults to focused plots. Use
+`wheelActivation: 'modifier'` when Control+wheel or Command+wheel should act
+without prior focus while unmodified wheels continue scrolling the page.
 
 Keep the accepted window, visible-row or clipping policy, y-domain policy,
 status, reset control, persistence, and follow-latest behavior in application

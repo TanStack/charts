@@ -150,7 +150,7 @@ Horizontal zoom is exact-subpath-only through
 behavior, final-scale interaction axis, DOM host control, `d3-zoom`, and
 `d3-selection` only for a consumer that imports it. Root, universal, ordinary
 DOM, brush, cursor, legend, and selection consumers retain none of those
-modules. Its incremental DOM-host fixture adds 20.28 KiB gzip under a 20.35 KiB
+modules. Its incremental DOM-host fixture adds 20.47 KiB gzip under a 20.55 KiB
 cap.
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports

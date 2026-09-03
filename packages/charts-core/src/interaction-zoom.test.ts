@@ -2,7 +2,12 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { describe, expect, it, vi } from 'vitest'
 import { dot } from './dot'
 import { mountChart } from './dom'
-import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
+import {
+  zoomX,
+  type ZoomXChange,
+  type ZoomXWheelActivation,
+  type ZoomXWindow,
+} from './interaction-zoom'
 import { controlledSignal } from './interaction-signal'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
@@ -35,6 +40,17 @@ describe('zoomX', () => {
         scaleExtent: [0.5, 4],
       }),
     ).toThrow(/must start at 1/)
+    expect(() =>
+      zoomX({
+        window: controlledSignal({ start: 0, end: 1 }, () => {}),
+        extent: [0, 1],
+        wheelActivation: 'hover' as never,
+      }),
+    ).toThrowError(
+      new TypeError(
+        'zoomX wheelActivation must be "focus", "modifier", or "always"',
+      ),
+    )
   })
 
   it('owns focus, keyboard navigation, reset, controlled updates, and teardown', () => {
@@ -235,6 +251,380 @@ describe('zoomX', () => {
 
       host.destroy()
       container.remove()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it.each([
+    { label: 'Control', modifier: { ctrlKey: true } },
+    { label: 'Meta', modifier: { metaKey: true } },
+  ])(
+    'captures blurred $label + vertical wheel input in modifier mode',
+    ({ modifier }) => {
+      vi.useFakeTimers()
+      try {
+        const harness = numericWheelHarness({ wheelActivation: 'modifier' })
+        const event = wheel(harness.x, harness.y, {
+          deltaY: -240,
+          ...modifier,
+        })
+
+        expect(document.activeElement).not.toBe(harness.target)
+        harness.target.dispatchEvent(event)
+
+        expect(event.defaultPrevented).toBe(true)
+        expect(harness.activeChanges).toEqual([])
+        expect(harness.target.dataset.zoomActive).toBe('false')
+        expect(harness.target.dataset.zoomWheelCaptured).toBe('true')
+        expect(harness.calls.at(-1)?.value.start).toBeCloseTo(2.5)
+        expect(harness.calls.at(-1)?.value.end).toBeCloseTo(7.5)
+        expect(harness.calls.at(-1)?.reason).toMatchObject({
+          type: 'preview',
+          origin: { start: 0, end: 10 },
+          source: 'wheel',
+          action: 'zoom',
+        })
+
+        vi.advanceTimersByTime(150)
+        expect(harness.calls.at(-1)?.reason).toMatchObject({
+          type: 'commit',
+          origin: { start: 0, end: 10 },
+          source: 'wheel',
+          action: 'zoom',
+        })
+
+        harness.destroy()
+      } finally {
+        vi.useRealTimers()
+      }
+    },
+  )
+
+  it('passes plain wheel through in modifier mode even while focused and captures horizontal modifier pan', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({
+        initial: { start: 2.5, end: 7.5 },
+        wheelActivation: 'modifier',
+      })
+      harness.target.focus()
+
+      const plainVertical = wheel(harness.x, harness.y, { deltaY: -240 })
+      harness.target.dispatchEvent(plainVertical)
+      const plainHorizontal = wheel(harness.x, harness.y, { deltaX: 220 })
+      harness.target.dispatchEvent(plainHorizontal)
+      const shift = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        shiftKey: true,
+      })
+      harness.target.dispatchEvent(shift)
+      const alt = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        altKey: true,
+      })
+      harness.target.dispatchEvent(alt)
+
+      for (const event of [plainVertical, plainHorizontal, shift, alt]) {
+        expect(event.defaultPrevented).toBe(false)
+      }
+      expect(harness.calls).toEqual([])
+      expect(harness.target.dataset.zoomWheelCaptured).toBe('false')
+
+      const horizontal = wheel(harness.x, harness.y, {
+        deltaX: 220,
+        ctrlKey: true,
+      })
+      harness.target.dispatchEvent(horizontal)
+      expect(horizontal.defaultPrevented).toBe(true)
+      expect(harness.calls.at(-1)?.value.start).toBeGreaterThan(2.5)
+      expect(harness.calls.at(-1)?.value.end).toBeGreaterThan(7.5)
+      expect(harness.calls.at(-1)?.reason).toMatchObject({
+        type: 'preview',
+        origin: { start: 2.5, end: 7.5 },
+        source: 'wheel',
+        action: 'pan',
+      })
+
+      vi.advanceTimersByTime(150)
+      expect(harness.calls.at(-1)?.reason).toMatchObject({
+        type: 'commit',
+        origin: { start: 2.5, end: 7.5 },
+        source: 'wheel',
+        action: 'pan',
+      })
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('captures plain wheel while blurred in always mode', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({ wheelActivation: 'always' })
+      const event = wheel(harness.x, harness.y, { deltaY: -240 })
+
+      expect(document.activeElement).not.toBe(harness.target)
+      harness.target.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(true)
+      expect(harness.target.dataset.zoomActive).toBe('false')
+      expect(harness.calls.at(-1)?.reason).toMatchObject({
+        type: 'preview',
+        source: 'wheel',
+        action: 'zoom',
+      })
+
+      vi.advanceTimersByTime(150)
+      expect(harness.calls.at(-1)?.reason).toMatchObject({
+        type: 'commit',
+        source: 'wheel',
+        action: 'zoom',
+      })
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps focus activation as the default, including for modified wheel input', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness()
+
+      const control = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        ctrlKey: true,
+      })
+      const meta = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        metaKey: true,
+      })
+      harness.target.dispatchEvent(control)
+      harness.target.dispatchEvent(meta)
+      expect(control.defaultPrevented).toBe(false)
+      expect(meta.defaultPrevented).toBe(false)
+      expect(harness.calls).toEqual([])
+
+      harness.target.focus()
+      const focused = wheel(harness.x, harness.y, { deltaY: -240 })
+      harness.target.dispatchEvent(focused)
+      expect(focused.defaultPrevented).toBe(true)
+      expect(harness.calls.at(-1)?.reason.type).toBe('preview')
+      vi.advanceTimersByTime(150)
+      expect(harness.calls.at(-1)?.reason.type).toBe('commit')
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('updates generated wheel instructions by mode and preserves description overrides', () => {
+    const harness = numericWheelHarness()
+
+    expect(harness.target.getAttribute('aria-description')).toContain(
+      'Focus before using a vertical wheel',
+    )
+    expect(harness.target.getAttribute('aria-description')).toContain(
+      'Use plus, minus, arrow keys, or Home.',
+    )
+
+    harness.setWheelActivation('modifier')
+    expect(harness.target.getAttribute('aria-description')).toContain(
+      'Hold Control or Command',
+    )
+
+    harness.setWheelActivation('always')
+    expect(harness.target.getAttribute('aria-description')).toContain(
+      'Use a vertical wheel to zoom',
+    )
+    expect(harness.target.getAttribute('aria-description')).not.toContain(
+      'Control or Command',
+    )
+
+    harness.setKeyboard(false)
+    expect(harness.target.getAttribute('aria-description')).not.toContain(
+      'Use plus',
+    )
+
+    harness.setAriaDescription('Custom wheel instructions')
+    expect(harness.target.getAttribute('aria-description')).toBe(
+      'Custom wheel instructions',
+    )
+
+    harness.setAriaDescription(undefined)
+    expect(harness.target.getAttribute('aria-description')).toContain(
+      'Use a vertical wheel to zoom',
+    )
+    harness.destroy()
+  })
+
+  it('passes out-of-bounds and zero-delta modifier wheel input through', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({ wheelActivation: 'modifier' })
+      const scene = harness.host.getScene()
+      const outside = wheel(scene.chart.x - 1, harness.y, {
+        deltaY: -240,
+        ctrlKey: true,
+      })
+      const zero = wheel(harness.x, harness.y, { ctrlKey: true })
+
+      harness.target.dispatchEvent(outside)
+      harness.target.dispatchEvent(zero)
+      vi.advanceTimersByTime(200)
+
+      expect(outside.defaultPrevented).toBe(false)
+      expect(zero.defaultPrevented).toBe(false)
+      expect(harness.calls).toEqual([])
+      expect(harness.target.dataset.zoomWheelCaptured).toBe('false')
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('groups blurred modifier wheel previews and commits 150ms after the last event', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({ wheelActivation: 'modifier' })
+
+      const first = wheel(harness.x, harness.y, {
+        deltaY: -120,
+        ctrlKey: true,
+      })
+      harness.target.dispatchEvent(first)
+      vi.advanceTimersByTime(100)
+      const second = wheel(harness.x, harness.y, {
+        deltaY: -120,
+        metaKey: true,
+      })
+      harness.target.dispatchEvent(second)
+
+      expect(first.defaultPrevented).toBe(true)
+      expect(second.defaultPrevented).toBe(true)
+      expect(harness.calls.map(({ reason }) => reason.type)).toEqual([
+        'preview',
+        'preview',
+      ])
+      expect(harness.calls[1]?.reason.origin).toEqual({ start: 0, end: 10 })
+
+      vi.advanceTimersByTime(149)
+      expect(harness.calls).toHaveLength(2)
+      vi.advanceTimersByTime(1)
+      expect(harness.calls).toHaveLength(3)
+      expect(harness.calls[2]?.reason).toMatchObject({
+        type: 'commit',
+        origin: { start: 0, end: 10 },
+        source: 'wheel',
+        action: 'zoom',
+      })
+      expect(harness.calls[2]?.value).toEqual(harness.calls[1]?.value)
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('finishes an authorized wheel batch across a policy update, then applies the new policy', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({ wheelActivation: 'modifier' })
+      const authorized = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        ctrlKey: true,
+      })
+      harness.target.dispatchEvent(authorized)
+      expect(harness.calls.map(({ reason }) => reason.type)).toEqual([
+        'preview',
+      ])
+
+      harness.setWheelActivation('focus')
+      vi.advanceTimersByTime(150)
+      expect(harness.calls.map(({ reason }) => reason.type)).toEqual([
+        'preview',
+        'commit',
+      ])
+
+      const nowDisallowed = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        ctrlKey: true,
+      })
+      harness.target.dispatchEvent(nowDisallowed)
+      vi.advanceTimersByTime(200)
+      expect(nowDisallowed.defaultPrevented).toBe(false)
+      expect(harness.calls).toHaveLength(2)
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('cancels a modifier wheel batch on Escape without a later commit', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({ wheelActivation: 'modifier' })
+      harness.target.focus()
+      harness.target.dispatchEvent(
+        wheel(harness.x, harness.y, { deltaY: -240, ctrlKey: true }),
+      )
+
+      const escape = key('Escape')
+      harness.target.dispatchEvent(escape)
+      expect(escape.defaultPrevented).toBe(true)
+      expect(harness.calls.map(({ reason }) => reason.type)).toEqual([
+        'preview',
+        'cancel',
+      ])
+      expect(harness.calls.at(-1)).toMatchObject({
+        value: { start: 0, end: 10 },
+        reason: {
+          type: 'cancel',
+          value: { start: 0, end: 10 },
+          origin: { start: 0, end: 10 },
+          source: 'keyboard',
+          action: 'zoom',
+        },
+      })
+
+      vi.advanceTimersByTime(200)
+      expect(harness.calls).toHaveLength(2)
+
+      harness.destroy()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not commit a blurred modifier wheel preview rejected by a controlled update', () => {
+    vi.useFakeTimers()
+    try {
+      const harness = numericWheelHarness({
+        wheelActivation: 'modifier',
+        acceptChanges: false,
+      })
+      const event = wheel(harness.x, harness.y, {
+        deltaY: -240,
+        ctrlKey: true,
+      })
+
+      harness.target.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(true)
+      expect(harness.calls).toHaveLength(1)
+      expect(harness.calls[0]?.reason.type).toBe('preview')
+      vi.advanceTimersByTime(200)
+      expect(harness.calls).toHaveLength(1)
+      expect(harness.target.getAttribute('aria-description')).toContain(
+        '0 to 10',
+      )
+
+      harness.destroy()
     } finally {
       vi.useRealTimers()
     }
@@ -751,6 +1141,8 @@ function numericDefinition(
   onChange: (value: ZoomXWindow<number>, reason: ZoomXChange<number>) => void,
   onActiveChange?: (active: boolean) => void,
   keyboard = true,
+  wheelActivation?: ZoomXWheelActivation,
+  ariaDescription?: string,
 ) {
   return defineChart({
     marks: [dot(numericRows, { x: 'x', y: 'y' })],
@@ -770,10 +1162,91 @@ function numericDefinition(
         format: (value) => String(value),
         onActiveChange,
         keyboard,
+        wheelActivation,
+        ariaDescription,
       }),
     ],
     keyboard: false,
   })
+}
+
+function numericWheelHarness({
+  initial = { start: 0, end: 10 },
+  wheelActivation: initialWheelActivation,
+  keyboard: initialKeyboard = true,
+  ariaDescription: initialAriaDescription,
+  acceptChanges = true,
+}: {
+  initial?: ZoomXWindow<number>
+  wheelActivation?: ZoomXWheelActivation
+  keyboard?: boolean
+  ariaDescription?: string
+  acceptChanges?: boolean
+} = {}) {
+  let accepted = copyWindow(initial)
+  let wheelActivation = initialWheelActivation
+  let keyboard = initialKeyboard
+  let ariaDescription = initialAriaDescription
+  const calls: Array<{
+    value: ZoomXWindow<number>
+    reason: ZoomXChange<number>
+  }> = []
+  const activeChanges: boolean[] = []
+  const container = document.createElement('div')
+  document.body.append(container)
+  let host: ChartHost<(typeof numericRows)[number], number, number>
+  const options = (): ChartHostOptions<
+    (typeof numericRows)[number],
+    number,
+    number
+  > => ({
+    definition: numericDefinition(
+      accepted,
+      (next, reason) => {
+        calls.push({ value: copyWindow(next), reason })
+        if (acceptChanges) accepted = copyWindow(next)
+        host.update(options())
+      },
+      (active) => activeChanges.push(active),
+      keyboard,
+      wheelActivation,
+      ariaDescription,
+    ),
+    width: 480,
+    height: 240,
+    ariaLabel: 'Wheel zoom',
+  })
+  host = mountChart(container, options())
+  const target = zoomTarget(container)
+  const surface = container.querySelector<SVGSVGElement>('svg.ts-chart')!
+  mockBounds(surface, 480, 240)
+  const scene = host.getScene()
+
+  return {
+    activeChanges,
+    calls,
+    container,
+    host,
+    target,
+    x: scene.chart.x + scene.chart.width / 2,
+    y: scene.chart.y + scene.chart.height / 2,
+    setWheelActivation(next: ZoomXWheelActivation | undefined) {
+      wheelActivation = next
+      host.update(options())
+    },
+    setKeyboard(next: boolean) {
+      keyboard = next
+      host.update(options())
+    },
+    setAriaDescription(next: string | undefined) {
+      ariaDescription = next
+      host.update(options())
+    },
+    destroy() {
+      host.destroy()
+      container.remove()
+    },
+  }
 }
 
 function temporalDefinition(
@@ -853,7 +1326,15 @@ function key(value: string) {
 function wheel(
   clientX: number,
   clientY: number,
-  options: { deltaX?: number; deltaY?: number; deltaMode?: number },
+  options: {
+    deltaX?: number
+    deltaY?: number
+    deltaMode?: number
+    ctrlKey?: boolean
+    metaKey?: boolean
+    shiftKey?: boolean
+    altKey?: boolean
+  },
 ) {
   return new WheelEvent('wheel', {
     bubbles: true,
