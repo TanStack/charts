@@ -2373,6 +2373,18 @@ Each entry records:
   activation and pan, keyboard, Reset, revisions, visual, and strict type
   scenarios at 98.6% diagnostic geometry. TanStack uses 512 authored lines and
   51.59 kB gzip versus ECharts' 727 lines and 172.82 kB.
+- Zoom line-continuity application follow-up: filtering the line to observed
+  rows inside the accepted window removed the segments that cross fractional
+  time boundaries. Case 90 now keeps dots on real visible observations and
+  gives its decorative line exact boundary rows interpolated from the nearest
+  chronological observations. This preserves the painted segment without
+  pulling offscreen values into the inferred y domain. Focused model and scene
+  tests cover shuffled input, stable duplicate timestamps, exact boundaries,
+  observation-free weekends, invalid windows and values, one-sided data,
+  line gaps, chart clipping, and definition datum ownership.
+  The 19 focused tests, full 1,934-test validation, and paired quick browser
+  matrix pass; the new fractional-boundary screenshot retains visual evidence
+  at the window that exposed the gap.
 - Scale-handle follow-up: cases 91 and 92 now use exact-subpath `handleX` in
   their ordinary definitions. The behavior maps ordered semantic candidates
   through the final x scale, paints the track, optional rule and handle, and
