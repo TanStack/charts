@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.16.1
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#137](https://github.com/TanStack/charts/pull/137) [`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27) - Highlight the active series in grouped tooltips. Custom tooltip content can use `context.primaryPoint` and `row.active` to show the same highlight when series colors repeat.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
 ## 0.16.0
 
 ### @tanstack/charts
