@@ -7016,6 +7016,12 @@ Each entry records:
   All 973 core and React tests pass on that base, and seven native Chromium
   screenshots match the current baseline byte for byte. The React line
   consumer adds 365 gzip bytes, with dependency isolation preserved.
+- Release measurement against 0.16.1: 30 interleaved measured mounts after 10
+  warmups per version give SVG paint medians of 133.4 to 35.9 ms without axes
+  and 164.3 to 37.9 ms with axes. Canvas gives 38.8 to 23.6 ms without axes
+  and 42.8 to 25.8 ms with axes. All cases render the same 10,000 cells at
+  500 by 300 pixels on the M5 Pro in production React and Chromium. These
+  measure mounting through paint, not network loading or dashboard totals.
 - Measurement: Apple M5 Pro, Chromium 151.0.7922.34, production React profiling
   build, 500 by 300 pixels, 10 warmups and 20 measured mounts, median without
   outlier removal, no axes, animation, or progressive rendering. Workspace
@@ -7868,6 +7874,8 @@ Each entry records:
   `packageManager`, so Corepack selected pnpm 12.3.4 instead of the repository's
   pinned pnpm 11.15.1 and rejected the install flags. The fixture now inherits
   the root package-manager pin, preserving its offline dependency check.
+  Verification: all seven framework adapter gates and the unified packed
+  artifact gate pass with the repository-pinned package manager.
 
 ### F-258 — Tooltip chrome required specificity overrides
 
