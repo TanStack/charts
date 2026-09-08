@@ -136,7 +136,7 @@ export async function readReleaseRevision(repositoryRoot, version) {
   const manifestPath = 'packages/charts-core/package.json'
   const { stdout } = await execFileAsync(
     'git',
-    ['log', '--full-history', '--format=%H%x09%s', 'HEAD', '--', manifestPath],
+    ['log', '--first-parent', '--format=%H', 'HEAD', '--', manifestPath],
     {
       cwd: repositoryRoot,
       env: { ...process.env },
@@ -144,18 +144,21 @@ export async function readReleaseRevision(repositoryRoot, version) {
     },
   )
   const revisions = stdout.trim().split('\n').filter(Boolean)
-  for (const entry of revisions) {
-    const [revision, ...subjectParts] = entry.split('\t')
-    const subject = subjectParts.join('\t')
-    if (!revision || !/changeset-release\/main/i.test(subject)) continue
+  for (const revision of revisions) {
     const currentVersion = await readManifestVersionAt(
       repositoryRoot,
       revision,
       manifestPath,
     )
-    if (currentVersion === version) return revision
+    if (currentVersion !== version) continue
+    const previousVersion = await readManifestVersionAt(
+      repositoryRoot,
+      `${revision}^1`,
+      manifestPath,
+    )
+    if (previousVersion !== version) return revision
   }
-  assert.fail(`Could not find the release merge revision for ${version}`)
+  assert.fail(`Could not find the release revision for ${version}`)
 }
 
 async function readManifestVersionAt(repositoryRoot, revision, manifestPath) {
