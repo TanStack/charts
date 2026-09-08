@@ -3,6 +3,22 @@ import { renderChartSvg } from './svg'
 import type { ChartScene } from './types'
 
 describe('SVG scene renderer', () => {
+  it('escapes attributes and labels without changing entities or Unicode', () => {
+    const text = 'A &amp; <tag> "quoted" \u0000 🌈'
+    const scene = {
+      ...testScene(),
+      nodes: [{ kind: 'label' as const, key: text, text, x: 1, y: 2 }],
+    }
+    const svg = renderChartSvg(scene, { ariaLabel: text })
+    expect(svg).toContain(
+      'aria-label="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+    )
+    expect(svg).toContain(
+      'data-ts-key="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+    )
+    expect(svg).toContain('>A &amp;amp; &lt;tag&gt; "quoted" \u0000 🌈</text>')
+  })
+
   it('renders structured disconnected polygons and holes with even-odd fill', () => {
     const scene = testScene()
     const svg = renderChartSvg(scene, { ariaLabel: 'Density contour' })

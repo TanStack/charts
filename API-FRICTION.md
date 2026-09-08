@@ -570,6 +570,7 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
+- Owner: API
 - Observed in: TanStack Charts sandbox migration
 - Friction: `ChartSurface` creates a temporary runtime and prepares the dynamic
   definition for initial markup. The mounted DOM host creates another runtime
@@ -581,6 +582,32 @@ Each entry records:
   application reactivity owns transformed data and asynchronous cleanup.
 - Verification: React and Octane dynamic mounts, hydration, and SSR retain
   complete initial markup without a preparation lifecycle.
+- 2026-09-08 performance follow-up: the 10,000-cell heatmap investigation
+  confirms that application data preparation remains outside the runtime, but
+  React still builds and serializes initial SVG markup, then builds the scene
+  again and serializes/reconciles SVG during its mount effect. A wrapped public
+  `renderSvg` callback runs twice on each production React mount. With default
+  focus rings disabled in both diagnostic cases, React SVG takes 74.4 ms median
+  to the Element Timing paint timestamp, while mounting the same definition
+  through the direct SVG host takes 37.5 ms. Both retain 10,000 visible cells.
+- Follow-up resolution: React client-only mounts now build the chart once in
+  the existing layout effect, using DOM text metrics. A hydration snapshot
+  retains complete initial markup for server rendering and hydration. No
+  chart options or application changes are required.
+- Verification: client SVG and canvas builders run once, SVG serialization
+  runs once, and the mounted chart is available to parent layout effects.
+  Strict Mode hydration retains SVG and mark identity without recoverable
+  errors. Combined with F-225, the same heatmap takes 39.4 ms for SVG and
+  24.5 ms for canvas, down from 130.1 and 35.9 ms respectively.
+
+- Construction/layout follow-up: React ran a second adapter update with the
+  same options immediately after mounting. That update refreshed computed
+  typography after inserting SVG. The adapter now mounts or updates once per
+  commit and retains explicit unmount cleanup. Later updates still refresh
+  fonts, and Strict Mode hydration and chart identity remain covered.
+- Verification: a regression checks that initial mounting does not read chart
+  surface styles after SVG insertion and that a later font change still
+  triggers rendering. All 903 core and React tests and TypeScript pass.
 
 ### F-012 — Render callbacks omit diagnostic metrics
 
@@ -6920,6 +6947,76 @@ Each entry records:
   focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
   Native tests cover the disabled focus contract. The catalog test and packed
   consumer gate server-render all 110 catalog components.
+- 2026-09-08 performance follow-up: a 100 by 100 cell matrix with tooltip and
+  keyboard disabled still emits 10,000 hidden default-focus circles, as its
+  pointer focus remains enabled. Production React SVG takes 130.1 ms median
+  to the Element Timing paint timestamp. Setting only `focusRing: false`
+  reduces that to 74.4 ms and SVG markup from 2,837,699 to 1,138,821 characters.
+  All 10,000 visible cells remain. Canvas changes from 35.9 to 33.3 ms.
+- Follow-up resolution: the SVG surface serializes only active default focus
+  geometry. The scene retains all point geometry, authored focus layers keep
+  their behavior, and animated updates materialize previous geometry before
+  interpolation. The `focus: false` contract is unchanged.
+- Verification: all 10,000 cells remain. Native Chromium pointer and keyboard
+  interactions match HEAD, with byte-identical screenshots and stable base
+  cell identity. Tests cover clipping, paint resources, custom serialization,
+  blur, animation interpolation, and cleanup after a serializer throws.
+  Mounting without axes takes 39.4 ms for SVG and 24.5 ms for canvas;
+  with axes it takes 43.6 and 26.9 ms, down from 171.2 and 37.6 ms.
+  Initial SVG contains 10,007 elements instead of 20,007.
+- Bundle review: shared renderer and adapter changes add 451 gzip bytes to
+  the representative React line consumer. Locked bundle baselines and only
+  exceeded ceilings were updated by their measured deltas; dependency
+  isolation checks pass. Competitor bundle measurements are unchanged.
+- Test status: the final focused suite passes all 91 tests and TypeScript
+  passes. The full workspace root suite passes 1,782 tests; two existing
+  catalog assertions still expect 110 cases and omit `120-sales-funnel`.
+  Neither those assertions nor the catalog inputs changed in this task.
+- Second performance pass: CPU profiling found allocations in SVG
+  serialization. SVG escaping now uses one pass, and shared clip, formatting,
+  and focus-layer routines remove duplicate implementations. Group traversal
+  avoids temporary arrays, paint serialization avoids per-node closures, and
+  scenes without gradients skip gradient lookup. A key-lookup experiment was
+  discarded because scene timings did not show a consistent benefit. Scene
+  output, identity rules, and enabled interactions are unchanged.
+- Second-pass verification: all 901 core and React tests and TypeScript pass.
+  Seven native Chromium screenshots match HEAD byte for byte, including axes,
+  SVG, canvas, and pointer/keyboard focus. The representative React line
+  consumer adds 334 gzip bytes over HEAD, down from 451 bytes in the first
+  pass. Reviewed bundle ceilings track actual entry-point deltas and retain
+  dependency isolation. Interleaved before/after samples and the CPU profile
+  are in `.benchmark-output/heatmap-investigation/round2/`.
+- Final second-pass timings: 30 interleaved measured mounts per version after
+  10 warmups give SVG paint medians of 40.3 to 37.5 ms without axes and 44.2
+  to 39.6 ms with axes. Isolated serialization drops from 4.3 to 1.9 ms;
+  scene construction remains effectively unchanged at 9.8 versus 9.9 ms.
+  These compare the first optimization with the retained second-pass code,
+  rather than comparing separate historical timing runs.
+- Third pass: scene construction skips the point-translation lookup when no
+  viewport is active. Categorical domain inference uses primitive identities
+  and a separate Date timestamp set, avoiding filtered copies and temporary
+  key strings. Tests retain insertion order, distinguish Date/number/string
+  inputs, skip invalid values, and preserve empty factory domains. Seven
+  native Chromium screenshots remain byte-identical to HEAD.
+- Third-pass bundle review: the representative React line consumer adds
+  372 gzip bytes over HEAD, 38 bytes above the previous pass and still below
+  the first pass's 451 bytes. Renderer dependency isolation checks pass.
+  Raw before/after samples and style-read evidence are retained in
+  `.benchmark-output/heatmap-investigation/round3/`.
+- Final third-pass timings: interleaved medians give scene construction at
+  9.8 to 8.6 ms and synchronous SVG mount at 33.9 to 24.9 ms. Paint drops
+  from 35.4 to 33.1 ms for SVG and 23.3 to 21.5 ms for canvas without axes;
+  with axes it drops from 38.0 to 35.9 ms and 26.1 to 23.1 ms respectively.
+  The lifecycle-only probe shows why synchronous mount and paint must remain
+  separate measurements: avoiding a forced style read moves browser work
+  out of the commit but does not by itself remove that work before paint.
+- Measurement: Apple M5 Pro, Chromium 151.0.7922.34, production React profiling
+  build, 500 by 300 pixels, 10 warmups and 20 measured mounts, median without
+  outlier removal, no axes, animation, or progressive rendering. Workspace
+  revision `1b1df994b5c224dda00ef90664c5a44589b53cd9`. This reconstructs the
+  workload and does not claim to reproduce Colm Tuite's unpublished harness.
+  Local fixture, runner, screenshots, and raw samples are in
+  `.benchmark-output/heatmap-investigation/`.
 
 ### F-226 — Worker runtimes rejected bundled CSV parsing
 

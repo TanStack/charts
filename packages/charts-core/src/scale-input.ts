@@ -73,26 +73,27 @@ function inferScaleDomain(
   values: readonly unknown[],
   includeZero = false,
 ): ChartValue[] | undefined {
-  const observed = values.filter(isChartValue)
-  if (!observed.length) return undefined
-
   if (
     typeof scale.bandwidth === 'function' ||
     typeof scale.ticks !== 'function'
   ) {
     const domain: ChartValue[] = []
-    const seen = new Set<string>()
-    for (const value of observed) {
-      const key =
-        value instanceof Date
-          ? `date:${value.getTime()}`
-          : `${typeof value}:${String(value)}`
-      if (seen.has(key)) continue
-      seen.add(key)
+    const seen = new Set<string | number>()
+    const dates = new Set<string | number>()
+    for (const value of values) {
+      if (!isChartValue(value)) continue
+      const date = value instanceof Date
+      const key = date ? value.getTime() : value
+      const identities = date ? dates : seen
+      if (identities.has(key)) continue
+      identities.add(key)
       domain.push(value)
     }
-    return domain
+    return domain.length ? domain : undefined
   }
+
+  const observed = values.filter(isChartValue)
+  if (!observed.length) return undefined
 
   const temporal = scale.domain().some((value) => value instanceof Date)
   if (temporal) {

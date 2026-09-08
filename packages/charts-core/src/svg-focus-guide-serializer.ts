@@ -8,6 +8,52 @@ import type {
   SceneNode,
 } from './types'
 
+export function renderSvgFocusLayerWithRenderer<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  svg: SVGSVGElement,
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  node: SceneGroup,
+  options: RenderChartSvgOptions,
+  renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue>,
+  placement?: 'under' | 'over',
+): string {
+  const root = parseSvgMarkup(
+    svg.ownerDocument,
+    renderSvg({ ...scene, nodes: [node] }, options),
+  )
+  const layer = root && keyedElement(root, node.key)
+  if (!root || !layer || layer.localName !== 'g') {
+    throw new Error(
+      `The SVG renderer must preserve a g[data-ts-key="${node.key}"] element when serializing focus guides.`,
+    )
+  }
+  if (placement) {
+    layer.classList.add(
+      'ts-chart__focus-guide-layer',
+      `ts-chart__focus-guide-layer--${placement}`,
+    )
+    layer.setAttribute('data-ts-focus-layer', placement)
+    layer.setAttribute('data-ts-focus-guide-layer', placement)
+    layer.setAttribute('aria-hidden', 'true')
+    layer.setAttribute(
+      'visibility',
+      node.children.length ? 'visible' : 'hidden',
+    )
+    mergeFocusGuideClipFallback(
+      svg.ownerDocument,
+      layer,
+      node.children,
+      placement,
+      options.idPrefix ?? '',
+    )
+  }
+  copyMissingRendererDefinitions(svg, root, layer, node.key)
+  return layer.outerHTML
+}
+
 export function renderFocusGuideLayerWithRenderer<
   TDatum,
   TXValue extends ChartValue,
@@ -20,7 +66,6 @@ export function renderFocusGuideLayerWithRenderer<
   options: RenderChartSvgOptions,
   renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue>,
 ): string {
-  const document = svg.ownerDocument
   const key = `focus-guide-layer:${placement}`
   const wrapper: SceneGroup = {
     kind: 'group',
@@ -29,39 +74,14 @@ export function renderFocusGuideLayerWithRenderer<
     ariaHidden: true,
     children: nodes,
   }
-  const markup = renderSvg(
-    {
-      ...scene,
-      nodes: [wrapper],
-      focusGuides: undefined,
-    },
+  return renderSvgFocusLayerWithRenderer(
+    svg,
+    { ...scene, focusGuides: undefined },
+    wrapper,
     options,
-  )
-  const root = parseSvgMarkup(document, markup)
-  const layer = root ? keyedElement(root, key) : undefined
-  if (!root || !layer || layer.localName !== 'g') {
-    throw new Error(
-      `The SVG renderer must preserve a g[data-ts-key="${key}"] element when serializing focus guides.`,
-    )
-  }
-
-  layer.classList.add(
-    'ts-chart__focus-guide-layer',
-    `ts-chart__focus-guide-layer--${placement}`,
-  )
-  layer.setAttribute('data-ts-focus-layer', placement)
-  layer.setAttribute('data-ts-focus-guide-layer', placement)
-  layer.setAttribute('aria-hidden', 'true')
-  layer.setAttribute('visibility', nodes.length ? 'visible' : 'hidden')
-  mergeFocusGuideClipFallback(
-    document,
-    layer,
-    nodes,
+    renderSvg,
     placement,
-    options.idPrefix ?? '',
   )
-  copyMissingRendererDefinitions(svg, root, layer, key)
-  return layer.outerHTML
 }
 
 function mergeFocusGuideClipFallback(

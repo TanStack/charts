@@ -6,7 +6,7 @@ import {
   scaleQuantize,
   scaleUtc,
 } from 'd3-scale'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { barY } from './bar'
 import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
@@ -548,6 +548,34 @@ describe('configured scales', () => {
         { width: 480, height: 260 },
       ),
     ).toThrow('An inferred log scale cannot include an implicit zero baseline')
+  })
+
+  it('deduplicates categorical values without merging dates, numbers, or strings', () => {
+    const date = new Date(0)
+    const source = scaleBand<string | number | Date>()
+    const copy = source.copy()
+    vi.spyOn(source, 'copy').mockReturnValue(copy)
+    const domain = vi.spyOn(copy, 'domain')
+    resolveScaleInput(() => source, {
+      values: [
+        date,
+        new Date(0),
+        0,
+        -0,
+        '0',
+        'date:0',
+        '0',
+        undefined,
+        NaN,
+        new Date(NaN),
+      ],
+    })
+    expect(domain).toHaveBeenCalledWith([date, 0, '0', 'date:0'])
+    expect(
+      resolveScaleInput(() => scaleBand().domain(['default']), {
+        values: [undefined, NaN],
+      }).domain(),
+    ).toEqual(['default'])
   })
 
   it('retains native factory domains for empty channels', () => {

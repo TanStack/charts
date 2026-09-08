@@ -13,6 +13,10 @@ import type {
   DomChartDefinition,
 } from '@tanstack/charts'
 
+const subscribeToHydration = () => () => {}
+const clientSnapshot = () => false
+const serverSnapshot = () => true
+
 interface ChartSurfaceProps {
   markup: string
 }
@@ -157,20 +161,34 @@ export function RendererChartImplementation<
   }
   adapterRef.current ??= createChartRendererAdapter(hostOptions)
   const adapter = adapterRef.current
+  // Server rendering and hydration need matching initial markup. A client-only
+  // mount can render once in the layout effect, with the real DOM text metrics.
+  const needsInitialMarkup = React.useSyncExternalStore(
+    subscribeToHydration,
+    clientSnapshot,
+    serverSnapshot,
+  )
   const initialMarkupRef = React.useRef<string | null>(null)
-  initialMarkupRef.current ??= adapter.prerender()
+  initialMarkupRef.current ??= needsInitialMarkup ? adapter.prerender() : ''
 
+  const mountedRef = React.useRef(false)
   React.useLayoutEffect(() => {
     const container = containerRef.current
     if (!container) return
     adapter.update(hostOptions)
-    adapter.mount(container)
-    return () => adapter.destroy()
-  }, [])
-
-  React.useLayoutEffect(() => {
-    adapter.update(hostOptions)
+    if (!mountedRef.current) {
+      adapter.mount(container)
+      mountedRef.current = true
+    }
   }, [adapter, hostOptions])
+
+  React.useLayoutEffect(
+    () => () => {
+      adapter.destroy()
+      mountedRef.current = false
+    },
+    [adapter],
+  )
 
   return (
     <div
