@@ -158,55 +158,97 @@ describe('automated release status', () => {
     ).toThrow('existing release tag points to a different revision')
   })
 
-  it('finds the changesets merge that introduced the current version', async () => {
-    const repositoryRoot = await mkdtemp(
-      join(tmpdir(), 'charts-release-status-'),
-    )
-
-    try {
-      await git(repositoryRoot, 'init', '--initial-branch=main')
-      await git(repositoryRoot, 'config', 'user.name', 'Release Status Test')
-      await git(
-        repositoryRoot,
-        'config',
-        'user.email',
-        'release-status@example.com',
-      )
-      await git(repositoryRoot, 'config', 'commit.gpgsign', 'false')
-      await git(repositoryRoot, 'config', 'merge.gpgsign', 'false')
-      await git(repositoryRoot, 'config', 'core.hooksPath', '.git/no-hooks')
-
-      const manifestDirectory = join(repositoryRoot, 'packages', 'charts-core')
-      const manifestPath = join(manifestDirectory, 'package.json')
-      await mkdir(manifestDirectory, { recursive: true })
-      await writeManifest(manifestPath, '0.6.4')
-      await git(repositoryRoot, 'add', 'packages/charts-core/package.json')
-      await git(repositoryRoot, 'commit', '-m', 'chore: initial version')
-
-      await git(repositoryRoot, 'switch', '-c', 'changeset-release/main')
-      await writeManifest(manifestPath, '0.6.5')
-      await git(repositoryRoot, 'add', 'packages/charts-core/package.json')
-      await git(repositoryRoot, 'commit', '-m', 'chore: version packages')
-
-      await git(repositoryRoot, 'switch', 'main')
-      await git(
-        repositoryRoot,
-        'merge',
-        '--no-ff',
-        'changeset-release/main',
-        '-m',
-        'Merge pull request #1 from TanStack/changeset-release/main',
+  it.each(['merge', 'squash', 'rebase'])(
+    'finds the version introduction after a %s merge',
+    async (method) => {
+      const repositoryRoot = await mkdtemp(
+        join(tmpdir(), 'charts-release-status-'),
       )
 
-      const { stdout } = await git(repositoryRoot, 'rev-parse', 'HEAD')
-      const expectedRevision = stdout.trim()
-      const revision = await readReleaseRevision(repositoryRoot, '0.6.5')
+      try {
+        await git(repositoryRoot, 'init', '--initial-branch=main')
+        await git(repositoryRoot, 'config', 'user.name', 'Release Status Test')
+        await git(
+          repositoryRoot,
+          'config',
+          'user.email',
+          'release-status@example.com',
+        )
+        await git(repositoryRoot, 'config', 'commit.gpgsign', 'false')
+        await git(repositoryRoot, 'config', 'merge.gpgsign', 'false')
+        await git(repositoryRoot, 'config', 'core.hooksPath', '.git/no-hooks')
 
-      expect(revision).toBe(expectedRevision)
-    } finally {
-      await rm(repositoryRoot, { recursive: true, force: true })
-    }
-  })
+        const manifestDirectory = join(
+          repositoryRoot,
+          'packages',
+          'charts-core',
+        )
+        const manifestPath = join(manifestDirectory, 'package.json')
+        await mkdir(manifestDirectory, { recursive: true })
+        await writeManifest(manifestPath, '0.6.4')
+        await git(repositoryRoot, 'add', 'packages/charts-core/package.json')
+        await git(repositoryRoot, 'commit', '-m', 'chore: initial version')
+
+        await git(repositoryRoot, 'switch', '-c', 'changeset-release/main')
+        await writeManifest(manifestPath, '0.6.5')
+        await git(repositoryRoot, 'add', 'packages/charts-core/package.json')
+        await git(repositoryRoot, 'commit', '-m', 'chore: version packages')
+
+        await git(repositoryRoot, 'switch', 'main')
+        if (method === 'merge') {
+          await git(
+            repositoryRoot,
+            'merge',
+            '--no-ff',
+            'changeset-release/main',
+            '-m',
+            'Merge pull request #1 from TanStack/changeset-release/main',
+          )
+        } else if (method === 'squash') {
+          await git(
+            repositoryRoot,
+            'merge',
+            '--squash',
+            'changeset-release/main',
+          )
+          await git(repositoryRoot, 'commit', '-m', 'ci: Version Packages (#1)')
+        } else {
+          await git(
+            repositoryRoot,
+            'merge',
+            '--ff-only',
+            'changeset-release/main',
+          )
+        }
+
+        const { stdout } = await git(repositoryRoot, 'rev-parse', 'HEAD')
+        const expectedRevision = stdout.trim()
+        await writeFile(
+          manifestPath,
+          JSON.stringify({
+            name: '@tanstack/charts',
+            version: '0.6.5',
+            description: 'Later manifest change',
+          }),
+        )
+        await git(repositoryRoot, 'add', 'packages/charts-core/package.json')
+        await git(
+          repositoryRoot,
+          'commit',
+          '-m',
+          'chore: update package description',
+        )
+        const revision = await readReleaseRevision(repositoryRoot, '0.6.5')
+
+        expect(revision).toBe(expectedRevision)
+        await expect(
+          readReleaseRevision(repositoryRoot, '9.9.9'),
+        ).rejects.toThrow('Could not find the release revision for 9.9.9')
+      } finally {
+        await rm(repositoryRoot, { recursive: true, force: true })
+      }
+    },
+  )
 })
 
 function git(repositoryRoot, ...args) {
