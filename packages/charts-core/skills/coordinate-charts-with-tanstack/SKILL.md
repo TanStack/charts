@@ -10,7 +10,7 @@ description: >
 metadata:
   type: composition
   library: '@tanstack/charts'
-  library_version: '0.16.1'
+  library_version: '0.16.2'
 sources:
   - 'TanStack/charts:docs/guides/interactions-and-selections.md'
   - 'TanStack/charts:docs/guides/transforms-and-reactivity.md'
