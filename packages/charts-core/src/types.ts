@@ -1971,6 +1971,8 @@ export interface ChartTooltipContent {
 }
 
 export interface ChartTooltipContentContext {
+  /** The hovered or keyboard-focused point, independent of tooltip row order. */
+  primaryPoint?: ChartPoint
   pinned: boolean
   xLabel: string
   yLabel: string
@@ -1979,6 +1981,8 @@ export interface ChartTooltipContentContext {
 }
 
 export interface ChartTooltipRow {
+  /** Emphasizes this row independently of its series color. */
+  active?: boolean
   label: string
   value: string
   color?: string
@@ -1989,6 +1993,7 @@ export interface ChartTooltipBodyContext<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   content: ChartTooltipContent | string
   pinned: boolean

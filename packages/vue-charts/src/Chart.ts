@@ -169,6 +169,7 @@ const ChartImplementation = defineComponent({
               Teleport,
               { to: target.element },
               slots.tooltipBody({
+                primaryPoint: target.primaryPoint,
                 points: target.points,
                 content: target.content,
                 pinned: target.pinned,
@@ -281,11 +282,24 @@ function renderDefaultTooltipBody(
               'div',
               {
                 class: 'ts-chart-tooltip__row',
+                'data-active': String(row.active === true),
                 style: {
                   display: 'grid',
                   gridTemplateColumns: '0.55rem minmax(0,1fr) auto',
                   alignItems: 'center',
                   columnGap: '0.4rem',
+                  fontWeight: row.active
+                    ? 'var(--ts-chart-tooltip-active-row-font-weight, 700)'
+                    : undefined,
+                  background: row.active
+                    ? 'var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent))'
+                    : undefined,
+                  borderRadius: row.active
+                    ? 'var(--ts-chart-tooltip-active-row-border-radius, .2rem)'
+                    : undefined,
+                  boxShadow: row.active
+                    ? 'var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))'
+                    : undefined,
                 },
               },
               [
