@@ -1,5 +1,12 @@
 # @tanstack/react-native-charts
 
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
 ## 0.16.0
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 0.16.1
+
+### Patch Changes
+
+- [#137](https://github.com/TanStack/charts/pull/137) [`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27) - Highlight the active series in grouped tooltips. Custom tooltip content can use `context.primaryPoint` and `row.active` to show the same highlight when series colors repeat.
+
 ## 0.16.0
 
 ### Minor Changes
