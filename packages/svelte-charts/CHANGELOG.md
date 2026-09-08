@@ -1,5 +1,12 @@
 # @tanstack/svelte-charts
 
+## 0.16.2
+
+### Patch Changes
+
+- Updated dependencies [[`b62087f`](https://github.com/TanStack/charts/commit/b62087fff0803167ae3768993b1c88c9aa164623)]:
+  - @tanstack/charts@0.16.2
+
 ## 0.16.1
 
 ### Patch Changes

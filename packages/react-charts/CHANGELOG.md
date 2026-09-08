@@ -1,5 +1,14 @@
 # @tanstack/react-charts
 
+## 0.16.2
+
+### Patch Changes
+
+- [#140](https://github.com/TanStack/charts/pull/140) [`b62087f`](https://github.com/TanStack/charts/commit/b62087fff0803167ae3768993b1c88c9aa164623) - Reduce chart mounting work by creating default SVG focus indicators only when needed and avoiding duplicate React client rendering. Speed up SVG serialization and categorical domain inference while preserving server rendering, hydration, chart appearance, and interactions.
+
+- Updated dependencies [[`b62087f`](https://github.com/TanStack/charts/commit/b62087fff0803167ae3768993b1c88c9aa164623)]:
+  - @tanstack/charts@0.16.2
+
 ## 0.16.1
 
 ### Patch Changes
