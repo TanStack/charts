@@ -331,6 +331,7 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
+| F-295 | Grouped tooltips did not identify the active series            | API                   | resolved   |
 
 ## Findings
 
@@ -8505,3 +8506,21 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+
+### F-295 - Grouped tooltips did not identify the active series
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: NPM stats tooltip review with repeated series colors
+- Friction: Stats overrode the existing visual sort with color-domain order.
+  Removing that application override fixes ordering, but custom tooltip
+  callbacks could not identify the primary point and structured rows had no
+  active style. Repeated colors made the hovered series ambiguous.
+- Decision: expose `context.primaryPoint` and `row.active`, highlight the
+  primary row in default grouped content, and refresh custom bodies when the
+  primary point changes within the same focus group. All framework body
+  renderers preserve this state and DOM defaults use CSS-variable styling.
+- Verification: runtime regressions cover moving between same-colored series
+  with built-in and custom content while preserving visual order. Existing
+  x- and y-grouped ordering tests pass.

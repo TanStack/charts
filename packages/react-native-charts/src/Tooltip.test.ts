@@ -43,11 +43,19 @@ describe('native tooltip model', () => {
   it('builds the supported shared-axis default content', () => {
     const points = [point('alpha', 'Alpha', 3), point('beta', 'Beta', 7)]
 
-    expect(createNativeTooltipContent(points, scene(points))).toEqual({
+    expect(
+      createNativeTooltipContent(
+        points,
+        scene(points),
+        false,
+        undefined,
+        points[1],
+      ),
+    ).toEqual({
       title: '1',
       rows: [
-        { label: 'Alpha', value: '3', color: '#2563eb' },
-        { label: 'Beta', value: '7', color: '#f97316' },
+        { label: 'Alpha', value: '3', color: '#2563eb', active: false },
+        { label: 'Beta', value: '7', color: '#f97316', active: true },
       ],
     })
   })
