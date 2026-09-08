@@ -299,6 +299,103 @@ describe('React adapter', () => {
     target.remove()
   })
 
+  it('builds and serializes a client-only chart once before parent layout effects', async () => {
+    const build = vi.fn(() => definition)
+    const dynamic = defineChart(build)
+    const serialize = vi.fn(renderChartSvgWithResources)
+    const target = document.createElement('div')
+    const root = createRoot(target)
+    const observed = vi.fn()
+    function Parent() {
+      React.useLayoutEffect(() => {
+        observed(target.querySelector('svg path'))
+      }, [])
+      return (
+        <Chart
+          definition={dynamic}
+          renderSvg={serialize}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />
+      )
+    }
+    await act(async () => root.render(<Parent />))
+    expect(build).toHaveBeenCalledTimes(1)
+    expect(serialize).toHaveBeenCalledTimes(1)
+    expect(observed).toHaveBeenCalledWith(expect.any(SVGElement))
+    await act(async () => root.unmount())
+  })
+
+  it('avoids a post-mount font read but refreshes typography on later updates', async () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+    const serialize = vi.fn(renderChartSvgWithResources)
+    const original = window.getComputedStyle.bind(window)
+    const reads: boolean[] = []
+    const spy = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element) => {
+        if (element.classList.contains('ts-chart-surface')) {
+          reads.push(Boolean(element.querySelector('svg')))
+        }
+        return original(element)
+      })
+    const render = () =>
+      root.render(
+        <Chart
+          definition={definition}
+          renderSvg={serialize}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />,
+      )
+    try {
+      await act(async () => render())
+      expect(reads.length).toBeGreaterThan(0)
+      expect(reads).not.toContain(true)
+      expect(serialize).toHaveBeenCalledTimes(1)
+      const surface = target.querySelector<HTMLElement>('.ts-chart-surface')!
+      surface.style.fontFamily = 'monospace'
+      await act(async () => render())
+      expect(reads).toContain(true)
+      expect(serialize).toHaveBeenCalledTimes(2)
+    } finally {
+      await act(async () => root.unmount())
+      spy.mockRestore()
+      target.remove()
+    }
+  })
+
+  it('keeps complete SSR markup and hydration identity in Strict Mode', async () => {
+    const target = document.createElement('div')
+    const chart = (
+      <React.StrictMode>
+        <Chart
+          definition={definition}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />
+      </React.StrictMode>
+    )
+    target.innerHTML = renderToString(chart)
+    const svg = target.querySelector('svg')
+    const path = target.querySelector('.ts-chart__marks path')
+    expect(path).not.toBeNull()
+    const recoverable = vi.fn()
+    let root!: ReturnType<typeof hydrateRoot>
+    await act(async () => {
+      root = hydrateRoot(target, chart, { onRecoverableError: recoverable })
+    })
+    expect(target.querySelector('svg')).toBe(svg)
+    expect(target.querySelector('.ts-chart__marks path')).toBe(path)
+    expect(recoverable).not.toHaveBeenCalled()
+    await act(async () => root.unmount())
+  })
+
   it('server-renders the complete shared SVG renderer output', () => {
     const html = renderToString(
       <Chart

@@ -1,3 +1,4 @@
+import { escapeAttribute } from './markup-internal'
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import { resolveFocusScene } from './focus-layer'
@@ -1775,12 +1776,4 @@ function requiredContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
 
 function integer(value: number): string {
   return String(Math.max(0, Math.round(value)))
-}
-
-function escapeAttribute(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
 }
