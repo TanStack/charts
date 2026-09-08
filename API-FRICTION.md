@@ -7010,6 +7010,12 @@ Each entry records:
   The lifecycle-only probe shows why synchronous mount and paint must remain
   separate measurements: avoiding a forced style read moves browser work
   out of the commit but does not by itself remove that work before paint.
+- Release port: the historical measurements above used the 0.9.0 worktree.
+  The release is based on 0.16.1. It keeps the newer mapped focus-coordinate
+  registration, so the no-viewport point-map shortcut is not included.
+  All 973 core and React tests pass on that base, and seven native Chromium
+  screenshots match the current baseline byte for byte. The React line
+  consumer adds 365 gzip bytes, with dependency isolation preserved.
 - Measurement: Apple M5 Pro, Chromium 151.0.7922.34, production React profiling
   build, 500 by 300 pixels, 10 warmups and 20 measured mounts, median without
   outlier removal, no axes, animation, or progressive rendering. Workspace
@@ -7857,6 +7863,11 @@ Each entry records:
 - Release verification: the focused contract covers ranged and unscoped
   dependencies. All 12 `0.9.0` release artifacts pass with the unified fixture
   installing from its isolated store.
+
+- Performance release tooling: the isolated unified consumer had no
+  `packageManager`, so Corepack selected pnpm 12.3.4 instead of the repository's
+  pinned pnpm 11.15.1 and rejected the install flags. The fixture now inherits
+  the root package-manager pin, preserving its offline dependency check.
 
 ### F-258 — Tooltip chrome required specificity overrides
 

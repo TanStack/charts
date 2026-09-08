@@ -14,11 +14,13 @@ describe('SVG surface coordinates', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot(rows, { x: 'x', y: 'y', fill: 'url(#points)' })],
-        x: {
-          scale: scaleLinear().domain([0, 199]),
-          viewport: { domain: [0, 100] },
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 199]),
+            viewport: { domain: [0, 100] },
+          },
+          y: { scale: scaleLinear().domain([0, 5]) },
         },
-        y: { scale: scaleLinear().domain([0, 5]) },
         gradients: [
           {
             id: 'points',
@@ -94,8 +96,10 @@ describe('SVG surface coordinates', () => {
               { x: 'x', y: 'y', key: 'id' },
             ),
           ],
-          x: { scale: scaleLinear().domain([0, 5]) },
-          y: { scale: scaleLinear().domain([0, 5]) },
+          scales: {
+            x: { scale: scaleLinear().domain([0, 5]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
           guides: false,
         }),
         { width: 500, height: 250 },
@@ -146,8 +150,10 @@ describe('SVG surface coordinates', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot([1, 2])],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
       }),
       { width: 200, height: 100 },
     )
