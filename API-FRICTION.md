@@ -8690,21 +8690,28 @@ Each entry records:
   options. A fixed `width` also disabled the host observer completely, even
   when height still belonged to the container.
 - Decision: when neither explicit `height` nor a positive finite
-  `aspectRatio` owns scene height, use the container's positive finite bounding
-  height and observe it as a live dimension. Preserve explicit height first
-  and aspect-ratio-derived height second. Observe width and height
-  independently, so fixed width does not disable required height observation.
-  Ignore zero and nonfinite live measurements instead of replacing a valid
-  scene, and keep the `320` fallback for initial output without a usable
-  container height.
+  `aspectRatio` owns scene height, use the container's positive finite
+  content-box height and observe it as a live dimension. Measure every
+  container-owned axis from the same content box. This keeps padding and
+  borders outside scene geometry so box edges cannot feed back into repeated
+  growth or shrinkage. Container-owned height must be resolved independently
+  of chart content; a self-sized `height: auto` container instead requires
+  explicit `height` or `aspectRatio`. Preserve explicit height first and
+  aspect-ratio-derived height second. Observe width and height independently,
+  so fixed width does not disable required height observation. Ignore zero and
+  nonfinite live measurements instead of replacing a valid scene, and keep the
+  `320` fallback for initial output without a usable container height.
 - Verification: renderer-host regressions cover a fixed width with height-only
   changes, coalescing and redundant notifications, explicit-height and
   aspect-ratio precedence, transitions between fixed and container-owned
   height, independent valid-axis updates when the other measurement is
-  unusable, and zero, `NaN`, and infinite measurements. The shared host covers
-  SVG, Canvas, mixed renderers, and every web framework adapter; React Native
-  continues to use its platform layout callback. The full `pnpm validate` gate
-  passes 288 test files and 1,982 tests.
+  unusable, zero, `NaN`, and infinite measurements, and surface sizing feedback
+  with padding and borders on both axes, content-box and border-box CSS,
+  unresolved CSS size fallbacks, and a fixed scene width whose CSS height
+  changes by the prior surface ratio. The shared host covers SVG, Canvas, mixed
+  renderers, and every web framework adapter; React Native continues to use its
+  platform layout callback. The full `pnpm validate` gate passes 288 test files
+  and 1,985 tests.
 
 ### F-297 - Unified peer metadata rejected supported React releases
 

@@ -2391,6 +2391,233 @@ describe('renderer-neutral chart host', () => {
     cancelFrame.mockRestore()
   })
 
+  it('keeps padding and borders out of container-owned scene dimensions', () => {
+    let resize: ResizeObserverCallback | undefined
+    let contentWidth = 480
+    let contentHeight = 0
+    let useContentBounds = true
+    const frames: FrameRequestCallback[] = []
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const originalResizeObserver = window.ResizeObserver
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    window.ResizeObserver = TestResizeObserver
+    const fake = createFakeRenderer()
+    fake.render.mockImplementation((scene) => {
+      contentHeight = (contentWidth * scene.height) / scene.width
+    })
+    const container = document.createElement('div')
+    container.style.paddingLeft = '9px'
+    container.style.paddingRight = '11px'
+    container.style.paddingTop = '10.25px'
+    container.style.paddingBottom = '10.25px'
+    container.style.borderLeft = '2px solid transparent'
+    container.style.borderRight = '2px solid transparent'
+    container.style.borderTop = '2px solid transparent'
+    container.style.borderBottom = '2px solid transparent'
+    Object.defineProperty(container, 'clientWidth', {
+      configurable: true,
+      get: () => Math.round(contentWidth + 20),
+    })
+    Object.defineProperty(container, 'clientHeight', {
+      configurable: true,
+      get: () => Math.round(contentHeight + 20.5),
+    })
+    vi.spyOn(container, 'getBoundingClientRect').mockImplementation(() => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: (useContentBounds ? contentWidth : 0) + 24,
+      bottom: (useContentBounds ? contentHeight : 0) + 24.5,
+      left: 0,
+      width: (useContentBounds ? contentWidth : 0) + 24,
+      height: (useContentBounds ? contentHeight : 0) + 24.5,
+      toJSON: () => ({}),
+    }))
+    const contentEntry = (): ResizeObserverEntry => ({
+      target: container,
+      contentRect: new DOMRect(0, 0, contentWidth, contentHeight),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    })
+    const host = mountChartRenderer(container, {
+      definition,
+      renderer: fake.renderer,
+      ariaLabel: 'Content-box chart',
+    })
+
+    expect(host.getScene()).toMatchObject({ width: 480, height: 320 })
+
+    resize?.([contentEntry()], {} as ResizeObserver)
+    expect(frames).toHaveLength(0)
+
+    contentWidth = 640
+    contentHeight = 260
+    useContentBounds = false
+    resize?.([contentEntry()], {} as ResizeObserver)
+    expect(frames).toHaveLength(1)
+    frames.shift()?.(0)
+    expect(host.getScene()).toMatchObject({ width: 640, height: 260 })
+
+    resize?.([contentEntry()], {} as ResizeObserver)
+    expect(frames).toHaveLength(0)
+
+    host.destroy()
+    window.ResizeObserver = originalResizeObserver
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('normalizes computed and fallback container box dimensions', () => {
+    const cases = [
+      {
+        boxSizing: 'content-box',
+        cssWidth: '480px',
+        cssHeight: '180px',
+        boundsWidth: 504,
+        boundsHeight: 204,
+        expectedWidth: 480,
+        expectedHeight: 180,
+      },
+      {
+        boxSizing: 'border-box',
+        cssWidth: '480px',
+        cssHeight: '204px',
+        boundsWidth: 480,
+        boundsHeight: 204,
+        expectedWidth: 456,
+        expectedHeight: 180,
+      },
+      {
+        boxSizing: 'content-box',
+        cssWidth: '100%',
+        cssHeight: 'calc(100% - 20px)',
+        boundsWidth: 504,
+        boundsHeight: 204,
+        expectedWidth: 480,
+        expectedHeight: 180,
+      },
+    ] as const
+
+    for (const testCase of cases) {
+      const container = document.createElement('div')
+      container.style.boxSizing = testCase.boxSizing
+      container.style.width = testCase.cssWidth
+      container.style.height = testCase.cssHeight
+      container.style.padding = '10px'
+      container.style.border = '2px solid transparent'
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+        x: 0,
+        y: 0,
+        top: 0,
+        right: testCase.boundsWidth,
+        bottom: testCase.boundsHeight,
+        left: 0,
+        width: testCase.boundsWidth,
+        height: testCase.boundsHeight,
+        toJSON: () => ({}),
+      })
+      const host = mountChartRenderer(container, {
+        definition,
+        renderer: createFakeRenderer().renderer,
+        ariaLabel: `${testCase.boxSizing} chart`,
+      })
+
+      expect(host.getScene()).toMatchObject({
+        width: testCase.expectedWidth,
+        height: testCase.expectedHeight,
+      })
+
+      host.destroy()
+    }
+  })
+
+  it('honors CSS height changes that match the prior surface ratio', () => {
+    let resize: ResizeObserverCallback | undefined
+    let contentHeight = 260
+    const contentWidth = 480
+    const frames: FrameRequestCallback[] = []
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const originalResizeObserver = window.ResizeObserver
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    window.ResizeObserver = TestResizeObserver
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    container.style.width = '480px'
+    container.style.height = '260px'
+    vi.spyOn(container, 'getBoundingClientRect').mockImplementation(() => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: contentWidth,
+      bottom: contentHeight,
+      left: 0,
+      width: contentWidth,
+      height: contentHeight,
+      toJSON: () => ({}),
+    }))
+    const contentEntry = (): ResizeObserverEntry => ({
+      target: container,
+      contentRect: new DOMRect(0, 0, contentWidth, contentHeight),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    })
+    const host = mountChartRenderer(container, {
+      definition,
+      renderer: fake.renderer,
+      width: 640,
+      ariaLabel: 'Fixed-width CSS-height chart',
+    })
+
+    expect(host.getScene()).toMatchObject({ width: 640, height: 260 })
+
+    contentHeight = 195
+    container.style.height = '195px'
+    resize?.([contentEntry()], {} as ResizeObserver)
+    expect(frames).toHaveLength(1)
+    frames.shift()?.(0)
+    expect(host.getScene()).toMatchObject({ width: 640, height: 195 })
+
+    resize?.([contentEntry()], {} as ResizeObserver)
+    expect(frames).toHaveLength(0)
+
+    host.destroy()
+    window.ResizeObserver = originalResizeObserver
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
   it('updates container-owned dimensions independently', () => {
     let resize: ResizeObserverCallback | undefined
     let width = 480

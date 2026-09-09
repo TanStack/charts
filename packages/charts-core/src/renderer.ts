@@ -137,6 +137,8 @@ export function mountChartRenderer<
   let pointerPosition: ChartTooltipPosition | null = null
   let pinnedKey: string | null = null
   let observer: ResizeObserver | undefined
+  let observedContentSize:
+    { width: number | undefined; height: number | undefined } | undefined
   let renderFrame: number | undefined
   let forceScheduledRender = false
   let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
@@ -289,21 +291,51 @@ export function mountChartRenderer<
   const observesContainerHeight = () =>
     options.height === undefined && !isPositiveFiniteNumber(options.aspectRatio)
 
+  const currentContainerContentSize = (bounds: DOMRect | undefined) => {
+    const styles = view?.getComputedStyle(container)
+    const paddingWidth =
+      cssPixelLength(styles?.paddingLeft) + cssPixelLength(styles?.paddingRight)
+    const paddingHeight =
+      cssPixelLength(styles?.paddingTop) + cssPixelLength(styles?.paddingBottom)
+    const borderWidth =
+      cssPixelLength(styles?.borderLeftWidth) +
+      cssPixelLength(styles?.borderRightWidth)
+    const borderHeight =
+      cssPixelLength(styles?.borderTopWidth) +
+      cssPixelLength(styles?.borderBottomWidth)
+    return {
+      width: contentBoxDimension(
+        styles?.width,
+        styles?.boxSizing,
+        bounds?.width,
+        paddingWidth,
+        borderWidth,
+      ),
+      height: contentBoxDimension(
+        styles?.height,
+        styles?.boxSizing,
+        bounds?.height,
+        paddingHeight,
+        borderHeight,
+      ),
+    }
+  }
+
   const currentSize = () => {
     const measureWidth = observesContainerWidth()
     const measureHeight = observesContainerHeight()
     const bounds =
-      measureWidth || measureHeight
+      (measureWidth || measureHeight) && !observedContentSize
         ? container.getBoundingClientRect()
         : undefined
+    const contentSize =
+      measureWidth || measureHeight
+        ? (observedContentSize ?? currentContainerContentSize(bounds))
+        : undefined
+    const width = options.width ?? contentSize?.width
     return {
-      width:
-        options.width ??
-        (isPositiveFiniteNumber(bounds?.width) ? bounds.width : undefined),
-      height:
-        measureHeight && isPositiveFiniteNumber(bounds?.height)
-          ? bounds.height
-          : undefined,
+      width,
+      height: measureHeight ? contentSize?.height : undefined,
     }
   }
 
@@ -322,10 +354,20 @@ export function mountChartRenderer<
   const configureObserver = () => {
     observer?.disconnect()
     observer = undefined
+    observedContentSize = undefined
     if (!observesContainerWidth() && !observesContainerHeight()) return
     const ResizeObserverConstructor = view?.ResizeObserver
     if (!ResizeObserverConstructor) return
-    observer = new ResizeObserverConstructor(() => {
+    observer = new ResizeObserverConstructor((entries) => {
+      const entry =
+        entries.find((candidate) => candidate.target === container) ??
+        entries[0]
+      observedContentSize = entry
+        ? {
+            width: positiveFiniteNumber(entry.contentRect.width),
+            height: positiveFiniteNumber(entry.contentRect.height),
+          }
+        : undefined
       if (!responsiveSizeChanged()) return
       scheduleRender(false, 'resize')
     })
@@ -1281,6 +1323,38 @@ function resolveTooltipInput<
 
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function cssPixelLength(value: string | undefined) {
+  return cssPixelValue(value) ?? 0
+}
+
+function contentBoxDimension(
+  computedSize: string | undefined,
+  boxSizing: string | undefined,
+  boundingSize: number | undefined,
+  padding: number,
+  border: number,
+) {
+  const resolvedSize = isPositiveFiniteNumber(boundingSize)
+    ? cssPixelValue(computedSize)
+    : undefined
+  const size =
+    resolvedSize === undefined
+      ? (boundingSize ?? 0) - padding - border
+      : resolvedSize - (boxSizing === 'border-box' ? padding + border : 0)
+  return isPositiveFiniteNumber(size) ? size : undefined
+}
+
+function cssPixelValue(value: string | undefined) {
+  const match = /^(-?(?:\d+(?:\.\d*)?|\.\d+))px$/i.exec(value?.trim() ?? '')
+  if (!match) return undefined
+  const length = Number(match[1])
+  return Number.isFinite(length) ? length : undefined
+}
+
+function positiveFiniteNumber(value: number) {
+  return isPositiveFiniteNumber(value) ? value : undefined
 }
 
 function resolveRendererFocusStrategy<
