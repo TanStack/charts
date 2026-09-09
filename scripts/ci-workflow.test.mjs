@@ -80,6 +80,10 @@ describe('CI workflow contract', () => {
   test('keeps packed-consumer installs offline without resolving optional peers', () => {
     assert.equal(
       (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
+      2,
+    )
+    assert.equal(
+      (packedConsumer.match(/strictPeerDependencies: true/g) ?? []).length,
       1,
     )
     assert.equal(
@@ -88,7 +92,7 @@ describe('CI workflow contract', () => {
           /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/g,
         ) ?? []
       ).length,
-      1,
+      2,
     )
     assert.match(unifiedArtifact, /'autoInstallPeers: false'/)
     assert.match(unifiedArtifact, /linkedUnifiedConsumerDependencies\(/)

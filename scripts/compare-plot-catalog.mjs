@@ -1260,6 +1260,7 @@ async function measureImplementation(
   const page = await browser.newPage({
     viewport: { width: 1_120, height: 620 },
     deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
   })
   try {
     await page.goto(serverUrl, { waitUntil: 'load' })
@@ -1410,6 +1411,7 @@ async function compareVisuals(
   const page = await browser.newPage({
     viewport: { width: 2_080, height: 620 },
     deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
   })
   try {
     await page.goto(serverUrl, { waitUntil: 'load' })
@@ -1906,8 +1908,8 @@ async function compareVisuals(
             arc: '.ts-chart__arc path',
             area: '.ts-chart__area path',
             arrow: '.ts-chart__arrow-shaft',
-            bar: '.ts-chart__bar rect',
-            cell: '.ts-chart__rect rect',
+            bar: '.ts-chart__bar rect, .ts-chart__bar path',
+            cell: '.ts-chart__rect rect, .ts-chart__rect path',
             contour: '.ts-chart__area path',
             delaunay: '.ts-chart__link line, .ts-chart__link path',
             density: '.ts-chart__area path',
@@ -1917,7 +1919,7 @@ async function compareVisuals(
             hexagon: '.ts-chart__hexagon path',
             line: '.ts-chart__line path',
             link: '.ts-chart__link line, .ts-chart__link path',
-            rect: '.ts-chart__rect rect',
+            rect: '.ts-chart__rect rect, .ts-chart__rect path',
             radar: '.ts-chart__radar path',
             regression: '.ts-chart__line path',
             rule: '.ts-chart__rule line',

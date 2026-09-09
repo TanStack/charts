@@ -10,7 +10,7 @@ export type {
   ChartAdapterLayoutOptions,
 } from './adapter'
 export { barX, barY } from './bar'
-export type { BarXOptions, BarYOptions } from './bar'
+export type { BarEndRadius, BarRadius, BarXOptions, BarYOptions } from './bar'
 export { bandX, bandY } from './band'
 export type { BandXOptions, BandYOptions } from './band'
 export { boxRows, boxX, boxY } from './box'
@@ -348,6 +348,7 @@ export type {
   ChartFocusAnchor,
   ChartFocusCursorBinding,
   ChartFocusPresentation,
+  ChartFocusRingOptions,
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusAffinity,
@@ -449,6 +450,8 @@ export type {
   ChartTooltipSort,
   ChartValue,
   ResponsiveChartConfig,
+  RectCornerRadii,
+  RectRadius,
   VisualChannel,
   WidenChartValue,
   RenderChartSvgOptions,

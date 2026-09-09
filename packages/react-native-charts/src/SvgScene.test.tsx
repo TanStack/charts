@@ -1,10 +1,24 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createChartScene, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
+import {
+  rectCornerRadiiPath,
+  resolveRectCornerRadii,
+} from '@tanstack/charts/renderer/rect'
 import { NativeChartFocusOverlay } from './FocusOverlay'
 import { resolveNativePaint } from './paint'
-import { NativeChartScene, resolveNativeLineJoin } from './SvgScene'
+import {
+  NativeChartScene,
+  NativeChartSceneNodes,
+  resolveNativeLineJoin,
+} from './SvgScene'
+
+const platform = vi.hoisted(() => ({ OS: 'ios' }))
+
+vi.mock('react-native', () => ({ Platform: platform }))
 
 vi.mock('react-native-svg', () => ({
   Circle: 'circle',
@@ -19,6 +33,10 @@ vi.mock('react-native-svg', () => ({
   Svg: 'svg',
   Text: 'text',
 }))
+
+afterEach(() => {
+  platform.OS = 'ios'
+})
 
 describe('React Native SVG scene renderer', () => {
   it('maps every scene primitive, gradients, clipping, and authored paths', () => {
@@ -37,6 +55,8 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('<clipPath')
     expect(markup).toContain('transform="translate(10 12)"')
     expect(markup).toContain('stroke-dasharray="2 4"')
+    expect(markup).toContain('stroke-linecap="square"')
+    expect(markup).toContain('stroke-linejoin="bevel"')
     expect(markup).toContain('d="M2,4L20,30"')
     expect(markup).toContain('d="M0,20L20,0L40,20Z"')
     expect(markup).toContain('d="M0,0C10,20,20,20,30,0"')
@@ -46,6 +66,66 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).not.toContain('#fedcba')
     expect(markup).not.toContain('currentColor')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('renders selective rectangle corners as a fixed native SVG path', () => {
+    const selectiveScene = scene()
+    selectiveScene.theme = {
+      ...selectiveScene.theme,
+      background: 'transparent',
+    }
+    selectiveScene.nodes = [
+      {
+        kind: 'rect',
+        key: 'selective',
+        x: 10,
+        y: 20,
+        width: 40,
+        height: 30,
+        cornerRadii: [4, 0, 8, 2],
+        style: {
+          fill: '#00ff00',
+          stroke: '#111827',
+          strokeWidth: 2,
+        },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={selectiveScene}
+        color="#111827"
+        idPrefix="native-corners"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain(
+      'd="M14,20H50A0,0 0 0 1 50,20V42A8,8 0 0 1 42,50H12A2,2 0 0 1 10,48V24A4,4 0 0 1 14,20Z"',
+    )
+    expect(markup).toContain('fill="#00ff00"')
+    expect(markup).toContain('stroke="#111827"')
+    expect(markup).toContain('stroke-width="2"')
+    expect(markup).not.toContain('<rect')
+  })
+
+  it('normalizes invalid and oversized native corner radii proportionally', () => {
+    expect(resolveRectCornerRadii([8, 4, -2, Infinity], 6, 10)).toEqual([
+      4, 2, 0, 0,
+    ])
+    expect(resolveRectCornerRadii([8, 4, 2, 1], -6, -10)).toEqual([
+      4, 2, 1, 0.5,
+    ])
+    expect(resolveRectCornerRadii([8, 4, 2, 1], 0, 10)).toEqual([0, 0, 0, 0])
+
+    const path = rectCornerRadiiPath(0, 0, 6, 10, [8, 4, -2, Infinity])
+    expect(path).toBe(
+      'M4,0H4A2,2 0 0 1 6,2V10A0,0 0 0 1 6,10H0A0,0 0 0 1 0,10V4A4,4 0 0 1 4,0Z',
+    )
+    expect(path).not.toMatch(/NaN|Infinity|-[0-9]/)
+    expect(rectCornerRadiiPath(10, 20, -6, -10, [4, 2, 1, 0.5])).toBe(
+      'M8,10H8A2,2 0 0 1 10,12V19A1,1 0 0 1 9,20H4.5A0.5,0.5 0 0 1 4,19.5V14A4,4 0 0 1 8,10Z',
+    )
   })
 
   it('applies native typography and font scale to scene labels', () => {
@@ -68,6 +148,138 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('font-stretch="condensed"')
     expect(markup).toContain('letter-spacing="1"')
     expect(markup).toContain('font-size="24"')
+  })
+
+  it('converts logical RTL anchors for native labels in every scene layer', () => {
+    const rtlScene = scene()
+    rtlScene.nodes = [
+      label('start', 'start'),
+      label('middle', 'middle'),
+      label('end', 'end'),
+      label('undefined'),
+      {
+        kind: 'group',
+        key: 'nested',
+        children: [label('nested-start', 'start')],
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={rtlScene}
+        color="#111827"
+        direction="rtl"
+        focusPresentation={{
+          under: [label('under-end', 'end')],
+          over: [label('over-start', 'start')],
+        }}
+        idPrefix="native-rtl"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(renderedTextAnchor(markup, 'start')).toBe('end')
+    expect(renderedTextAnchor(markup, 'middle')).toBe('middle')
+    expect(renderedTextAnchor(markup, 'end')).toBe('start')
+    expect(renderedTextAnchor(markup, 'undefined')).toBe('end')
+    expect(renderedTextAnchor(markup, 'nested-start')).toBe('end')
+    expect(renderedTextAnchor(markup, 'under-end')).toBe('start')
+    expect(renderedTextAnchor(markup, 'over-start')).toBe('end')
+  })
+
+  it('keeps logical anchors unchanged outside native RTL rendering', () => {
+    const anchorScene = scene()
+    anchorScene.nodes = [
+      label('start', 'start'),
+      label('middle', 'middle'),
+      label('end', 'end'),
+      label('undefined'),
+    ]
+
+    const ltrMarkup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={anchorScene}
+        color="#111827"
+        direction="ltr"
+        idPrefix="native-ltr"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+    expect(renderedTextAnchor(ltrMarkup, 'start')).toBe('start')
+    expect(renderedTextAnchor(ltrMarkup, 'middle')).toBe('middle')
+    expect(renderedTextAnchor(ltrMarkup, 'end')).toBe('end')
+    expect(renderedTextAnchor(ltrMarkup, 'undefined')).toBeUndefined()
+
+    platform.OS = 'web'
+    const webMarkup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={anchorScene}
+        color="#111827"
+        direction="rtl"
+        idPrefix="web-rtl"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+    expect(renderedTextAnchor(webMarkup, 'start')).toBe('start')
+    expect(renderedTextAnchor(webMarkup, 'middle')).toBe('middle')
+    expect(renderedTextAnchor(webMarkup, 'end')).toBe('end')
+    expect(renderedTextAnchor(webMarkup, 'undefined')).toBeUndefined()
+    expect(renderedTextAttributes(webMarkup, 'start')).toContain(
+      'direction="rtl"',
+    )
+  })
+
+  it('passes direction through NativeChartSceneNodes', () => {
+    const base = scene()
+    const markup = renderToStaticMarkup(
+      <NativeChartSceneNodes
+        scene={base}
+        nodes={[label('standalone-start', 'start')]}
+        color="#111827"
+        direction="rtl"
+        idPrefix="native-nodes-rtl"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(renderedTextAnchor(markup, 'standalone-start')).toBe('end')
+  })
+
+  it('renders Cartesian axis-title typography and paint', () => {
+    const generated = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]), axis: false },
+          y: {
+            scale: scaleLinear().domain([0, 3]),
+            axis: {
+              ticks: false,
+              label: {
+                text: 'Revenue',
+                fontSize: 17,
+                fontWeight: 650,
+                fill: '#0f766e',
+                opacity: 0.6,
+              },
+            },
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={generated}
+        color="#111827"
+        idPrefix="native-axis-title"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toMatch(
+      /<text[^>]*fill="#0f766e"[^>]*opacity="0\.6"[^>]*font-size="17" font-weight="650"[^>]*>Revenue<\/text>/,
+    )
   })
 
   it('makes the two unsupported SVG joins an explicit lossy mapping', () => {
@@ -251,6 +463,55 @@ describe('React Native SVG scene renderer', () => {
     expect(render([second])).not.toContain('x1="10"')
   })
 
+  it('passes RTL direction through the native focus overlay', () => {
+    const focusScene = scene()
+    const point = {
+      key: 'focused-point',
+      markId: 'focused-mark',
+      group: null,
+      groupLabel: 'focused-mark',
+      datum: { id: 'focused-point' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 40,
+      y: 30,
+      color: '#2563eb',
+    }
+    focusScene.nodes = [
+      {
+        kind: 'group',
+        key: 'focus:label',
+        children: [label(point.key, 'start')],
+        focus: {
+          match: 'primary',
+          points: [point],
+          placement: 'over',
+        },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartFocusOverlay
+        width={100}
+        height={60}
+        scene={focusScene}
+        points={[point]}
+        placement="over"
+        source="pointer"
+        pinned={false}
+        showDefault={false}
+        color="#111827"
+        fill="#ffffff"
+        direction="rtl"
+        idPrefix="native-focus-rtl"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(renderedTextAnchor(markup, point.key)).toBe('end')
+  })
+
   it('paints focus underlays and overlays around the base scene in one SVG', () => {
     const base = scene()
     base.nodes = [
@@ -338,7 +599,12 @@ function scene(): ChartScene {
         [2, 4],
         [20, 30],
       ],
-      style: { fill: 'none', stroke: '#abcdef', lineJoin: 'arcs' },
+      style: {
+        fill: 'none',
+        stroke: '#abcdef',
+        lineCap: 'square',
+        lineJoin: 'bevel',
+      },
     },
     {
       kind: 'polyline',
@@ -439,4 +705,30 @@ function scene(): ChartScene {
       palette: ['#2563eb'],
     },
   }
+}
+
+function label(
+  key: string,
+  anchor?: Extract<SceneNode, { kind: 'label' }>['anchor'],
+): Extract<SceneNode, { kind: 'label' }> {
+  return {
+    kind: 'label',
+    key,
+    x: 10,
+    y: 10,
+    text: key,
+    anchor,
+    baseline: 'middle',
+  }
+}
+
+function renderedTextAttributes(markup: string, text: string) {
+  return new RegExp(`<text([^>]*)>${text}</text>`).exec(markup)?.[1]
+}
+
+function renderedTextAnchor(markup: string, text: string) {
+  const attributes = renderedTextAttributes(markup, text)
+  return attributes === undefined
+    ? undefined
+    : /text-anchor="([^"]+)"/.exec(attributes)?.[1]
 }

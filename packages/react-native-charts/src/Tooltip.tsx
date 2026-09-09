@@ -30,6 +30,7 @@ export interface NativeChartTooltipRenderContext<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 > {
+  primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   content: ChartTooltipContent | string
   pinned: boolean
@@ -122,7 +123,14 @@ export function NativeChartTooltip<
     />
   )
   const body = render
-    ? render({ points, content, pinned, dismiss, defaultBody })
+    ? render({
+        primaryPoint: point,
+        points,
+        content,
+        pinned,
+        dismiss,
+        defaultBody,
+      })
     : defaultBody
   const accessibilityLabel = tooltipAccessibilityLabel(content)
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -207,10 +215,24 @@ function DefaultNativeTooltipBody({
               },
             ]}
           />
-          <Text numberOfLines={1} style={rowLabelStyle}>
+          <Text
+            numberOfLines={1}
+            style={
+              row.active
+                ? { ...rowLabelStyle, fontWeight: '700' }
+                : rowLabelStyle
+            }
+          >
             {row.label}
           </Text>
-          <Text numberOfLines={1} style={rowValueStyle}>
+          <Text
+            numberOfLines={1}
+            style={
+              row.active
+                ? { ...rowValueStyle, fontWeight: '700' }
+                : rowValueStyle
+            }
+          >
             {row.value}
           </Text>
         </View>

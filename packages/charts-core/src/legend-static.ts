@@ -1,4 +1,9 @@
 import {
+  estimateSceneText,
+  physicalTextAnchor,
+  withChartTextTypography,
+} from './guide-layout'
+import {
   layoutCategoricalLegendFlow,
   layoutCategoricalLegendItems,
   resolveCategoricalLegendItems,
@@ -9,6 +14,7 @@ import type {
   ChartColorLegend,
   ChartKey,
   ChartLegendPlacement,
+  ChartTextMeasureOptions,
   ResolvedColorScaleKind,
   SceneLabel,
   SceneNode,
@@ -103,19 +109,24 @@ export function colorLegendItems<TValue extends ChartKey = ChartKey>(
     if (labelOffset === undefined) {
       return presentation.rows * presentation.rowHeight
     }
-    const { bounds, theme } = context
+    const { bounds, theme, direction } = context
     const children: SceneNode[] = []
-    presentation.items.forEach(({ item, row, x }) => {
+    presentation.items.forEach(({ item, row, width, x }) => {
       const firstRowCenter = Math.max(
         10,
-        Math.max(presentation.fontSize, presentation.indicatorHeight) / 2,
+        Math.max(presentation.labelHeight, presentation.indicatorHeight) / 2,
       )
       const y =
         bounds.y + firstRowCenter + labelOffset + row * presentation.rowHeight
+      const indicatorWidth = Math.min(presentation.indicatorWidth, width)
+      const indicatorGap = Math.min(
+        presentation.indicatorGap,
+        Math.max(0, width - indicatorWidth),
+      )
       const indicatorBounds = {
         x: bounds.x + x,
         y: y - presentation.indicatorHeight / 2,
-        width: presentation.indicatorWidth,
+        width: indicatorWidth,
         height: presentation.indicatorHeight,
       }
       children.push(
@@ -129,12 +140,10 @@ export function colorLegendItems<TValue extends ChartKey = ChartKey>(
         {
           kind: 'label',
           key: `legend-label:${item.key}`,
-          x:
-            indicatorBounds.x +
-            indicatorBounds.width +
-            presentation.indicatorGap,
+          x: indicatorBounds.x + indicatorBounds.width + indicatorGap,
           y,
           text: item.label,
+          anchor: physicalTextAnchor('left', direction),
           baseline: 'middle',
           fontSize: presentation.fontSize,
           fontWeight: presentation.fontWeight,
@@ -192,7 +201,7 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
       if (isSteppedLegend(context.colors.kind)) {
         return renderSteppedLegend(options, context)
       }
-      const { bounds, theme } = context
+      const { bounds, theme, direction } = context
       const children: SceneNode[] = []
       if (options.label) {
         children.push({
@@ -201,6 +210,7 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
           x: bounds.x,
           y: bounds.y + 11,
           text: options.label,
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 11,
           fontWeight: 600,
           style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -232,7 +242,12 @@ export function colorLegend<TValue extends ChartKey = ChartKey>(
 }
 
 function renderDefaultCategoricalLegend(
-  { colors, bounds, theme }: Parameters<ChartColorLegend['render']>[0],
+  {
+    colors,
+    bounds,
+    theme,
+    direction,
+  }: Parameters<ChartColorLegend['render']>[0],
   labelOffset: number,
   minimumItemWidth: number,
 ): readonly SceneNode[] {
@@ -263,6 +278,7 @@ function renderDefaultCategoricalLegend(
         x: x + 13,
         y,
         text: item.label,
+        anchor: physicalTextAnchor('left', direction),
         baseline: 'middle',
         fontSize: 11,
         style: { fill: theme.foreground, fillOpacity: 0.76 },
@@ -283,6 +299,7 @@ interface ResolvedCategoricalLegendItem<TValue extends ChartKey> {
 interface PositionedCategoricalLegendItem<TValue extends ChartKey> {
   item: ResolvedCategoricalLegendItem<TValue>
   row: number
+  width: number
   x: number
 }
 
@@ -294,6 +311,7 @@ interface CategoricalLegendPresentation<TValue extends ChartKey> {
   indicatorGap: number
   fontSize: number
   fontWeight: number | undefined
+  labelHeight: number
   items: readonly PositionedCategoricalLegendItem<TValue>[]
 }
 
@@ -316,29 +334,40 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
     context.colors,
     labelOptions?.format,
   )
+  const estimateText = withChartTextTypography(
+    estimateSceneText,
+    context.layout?.typography,
+  )
+  let labelHeight = fontSize
   const items = resolvedItems.map((item, index) => {
     const itemContext = { color: item.color, index, label: item.label }
+    const measureOptions = {
+      fontSize,
+      fontWeight,
+      fontFamily: 'sans-serif',
+      fontStyle: 'normal',
+      fontStretch: 'normal',
+      letterSpacing: 0,
+      direction: context.direction ?? 'inherit',
+      fontScale: 1,
+      anchor: physicalTextAnchor('left', context.direction),
+      baseline: 'middle',
+    } satisfies ChartTextMeasureOptions
+    const fallback = estimateText(item.label, measureOptions)
+    const measured =
+      context.layout?.measureText?.(item.label, measureOptions) ?? fallback
+    const measuredWidth = measuredDimension(measured.width, fallback.width)
+    labelHeight = Math.max(
+      labelHeight,
+      measuredDimension(measured.height, fallback.height),
+    )
     return {
       ...item,
       context: itemContext,
-      width:
-        indicatorWidth +
-        indicatorGap +
-        (context.layout?.measureText?.(item.label, {
-          fontSize,
-          fontWeight,
-          fontFamily: 'sans-serif',
-          fontStyle: 'normal',
-          fontStretch: 'normal',
-          letterSpacing: 0,
-          direction: 'inherit',
-          fontScale: 1,
-          anchor: 'start',
-          baseline: 'middle',
-        }).width ?? item.label.length * fontSize * 0.6),
+      width: indicatorWidth + indicatorGap + measuredWidth,
     }
   })
-  const rowHeight = Math.max(fontSize, indicatorHeight) + rowGap
+  const rowHeight = Math.max(labelHeight, indicatorHeight) + rowGap
   const justify = options.justify ?? 'stretch'
   if (justify === 'stretch') {
     const layout = layoutCategoricalLegendItems(
@@ -354,9 +383,11 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
       indicatorGap,
       fontSize,
       fontWeight,
+      labelHeight,
       items: items.map((item, index) => ({
         item,
         row: Math.floor(index / layout.columns),
+        width: layout.itemWidth,
         x: (index % layout.columns) * layout.itemWidth,
       })),
     }
@@ -376,9 +407,11 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
     indicatorGap,
     fontSize,
     fontWeight,
-    items: layout.items.map(({ index, row, x }) => ({
+    labelHeight,
+    items: layout.items.map(({ index, row, width, x }) => ({
       item: items[index]!,
       row,
+      width,
       x,
     })),
   }
@@ -471,6 +504,10 @@ function finiteNonnegative(value: number | undefined, fallback: number) {
     : fallback
 }
 
+function measuredDimension(value: number, fallback: number) {
+  return Number.isFinite(value) && value >= 0 ? value : fallback
+}
+
 function isContinuousLegend(kind: ResolvedColorScaleKind | undefined): boolean {
   return kind === 'continuous'
 }
@@ -487,7 +524,12 @@ function isQuantitativeLegend(
 
 function renderSteppedLegend(
   options: Pick<ColorLegendOptions, 'label' | 'width' | 'format'>,
-  { colors, bounds, theme }: Parameters<ChartColorLegend['render']>[0],
+  {
+    colors,
+    bounds,
+    theme,
+    direction,
+  }: Parameters<ChartColorLegend['render']>[0],
 ): SceneNode {
   const width = Math.min(bounds.width, Math.max(80, options.width ?? 240))
   const x = bounds.x
@@ -503,6 +545,7 @@ function renderSteppedLegend(
       x,
       y: bounds.y + 10,
       text: options.label,
+      anchor: physicalTextAnchor('left', direction),
       fontSize: 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -529,36 +572,36 @@ function renderSteppedLegend(
       ? thresholds.map((value, index) => ({
           value,
           index: index + 1,
-          anchor: 'middle' as const,
+          side: 'middle' as const,
         }))
       : [
           ...(typeof first === 'number'
-            ? [{ value: first, index: 0, anchor: 'start' as const }]
+            ? [{ value: first, index: 0, side: 'left' as const }]
             : []),
           ...thresholds.map((value, index) => ({
             value,
             index: index + 1,
-            anchor: 'middle' as const,
+            side: 'middle' as const,
           })),
           ...(typeof last === 'number'
             ? [
                 {
                   value: last,
                   index: colors.range.length,
-                  anchor: 'end' as const,
+                  side: 'right' as const,
                 },
               ]
             : []),
         ]
 
-  boundaries.forEach(({ value, index, anchor }) => {
+  boundaries.forEach(({ value, index, side }) => {
     children.push({
       kind: 'label',
       key: `legend-step-label:${index}:${value}`,
       x: x + index * itemWidth,
       y: y + 21,
       text: format(value),
-      anchor,
+      anchor: physicalTextAnchor(side, direction),
       fontSize: 10,
       style: { fill: theme.muted, fillOpacity: 0.72 },
     })
@@ -623,7 +666,7 @@ export function colorGradientLegend(
     height() {
       return options.label ? 55 : 42
     },
-    render({ colors, bounds, theme }) {
+    render({ colors, bounds, theme, direction }) {
       const first = colors.domain[0]
       const last = colors.domain.at(-1)
       if (typeof first !== 'number' || typeof last !== 'number') {
@@ -646,6 +689,7 @@ export function colorGradientLegend(
           x,
           y: bounds.y + 10,
           text: options.label,
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 11,
           fontWeight: 600,
           style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -671,7 +715,7 @@ export function colorGradientLegend(
           x,
           y: y + 21,
           text: format(first),
-          anchor: 'start',
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 10,
           style: { fill: theme.muted, fillOpacity: 0.72 },
         },
@@ -681,7 +725,7 @@ export function colorGradientLegend(
           x: x + width,
           y: y + 21,
           text: format(last),
-          anchor: 'end',
+          anchor: physicalTextAnchor('right', direction),
           fontSize: 10,
           style: { fill: theme.muted, fillOpacity: 0.72 },
         },

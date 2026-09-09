@@ -93,6 +93,27 @@ class ChartIdGenerator {
             @for (row of content.rows; track $index) {
               <div
                 class="ts-chart-tooltip__row"
+                [attr.data-active]="row.active === true"
+                [style.fontWeight]="
+                  row.active
+                    ? 'var(--ts-chart-tooltip-active-row-font-weight, 700)'
+                    : null
+                "
+                [style.background]="
+                  row.active
+                    ? 'var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent))'
+                    : null
+                "
+                [style.borderRadius]="
+                  row.active
+                    ? 'var(--ts-chart-tooltip-active-row-border-radius, .2rem)'
+                    : null
+                "
+                [style.boxShadow]="
+                  row.active
+                    ? 'var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))'
+                    : null
+                "
                 style="display:grid;grid-template-columns:0.55rem minmax(0,1fr) auto;align-items:center;column-gap:0.4rem"
               >
                 @if (row.color) {
@@ -268,6 +289,7 @@ export class Chart<
     }
 
     const nextContext = {
+      primaryPoint: target.primaryPoint,
       points: target.points,
       content: target.content,
       defaultBody: this.defaultTooltipBody,

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   estimateSceneText,
+  logicalTextAnchorOffset,
   measureSceneLabelBounds,
+  physicalTextAnchor,
   resolveGuideMargins,
 } from './guide-layout'
 import type { ChartTextMeasurer, SceneGroup, SceneLabel } from './types'
@@ -104,6 +106,43 @@ describe('guide layout', () => {
       width: 40,
       height: 10,
     })
+  })
+
+  it('mirrors the estimated painted box in a right-to-left direction', () => {
+    const options = {
+      ...typography,
+      direction: 'rtl' as const,
+      fontSize: 10,
+      fontWeight: 400,
+      baseline: 'auto' as const,
+    }
+    const start = estimateSceneText('Margin 100', {
+      ...options,
+      anchor: 'start',
+    })
+    const end = estimateSceneText('Margin 100', { ...options, anchor: 'end' })
+
+    expect(start.x).toBeCloseTo(-start.width)
+    expect(end.x).toBe(0)
+  })
+
+  it('resolves logical anchors against the inline direction', () => {
+    expect(logicalTextAnchorOffset(40, 'start', 'ltr')).toBe(0)
+    expect(logicalTextAnchorOffset(40, 'end', 'ltr')).toBe(-40)
+    expect(logicalTextAnchorOffset(40, 'start', 'rtl')).toBe(-40)
+    expect(logicalTextAnchorOffset(40, 'end', 'rtl')).toBe(0)
+    expect(logicalTextAnchorOffset(40, 'middle', 'rtl')).toBe(-20)
+    expect(logicalTextAnchorOffset(40, 'start', 'inherit')).toBe(0)
+  })
+
+  it('maps physical text sides to logical anchors', () => {
+    expect(physicalTextAnchor('left', 'ltr')).toBe('start')
+    expect(physicalTextAnchor('right', 'ltr')).toBe('end')
+    expect(physicalTextAnchor('left', 'rtl')).toBe('end')
+    expect(physicalTextAnchor('right', 'rtl')).toBe('start')
+    expect(physicalTextAnchor('left', 'inherit')).toBe('start')
+    expect(physicalTextAnchor('right', undefined)).toBe('end')
+    expect(physicalTextAnchor('middle', 'rtl')).toBe('middle')
   })
 
   it('rotates the measured rectangle around the label position', () => {

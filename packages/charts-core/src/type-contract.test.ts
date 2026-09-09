@@ -1,15 +1,19 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleTime, scaleUtc } from 'd3-scale'
 import type {
+  BarEndRadius as PublicBarEndRadius,
+  BarRadius as PublicBarRadius,
   CrosshairAxisOptions as PublicCrosshairAxisOptions,
   CrosshairBandOptions as PublicCrosshairBandOptions,
   CrosshairLabelOptions as PublicCrosshairLabelOptions,
   CrosshairMarkerOptions as PublicCrosshairMarkerOptions,
   CrosshairOptions as PublicCrosshairOptions,
   CrosshairRuleOptions as PublicCrosshairRuleOptions,
+  RectCornerRadii as PublicRectCornerRadii,
+  RectRadius as PublicRectRadius,
 } from '@tanstack/charts/types'
 import { barX, barY } from './bar'
-import type { BarYOptions } from './bar'
+import type { BarEndRadius, BarRadius, BarYOptions } from './bar'
 import { mountChart } from './dom'
 import { dot } from './dot'
 import { facet } from './facet'
@@ -58,6 +62,8 @@ import type {
   ChartTooltipExtensionToken,
   ChartValue,
   ResolvedScaleViewport,
+  RectCornerRadii,
+  RectRadius,
 } from './types'
 
 interface Row {
@@ -75,6 +81,13 @@ type PublicCrosshairTypeSurface = {
   marker: PublicCrosshairMarkerOptions
   options: PublicCrosshairOptions<string, number>
   rule: PublicCrosshairRuleOptions
+}
+
+type PublicRadiusTypeSurface = {
+  bar: PublicBarRadius<Row>
+  end: PublicBarEndRadius<Row>
+  corners: PublicRectCornerRadii
+  rect: PublicRectRadius
 }
 
 const rows: readonly Row[] = [
@@ -418,6 +431,39 @@ const facetedMark = facet(rows, {
     return categoricalSpec
   },
 })
+if (false) {
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Facet cell focus rings belong to the outer theme.
+    chart: () => ({ ...categoricalSpec, theme: { focusRing: false } }),
+  })
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Facet cells cannot override the outer focus ring.
+    chart: () => ({ ...categoricalSpec, focusRing: false }),
+  })
+  const storedFocusRingChild = defineChart({
+    ...categoricalSpec,
+    focusRing: false,
+  })
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Stored facet children cannot own the outer focus ring.
+    chart: () => storedFocusRingChild,
+  })
+  const mixedFocusRingChild = Math.random()
+    ? { ...categoricalSpec, kind: 'valid' as const }
+    : {
+        ...categoricalSpec,
+        kind: 'invalid' as const,
+        theme: { focusRing: false as const },
+      }
+  facet(rows, {
+    by: 'category',
+    // @ts-expect-error Every possible facet child must leave the focus ring to the outer chart.
+    chart: () => mixedFocusRingChild,
+  })
+}
 const customMark = createMark<Row>(() => ({
   id: 'custom',
   channels: {},
@@ -1106,6 +1152,53 @@ if (false) {
 }
 
 describe('public type contracts', () => {
+  it('exports selective rectangle and bar radius types', () => {
+    expectTypeOf<PublicRadiusTypeSurface['bar']>().toEqualTypeOf<
+      BarRadius<Row>
+    >()
+    expectTypeOf<PublicRadiusTypeSurface['end']>().toEqualTypeOf<
+      BarEndRadius<Row>
+    >()
+    expectTypeOf<
+      PublicRadiusTypeSurface['corners']
+    >().toEqualTypeOf<RectCornerRadii>()
+    expectTypeOf<PublicRadiusTypeSurface['rect']>().toEqualTypeOf<RectRadius>()
+
+    barY(rows, {
+      x: 'category',
+      y: 'value',
+      radius: (row) => [row.value, 2, 3, 4] as const,
+    })
+    barX(rows, {
+      x: 'value',
+      y: 'category',
+      radius: { end: (row) => row.value, stack: 'each' },
+    })
+    rect(rows, {
+      x1: 'category',
+      x2: 'category',
+      y1: 'value',
+      y2: 'value',
+      radius: [1, 2, 3, 4],
+    })
+    rect(rows, {
+      x1: 'category',
+      x2: 'category',
+      y1: 'value',
+      y2: 'value',
+      // @ts-expect-error Rect corner tuples require four physical corners.
+      radius: [1, 2, 3],
+    })
+    rect(rows, {
+      x1: 'category',
+      x2: 'category',
+      y1: 'value',
+      y2: 'value',
+      // @ts-expect-error Semantic end radii are specific to bar marks.
+      radius: { end: 3 },
+    })
+  })
+
   it('exports crosshair options from the type-only entry', () => {
     expectTypeOf<PublicCrosshairTypeSurface['axis']>().toMatchTypeOf<{
       band?: boolean | PublicCrosshairTypeSurface['band']

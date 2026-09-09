@@ -59,11 +59,31 @@ type FacetOptionsInput<TDatum, TChart extends FacetChartInput<TDatum>> = Omit<
   FacetOptions<TDatum>,
   'chart' | 'motion'
 > & {
-  chart: TChart
+  chart: TChart & ValidFacetChartFunction<NoInfer<TChart>>
   motion?: ChartMotionDefinition<
     ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>
   >
 } & ([ReturnType<TChart>] extends [ChartSpec] ? unknown : never)
+
+type InvalidFacetChartResult<TResult> = TResult extends unknown
+  ? 'focusRing' extends keyof TResult
+    ? StaticChartDefinition<any, any, any> extends TResult
+      ? never
+      : TResult
+    : TResult extends { theme: infer TTheme }
+      ? [TTheme] extends [never]
+        ? never
+        : 'focusRing' extends keyof TTheme
+          ? TResult
+          : never
+      : never
+  : never
+
+type ValidFacetChartFunction<TChart extends FacetChartInput<any>> = [
+  InvalidFacetChartResult<ReturnType<TChart>>,
+] extends [never]
+  ? unknown
+  : never
 
 interface FacetEntry<TDatum> {
   key: ChartKey
@@ -134,9 +154,11 @@ export function facet<TDatum>(
           const cellHeight = cellSize(chart.height, gap, rows)
           const showLabel = options.label !== false
           const labelHeight = showLabel ? 22 : 0
-          const definitions = entries.map((entry) =>
-            mergeTheme(options.chart(entry.data, { key: entry.key }), theme),
-          )
+          const definitions = entries.map((entry) => {
+            const definition = options.chart(entry.data, { key: entry.key })
+            assertFacetChildDefinition(id, entry.key, definition)
+            return mergeTheme(definition, theme)
+          })
 
           if (
             options.axes === 'cell' ||
@@ -638,6 +660,24 @@ function createFacetScene<TDatum, TChildDatum>(
         error instanceof Error ? error.message : String(error)
       }`,
       { cause: error },
+    )
+  }
+}
+
+function assertFacetChildDefinition(
+  id: string,
+  key: ChartKey,
+  definition: ChartSpec,
+): void {
+  const child = definition as ChartSpec & { focusRing?: unknown }
+  if (child.focusRing !== undefined) {
+    throw new TypeError(
+      `Facet "${id}" cell "${String(key)}" cannot own chart host option "focusRing"; configure it on the outer definition`,
+    )
+  }
+  if (child.theme?.focusRing !== undefined) {
+    throw new TypeError(
+      `Facet "${id}" cell "${String(key)}" cannot own a focus ring theme; configure theme.focusRing on the outer definition`,
     )
   }
 }

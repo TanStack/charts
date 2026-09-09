@@ -55,6 +55,10 @@ function chart(input: ConformanceInput) {
           value: 'Temperature (°C)',
           angle: -90,
           position: 'insideLeft',
+          fill: '#8884d8',
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.8,
         },
       }),
       createElement(YAxis, {
@@ -67,6 +71,10 @@ function chart(input: ConformanceInput) {
           value: 'Precipitation (mm)',
           angle: 90,
           position: 'insideRight',
+          fill: '#413ea0',
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.8,
         },
       }),
       createElement(YAxis, {
@@ -79,6 +87,10 @@ function chart(input: ConformanceInput) {
           value: 'Wind (m/s)',
           angle: 90,
           position: 'insideRight',
+          fill: '#ef4444',
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.8,
         },
       }),
       createElement(Area, {

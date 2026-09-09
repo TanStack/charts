@@ -1,7 +1,7 @@
 export type { AreaYOptions } from './area'
 export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
-export type { BarXOptions, BarYOptions } from './bar'
+export type { BarEndRadius, BarRadius, BarXOptions, BarYOptions } from './bar'
 export type { BandXOptions, BandYOptions } from './band'
 export type {
   BoxDatum,
@@ -233,6 +233,7 @@ export type {
   ChartFocusAnchor,
   ChartFocusCursorBinding,
   ChartFocusPresentation,
+  ChartFocusRingOptions,
   ChartFocusFilter,
   ChartFocusAffinity,
   ChartFocusGroupContext,
@@ -337,6 +338,8 @@ export type {
   ChartTooltipSort,
   ChartValue,
   ResponsiveChartConfig,
+  RectCornerRadii,
+  RectRadius,
   VisualChannel,
   WidenChartValue,
   RenderChartSvgOptions,

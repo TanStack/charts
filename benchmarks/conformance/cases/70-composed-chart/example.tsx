@@ -60,6 +60,7 @@ export const createExampleChart = (input: ChartOptions) => {
           color: () => weatherSeries.low,
           stroke: '#ff7300',
           strokeWidth: 2,
+          lineCap: 'butt',
           curve: monotone,
         }),
         dot(rows, {
@@ -83,7 +84,13 @@ export const createExampleChart = (input: ChartOptions) => {
           scale: scaleLinear,
           grid: true,
           axis: {
-            label: 'Temperature (°C)',
+            label: {
+              text: 'Temperature (°C)',
+              fontSize: 12,
+              fontWeight: 700,
+              fill: '#8884d8',
+              opacity: 0.8,
+            },
             ticks: { count: 5 },
           },
         },
@@ -92,7 +99,13 @@ export const createExampleChart = (input: ChartOptions) => {
           side: 'right',
           scale: scaleLinear,
           axis: {
-            label: 'Precipitation (mm)',
+            label: {
+              text: 'Precipitation (mm)',
+              fontSize: 12,
+              fontWeight: 700,
+              fill: '#413ea0',
+              opacity: 0.8,
+            },
             ticks: { count: 5 },
           },
         },
@@ -101,7 +114,13 @@ export const createExampleChart = (input: ChartOptions) => {
           side: 'right',
           scale: scaleLinear,
           axis: {
-            label: 'Wind (m/s)',
+            label: {
+              text: 'Wind (m/s)',
+              fontSize: 12,
+              fontWeight: 700,
+              fill: '#ef4444',
+              opacity: 0.8,
+            },
             ticks: { count: 5 },
           },
         },

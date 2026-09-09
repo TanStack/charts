@@ -147,6 +147,15 @@ export type MarkScaleBindings<
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
 
+export type RectCornerRadii = readonly [
+  topLeft: number,
+  topRight: number,
+  bottomRight: number,
+  bottomLeft: number,
+]
+
+export type RectRadius = number | RectCornerRadii
+
 export interface ChartMarkStateContext<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -173,7 +182,7 @@ export interface ChartMarkStateStyle<TDatum = unknown> {
   opacity?: ChartMarkStateValue<TDatum, number>
   strokeDasharray?: ChartMarkStateValue<TDatum, string>
   r?: ChartMarkStateValue<TDatum, number>
-  radius?: ChartMarkStateValue<TDatum, number>
+  radius?: ChartMarkStateValue<TDatum, RectRadius>
   inset?: ChartMarkStateValue<TDatum, number>
   fontSize?: ChartMarkStateValue<TDatum, number>
   fontWeight?: ChartMarkStateValue<TDatum, number>
@@ -381,6 +390,11 @@ export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
 export interface ChartAxisLabelOptions {
   text: string
   offset?: number | 'auto'
+  fontSize?: number
+  fontWeight?: number
+  /** Text fill color. Defaults to the theme foreground. */
+  fill?: string
+  opacity?: number
   motion?: ChartMotionDefinition
 }
 
@@ -520,6 +534,7 @@ export interface ChartColorLegendContext {
   layout?: ChartLayoutOptions
   width: number
   height: number
+  direction?: ChartTextTypography['direction']
 }
 
 export type ChartLegendPlacement = 'top' | 'bottom'
@@ -580,6 +595,17 @@ export interface ChartTheme {
   grid: string
   background: string
   palette: readonly string[]
+  /** Default presentation for the built-in primary-point focus ring. */
+  focusRing?: boolean | ChartFocusRingOptions
+}
+
+/** Paint and geometry for the built-in primary-point focus indicator. */
+export interface ChartFocusRingOptions {
+  radius?: number
+  fill?: string
+  /** Defaults to the focused point's resolved color. */
+  stroke?: string
+  strokeWidth?: number
 }
 
 export interface ChartGradientStop {
@@ -880,8 +906,8 @@ export interface ChartDefinitionOptions<
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  /** Shows the built-in primary-point focus ring. Defaults to true. */
-  focusRing?: boolean
+  /** Shows and optionally styles the built-in primary-point focus ring. Overrides the theme default. */
+  focusRing?: boolean | ChartFocusRingOptions
   /** Optional app-owned cursor shared by one or more chart definitions. */
   cursor?: ChartCursorBinding<
     NoInfer<TDatum>,
@@ -914,7 +940,7 @@ export interface ChartDefinitionOptions<
 interface StoredChartDefinitionOptions<TTooltipHost extends string = string> {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
-  focusRing?: boolean
+  focusRing?: boolean | ChartFocusRingOptions
   cursor?: ChartCursorBinding<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   svgAnimation?: boolean | ChartAnimationOptions
@@ -1385,6 +1411,7 @@ export interface SceneFocusGuide {
   projectY?: (value: ChartValue) => number | undefined
   motion?: ChartMotionDefinition<never>
   measureText?: ChartTextMeasurer
+  direction?: ChartTextTypography['direction']
   /** Facet-owned point-key prefix. Omitted for a top-level guide. */
   scope?: string
   /** Resolves this guide's dynamic presentation without retaining its implementation in every renderer bundle. */
@@ -1486,6 +1513,7 @@ export interface SceneRect extends InteractiveSceneNodeBase {
   width: number
   height: number
   radius?: number
+  cornerRadii?: RectCornerRadii
   /** Applied inset retained for absolute inline-state overrides. */
   inset?: number
   /** Axes affected by `inset`; bars use only their categorical axis. */
@@ -1528,6 +1556,7 @@ export interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  direction?: ChartTextTypography['direction']
   controls?: readonly ChartHostControl[]
   focusGuides?: readonly SceneFocusGuide[]
 }
@@ -1972,6 +2001,8 @@ export interface ChartTooltipContent {
 }
 
 export interface ChartTooltipContentContext {
+  /** The hovered or keyboard-focused point, independent of tooltip row order. */
+  primaryPoint?: ChartPoint
   pinned: boolean
   xLabel: string
   yLabel: string
@@ -1980,6 +2011,8 @@ export interface ChartTooltipContentContext {
 }
 
 export interface ChartTooltipRow {
+  /** Emphasizes this row independently of its series color. */
+  active?: boolean
   label: string
   value: string
   color?: string
@@ -1990,6 +2023,7 @@ export interface ChartTooltipBodyContext<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   content: ChartTooltipContent | string
   pinned: boolean

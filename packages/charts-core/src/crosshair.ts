@@ -135,6 +135,7 @@ export function crosshair<
               projectY: projector(scales[yScale]),
               motion: options.motion,
               measureText: layout.measureText,
+              direction: layout.typography?.direction,
               resolve: resolveCrosshairGuide,
             },
           ],

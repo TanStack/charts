@@ -76,7 +76,7 @@ export function activeBarDashboardDefinition(
           y: metric,
           key: 'id',
           fill: 'url(#visitor-bars)',
-          radius: 4,
+          radius: { end: 4 },
           inset: input.preview ? 1.5 : 2.5,
           states: [
             {

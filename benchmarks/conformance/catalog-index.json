@@ -2392,10 +2392,11 @@
         "mixed marks",
         "independent y scales",
         "left axis and stacked right axes",
+        "styled axis titles",
         "daily observations",
         "monotone curves",
-        "resolved maximum bar thickness",
-        "mixed-mark color legend"
+        "butt line cap",
+        "resolved maximum bar thickness"
       ],
       "geometry": [
         {

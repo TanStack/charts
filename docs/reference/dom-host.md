@@ -91,24 +91,24 @@ For the built-in Canvas renderer, `mountCanvasChart` from
 
 The default SVG host requires `definition` and `ariaLabel`.
 
-| Option               | Default           | Meaning                                                                                                         |
-| -------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
-| `definition`         | Required          | [Chart definition](./chart-definitions.md). Its identity is the application update boundary.                    |
-| `ariaLabel`          | Required          | Accessible chart name placed on the SVG.                                                                        |
-| `ariaDescription`    | None              | Optional SVG description.                                                                                       |
-| `height`             | `320`             | Fixed scene height in CSS pixels.                                                                               |
-| `aspectRatio`        | None              | Computes height as `width / aspectRatio` when `height` is absent and the ratio is positive and finite.          |
-| `width`              | Container width   | Fixed scene width. Supplying it disables resize observation.                                                    |
-| `initialWidth`       | `640`             | Width used when a responsive container has not produced a positive measurement.                                 |
-| `className`          | None              | Extra class on the rendered chart surface, not the container.                                                   |
-| `idPrefix`           | Empty             | Prefix for renderer-owned resource IDs. Use a unique value for resource-aware charts.                           |
-| `tabIndex`           | `0`               | SVG tab index while keyboard behavior is enabled.                                                               |
-| `onFocusChange`      | None              | Receives the primary focused point or `null`.                                                                   |
-| `onFocusGroupChange` | None              | Receives all points selected by the current focus strategy.                                                     |
-| `onSelect`           | None              | Receives the clicked or keyboard-activated point, or `null` for an empty click.                                 |
-| `onRender`           | None              | Runs after reconciliation with the container, default SVG, complete surface, scene, and interaction controller. |
-| `renderSvg`          | `renderChartSvg`  | Replaces the scene-to-SVG renderer.                                                                             |
-| `measureText`        | DOM font measurer | Replaces guide text measurement.                                                                                |
+| Option               | Default                 | Meaning                                                                                                               |
+| -------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `definition`         | Required                | [Chart definition](./chart-definitions.md). Its identity is the application update boundary.                          |
+| `ariaLabel`          | Required                | Accessible chart name placed on the SVG.                                                                              |
+| `ariaDescription`    | None                    | Optional SVG description.                                                                                             |
+| `height`             | Container or `320`      | Fixed scene height in CSS pixels. When absent, a valid aspect ratio, then positive container content height, owns it. |
+| `aspectRatio`        | None                    | Computes height as `width / aspectRatio` when `height` is absent and the ratio is positive and finite.                |
+| `width`              | Container content width | Fixed scene width. Supplying it disables width observation.                                                           |
+| `initialWidth`       | `640`                   | Width used when a responsive container has not produced a positive measurement.                                       |
+| `className`          | None                    | Extra class on the rendered chart surface, not the container.                                                         |
+| `idPrefix`           | Empty                   | Prefix for renderer-owned resource IDs. Use a unique value for resource-aware charts.                                 |
+| `tabIndex`           | `0`                     | SVG tab index while keyboard behavior is enabled.                                                                     |
+| `onFocusChange`      | None                    | Receives the primary focused point or `null`.                                                                         |
+| `onFocusGroupChange` | None                    | Receives all points selected by the current focus strategy.                                                           |
+| `onSelect`           | None                    | Receives the clicked or keyboard-activated point, or `null` for an empty click.                                       |
+| `onRender`           | None                    | Runs after reconciliation with the container, default SVG, complete surface, scene, and interaction controller.       |
+| `renderSvg`          | `renderChartSvg`        | Replaces the scene-to-SVG renderer.                                                                                   |
+| `measureText`        | DOM font measurer       | Replaces guide text measurement.                                                                                      |
 
 The definition owns these chart controls:
 
@@ -116,7 +116,7 @@ The definition owns these chart controls:
 | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                        |
 | `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables chart-owned focus and its generated layer |
-| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                             |
+| `focusRing`        | `true`                    | Generated primary-point indicator; an options object styles it and `false` keeps authored focus layers only   |
 | `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                        |
 | `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                                |
 | `svgAnimation`     | `false`                   | Keyed attribute, enter, and exit animation                                                                    |
@@ -134,8 +134,11 @@ options are detailed in [Rendering and export](./rendering-and-export.md).
 
 ## Responsive sizing
 
-When `width` is absent, the host reads the container's bounding width and
-observes it with the container document's `ResizeObserver`.
+When `width` is absent, the host reads the container's content-box width. When
+both `height` and a valid `aspectRatio` are absent, it also reads the
+content-box height. Padding and borders stay outside the scene. The host
+observes either container-owned dimension with the container document's
+`ResizeObserver`.
 
 ```ts
 mountChart(container, {
@@ -149,14 +152,23 @@ mountChart(container, {
 The fallback order is:
 
 1. explicit `width`
-2. positive container width
+2. positive container content width
 3. `initialWidth`
 4. `640`
 
-Height is explicit `height`, then a positive finite `aspectRatio`, then `320`.
-The host schedules responsive relayout on the document's animation frame and
-skips renders when the measured width has not changed. Resize relayout commits
+Height is explicit `height`, then a positive finite `aspectRatio`, then a
+positive finite container content height, then `320`. Explicit height and
+aspect ratio remain authoritative when the container's CSS height changes. A
+fixed `width` disables width observation but does not disable height
+observation when both `height` and a valid `aspectRatio` are absent. The host
+schedules responsive relayout on the document's animation frame and skips
+responsive relayouts when neither live dimension changed. Zero and nonfinite
+measurements do not replace the current scene. Resize relayout commits
 immediately by default; set `svgAnimation.resize` to `true` to animate it.
+Container-owned height must resolve independently of the chart surface, such
+as a fixed-height card, grid row, flex item, or remaining track. When the chart
+itself would size a `height: auto` container, supply `height` or `aspectRatio`
+instead so the surface is not also its own resize input.
 
 The host temporarily assigns `position: relative` when the container's
 computed position is static, because local DOM tooltips are absolutely

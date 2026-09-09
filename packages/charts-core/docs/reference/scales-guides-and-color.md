@@ -228,7 +228,17 @@ interface ChartAxisOptions<TValue extends ChartValue> {
                     keep?: readonly TValue[]
                   }
             }
-        label?: string | { text: string; offset?: number | 'auto' }
+        label?:
+          | string
+          | {
+              text: string
+              offset?: number | 'auto'
+              fontSize?: number
+              fontWeight?: number
+              fill?: string
+              opacity?: number
+              motion?: ChartMotionDefinition
+            }
       }
 }
 ```
@@ -343,11 +353,36 @@ const x = {
 }
 ```
 
-`anchor` defaults to the rotation-derived x anchor or `end` on y. `dx` and
+`anchor` defaults to an outward anchor derived from x rotation or the y-axis
+side. The automatic value accounts for the host's inline direction. `dx` and
 `dy` apply after the normal tick position and padding. Resolved font size,
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
 anchor changes snap.
+
+Axis titles keep the compact string form when only text is needed. Use the
+object form for title typography, paint, offset, or motion:
+
+```ts
+const y = {
+  scale: scaleLinear,
+  axis: {
+    label: {
+      text: 'Average order value (PLN)',
+      fontSize: 14,
+      fontWeight: 500,
+      fill: '#363636',
+      opacity: 0.9,
+    },
+  },
+}
+```
+
+`fill` sets the text color. Omitted presentation fields retain the existing
+title defaults: responsive 10 or 11 pixel sizing on x, 11 pixels on y, weight
+600, theme foreground fill, and 0.76 fill opacity. Configured font size and
+weight participate in text measurement, automatic offsets, and automatic
+margins for SVG, Canvas, and native rendering.
 
 ## Named scales and multiple axes
 
@@ -395,6 +430,12 @@ Every non-null scale renders an axis by default. Set `axis: false` when a
 mapping should not draw another axis. X scales can use the top or bottom side,
 and y scales can use the left or right side. Axes on the same side stack
 outward and contribute their measured size to the automatic margin.
+
+Axis sides stay physical in a right-to-left container, so `side: 'right'`
+still puts the axis on the right. Automatic tick anchors account for the
+container's inline direction and keep labels outside the plot. An explicitly
+authored `start` or `end` anchor remains logical. Text measurement, SVG,
+Canvas, native rendering, and standalone SVG export preserve that direction.
 
 ## Automatic guide layout
 

@@ -267,6 +267,9 @@ export async function verifyUnifiedCoreArtifact({
   repositoryRoot,
   artifactDirectory,
 }) {
+  const { packageManager } = JSON.parse(
+    await readFile(resolve(repositoryRoot, 'package.json'), 'utf8'),
+  )
   const packages = await readReleasePackages(repositoryRoot)
   const coreInfo = packages.find(({ name }) => name === '@tanstack/charts')
   assert.ok(coreInfo)
@@ -307,6 +310,7 @@ export async function verifyUnifiedCoreArtifact({
       `${JSON.stringify(
         {
           name: 'tanstack-charts-unified-consumer',
+          packageManager,
           private: true,
           type: 'module',
           dependencies: {

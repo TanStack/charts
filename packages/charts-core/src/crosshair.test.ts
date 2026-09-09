@@ -6,6 +6,7 @@ import { dot } from './dot'
 import { facet } from './facet'
 import { resolveFocusPresentation } from './focus-presentation'
 import { group } from './group'
+import { measureSceneLabelBounds } from './guide-layout'
 import { createChartScene, defineChart } from './scene'
 import { stack } from './stack'
 import { linearAxes } from './test-scales'
@@ -281,6 +282,54 @@ describe('crosshair', () => {
           node.className?.includes('ts-chart__focus-layer--default'),
       ),
     ).toBe(true)
+  })
+
+  it('keeps y labels physically left in both inline directions', () => {
+    const resolved = (direction: 'ltr' | 'rtl') => {
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' }),
+            crosshair({ x: false, y: { label: true } }),
+          ],
+          ...linearAxes([0, 2], [0, 4]),
+          guides: false,
+          focusRing: false,
+          margin: { top: 20, right: 20, bottom: 20, left: 80 },
+        }),
+        { width: 240, height: 160 },
+        { typography: { direction } },
+      )
+      const presentation = resolveFocusPresentation(
+        scene,
+        focus(scene.points[0]!),
+      )
+      const label = findNode(
+        presentation.over,
+        'crosshair-1:y-label:text',
+      ) as SceneLabel
+      const guide = scene.focusGuides![0]!
+      const bounds = measureSceneLabelBounds(label, guide.measureText)
+      return { scene, label, bounds }
+    }
+
+    const leftToRight = resolved('ltr')
+    const rightToLeft = resolved('rtl')
+
+    expect(leftToRight.label.anchor).toBe('end')
+    expect(rightToLeft.label.anchor).toBe('start')
+    expect(leftToRight.bounds.x + leftToRight.bounds.width).toBeCloseTo(
+      leftToRight.label.x,
+    )
+    expect(rightToLeft.bounds.x + rightToLeft.bounds.width).toBeCloseTo(
+      rightToLeft.label.x,
+    )
+    expect(leftToRight.bounds.x + leftToRight.bounds.width).toBeLessThan(
+      leftToRight.scene.chart.x,
+    )
+    expect(rightToLeft.bounds.x + rightToLeft.bounds.width).toBeLessThan(
+      rightToLeft.scene.chart.x,
+    )
   })
 
   it('labels stacked difference bars with their plotted endpoint', () => {

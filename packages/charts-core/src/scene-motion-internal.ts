@@ -16,6 +16,10 @@ export interface SceneMotionHierarchy {
 export interface SceneMotionMetadata {
   readonly path?: SceneMotionPathGeometry
   readonly hierarchy?: SceneMotionHierarchy
+  /** Physical baseline used to grow a Cartesian bar from its semantic start. */
+  readonly bar?: {
+    readonly baseline: number
+  }
 }
 
 export type SceneMotionNode = SceneNode & {
