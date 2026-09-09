@@ -510,12 +510,12 @@ describe('stack end topology', () => {
       reverse: true,
     })
 
-    expect(
-      forward.flatMap((outer, index) => (outer ? [index] : [])),
-    ).toEqual([2, 5, 9, 13])
-    expect(
-      reversed.flatMap((outer, index) => (outer ? [index] : [])),
-    ).toEqual([0, 6, 10, 14])
+    expect(forward.flatMap((outer, index) => (outer ? [index] : []))).toEqual([
+      2, 5, 9, 13,
+    ])
+    expect(reversed.flatMap((outer, index) => (outer ? [index] : []))).toEqual([
+      0, 6, 10, 14,
+    ])
   })
 })
 
