@@ -1,6 +1,6 @@
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { createExampleChart, mount } from './tanstack'
+import { catalogCase, createExampleChart, mount } from './tanstack'
 
 describe('shadcn pie legend', () => {
   it('keeps the drawn legend decorative and exposes an accessible list', () => {
@@ -46,5 +46,27 @@ describe('shadcn pie legend', () => {
     expect(Math.min(...indicators.map(({ y }) => y))).toBeGreaterThanOrEqual(
       scene.chart.y + scene.chart.height,
     )
+  })
+
+  it('retains the native legend in catalog previews', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      interactive: false,
+      preview: true,
+    })
+
+    try {
+      expect(container.querySelectorAll('.ts-chart__legend')).toHaveLength(1)
+      expect(
+        container.querySelectorAll('[data-ts-key^="legend-square:"]'),
+      ).toHaveLength(5)
+    } finally {
+      handle.destroy()
+      container.remove()
+    }
   })
 })

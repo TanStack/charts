@@ -13,5 +13,5 @@ export const mount = shadcnChartMount(ConformanceExample)
 export const catalogCase = tanstackExampleMount(
   () => definition,
   'Pie Chart - Legend implemented with TanStack Charts',
-  { guides: false, margin: true },
+  { guides: false, legend: true, margin: true },
 )

@@ -263,15 +263,24 @@ describe('catalog previews', () => {
   })
 
   it('requires the active bar dashboard preview composition', () => {
-    const bars = Array.from(
-      { length: 24 },
-      (_, index) =>
-        `<rect data-ts-key="daily-visitors:null:${String(index + 1).padStart(2, '0')}"></rect>`,
-    ).join('')
-    const preview = `${bars}<linearGradient data-ts-key="gradient:visitor-bars"></linearGradient><text x="0">May 1</text>`
+    const previewWithBars = (element) => {
+      const bars = Array.from(
+        { length: 24 },
+        (_, index) =>
+          `<${element} data-ts-key="daily-visitors:null:${String(index + 1).padStart(2, '0')}"></${element}>`,
+      ).join('')
+      return `${bars}<linearGradient data-ts-key="gradient:visitor-bars"></linearGradient><text x="0">May 1</text>`
+    }
+    const preview = previewWithBars('rect')
 
     expect(() =>
       validateCatalogPreviewPresentation(preview, '121-active-bar-dashboard'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        previewWithBars('path'),
+        '121-active-bar-dashboard',
+      ),
     ).not.toThrow()
     expect(() =>
       validateCatalogPreviewPresentation(
