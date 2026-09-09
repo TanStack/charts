@@ -1163,6 +1163,67 @@ describe('core marks and categorical scales', () => {
     ])
   })
 
+  it('rounds both resolved ends of an anchored stack', () => {
+    const rows = [
+      { category: 'A', series: 'Disagree', value: 2 },
+      { category: 'A', series: 'Neutral', value: 2 },
+      { category: 'A', series: 'Agree', value: 3 },
+    ]
+    const layout = stack({
+      order: ['Disagree', 'Neutral', 'Agree'],
+      anchor: { series: 'Neutral' },
+    })
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandXAxes(['A'], [-3, 4]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandYAxes([-3, 4], ['A']),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      flatten(vertical.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [0, 0, 4, 4],
+      [0, 0, 0, 0],
+      [4, 4, 0, 0],
+    ])
+    expect(
+      flatten(horizontal.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [4, 0, 0, 4],
+      [0, 0, 0, 0],
+      [0, 4, 4, 0],
+    ])
+  })
+
   it('supports automatic semantic ends for explicit and grouped bars', () => {
     const explicitScene = createChartScene(
       defineChart({

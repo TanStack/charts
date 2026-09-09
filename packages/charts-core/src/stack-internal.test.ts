@@ -523,6 +523,25 @@ describe('stack end topology', () => {
     ])
   })
 
+  it('finds both resolved envelope ends around an anchored zero', () => {
+    expect(
+      resolvedStackOuterEnds(
+        ['Q1', 'Q1', 'Q1'],
+        [2, 2, 3],
+        ['Disagree', 'Neutral', 'Agree'],
+        {
+          order: ['Disagree', 'Neutral', 'Agree'],
+          anchor: { series: 'Neutral' },
+        },
+        'index',
+      ),
+    ).toEqual([
+      { start: true, end: false },
+      undefined,
+      { start: false, end: true },
+    ])
+  })
+
   it('follows inside-out and reversed series order for exposed ends', () => {
     const positions = rows.map((row) => row.position)
     const values = rows.map((row) => row.value)

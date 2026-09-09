@@ -56,18 +56,10 @@ export function stackOuterEnds(
   for (const [position, rows] of orderedGroups) {
     const paintRows = paintGroups.get(position)!
     if (diverging) {
-      markExtremeEnd(
-        rows.filter((row) => row.value > 0),
-        paintRows,
-        'max',
-        outerEnds,
-      )
-      markExtremeEnd(
-        rows.filter((row) => row.value < 0),
-        paintRows,
-        'min',
-        outerEnds,
-      )
+      const minimum = Math.min(...rows.flatMap((row) => [row.start, row.end]))
+      const maximum = Math.max(...rows.flatMap((row) => [row.start, row.end]))
+      if (maximum > 0) markExtremeEnd(rows, paintRows, 'max', outerEnds)
+      if (minimum < 0) markExtremeEnd(rows, paintRows, 'min', outerEnds)
     } else {
       const baseline = rows[0]!.start
       const terminal = rows.at(-1)!.end
