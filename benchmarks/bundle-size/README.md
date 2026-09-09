@@ -25,14 +25,14 @@ may add only its transport module over the tooltip consumer. Ordinary line,
 compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has a 10.55 KiB gzip ceiling. The React compact-scale line consumer has a
-27.05 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
+scene has an 11.73 KiB gzip ceiling. The React compact-scale line consumer has a
+30.05 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
 allowed only in the compact linear path; categorical compact-scale kernels
 reject every D3 runtime input. All compact fixtures reject `d3-scale`,
 `d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
 
 Painted-geometry interaction is part of the default scene and host contract
-across DOM, Canvas, and native rendering. Its isolated resolver has a 2.25 KiB
+across DOM, Canvas, and native rendering. Its isolated resolver has a 2.9 KiB
 gzip ceiling. The locked shared-host entries record the reviewed integration
 cost, while noninteractive consumers retain only the small scene-compiler
 portion of that contract.
@@ -42,7 +42,7 @@ of the default scene and host contracts. Default static SVG consumes scene
 clips and gradients. Their reviewed shared-path cost is recorded in the locked
 entries and the corresponding complete-consumer budgets. Rolling path planning
 remains confined to the opt-in motion renderer, whose complete SVG budget is
-20.75 KiB gzip.
+22.1 KiB gzip.
 
 Every public transform family has an isolated budget and retained-input
 allowlist. Numeric and 2D bins may retain `d3-array`, and row stacks may retain

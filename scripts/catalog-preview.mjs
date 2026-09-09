@@ -530,8 +530,9 @@ export function validateCatalogPreviewPresentation(
   }
   if (caseId === '121-active-bar-dashboard') {
     assert(
-      countOccurrences(svg, '<rect data-ts-key="daily-visitors:') === 24 &&
-        svg.includes('data-ts-key="gradient:visitor-bars"'),
+      countOccurrences(svg, '<rect data-ts-key="daily-visitors:') +
+        countOccurrences(svg, '<path data-ts-key="daily-visitors:') ===
+        24 && svg.includes('data-ts-key="gradient:visitor-bars"'),
       'catalog preview 121-active-bar-dashboard must retain all 24 keyed bars and its gradient',
     )
   }

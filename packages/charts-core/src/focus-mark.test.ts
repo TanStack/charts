@@ -6,6 +6,7 @@ import { barX, barY } from './bar'
 import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
+import { rectCornerRadiiPath } from './renderer-rect'
 import { ruleX, ruleY } from './rule'
 import { createChartScene, defineChart, findNearestPoint } from './scene'
 import { svgChartRenderer } from './svg-surface'
@@ -1043,6 +1044,164 @@ describe('inline mark states', () => {
     expect(cappedHorizontalState.before.height).toBe(20)
     expect(cappedHorizontalState.after.y).toBe(cappedHorizontalState.before.y)
     expect(cappedHorizontalState.after.height).toBe(20)
+  })
+
+  it('keeps selective bar paths stable across tuple and numeric radius states', () => {
+    const stateRows = [
+      { id: 'tuple', category: 'Tuple', value: 8 },
+      { id: 'number', category: 'Number', value: 6 },
+    ] as const
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          barY(stateRows, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: {
+                  radius: ({ datum }) =>
+                    datum.id === 'tuple' ? ([0, 8, 8, 0] as const) : 7,
+                },
+                transition: { type: 'tween', duration: 0 },
+              },
+            ],
+          }),
+        ],
+        scales: {
+          x: {
+            scale: scaleBand<string>().domain(['Tuple', 'Number']),
+          },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
+      }),
+      { width: 280, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Stateful selective bars' })
+    const sceneRects = flattenNodes(resolved.nodes).filter(
+      (
+        node,
+      ): node is Extract<SceneNode, { kind: 'rect' }> & {
+        cornerRadii: NonNullable<
+          Extract<SceneNode, { kind: 'rect' }>['cornerRadii']
+        >
+      } => node.kind === 'rect' && node.cornerRadii !== undefined,
+    )
+    const initialPaths = new Map(
+      [
+        ...container.querySelectorAll<SVGPathElement>('g.ts-chart__bar path'),
+      ].map((path) => [path.dataset.tsKey, path.getAttribute('d')]),
+    )
+    expect(initialPaths.size).toBe(2)
+    expect(sceneRects.map((rect) => rect.cornerRadii)).toEqual([
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ])
+
+    for (const point of resolved.points) {
+      surface.paintFocus({
+        primary: point,
+        group: [point],
+        source: 'keyboard',
+        pinned: false,
+      })
+      const rect = sceneRects.find((candidate) => candidate.key === point.key)
+      const path = container.querySelector<SVGPathElement>(
+        `g.ts-chart__bar path[data-ts-key="${point.key}"]`,
+      )
+      if (!rect?.cornerRadii || !path) {
+        throw new Error('Expected selective bar state geometry')
+      }
+      const stateRadius =
+        point.datum.id === 'tuple'
+          ? ([0, 8, 8, 0] as const)
+          : ([7, 7, 7, 7] as const)
+      expect(path.getAttribute('d')).toBe(
+        rectCornerRadiiPath(
+          rect.x,
+          rect.y,
+          rect.width,
+          rect.height,
+          stateRadius,
+        ),
+      )
+      expect(
+        container.querySelector(
+          `g.ts-chart__bar rect[data-ts-key="${point.key}"]`,
+        ),
+      ).toBeNull()
+    }
+
+    surface.paintFocus(null)
+    for (const [key, path] of initialPaths) {
+      expect(
+        container
+          .querySelector<SVGPathElement>(
+            `g.ts-chart__bar path[data-ts-key="${key}"]`,
+          )
+          ?.getAttribute('d'),
+      ).toBe(path)
+    }
+    surface.destroy()
+  })
+
+  it('normalizes selective radii after the full matching state cascade', () => {
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ id: 'bar', category: 'A', value: 8 }], {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            radius: [30, 30, 0, 0],
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { inset: 49 },
+              },
+              {
+                when: { focus: 'primary' },
+                style: { inset: 0 },
+                transition: { type: 'tween', duration: 0 },
+              },
+            ],
+          }),
+        ],
+        scales: {
+          x: { scale: scaleBand<string>().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
+        guides: false,
+      }),
+      { width: 100, height: 100 },
+    )
+    const primary = resolved.points[0]
+    if (!primary) throw new Error('Expected a stateful bar point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Cascading radius state' })
+    const initial = container
+      .querySelector<SVGPathElement>('g.ts-chart__bar path')
+      ?.getAttribute('d')
+
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'keyboard',
+      pinned: false,
+    })
+
+    expect(initial).toBeTruthy()
+    expect(
+      container
+        .querySelector<SVGPathElement>('g.ts-chart__bar path')
+        ?.getAttribute('d'),
+    ).toBe(initial)
+    surface.destroy()
   })
 
   it('applies series states to line geometry through the point index', () => {

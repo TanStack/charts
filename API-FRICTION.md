@@ -297,7 +297,7 @@ Each entry records:
 | F-258 | Tooltip chrome required specificity overrides                  | API/Documentation     | resolved   |
 | F-259 | Chart resources cannot declare patterns                        | API                   | open       |
 | F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
-| F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
+| F-261 | Cartesian bars cannot round only exposed corners               | API                   | resolved   |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 | F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
@@ -331,7 +331,10 @@ Each entry records:
 | F-292 | Fixed preview paints ignored the selected site theme           | Tooling               | resolved   |
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
-| F-295 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
+| F-295 | Grouped tooltips did not identify the active series            | API                   | resolved   |
+| F-296 | CSS height changes did not relayout DOM charts                 | API/Documentation     | resolved   |
+| F-297 | Unified peer metadata rejected supported React releases        | API/Tooling           | resolved   |
+| F-298 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
 
 ## Findings
 
@@ -570,6 +573,7 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
+- Owner: API
 - Observed in: TanStack Charts sandbox migration
 - Friction: `ChartSurface` creates a temporary runtime and prepares the dynamic
   definition for initial markup. The mounted DOM host creates another runtime
@@ -581,6 +585,32 @@ Each entry records:
   application reactivity owns transformed data and asynchronous cleanup.
 - Verification: React and Octane dynamic mounts, hydration, and SSR retain
   complete initial markup without a preparation lifecycle.
+- 2026-09-08 performance follow-up: the 10,000-cell heatmap investigation
+  confirms that application data preparation remains outside the runtime, but
+  React still builds and serializes initial SVG markup, then builds the scene
+  again and serializes/reconciles SVG during its mount effect. A wrapped public
+  `renderSvg` callback runs twice on each production React mount. With default
+  focus rings disabled in both diagnostic cases, React SVG takes 74.4 ms median
+  to the Element Timing paint timestamp, while mounting the same definition
+  through the direct SVG host takes 37.5 ms. Both retain 10,000 visible cells.
+- Follow-up resolution: React client-only mounts now build the chart once in
+  the existing layout effect, using DOM text metrics. A hydration snapshot
+  retains complete initial markup for server rendering and hydration. No
+  chart options or application changes are required.
+- Verification: client SVG and canvas builders run once, SVG serialization
+  runs once, and the mounted chart is available to parent layout effects.
+  Strict Mode hydration retains SVG and mark identity without recoverable
+  errors. Combined with F-225, the same heatmap takes 39.4 ms for SVG and
+  24.5 ms for canvas, down from 130.1 and 35.9 ms respectively.
+
+- Construction/layout follow-up: React ran a second adapter update with the
+  same options immediately after mounting. That update refreshed computed
+  typography after inserting SVG. The adapter now mounts or updates once per
+  commit and retains explicit unmount cleanup. Later updates still refresh
+  fonts, and Strict Mode hydration and chart identity remain covered.
+- Verification: a regression checks that initial mounting does not read chart
+  surface styles after SVG insertion and that a later font change still
+  triggers rendering. All 903 core and React tests and TypeScript pass.
 
 ### F-012 — Render callbacks omit diagnostic metrics
 
@@ -6920,6 +6950,88 @@ Each entry records:
   focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
   Native tests cover the disabled focus contract. The catalog test and packed
   consumer gate server-render all 110 catalog components.
+- 2026-09-08 performance follow-up: a 100 by 100 cell matrix with tooltip and
+  keyboard disabled still emits 10,000 hidden default-focus circles, as its
+  pointer focus remains enabled. Production React SVG takes 130.1 ms median
+  to the Element Timing paint timestamp. Setting only `focusRing: false`
+  reduces that to 74.4 ms and SVG markup from 2,837,699 to 1,138,821 characters.
+  All 10,000 visible cells remain. Canvas changes from 35.9 to 33.3 ms.
+- Follow-up resolution: the SVG surface serializes only active default focus
+  geometry. The scene retains all point geometry, authored focus layers keep
+  their behavior, and animated updates materialize previous geometry before
+  interpolation. The `focus: false` contract is unchanged.
+- Verification: all 10,000 cells remain. Native Chromium pointer and keyboard
+  interactions match HEAD, with byte-identical screenshots and stable base
+  cell identity. Tests cover clipping, paint resources, custom serialization,
+  blur, animation interpolation, and cleanup after a serializer throws.
+  Mounting without axes takes 39.4 ms for SVG and 24.5 ms for canvas;
+  with axes it takes 43.6 and 26.9 ms, down from 171.2 and 37.6 ms.
+  Initial SVG contains 10,007 elements instead of 20,007.
+- Bundle review: shared renderer and adapter changes add 451 gzip bytes to
+  the representative React line consumer. Locked bundle baselines and only
+  exceeded ceilings were updated by their measured deltas; dependency
+  isolation checks pass. Competitor bundle measurements are unchanged.
+- Test status: the final focused suite passes all 91 tests and TypeScript
+  passes. The full workspace root suite passes 1,782 tests; two existing
+  catalog assertions still expect 110 cases and omit `120-sales-funnel`.
+  Neither those assertions nor the catalog inputs changed in this task.
+- Second performance pass: CPU profiling found allocations in SVG
+  serialization. SVG escaping now uses one pass, and shared clip, formatting,
+  and focus-layer routines remove duplicate implementations. Group traversal
+  avoids temporary arrays, paint serialization avoids per-node closures, and
+  scenes without gradients skip gradient lookup. A key-lookup experiment was
+  discarded because scene timings did not show a consistent benefit. Scene
+  output, identity rules, and enabled interactions are unchanged.
+- Second-pass verification: all 901 core and React tests and TypeScript pass.
+  Seven native Chromium screenshots match HEAD byte for byte, including axes,
+  SVG, canvas, and pointer/keyboard focus. The representative React line
+  consumer adds 334 gzip bytes over HEAD, down from 451 bytes in the first
+  pass. Reviewed bundle ceilings track actual entry-point deltas and retain
+  dependency isolation. Interleaved before/after samples and the CPU profile
+  are in `.benchmark-output/heatmap-investigation/round2/`.
+- Final second-pass timings: 30 interleaved measured mounts per version after
+  10 warmups give SVG paint medians of 40.3 to 37.5 ms without axes and 44.2
+  to 39.6 ms with axes. Isolated serialization drops from 4.3 to 1.9 ms;
+  scene construction remains effectively unchanged at 9.8 versus 9.9 ms.
+  These compare the first optimization with the retained second-pass code,
+  rather than comparing separate historical timing runs.
+- Third pass: scene construction skips the point-translation lookup when no
+  viewport is active. Categorical domain inference uses primitive identities
+  and a separate Date timestamp set, avoiding filtered copies and temporary
+  key strings. Tests retain insertion order, distinguish Date/number/string
+  inputs, skip invalid values, and preserve empty factory domains. Seven
+  native Chromium screenshots remain byte-identical to HEAD.
+- Third-pass bundle review: the representative React line consumer adds
+  372 gzip bytes over HEAD, 38 bytes above the previous pass and still below
+  the first pass's 451 bytes. Renderer dependency isolation checks pass.
+  Raw before/after samples and style-read evidence are retained in
+  `.benchmark-output/heatmap-investigation/round3/`.
+- Final third-pass timings: interleaved medians give scene construction at
+  9.8 to 8.6 ms and synchronous SVG mount at 33.9 to 24.9 ms. Paint drops
+  from 35.4 to 33.1 ms for SVG and 23.3 to 21.5 ms for canvas without axes;
+  with axes it drops from 38.0 to 35.9 ms and 26.1 to 23.1 ms respectively.
+  The lifecycle-only probe shows why synchronous mount and paint must remain
+  separate measurements: avoiding a forced style read moves browser work
+  out of the commit but does not by itself remove that work before paint.
+- Release port: the historical measurements above used the 0.9.0 worktree.
+  The release is based on 0.16.1. It keeps the newer mapped focus-coordinate
+  registration, so the no-viewport point-map shortcut is not included.
+  All 973 core and React tests pass on that base, and seven native Chromium
+  screenshots match the current baseline byte for byte. The React line
+  consumer adds 365 gzip bytes, with dependency isolation preserved.
+- Release measurement against 0.16.1: 30 interleaved measured mounts after 10
+  warmups per version give SVG paint medians of 133.4 to 35.9 ms without axes
+  and 164.3 to 37.9 ms with axes. Canvas gives 38.8 to 23.6 ms without axes
+  and 42.8 to 25.8 ms with axes. All cases render the same 10,000 cells at
+  500 by 300 pixels on the M5 Pro in production React and Chromium. These
+  measure mounting through paint, not network loading or dashboard totals.
+- Measurement: Apple M5 Pro, Chromium 151.0.7922.34, production React profiling
+  build, 500 by 300 pixels, 10 warmups and 20 measured mounts, median without
+  outlier removal, no axes, animation, or progressive rendering. Workspace
+  revision `1b1df994b5c224dda00ef90664c5a44589b53cd9`. This reconstructs the
+  workload and does not claim to reproduce Colm Tuite's unpublished harness.
+  Local fixture, runner, screenshots, and raw samples are in
+  `.benchmark-output/heatmap-investigation/`.
 
 ### F-226 — Worker runtimes rejected bundled CSV parsing
 
@@ -7761,6 +7873,13 @@ Each entry records:
   dependencies. All 12 `0.9.0` release artifacts pass with the unified fixture
   installing from its isolated store.
 
+- Performance release tooling: the isolated unified consumer had no
+  `packageManager`, so Corepack selected pnpm 12.3.4 instead of the repository's
+  pinned pnpm 11.15.1 and rejected the install flags. The fixture now inherits
+  the root package-manager pin, preserving its offline dependency check.
+  Verification: all seven framework adapter gates and the unified packed
+  artifact gate pass with the repository-pinned package manager.
+
 ### F-258 — Tooltip chrome required specificity overrides
 
 - Status: resolved
@@ -7816,18 +7935,52 @@ Each entry records:
 
 ### F-261 — Cartesian bars cannot round only exposed corners
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
-- Observed in: the active bar dashboard case 121
+- Observed in: the active bar dashboard case 121, the nested tooltip case 84,
+  and the stacked bar case 151
 - Friction: `barX` and `barY` accept one numeric `radius`, which becomes one SVG
   rectangle radius for all four corners. The reference treatment needs rounded
   value-end corners and square baseline corners. The current option cannot
   express that distinction or preserve it across negative and stacked bars.
-- Current decision: keep case 121 on the native uniform radius. Do not replace
-  bars with application paths. Keep endpoint or per-corner radii open until the
-  contract accounts for orientation, sign, stack seams, focus geometry,
-  motion, Canvas, and native output.
+- Decision: preserve a numeric `radius` as the compatible uniform form. Add a
+  physical `RectCornerRadii` tuple in top-left, top-right, bottom-right,
+  bottom-left order for bars, rects, cells, and inline states. Add the bar-only
+  `{ end, stack? }` form so the rounded end follows sign and reversed scales.
+  Its automatic stack policy rounds only exposed ends in native implicit
+  stacks and rounds each explicit or grouped bar. `stack: 'each'` rounds every
+  segment, while an explicitly authored `stack: 'outer'` rejects endpoints and
+  group layouts that have no native stack envelope.
+  When resolved intervals overlap at an outer edge, give each touching interval
+  its own resolved radius on that same physical envelope edge so later fills do
+  not square it off.
+- Renderer ownership: selective scene rectangles store physical
+  `cornerRadii`. SVG and React Native serialize them as keyed paths, Canvas
+  paints the same geometry, and exact hit testing uses the normalized outline.
+  The supported `@tanstack/charts/renderer/rect` subpath owns shared
+  normalization and SVG path serialization so native and custom renderers do
+  not duplicate the corner-fit policy. Numeric radii retain the existing
+  rectangle and `rx` output.
+- Verification: mark and stack regressions cover explicit intervals, grouped
+  bars, resolved stack order, sparse and zero values, outer-only and every-
+  segment policies, both orientations, negative values, reversed scales, and
+  normalized mixed-sign stacks whose overlapping intervals each receive their
+  own radius on the resolved physical envelope edge. Anchor-translated stacks
+  cover resolved envelopes that extend to both sides of zero.
+  SVG, Canvas, React Native, nearest-point, inline-state, and motion regressions
+  cover invalid and oversized radii, exact corner hits, layered state cascades,
+  stable keyed paths, focus-only baselines, and numeric output precision. Cases
+  84, 121, and 151 exercise the public API. The focused unit, type, export,
+  callback-contract, packed-package, Metro, Expo, adapter, and unified-artifact
+  checks pass. Fresh standard browser conformance passes case 121 in both
+  themes at 320, 640, and 960 pixels. Case 151 keeps all 12 bars and paint
+  parity across its initial and updated scenes at every size and theme. Its
+  remaining visual report is the existing shared card-label clipping at 640
+  and 960 pixels in both renderers, not bar geometry. The final `pnpm validate`
+  gate passes 288 test files and 1,982 tests, typechecking, formatting, 188
+  catalog previews, 102 documentation pages, bundle policies, all adapters,
+  and packed web and React Native artifacts.
 
 ### F-262 — Mark inference accepted an unsupported style option
 
@@ -8507,7 +8660,84 @@ Each entry records:
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
 
-### F-295 - Catalog formatting inherited the host locale
+### F-295 - Grouped tooltips did not identify the active series
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: NPM stats tooltip review with repeated series colors
+- Friction: Stats overrode the existing visual sort with color-domain order.
+  Removing that application override fixes ordering, but custom tooltip
+  callbacks could not identify the primary point and structured rows had no
+  active style. Repeated colors made the hovered series ambiguous.
+- Decision: expose `context.primaryPoint` and `row.active`, highlight the
+  primary row in default grouped content, and refresh custom bodies when the
+  primary point changes within the same focus group. All framework body
+  renderers preserve this state and DOM defaults use CSS-variable styling.
+- Verification: runtime regressions cover moving between same-colored series
+  with built-in and custom content while preserving visual order. Existing
+  x- and y-grouped ordering tests pass.
+
+### F-296 - CSS height changes did not relayout DOM charts
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: GitHub issue #133, CSS-sized grid rows, fixed-height cards, and
+  the space left below a brush track
+- Friction: the shared DOM host observed its container but compared only
+  width. Applications that let CSS own chart height had to add a second
+  `ResizeObserver`, debounce it, and feed measurements back through host
+  options. A fixed `width` also disabled the host observer completely, even
+  when height still belonged to the container.
+- Decision: when neither explicit `height` nor a positive finite
+  `aspectRatio` owns scene height, use the container's positive finite
+  content-box height and observe it as a live dimension. Measure every
+  container-owned axis from the same content box. This keeps padding and
+  borders outside scene geometry so box edges cannot feed back into repeated
+  growth or shrinkage. Container-owned height must be resolved independently
+  of chart content; a self-sized `height: auto` container instead requires
+  explicit `height` or `aspectRatio`. Preserve explicit height first and
+  aspect-ratio-derived height second. Observe width and height independently,
+  so fixed width does not disable required height observation. Ignore zero and
+  nonfinite live measurements instead of replacing a valid scene, and keep the
+  `320` fallback for initial output without a usable container height.
+- Verification: renderer-host regressions cover a fixed width with height-only
+  changes, coalescing and redundant notifications, explicit-height and
+  aspect-ratio precedence, transitions between fixed and container-owned
+  height, independent valid-axis updates when the other measurement is
+  unusable, zero, `NaN`, and infinite measurements, and surface sizing feedback
+  with padding and borders on both axes, content-box and border-box CSS,
+  unresolved CSS size fallbacks, and a fixed scene width whose CSS height
+  changes by the prior surface ratio. The shared host covers SVG, Canvas, mixed
+  renderers, and every web framework adapter; React Native continues to use its
+  platform layout callback. The full `pnpm validate` gate passes 288 test files
+  and 1,985 tests.
+
+### F-297 - Unified peer metadata rejected supported React releases
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: React 18 consumer installation reported in issue 130
+- Friction: the web React adapter uses APIs available in React 18, but both its
+  compatibility package and the unified package declared React 19-only peers.
+  Widening only `@tanstack/react-charts` would still leave its required
+  `@tanstack/charts` dependency with incompatible optional peer metadata.
+- Decision: declare React and React DOM `^18.0.0 || ^19.0.0` for both published
+  package entry points. Keep the React Native compatibility table at React 19
+  because its framework peer requirements remain separate. Use the layout
+  effect only when `document` exists, and use `useEffect` during server
+  rendering so both published React entry points render without the React 18
+  layout-effect warning.
+- Verification: the packed-package gate installs both artifacts with React
+  18.0.0 under strict peer checking, compiles a consumer with React 18 types,
+  and server-renders both the compatibility and unified adapter entry points
+  without console warnings. The existing workspace suite continues to
+  exercise React 19, and the full `pnpm validate` gate passes 288 test files and
+  1,982 tests.
+
+### F-298 - Catalog formatting inherited the host locale
 
 - Status: resolved
 - Severity: medium
@@ -8516,20 +8746,21 @@ Each entry records:
   previews replaced the old published catalog package
 - Friction: 42 number and date formatting calls plus 11 string collation calls
   across 34 source files in 13 catalog cases, the catalog app shell, and its
-  conformance runtime and tests omitted the locale or passed `undefined`. UTC options kept the
-  date boundary stable, but presentation and tie-breaking order still followed
-  the machine locale. A Korean process rendered October 6 as `10월 6일`, and a
-  German process rendered `HP 1,234.5` as `HP 1.234,5`. That made checked
-  previews and visible catalog output differ by contributor or CI host.
+  conformance runtime and tests omitted the locale or passed `undefined`. UTC
+  options kept the date boundary stable, but presentation and tie-breaking
+  order still followed the machine locale. A Korean process rendered October
+  6 as `10월 6일`, and a German process rendered `HP 1,234.5` as `HP 1.234,5`.
+  That made checked previews and visible catalog output differ by contributor
+  or CI host.
 - Decision: pass the fixed `en-US` locale at every affected catalog formatter
   and pin the Playwright preview context to the same locale. Check every
   TypeScript and JavaScript file in the conformance tree and catalog app shell
   through the compiler AST so multiline calls, optional chains, computed
   properties, `localeCompare`, and both forms of `Intl` formatter construction
-  cannot silently return to the host default. Keep the library's general-purpose
-  formatting behavior unchanged.
+  cannot silently return to the host default. Keep the library's
+  general-purpose formatting behavior unchanged.
 - Verification: AST unit tests cover omitted, `undefined`, multiline,
-  optional-chain, computed-property, collation, and `Intl` constructor forms. The
-  catalog-wide example contract validates all 188 cases. Representative date
-  and number output tests pass under Korean and German process locales, and
-  regenerated checked previews pass the preview integrity contract.
+  optional-chain, computed-property, collation, and `Intl` constructor forms.
+  The catalog-wide example contract validates all 188 cases. Representative
+  date and number output tests pass under Korean and German process locales,
+  and regenerated checked previews pass the preview integrity contract.

@@ -128,6 +128,7 @@ export function RendererChart<
     props.renderTooltipBody && tooltipBodyTarget
       ? createPortal(
           props.renderTooltipBody({
+            primaryPoint: tooltipBodyTarget.primaryPoint,
             points: tooltipBodyTarget.points,
             content: tooltipBodyTarget.content,
             pinned: tooltipBodyTarget.pinned,
@@ -191,12 +192,17 @@ function DefaultTooltipBody({
           {content.rows.map((row, index) => (
             <div
               class="ts-chart-tooltip__row"
+              data-active={String(row.active === true)}
               key={`${row.label}\0${index}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '0.55rem minmax(0,1fr) auto',
                 alignItems: 'center',
                 columnGap: '0.4rem',
+                fontWeight: row.active ? 'var(--ts-chart-tooltip-active-row-font-weight, 700)' : undefined,
+                background: row.active ? 'var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent))' : undefined,
+                borderRadius: row.active ? 'var(--ts-chart-tooltip-active-row-border-radius, .2rem)' : undefined,
+                boxShadow: row.active ? 'var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))' : undefined,
               }}
             >
               {row.color ? <TooltipSwatch color={row.color} /> : <span />}

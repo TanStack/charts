@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "3191c94032e6cfb67c8404b3d89e2d4dc1e06ef15381730f5a359f4a78e8fea7",
+  "sourceHash": "b095dcc62475d20dd0488c264195169ca6c81f8d57e9786b079e9203b7355247",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -166,13 +166,13 @@
     },
     {
       "id": "34-pointer-tooltip",
-      "sha256": "e4ff132c905893b271d67984435b50620b267447c8081c2ac9f96295d99482e5",
-      "bytes": 15814
+      "sha256": "bb680eff754d3837a93b5610e0c59c66cdce2ea88655d73149d452342807152a",
+      "bytes": 7797
     },
     {
       "id": "35-grouped-tooltip",
-      "sha256": "8a6d29b3745685108a1d2486d18dc7ee62daa6645543740b80c8a0eaf564e1b1",
-      "bytes": 56607
+      "sha256": "f6b8f0bae4229e1ad147e1de902ac8aea65f1f17c4b0aad608cd491889b52353",
+      "bytes": 30876
     },
     {
       "id": "36-hierarchy-tree",
@@ -301,8 +301,8 @@
     },
     {
       "id": "65-voronoi-nearest-tooltip",
-      "sha256": "fbdc48535e8997ef0ccb47ccd85f14c3443c26f869b95e9b79fd317414bb9c88",
-      "bytes": 16224
+      "sha256": "35fe2d05b25e99428908ab281641469f39bd49db5e5d25e0ecff9a6c3e3a91d2",
+      "bytes": 12219
     },
     {
       "id": "70-composed-chart",
@@ -356,23 +356,23 @@
     },
     {
       "id": "81-recharts-interactive-legend",
-      "sha256": "101eb6796ec9aa0ec5844e685f1b76c993b38259fbf4e22dffc7dbe9031b944e",
-      "bytes": 5840
+      "sha256": "982819593232691a6992052e15ee325c7536a7b519cf379f062e20571c6d7f72",
+      "bytes": 3183
     },
     {
       "id": "82-chart-table-selection",
-      "sha256": "ff310136b7d15c327b6d924c7907793e8c4b291947c8aa1bd744b2a5af334219",
-      "bytes": 3857
+      "sha256": "558dd507203747813f88950c52da42e332ae55d20eae66199996091cfb15e0f5",
+      "bytes": 2812
     },
     {
       "id": "83-focus-context-window",
-      "sha256": "42cb178cd3c96993548968c7779b71fa54e64141c09a8ea2b2cb6a2aaccdf571",
-      "bytes": 9681
+      "sha256": "8f8b7eab7513a21eb3f46720e2be3a6692ed06dae2e5fda351b46c715aaf9360",
+      "bytes": 5512
     },
     {
       "id": "84-pinned-nested-chart-tooltip",
-      "sha256": "e83f4a5f64646c627af03099e0796ddfc0d8699a2ac7b0be848552715ed06dde",
-      "bytes": 26174
+      "sha256": "82fa55860e9708a29873016898ae94654d6d29e6cf59355aed4bb066419592de",
+      "bytes": 26417
     },
     {
       "id": "85-scrollable-resource-lanes",
@@ -381,8 +381,8 @@
     },
     {
       "id": "86-streaming-window-preservation",
-      "sha256": "0d45437aed02ed7e219227c5b4ccb638e1d073e680578fd6975c83e520d65440",
-      "bytes": 5311
+      "sha256": "fc21a5108a4028addecfb03a56bc63c178c421784e890a620e6d47a44a1afaed",
+      "bytes": 3638
     },
     {
       "id": "87-echarts-synchronized-cursors",
@@ -561,8 +561,8 @@
     },
     {
       "id": "121-active-bar-dashboard",
-      "sha256": "f30ba8a97d5a293637a0a0dc345324bdb3eeec2a391d00d81cd1b6363683469a",
-      "bytes": 12508
+      "sha256": "cff16a78c545f29e5c6208797697873b83770040bc5ba34de83151394603597a",
+      "bytes": 14539
     },
     {
       "id": "122-premium-kpi-sparklines",
@@ -711,8 +711,8 @@
     },
     {
       "id": "151-shadcn-bar-stacked",
-      "sha256": "481d635d087cd8d651b30fdde2678f658390bf73585642ba534bad5cd8c059bd",
-      "bytes": 5276
+      "sha256": "8f6ab9c06ccef62303ebdb16e026effecec7df07ec59f9a8ab4598e4b1f6ab03",
+      "bytes": 6144
     },
     {
       "id": "152-shadcn-line-default",

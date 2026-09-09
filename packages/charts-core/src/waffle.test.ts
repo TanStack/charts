@@ -208,7 +208,7 @@ describe('waffle marks', () => {
             states: [
               {
                 when: { focus: 'primary' },
-                style: { opacity: 0.2 },
+                style: { opacity: 0.2, radius: [3, 3, 0, 0] },
               },
             ],
           }),
@@ -227,6 +227,11 @@ describe('waffle marks', () => {
     const container = document.createElement('div')
     const surface = svgChartRenderer.mount(container, () => {})
     surface.render(scene, { ariaLabel: 'Stateful waffle' })
+    const initialTiles = [
+      ...container.querySelectorAll<SVGPathElement>('.ts-chart__waffle > path'),
+    ]
+    expect(initialTiles).toHaveLength(100)
+    const initialPath = initialTiles[0]!.getAttribute('d')
     const point = scene.points[0]!
     surface.paintFocus({
       primary: point,
@@ -235,9 +240,11 @@ describe('waffle marks', () => {
       pinned: false,
     })
     const tiles = [
-      ...container.querySelectorAll<SVGRectElement>('.ts-chart__waffle > rect'),
+      ...container.querySelectorAll<SVGPathElement>('.ts-chart__waffle > path'),
     ]
     expect(tiles).toHaveLength(100)
+    expect(tiles).toEqual(initialTiles)
+    expect(tiles[0]!.getAttribute('d')).not.toBe(initialPath)
     expect(tiles.every((tile) => tile.getAttribute('opacity') === '0.2')).toBe(
       true,
     )
@@ -249,7 +256,12 @@ describe('waffle marks', () => {
       { id: 'a', value: 2 },
       { id: 'b', value: 2 },
     ]
-    const contexts: { key: string; datum: unknown; point: unknown }[] = []
+    const contexts: {
+      key: string
+      datum: unknown
+      point: unknown
+      role: string
+    }[] = []
     const definition = defineChart({
       marks: [
         waffleY(rows, {
@@ -257,6 +269,12 @@ describe('waffle marks', () => {
           key: 'id',
           columns: 2,
           gap: 0,
+          states: [
+            {
+              when: { focus: 'primary' },
+              style: { radius: [2, 2, 0, 0] },
+            },
+          ],
           motion(context) {
             contexts.push(context)
             return { transition: { type: 'tween', duration: 0 } }
@@ -284,6 +302,7 @@ describe('waffle marks', () => {
       tiles.every((context) => rows.includes(context.datum as never)),
     ).toBe(true)
     expect(tiles.every((context) => context.point !== undefined)).toBe(true)
+    expect(tiles.every((context) => context.role === 'rect')).toBe(true)
     surface.destroy()
   })
 
