@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Lit%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=lit&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Lit%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=lit"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Lit%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=lit"
       alt="TanStack Lit Charts"
       width="900"
     />

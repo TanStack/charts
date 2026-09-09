@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Solid%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=solid&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Solid%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=solid"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Solid%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=solid"
       alt="TanStack Solid Charts"
       width="900"
     />

@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=vue&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=vue"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=vue"
       alt="TanStack Vue Charts"
       width="900"
     />

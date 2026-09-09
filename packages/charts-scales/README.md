@@ -2,15 +2,15 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Charts%20Scales&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Charts%20Scales"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png"
-      alt="TanStack Charts"
+      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Charts%20Scales"
+      alt="TanStack Charts Scales"
       width="900"
     />
   </picture>

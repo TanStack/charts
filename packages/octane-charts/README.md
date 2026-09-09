@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Octane%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=octane&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Octane%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=octane"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Octane%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=octane"
       alt="TanStack Octane Charts"
       width="900"
     />

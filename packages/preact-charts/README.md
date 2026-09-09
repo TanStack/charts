@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=preact&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=preact"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=preact"
       alt="TanStack Preact Charts"
       width="900"
     />

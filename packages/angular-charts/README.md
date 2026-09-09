@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=angular&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=angular"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=angular"
       alt="TanStack Angular Charts"
       width="900"
     />

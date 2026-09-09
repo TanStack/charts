@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Svelte%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=svelte&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Svelte%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=svelte"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Svelte%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=svelte"
       alt="TanStack Svelte Charts"
       width="900"
     />

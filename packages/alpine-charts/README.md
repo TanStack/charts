@@ -2,14 +2,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Alpine%20Charts&theme=dark"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=alpine&theme=dark"
     />
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Alpine%20Charts"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=alpine"
     />
     <img
-      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Alpine%20Charts"
+      src="https://tanstack.com/api/readme/charts.png?framework=alpine"
       alt="TanStack Alpine Charts"
       width="900"
     />
