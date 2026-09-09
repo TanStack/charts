@@ -7,6 +7,10 @@ import {
   visualValue,
 } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import {
+  markStatesMayUseCornerRadii,
+  resolveSceneRectRadius,
+} from './rect-radius-state-internal'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -100,6 +104,7 @@ function waffle<TDatum>(
   const data = Array.isArray(source) ? source : Array.from(source)
   const unit = options.unit ?? 1
   const gap = options.gap ?? 1
+  const stateMayUseCornerRadii = markStatesMayUseCornerRadii(options.states)
   const fixedMultiple =
     orientation === 'y'
       ? (options as WaffleYOptions<TDatum>).columns
@@ -234,7 +239,10 @@ function waffle<TDatum>(
                     y: fragment.y,
                     width: fragment.width,
                     height: fragment.height,
-                    radius: fragment.complete ? options.radius : undefined,
+                    ...resolveSceneRectRadius(
+                      fragment.complete ? options.radius : undefined,
+                      stateMayUseCornerRadii,
+                    ),
                     interaction: { point },
                     style: {
                       fill,

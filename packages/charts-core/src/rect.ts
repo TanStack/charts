@@ -6,7 +6,12 @@ import {
   isChartKey,
   isChartValue,
   markStates,
+  visualValue,
 } from './mark'
+import {
+  markStatesMayUseCornerRadii,
+  resolveSceneRectRadius,
+} from './rect-radius-state-internal'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -22,7 +27,9 @@ import type {
   MarkCallOptions,
   MarkChannelOutput,
   MarkScaleBindings,
+  RectRadius,
   SceneNode,
+  VisualChannel,
 } from './types'
 
 export interface RectOptions<TDatum>
@@ -42,7 +49,7 @@ export interface RectOptions<TDatum>
   stroke?: string
   strokeWidth?: number
   inset?: number
-  radius?: number
+  radius?: VisualChannel<TDatum, RectRadius>
   states?: readonly ChartMarkState<TDatum, ChartRectStateStyle<TDatum>>[]
 }
 
@@ -149,6 +156,9 @@ export function rect<TDatum>(
   const data = Array.isArray(source) ? source : Array.from(source)
   const xScale = options.xScale ?? 'x'
   const yScale = options.yScale ?? 'y'
+  const preferCornerRadii =
+    typeof options.radius === 'function' ||
+    markStatesMayUseCornerRadii(options.states)
 
   return createMark(
     ({ markIndex }) => {
@@ -259,6 +269,10 @@ export function rect<TDatum>(
             const paintedY = top + inset
             const paintedWidth = Math.max(0, width - inset * 2)
             const paintedHeight = Math.max(0, height - inset * 2)
+            const radius =
+              options.radius === undefined
+                ? undefined
+                : visualValue(options.radius, datum, datumIndex, data, 0)
             const pointXValue = isChartValue(xValue) ? xValue : x2Value
             const pointYValue = isChartValue(yValue) ? yValue : y2Value
             const point: ChartPoint<TDatum> = {
@@ -287,7 +301,7 @@ export function rect<TDatum>(
               y: paintedY,
               width: paintedWidth,
               height: paintedHeight,
-              radius: options.radius,
+              ...resolveSceneRectRadius(radius, preferCornerRadii),
               inset,
               interaction: { point },
               style: {

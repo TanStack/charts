@@ -147,6 +147,15 @@ export type MarkScaleBindings<
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
 
+export type RectCornerRadii = readonly [
+  topLeft: number,
+  topRight: number,
+  bottomRight: number,
+  bottomLeft: number,
+]
+
+export type RectRadius = number | RectCornerRadii
+
 export interface ChartMarkStateContext<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -173,7 +182,7 @@ export interface ChartMarkStateStyle<TDatum = unknown> {
   opacity?: ChartMarkStateValue<TDatum, number>
   strokeDasharray?: ChartMarkStateValue<TDatum, string>
   r?: ChartMarkStateValue<TDatum, number>
-  radius?: ChartMarkStateValue<TDatum, number>
+  radius?: ChartMarkStateValue<TDatum, RectRadius>
   inset?: ChartMarkStateValue<TDatum, number>
   fontSize?: ChartMarkStateValue<TDatum, number>
   fontWeight?: ChartMarkStateValue<TDatum, number>
@@ -1485,6 +1494,7 @@ export interface SceneRect extends InteractiveSceneNodeBase {
   width: number
   height: number
   radius?: number
+  cornerRadii?: RectCornerRadii
   /** Applied inset retained for absolute inline-state overrides. */
   inset?: number
   /** Axes affected by `inset`; bars use only their categorical axis. */

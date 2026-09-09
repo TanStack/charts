@@ -297,7 +297,7 @@ Each entry records:
 | F-258 | Tooltip chrome required specificity overrides                  | API/Documentation     | resolved   |
 | F-259 | Chart resources cannot declare patterns                        | API                   | open       |
 | F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
-| F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
+| F-261 | Cartesian bars cannot round only exposed corners               | API                   | resolved   |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 | F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
@@ -332,6 +332,8 @@ Each entry records:
 | F-293 | Root scale slots blocked named axes                            | API                   | resolved   |
 | F-294 | Automatic mark renderers imposed shared host plumbing          | API                   | resolved   |
 | F-295 | Grouped tooltips did not identify the active series            | API                   | resolved   |
+| F-296 | CSS height changes did not relayout DOM charts                 | API/Documentation     | resolved   |
+| F-297 | Unified peer metadata rejected supported React releases        | API/Tooling           | resolved   |
 
 ## Findings
 
@@ -7932,18 +7934,52 @@ Each entry records:
 
 ### F-261 — Cartesian bars cannot round only exposed corners
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
-- Observed in: the active bar dashboard case 121
+- Observed in: the active bar dashboard case 121, the nested tooltip case 84,
+  and the stacked bar case 151
 - Friction: `barX` and `barY` accept one numeric `radius`, which becomes one SVG
   rectangle radius for all four corners. The reference treatment needs rounded
   value-end corners and square baseline corners. The current option cannot
   express that distinction or preserve it across negative and stacked bars.
-- Current decision: keep case 121 on the native uniform radius. Do not replace
-  bars with application paths. Keep endpoint or per-corner radii open until the
-  contract accounts for orientation, sign, stack seams, focus geometry,
-  motion, Canvas, and native output.
+- Decision: preserve a numeric `radius` as the compatible uniform form. Add a
+  physical `RectCornerRadii` tuple in top-left, top-right, bottom-right,
+  bottom-left order for bars, rects, cells, and inline states. Add the bar-only
+  `{ end, stack? }` form so the rounded end follows sign and reversed scales.
+  Its automatic stack policy rounds only exposed ends in native implicit
+  stacks and rounds each explicit or grouped bar. `stack: 'each'` rounds every
+  segment, while an explicitly authored `stack: 'outer'` rejects endpoints and
+  group layouts that have no native stack envelope.
+  When resolved intervals overlap at an outer edge, give each touching interval
+  its own resolved radius on that same physical envelope edge so later fills do
+  not square it off.
+- Renderer ownership: selective scene rectangles store physical
+  `cornerRadii`. SVG and React Native serialize them as keyed paths, Canvas
+  paints the same geometry, and exact hit testing uses the normalized outline.
+  The supported `@tanstack/charts/renderer/rect` subpath owns shared
+  normalization and SVG path serialization so native and custom renderers do
+  not duplicate the corner-fit policy. Numeric radii retain the existing
+  rectangle and `rx` output.
+- Verification: mark and stack regressions cover explicit intervals, grouped
+  bars, resolved stack order, sparse and zero values, outer-only and every-
+  segment policies, both orientations, negative values, reversed scales, and
+  normalized mixed-sign stacks whose overlapping intervals each receive their
+  own radius on the resolved physical envelope edge. Anchor-translated stacks
+  cover resolved envelopes that extend to both sides of zero.
+  SVG, Canvas, React Native, nearest-point, inline-state, and motion regressions
+  cover invalid and oversized radii, exact corner hits, layered state cascades,
+  stable keyed paths, focus-only baselines, and numeric output precision. Cases
+  84, 121, and 151 exercise the public API. The focused unit, type, export,
+  callback-contract, packed-package, Metro, Expo, adapter, and unified-artifact
+  checks pass. Fresh standard browser conformance passes case 121 in both
+  themes at 320, 640, and 960 pixels. Case 151 keeps all 12 bars and paint
+  parity across its initial and updated scenes at every size and theme. Its
+  remaining visual report is the existing shared card-label clipping at 640
+  and 960 pixels in both renderers, not bar geometry. The final `pnpm validate`
+  gate passes 288 test files and 1,982 tests, typechecking, formatting, 188
+  catalog previews, 102 documentation pages, bundle policies, all adapters,
+  and packed web and React Native artifacts.
 
 ### F-262 — Mark inference accepted an unsupported style option
 
@@ -8640,3 +8676,62 @@ Each entry records:
 - Verification: runtime regressions cover moving between same-colored series
   with built-in and custom content while preserving visual order. Existing
   x- and y-grouped ordering tests pass.
+
+### F-296 - CSS height changes did not relayout DOM charts
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: GitHub issue #133, CSS-sized grid rows, fixed-height cards, and
+  the space left below a brush track
+- Friction: the shared DOM host observed its container but compared only
+  width. Applications that let CSS own chart height had to add a second
+  `ResizeObserver`, debounce it, and feed measurements back through host
+  options. A fixed `width` also disabled the host observer completely, even
+  when height still belonged to the container.
+- Decision: when neither explicit `height` nor a positive finite
+  `aspectRatio` owns scene height, use the container's positive finite
+  content-box height and observe it as a live dimension. Measure every
+  container-owned axis from the same content box. This keeps padding and
+  borders outside scene geometry so box edges cannot feed back into repeated
+  growth or shrinkage. Container-owned height must be resolved independently
+  of chart content; a self-sized `height: auto` container instead requires
+  explicit `height` or `aspectRatio`. Preserve explicit height first and
+  aspect-ratio-derived height second. Observe width and height independently,
+  so fixed width does not disable required height observation. Ignore zero and
+  nonfinite live measurements instead of replacing a valid scene, and keep the
+  `320` fallback for initial output without a usable container height.
+- Verification: renderer-host regressions cover a fixed width with height-only
+  changes, coalescing and redundant notifications, explicit-height and
+  aspect-ratio precedence, transitions between fixed and container-owned
+  height, independent valid-axis updates when the other measurement is
+  unusable, zero, `NaN`, and infinite measurements, and surface sizing feedback
+  with padding and borders on both axes, content-box and border-box CSS,
+  unresolved CSS size fallbacks, and a fixed scene width whose CSS height
+  changes by the prior surface ratio. The shared host covers SVG, Canvas, mixed
+  renderers, and every web framework adapter; React Native continues to use its
+  platform layout callback. The full `pnpm validate` gate passes 288 test files
+  and 1,985 tests.
+
+### F-297 - Unified peer metadata rejected supported React releases
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: React 18 consumer installation reported in issue 130
+- Friction: the web React adapter uses APIs available in React 18, but both its
+  compatibility package and the unified package declared React 19-only peers.
+  Widening only `@tanstack/react-charts` would still leave its required
+  `@tanstack/charts` dependency with incompatible optional peer metadata.
+- Decision: declare React and React DOM `^18.0.0 || ^19.0.0` for both published
+  package entry points. Keep the React Native compatibility table at React 19
+  because its framework peer requirements remain separate. Use the layout
+  effect only when `document` exists, and use `useEffect` during server
+  rendering so both published React entry points render without the React 18
+  layout-effect warning.
+- Verification: the packed-package gate installs both artifacts with React
+  18.0.0 under strict peer checking, compiles a consumer with React 18 types,
+  and server-renders both the compatibility and unified adapter entry points
+  without console warnings. The existing workspace suite continues to
+  exercise React 19, and the full `pnpm validate` gate passes 288 test files and
+  1,982 tests.

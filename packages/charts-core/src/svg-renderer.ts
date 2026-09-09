@@ -11,6 +11,7 @@ import {
   svgRenderChildren,
   type SvgRenderChildren,
 } from './svg-render-context-internal'
+import { rectCornerRadiiPath } from './renderer-rect'
 
 export interface ChartSvgRenderHooks {
   renderDefinitions?: (scene: ChartScene, idPrefix: string) => string
@@ -117,7 +118,9 @@ function renderNode(
     case 'dot':
       return `<circle${common} cx="${number(node.x)}" cy="${number(node.y)}" r="${number(node.radius)}"/>`
     case 'rect':
-      return `<rect${common} x="${number(node.x)}" y="${number(node.y)}" width="${number(node.width)}" height="${number(node.height)}"${node.radius === undefined ? '' : ` rx="${number(node.radius)}"`}/>`
+      return node.cornerRadii === undefined
+        ? `<rect${common} x="${number(node.x)}" y="${number(node.y)}" width="${number(node.width)}" height="${number(node.height)}"${node.radius === undefined ? '' : ` rx="${number(node.radius)}"`}/>`
+        : `<path${common} d="${rectCornerRadiiPath(node.x, node.y, node.width, node.height, node.cornerRadii)}"/>`
     case 'label': {
       const transform =
         node.rotate === undefined

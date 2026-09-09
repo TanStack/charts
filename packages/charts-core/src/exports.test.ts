@@ -108,6 +108,28 @@ describe('public package exports', () => {
     expect(Object.keys(definitionModule)).toEqual(['stagger'])
   })
 
+  it('keeps portable rectangle geometry on its exact renderer subpath', async () => {
+    const [root, universal, rectRenderer] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/renderer/rect'),
+    ])
+
+    for (const name of ['resolveRectCornerRadii', 'rectCornerRadiiPath']) {
+      expect(root).not.toHaveProperty(name)
+      expect(universal).not.toHaveProperty(name)
+      expect(rectRenderer).toHaveProperty(name)
+    }
+    expect(
+      rectRenderer.resolveRectCornerRadii([8, 4, -2, Infinity], 6, 10),
+    ).toEqual([4, 2, 0, 0])
+    expect(
+      rectRenderer.rectCornerRadiiPath(0, 0, 6, 10, [8, 4, -2, Infinity]),
+    ).toBe(
+      'M4,0H4A2,2 0 0 1 6,2V10A0,0 0 0 1 6,10H0A0,0 0 0 1 0,10V4A4,4 0 0 1 4,0Z',
+    )
+  })
+
   it('keeps focus guide marks on their exact subpath', async () => {
     const [root, universal, guide] = await Promise.all([
       import('@tanstack/charts'),

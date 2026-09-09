@@ -16,6 +16,8 @@ import type {
 const subscribeToHydration = () => () => {}
 const clientSnapshot = () => false
 const serverSnapshot = () => true
+const useIsomorphicLayoutEffect =
+  typeof document === 'undefined' ? React.useEffect : React.useLayoutEffect
 
 interface ChartSurfaceProps {
   markup: string
@@ -172,7 +174,7 @@ export function RendererChartImplementation<
   initialMarkupRef.current ??= needsInitialMarkup ? adapter.prerender() : ''
 
   const mountedRef = React.useRef(false)
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const container = containerRef.current
     if (!container) return
     adapter.update(hostOptions)
@@ -182,7 +184,7 @@ export function RendererChartImplementation<
     }
   }, [adapter, hostOptions])
 
-  React.useLayoutEffect(
+  useIsomorphicLayoutEffect(
     () => () => {
       adapter.destroy()
       mountedRef.current = false
