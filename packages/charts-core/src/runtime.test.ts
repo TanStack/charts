@@ -737,6 +737,7 @@ describe('dynamic chart runtime', () => {
     expect(rows?.[0]?.textContent).toContain('12')
     expect(rows?.[1]?.textContent).toContain('Query')
     expect(rows?.[1]?.textContent).toContain('8')
+    expect(tooltip?.querySelectorAll('[data-active="true"]')).toHaveLength(1)
     expect(tooltip?.querySelectorAll('.ts-chart-tooltip__swatch')).toHaveLength(
       2,
     )
@@ -789,8 +790,87 @@ describe('dynamic chart runtime', () => {
     expect(rows[0]?.textContent).toContain('4')
     expect(rows[1]?.textContent).toContain('Long')
     expect(rows[1]?.textContent).toContain('12')
+    expect(container.querySelectorAll('[data-active="true"]')).toHaveLength(1)
     host.destroy()
   })
+
+  it.each([false, true])(
+    'tracks the active series with repeated colors (custom: %s)',
+    (custom) => {
+      const container = document.createElement('div')
+      const host = mountChart(container, {
+        definition: defineChart({
+          marks: [
+            lineY(
+              [
+                { id: 'low', x: 1, y: 4, series: 'Low' },
+                { id: 'high', x: 1, y: 8, series: 'High' },
+              ],
+              { x: 'x', y: 'y', z: 'series', key: 'id', stroke: '#336699' },
+            ),
+          ],
+          ...linearAxes([0, 2], [0, 10]),
+          focus: 'group-x',
+          tooltip: {
+            use: tooltipExtension,
+            ...(custom
+              ? {
+                  content: (
+                    points: readonly ChartPoint[],
+                    context: ChartTooltipContentContext,
+                  ) => ({
+                    rows: points.map((point) => ({
+                      label: point.groupLabel,
+                      value: String(point.yValue),
+                      color: point.color,
+                      active: point === context.primaryPoint,
+                    })),
+                  }),
+                }
+              : {}),
+          },
+        }),
+        width: 480,
+        height: 260,
+        ariaLabel: 'Repeated series colors',
+      })
+      const svg = container.querySelector('svg')
+      if (!svg) throw new Error('Expected SVG')
+      vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        right: 480,
+        bottom: 260,
+        width: 480,
+        height: 260,
+        toJSON: () => ({}),
+      })
+      for (const point of host.getScene().points) {
+        svg.dispatchEvent(
+          new MouseEvent('pointermove', {
+            bubbles: true,
+            clientX: point.x,
+            clientY: point.y,
+          }),
+        )
+        const active = container.querySelectorAll(
+          '.ts-chart-tooltip__row[data-active="true"]',
+        )
+        expect(active).toHaveLength(1)
+        expect(active[0]?.textContent).toContain(point.groupLabel)
+        expect(
+          container.querySelector('.ts-chart-tooltip__row')?.textContent,
+        ).toContain('High')
+        expect(
+          container.querySelector<HTMLElement>('[data-active="true"]')?.style
+            .fontWeight,
+        ).toBe('var(--ts-chart-tooltip-active-row-font-weight, 700)')
+      }
+      host.destroy()
+    },
+  )
 
   it('formats interval ranges and stacked lengths automatically', () => {
     const rangeContainer = document.createElement('div')

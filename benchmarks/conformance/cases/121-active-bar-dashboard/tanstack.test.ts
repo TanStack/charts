@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createChartScene } from '@tanstack/charts'
+import { createChartScene, type SceneNode } from '@tanstack/charts'
 import { activeBarDashboardDefinition } from './example'
 import { dashboardRows, metricTotal } from './model'
 import { mount } from './view'
@@ -51,6 +51,19 @@ describe('active bar dashboard', () => {
     expect(preview.chart.height).toBeGreaterThan(120)
   })
 
+  it('rounds only the value end of every dashboard bar', () => {
+    const scene = createChartScene(
+      activeBarDashboardDefinition(input, 'desktop'),
+      input,
+    )
+    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+
+    expect(bars).toHaveLength(dashboardRows(0).length)
+    expect(bars.map((bar) => bar.cornerRadii)).toEqual(
+      dashboardRows(0).map(() => [4, 4, 0, 0]),
+    )
+  })
+
   it('settles its single chart host before conformance sampling', async () => {
     const container = document.createElement('div')
     document.body.append(container)
@@ -65,6 +78,8 @@ describe('active bar dashboard', () => {
       const hosts = container.querySelectorAll('.ts-chart-host')
       const svg = container.querySelector('svg.ts-chart')
       expect(hosts).toHaveLength(1)
+      expect(container.querySelectorAll('.ts-chart__bar path')).toHaveLength(24)
+      expect(container.querySelectorAll('.ts-chart__bar rect')).toHaveLength(0)
       svg?.setAttribute('data-ts-motion-state', 'finished')
       const settled = handle.driver?.settle?.()
       expect(settled).toBeInstanceOf(Promise)
@@ -75,3 +90,9 @@ describe('active bar dashboard', () => {
     }
   })
 })
+
+function flatten(nodes: readonly SceneNode[]): SceneNode[] {
+  return nodes.flatMap((node) =>
+    node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
+  )
+}

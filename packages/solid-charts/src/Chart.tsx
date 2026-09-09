@@ -155,6 +155,9 @@ function TooltipBodyPortal<
 }): JSX.Element {
   const defaultBody = <DefaultTooltipBody content={props.target().content} />
   const context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue> = {
+    get primaryPoint() {
+      return props.target().primaryPoint
+    },
     get points() {
       return props.target().points
     },
@@ -218,11 +221,24 @@ function StructuredTooltipBody(props: {
           {props.content.rows.map((row) => (
             <div
               class="ts-chart-tooltip__row"
+              data-active={String(row.active === true)}
               style={{
                 display: 'grid',
                 'grid-template-columns': '0.55rem minmax(0,1fr) auto',
                 'align-items': 'center',
                 'column-gap': '0.4rem',
+                'font-weight': row.active
+                  ? 'var(--ts-chart-tooltip-active-row-font-weight, 700)'
+                  : undefined,
+                background: row.active
+                  ? 'var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent))'
+                  : undefined,
+                'border-radius': row.active
+                  ? 'var(--ts-chart-tooltip-active-row-border-radius, .2rem)'
+                  : undefined,
+                'box-shadow': row.active
+                  ? 'var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))'
+                  : undefined,
               }}
             >
               {row.color ? <TooltipSwatch color={row.color} /> : <span />}

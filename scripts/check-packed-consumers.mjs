@@ -61,6 +61,9 @@ const temporaryRoot = await mkdtemp(
 const buildWorkspace = resolve(temporaryRoot, 'build')
 const tarballDirectory = artifactDirectory ?? resolve(temporaryRoot, 'tarballs')
 const fixtureDirectory = resolve(temporaryRoot, 'consumer')
+const react18FixtureDirectory = resolve(temporaryRoot, 'react-18-consumer')
+const react18CompatibilityPackage = resolve(root, 'packages', 'react-18-compat')
+const webReactPeerRange = '^18.0.0 || ^19.0.0'
 
 const webPackages = [
   packageConfig('charts-scales', 'scale'),
@@ -103,6 +106,7 @@ try {
   }
 
   await installFixture(tarballs)
+  await verifyReact18PackedConsumer(tarballs)
   let bundles
   let nativeBundles
   await runWithConcurrency(
@@ -645,6 +649,176 @@ async function installFixture(tarballs) {
   )
 }
 
+async function verifyReact18PackedConsumer(tarballs) {
+  const coreTarball = fileDependency(tarballs.get('@tanstack/charts'))
+  const reactTarball = fileDependency(tarballs.get('@tanstack/react-charts'))
+  const coreDependencies = Object.fromEntries(
+    Object.keys(
+      packages.find(({ name }) => name === '@tanstack/charts')?.manifest
+        .dependencies ?? {},
+    ).map((name) => [name, installedPackageDependency('charts-core', name)]),
+  )
+  const dependencies = {
+    ...coreDependencies,
+    '@tanstack/charts': coreTarball,
+    '@tanstack/react-charts': reactTarball,
+    '@types/react': installedReact18Dependency('@types/react'),
+    '@types/react-dom': installedReact18Dependency('@types/react-dom'),
+    react: installedReact18Dependency('react'),
+    'react-dom': installedReact18Dependency('react-dom'),
+  }
+
+  await mkdir(react18FixtureDirectory, { recursive: true })
+  await writeFile(
+    resolve(react18FixtureDirectory, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'tanstack-charts-react-18-consumer',
+        private: true,
+        type: 'module',
+        dependencies,
+      },
+      null,
+      2,
+    )}\n`,
+  )
+  await writeFile(
+    resolve(react18FixtureDirectory, 'pnpm-workspace.yaml'),
+    `packages:\n  - '.'\nautoInstallPeers: false\nstrictPeerDependencies: true\noverrides:\n${Object.entries(
+      {
+        '@tanstack/charts': coreTarball,
+        ...coreDependencies,
+      },
+    )
+      .map(
+        ([name, target]) =>
+          `  ${JSON.stringify(name)}: ${JSON.stringify(target)}`,
+      )
+      .join('\n')}\n`,
+  )
+  await run(
+    'pnpm',
+    ['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'],
+    react18FixtureDirectory,
+    {
+      CI: 'true',
+      npm_config_offline: 'true',
+    },
+  )
+
+  for (const packageName of ['@tanstack/charts', '@tanstack/react-charts']) {
+    const manifest = JSON.parse(
+      await readFile(
+        resolve(
+          react18FixtureDirectory,
+          'node_modules',
+          ...packageName.split('/'),
+          'package.json',
+        ),
+      ),
+    )
+    assertWebReactPeerRange(manifest)
+  }
+  for (const packageName of ['react', 'react-dom']) {
+    const manifest = JSON.parse(
+      await readFile(
+        resolve(
+          react18FixtureDirectory,
+          'node_modules',
+          packageName,
+          'package.json',
+        ),
+      ),
+    )
+    assert.equal(manifest.version, '18.0.0')
+  }
+
+  const typeSource = resolve(react18FixtureDirectory, 'compatibility.tsx')
+  await writeFile(typeSource, react18CompatibilitySource())
+  const typeProgram = ts.createProgram([typeSource], {
+    jsx: ts.JsxEmit.ReactJSX,
+    lib: ['lib.es2022.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    noEmit: true,
+    skipLibCheck: false,
+    strict: true,
+    target: ts.ScriptTarget.ES2022,
+    types: [],
+  })
+  const diagnostics = ts.getPreEmitDiagnostics(typeProgram)
+  if (diagnostics.length) {
+    throw new Error(
+      `React 18 consumer compilation failed:\n${formatDiagnostics(
+        diagnostics,
+      )}`,
+    )
+  }
+
+  const runtimeSource = resolve(react18FixtureDirectory, 'compatibility.mjs')
+  await writeFile(runtimeSource, react18CompatibilitySource('runtime'))
+  await run(process.execPath, [runtimeSource], react18FixtureDirectory)
+}
+
+function react18CompatibilitySource(mode = 'types') {
+  const runtimeImports =
+    mode === 'runtime'
+      ? `import assert from 'node:assert/strict'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+`
+      : ''
+  const assertion =
+    mode === 'runtime'
+      ? `const serverWarnings = []
+const originalConsoleError = console.error
+console.error = (...values) => serverWarnings.push(values.map(String).join(' '))
+try {
+  for (const Chart of [CompatibilityChart, UnifiedChart]) {
+    const chart = createElement(Chart, {
+      definition,
+      width: 320,
+      height: 180,
+      ariaLabel: 'React 18 chart',
+    })
+    const markup = renderToStaticMarkup(chart)
+    assert.match(markup, /ts-chart-host/)
+    assert.match(markup, /<svg/)
+    assert.match(markup, /ts-chart__line/)
+  }
+} finally {
+  console.error = originalConsoleError
+}
+assert.deepEqual(serverWarnings, [])`
+      : `export const compatibilityChart = <CompatibilityChart definition={definition} width={320} height={180} ariaLabel="React 18 compatibility chart" />
+export const unifiedChart = <UnifiedChart definition={definition} width={320} height={180} ariaLabel="React 18 unified chart" />`
+  return `
+${runtimeImports}
+import { Chart as CompatibilityChart } from '@tanstack/react-charts'
+import { defineChart, lineY } from '@tanstack/charts'
+import { Chart as UnifiedChart } from '@tanstack/charts/react'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+
+const rows = [
+  { x: 0, y: 2 },
+  { x: 1, y: 5 },
+]
+const definition = defineChart({
+  marks: [lineY(rows, { x: 'x', y: 'y' })],
+  scales: {
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 5]) },
+  },
+})
+${assertion}
+`
+}
+
+function assertWebReactPeerRange(manifest) {
+  assert.equal(manifest.peerDependencies?.react, webReactPeerRange)
+  assert.equal(manifest.peerDependencies?.['react-dom'], webReactPeerRange)
+}
+
 function fileDependency(file) {
   assert.ok(file)
   return `file:${file}`
@@ -659,6 +833,14 @@ function installedPackageDependency(directory, name) {
     root,
     'packages',
     directory,
+    'node_modules',
+    ...name.split('/'),
+  )}`
+}
+
+function installedReact18Dependency(name) {
+  return `link:${resolve(
+    react18CompatibilityPackage,
     'node_modules',
     ...name.split('/'),
   )}`

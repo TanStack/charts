@@ -3,7 +3,13 @@ import { act } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { areaY, defineChart, dot, lineY } from '@tanstack/charts'
+import {
+  areaY,
+  createChartScene,
+  defineChart,
+  dot,
+  lineY,
+} from '@tanstack/charts'
 import type {
   ChartDefinition,
   ChartInteractionController,
@@ -159,6 +165,7 @@ if (false) {
               title?: string
               color?: string
               rows: readonly {
+                active?: boolean
                 label: string
                 value: string
                 color?: string
@@ -218,6 +225,177 @@ if (false) {
 }
 
 describe('React adapter', () => {
+  it('updates custom tooltip bodies when only the primary series changes', async () => {
+    const definition = defineChart({
+      marks: [
+        lineY(
+          [
+            { x: 1, y: 4, series: 'Low' },
+            { x: 1, y: 8, series: 'High' },
+          ],
+          { x: 'x', y: 'y', z: 'series', stroke: '#336699' },
+        ),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
+      focus: 'group-x',
+      tooltip: { use: tooltip },
+    })
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+    await act(async () =>
+      root.render(
+        <TooltipChart
+          definition={definition}
+          width={480}
+          height={260}
+          ariaLabel="Grouped series"
+          renderTooltipBody={({ primaryPoint, defaultBody }) => (
+            <div>
+              {defaultBody}
+              <span data-testid="primary">{primaryPoint?.groupLabel}</span>
+            </div>
+          )}
+        />,
+      ),
+    )
+    const svg = target.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 480,
+      bottom: 260,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+    const scene = createChartScene(definition, { width: 480, height: 260 })
+    for (const point of scene.points) {
+      await act(async () =>
+        svg.dispatchEvent(
+          new MouseEvent('pointermove', {
+            bubbles: true,
+            clientX: point.x,
+            clientY: point.y,
+          }),
+        ),
+      )
+      expect(target.querySelector('[data-testid="primary"]')?.textContent).toBe(
+        point.groupLabel,
+      )
+      const active = target.querySelectorAll(
+        '.ts-chart-tooltip__row[data-active="true"]',
+      )
+      expect(active).toHaveLength(1)
+      expect(active[0]?.textContent).toContain(point.groupLabel)
+    }
+    await act(async () => root.unmount())
+    target.remove()
+  })
+
+  it('builds and serializes a client-only chart once before parent layout effects', async () => {
+    const build = vi.fn(() => definition)
+    const dynamic = defineChart(build)
+    const serialize = vi.fn(renderChartSvgWithResources)
+    const target = document.createElement('div')
+    const root = createRoot(target)
+    const observed = vi.fn()
+    function Parent() {
+      React.useLayoutEffect(() => {
+        observed(target.querySelector('svg path'))
+      }, [])
+      return (
+        <Chart
+          definition={dynamic}
+          renderSvg={serialize}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />
+      )
+    }
+    await act(async () => root.render(<Parent />))
+    expect(build).toHaveBeenCalledTimes(1)
+    expect(serialize).toHaveBeenCalledTimes(1)
+    expect(observed).toHaveBeenCalledWith(expect.any(SVGElement))
+    await act(async () => root.unmount())
+  })
+
+  it('avoids a post-mount font read but refreshes typography on later updates', async () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+    const serialize = vi.fn(renderChartSvgWithResources)
+    const original = window.getComputedStyle.bind(window)
+    const reads: boolean[] = []
+    const spy = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element) => {
+        if (element.classList.contains('ts-chart-surface')) {
+          reads.push(Boolean(element.querySelector('svg')))
+        }
+        return original(element)
+      })
+    const render = () =>
+      root.render(
+        <Chart
+          definition={definition}
+          renderSvg={serialize}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />,
+      )
+    try {
+      await act(async () => render())
+      expect(reads.length).toBeGreaterThan(0)
+      expect(reads).not.toContain(true)
+      expect(serialize).toHaveBeenCalledTimes(1)
+      const surface = target.querySelector<HTMLElement>('.ts-chart-surface')!
+      surface.style.fontFamily = 'monospace'
+      await act(async () => render())
+      expect(reads).toContain(true)
+      expect(serialize).toHaveBeenCalledTimes(2)
+    } finally {
+      await act(async () => root.unmount())
+      spy.mockRestore()
+      target.remove()
+    }
+  })
+
+  it('keeps complete SSR markup and hydration identity in Strict Mode', async () => {
+    const target = document.createElement('div')
+    const chart = (
+      <React.StrictMode>
+        <Chart
+          definition={definition}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />
+      </React.StrictMode>
+    )
+    target.innerHTML = renderToString(chart)
+    const svg = target.querySelector('svg')
+    const path = target.querySelector('.ts-chart__marks path')
+    expect(path).not.toBeNull()
+    const recoverable = vi.fn()
+    let root!: ReturnType<typeof hydrateRoot>
+    await act(async () => {
+      root = hydrateRoot(target, chart, { onRecoverableError: recoverable })
+    })
+    expect(target.querySelector('svg')).toBe(svg)
+    expect(target.querySelector('.ts-chart__marks path')).toBe(path)
+    expect(recoverable).not.toHaveBeenCalled()
+    await act(async () => root.unmount())
+  })
+
   it('server-renders the complete shared SVG renderer output', () => {
     const html = renderToString(
       <Chart

@@ -155,7 +155,7 @@ function collectFocusedNodes(
   return output
 }
 
-function selectedFocusChildren(
+export function selectedFocusChildren(
   layer: SceneGroup,
   focus: ChartFocusState,
 ): readonly SceneNode[] {

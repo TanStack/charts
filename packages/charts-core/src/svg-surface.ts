@@ -1,9 +1,18 @@
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 import { renderChartSvg } from './svg'
-import { focusedNodeKeys, resolveFocusScene } from './focus-layer'
+import {
+  focusedNodeKeys,
+  resolveFocusScene,
+  selectedFocusChildren,
+} from './focus-layer'
+import { isDefaultFocusLayer } from './default-focus-internal'
+import { withSvgRenderChildren } from './svg-render-context-internal'
 import { resolveFocusGuides } from './focus-presentation'
 import { renderFocusGuideLayer } from './svg-renderer'
-import { renderFocusGuideLayerWithRenderer } from './svg-focus-guide-serializer'
+import {
+  renderFocusGuideLayerWithRenderer,
+  renderSvgFocusLayerWithRenderer,
+} from './svg-focus-guide-serializer'
 import {
   detachSvgFocusGuideLayers,
   ensureSvgFocusGuideLayer,
@@ -38,7 +47,8 @@ export function createSvgChartRenderer<
 ): ChartRenderer<TDatum, TXValue, TYValue> {
   const renderer: ChartRenderer<TDatum, TXValue, TYValue> = {
     id: 'svg',
-    prerender: renderSvg,
+    prerender: (scene, options) =>
+      renderWithFocus(scene, options, null, renderSvg),
     mount(container) {
       let cancelAnimation = () => {}
       let cancelFocusAnimation = () => {}
@@ -47,6 +57,8 @@ export function createSvgChartRenderer<
       let stateTransition: ChartMarkStateTransition | undefined
       let markStatePainted = false
       let retargetedFocus = false
+      let currentFocus: ChartFocusState | null = null
+      let eagerFocus = false
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -55,6 +67,23 @@ export function createSvgChartRenderer<
           )
         }
         return svg
+      }
+
+      // Animated updates need the previous geometry of every possible target.
+      // Keep that existing path once animation is requested, without making
+      // static mounts pay for thousands of inactive circles.
+      const prepareAnimatedFocus = () => {
+        if (eagerFocus) return
+        eagerFocus = true
+        if (!scene || !renderOptions) return
+        paintSvgFocus(
+          svgElement(),
+          scene,
+          currentFocus,
+          renderOptions,
+          renderSvg,
+          'all',
+        )
       }
 
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
@@ -66,6 +95,7 @@ export function createSvgChartRenderer<
           const viewportMoved = Boolean(
             scene && viewportTranslationChanged(scene, nextScene),
           )
+          if (options.animation) prepareAnimatedFocus()
           cancelAnimation()
           cancelFocusAnimation()
           cancelFocusAnimation = () => {}
@@ -75,7 +105,9 @@ export function createSvgChartRenderer<
             : {}
           cancelAnimation = reconcileChartSvg(
             container,
-            renderSvg(nextScene, options),
+            eagerFocus
+              ? renderSvg(nextScene, options)
+              : renderWithFocus(nextScene, options, currentFocus, renderSvg),
             viewportMoved ? undefined : options.animation,
           )
           if (retainsFocusGuideLayers) {
@@ -102,6 +134,11 @@ export function createSvgChartRenderer<
           const state = resolveMarkStateScene(scene, focus, pointer)
           const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
+          const transition = resolveMarkStateTransition(
+            state.transition ?? previousTransition,
+            container,
+          )
+          if (transition) prepareAnimatedFocus()
           if (
             resolved.scene !== scene ||
             markStatePainted ||
@@ -114,11 +151,15 @@ export function createSvgChartRenderer<
             cancelAnimation()
             cancelAnimation = reconcileChartSvg(
               container,
-              renderSvg(resolved.scene, renderOptions),
-              resolveMarkStateTransition(
-                state.transition ?? previousTransition,
-                container,
-              ),
+              eagerFocus
+                ? renderSvg(resolved.scene, renderOptions)
+                : renderWithFocus(
+                    resolved.scene,
+                    renderOptions,
+                    focus,
+                    renderSvg,
+                  ),
+              transition,
             )
             restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
           }
@@ -127,7 +168,15 @@ export function createSvgChartRenderer<
           stateTransition = focus
             ? (state.transition ?? previousTransition)
             : undefined
-          paintSvgFocus(svgElement(), resolved.scene, focus)
+          currentFocus = focus
+          paintSvgFocus(
+            svgElement(),
+            resolved.scene,
+            focus,
+            renderOptions,
+            renderSvg,
+            !eagerFocus,
+          )
           cancelFocusAnimation()
           cancelFocusAnimation = paintSvgFocusGuides(
             svgElement(),
@@ -155,10 +204,17 @@ export function createSvgChartRenderer<
 
 export const svgChartRenderer = createSvgChartRenderer()
 
-function paintSvgFocus(
+function paintSvgFocus<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
   svg: SVGSVGElement,
-  scene: ChartScene,
+  scene: ChartScene<TDatum, TXValue, TYValue>,
   focus: ChartFocusState | null,
+  options: ChartSurfaceRenderOptions,
+  renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue>,
+  deferDefaultFocus: boolean | 'all',
 ): void {
   const sceneLayers = collectFocusLayers(scene.nodes)
   const elements = svg.querySelectorAll<SVGGElement>(
@@ -166,6 +222,35 @@ function paintSvgFocus(
   )
   elements.forEach((element, index) => {
     const layer = sceneLayers[index]
+    if (layer && deferDefaultFocus && isDefaultFocusLayer(layer)) {
+      const children =
+        deferDefaultFocus === 'all'
+          ? layer.children
+          : focus
+            ? selectedFocusChildren(layer, focus)
+            : []
+      const existing = [...element.children].filter(
+        (child) => child.localName === 'circle',
+      )
+      if (
+        existing.length !== children.length ||
+        existing.some(
+          (child, index) =>
+            child.getAttribute('data-ts-key') !== children[index]?.key,
+        )
+      ) {
+        reconcileChartSvgFragment(
+          element,
+          renderSvgFocusLayerWithRenderer(
+            svg,
+            scene,
+            { ...layer, children },
+            options,
+            renderSvg,
+          ),
+        )
+      }
+    }
     const visible = layer ? focusedNodeKeys(layer, focus) : new Set<string>()
     element.setAttribute(
       'visibility',
@@ -179,6 +264,28 @@ function paintSvgFocus(
       )
     })
   })
+}
+
+function renderWithFocus<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  options: Parameters<ChartSvgRenderer<TDatum, TXValue, TYValue>>[1],
+  focus: ChartFocusState | null,
+  renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue>,
+): string {
+  return withSvgRenderChildren(
+    options,
+    (layer) =>
+      isDefaultFocusLayer(layer)
+        ? focus
+          ? selectedFocusChildren(layer, focus)
+          : []
+        : undefined,
+    () => renderSvg(scene, options),
+  )
 }
 
 function paintSvgFocusGuides<

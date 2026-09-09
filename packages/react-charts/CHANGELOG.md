@@ -1,5 +1,31 @@
 # @tanstack/react-charts
 
+## 0.17.0
+
+### Patch Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Support React 18 and React 19 in the web React adapter peer dependencies, and
+  avoid layout-effect warnings when rendering either React entry point on the
+  server.
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+## 0.16.2
+
+### Patch Changes
+
+- [#140](https://github.com/TanStack/charts/pull/140) [`b62087f`](https://github.com/TanStack/charts/commit/b62087fff0803167ae3768993b1c88c9aa164623) - Reduce chart mounting work by creating default SVG focus indicators only when needed and avoiding duplicate React client rendering. Speed up SVG serialization and categorical domain inference while preserving server rendering, hydration, chart appearance, and interactions.
+
+- Updated dependencies [[`b62087f`](https://github.com/TanStack/charts/commit/b62087fff0803167ae3768993b1c88c9aa164623)]:
+  - @tanstack/charts@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [[`03c9636`](https://github.com/TanStack/charts/commit/03c963633a8b3441301a270c0998f626e4980c27)]:
+  - @tanstack/charts@0.16.1
+
 ## 0.16.0
 
 ### Patch Changes

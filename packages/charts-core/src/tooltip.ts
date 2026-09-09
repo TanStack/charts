@@ -94,6 +94,7 @@ function createTooltipExtension<
   function paint(
     nextContext: ChartTooltipPaintContext<TDatum, TXValue, TYValue>,
   ) {
+    if (paintContext?.point !== nextContext.point) bodyDirty = true
     paintContext = nextContext
     if (options.visibility === 'pinned' && !nextContext.pinned) {
       hide()
@@ -296,6 +297,7 @@ function createTooltipExtension<
     if (changed) {
       callback({
         element: bodyElement,
+        primaryPoint: paintContext?.point,
         points,
         content,
         pinned,
@@ -690,6 +692,17 @@ function paintStructuredTooltip(
       line.className = 'ts-chart-tooltip__row'
       line.style.cssText =
         'display:grid;grid-template-columns:.55rem minmax(0,1fr) auto;align-items:center;column-gap:.4rem'
+      line.dataset.active = String(row.active === true)
+      if (row.active) {
+        line.style.fontWeight =
+          'var(--ts-chart-tooltip-active-row-font-weight, 700)'
+        line.style.background =
+          'var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent))'
+        line.style.borderRadius =
+          'var(--ts-chart-tooltip-active-row-border-radius, .2rem)'
+        line.style.boxShadow =
+          'var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))'
+      }
       const swatch = row.color
         ? createTooltipSwatch(document, row.color)
         : document.createElement('span')

@@ -60,7 +60,10 @@ export function createChartTooltipContent<
 ): ChartTooltipContent | string {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene, pinned, options)
+  const context = {
+    ...createTooltipContentContext(scene, pinned, options),
+    primaryPoint,
+  }
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
   const formatted =
@@ -203,6 +206,7 @@ function defaultTooltipContent(
           context,
         ),
         color: candidate.color,
+        active: candidate === context.primaryPoint,
       })),
     }
   }
@@ -213,6 +217,7 @@ function defaultTooltipContent(
         label: formatTooltipGroup(candidate, group, context),
         value: `${formatPointAxis(candidate, 'x', x, context)} · ${formatPointAxis(candidate, 'y', y, context)}`,
         color: candidate.color,
+        active: candidate === context.primaryPoint,
       })),
     }
   }
