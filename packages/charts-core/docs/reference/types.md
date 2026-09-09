@@ -447,8 +447,14 @@ their behavior:
 - `@tanstack/charts/interaction/signal`: `ControlledSignal` and
   `ControlledSignalChangeContext`. See
   [Controlled signals](../guides/interactions-and-selections.md#controlled-signals).
-- `@tanstack/charts/legend`: `InteractiveColorLegendItemContext` and legend
-  option/change types. See
+- `@tanstack/charts/legend`: `ColorLegendOptions`, `ColorLegendItems`,
+  `ColorLegendItemOptions`, `ColorLegendItemValue`, `ColorLegendItemContext`,
+  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorRenderContext`,
+  `ColorLegendIndicatorShape`, `ColorLegendLabelOptions`,
+  `ColorGradientLegendOptions`, `InteractiveColorLegendItemContext`, and
+  interactive legend option/change types. See
+  [Automatic color legend](./scales-guides-and-color.md#automatic-color-legend)
+  and
   [Interactive categorical legend](./scales-guides-and-color.md#interactive-categorical-legend).
 - `@tanstack/charts/interaction/brush`: `BrushRange`, `BrushXChange`,
   `BrushXSource`, `BrushXTarget`, `BrushXValuesOptions`, and
@@ -492,9 +498,10 @@ subpath. Cartesian, radial, and composite option types include the shared
 - `TextOptions`, `TextAnchor`
 - `FrameOptions`
 - `FacetOptions`, `FacetAxes`, `FacetChartContext`
-- `ColorLegendOptions`, `ColorLegendItemOptions`, `ColorLegendItemValue`,
-  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorShape`,
-  `ColorLegendLabelOptions`,
+- `ColorLegendOptions`, `ColorLegendItems`, `ColorLegendItemOptions`,
+  `ColorLegendItemValue`, `ColorLegendItemContext`,
+  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorRenderContext`,
+  `ColorLegendIndicatorShape`, `ColorLegendLabelOptions`,
   `ColorGradientLegendOptions`
 
 Their public fields and defaults are owned by the
