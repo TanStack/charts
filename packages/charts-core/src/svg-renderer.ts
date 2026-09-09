@@ -109,7 +109,7 @@ function renderNode(
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`
     case 'polyline': {
       const path = node.path ?? pointsPath(node.points, false)
-      return `<path${common} d="${path}" vector-effect="non-scaling-stroke"/>`
+      return `<path${common} d="${escapeAttribute(path)}" vector-effect="non-scaling-stroke"/>`
     }
     case 'area': {
       const path =
@@ -117,7 +117,7 @@ function renderNode(
           ? polygonsPath(node.polygons)
           : (node.path ?? pointsPath(node.points, true))
       const fillRule = node.polygons === undefined ? '' : ' fill-rule="evenodd"'
-      return `<path${common} d="${path}"${fillRule} vector-effect="non-scaling-stroke"/>`
+      return `<path${common} d="${escapeAttribute(path)}"${fillRule} vector-effect="non-scaling-stroke"/>`
     }
     case 'dot':
       return `<circle${common} cx="${number(node.x)}" cy="${number(node.y)}" r="${number(node.radius)}"/>`

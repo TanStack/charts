@@ -24,9 +24,14 @@ describe('SVG scene renderer', () => {
     const replaced = invalidCharacters.map(() => '\ufffd').join('|')
     const preserved = '\t\n\r\u007f\u0085\ud7ff\ue000\ufffd🌈'
     const text = `A &amp; <tag> "quoted" ${invalid} ${preserved}`
+    const path = `M0,0L1,1" & < > ${invalid} ${preserved}`
     const scene = {
       ...testScene(),
-      nodes: [{ kind: 'label' as const, key: text, text, x: 1, y: 2 }],
+      nodes: [
+        { kind: 'label' as const, key: text, text, x: 1, y: 2 },
+        { kind: 'polyline' as const, key: 'polyline', path, points: [] },
+        { kind: 'area' as const, key: 'area', path, points: [] },
+      ],
     }
     const svg = renderChartSvg(scene, { ariaLabel: text })
     expect(svg).toContain(
@@ -38,6 +43,8 @@ describe('SVG scene renderer', () => {
     expect(svg).toContain(
       `>A &amp;amp; &lt;tag&gt; "quoted" ${replaced} ${preserved}</text>`,
     )
+    const escapedPath = `d="M0,0L1,1&quot; &amp; &lt; &gt; ${replaced} ${preserved}"`
+    expect(svg.split(escapedPath)).toHaveLength(3)
     for (const character of invalidCharacters) {
       expect(svg).not.toContain(character)
     }
