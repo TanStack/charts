@@ -10,7 +10,7 @@ const entities: Record<string, string> = {
 }
 
 const unsafeCharacter =
-  /[&<>\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]|[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/g
+  /[&<>\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]|\p{Cs}/gu
 
 function escapeCharacter(character: string): string {
   return entities[character] ?? '\uFFFD'
