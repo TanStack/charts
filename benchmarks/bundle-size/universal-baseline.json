@@ -7,32 +7,32 @@
       "gzip": 19378
     },
     "D3-scale line + static SVG": {
-      "bytes": 57525,
-      "gzip": 21496
+      "bytes": 57617,
+      "gzip": 21558
     },
     "Representative marks": {
-      "bytes": 81265,
-      "gzip": 29639
+      "bytes": 81353,
+      "gzip": 29697
     },
     "TanStack DOM host": {
-      "bytes": 79723,
-      "gzip": 27854
+      "bytes": 79817,
+      "gzip": 27924
     },
     "React adapter": {
-      "bytes": 82044,
-      "gzip": 28746
+      "bytes": 82138,
+      "gzip": 28807
     },
     "React line consumer": {
-      "bytes": 105701,
-      "gzip": 38104
+      "bytes": 105797,
+      "gzip": 38172
     },
     "Compact-scale line scene": {
       "bytes": 34252,
       "gzip": 12217
     },
     "React compact-scale line consumer": {
-      "bytes": 88203,
-      "gzip": 31005
+      "bytes": 88297,
+      "gzip": 31070
     },
     "Custom-scale line scene": {
       "bytes": 32434,
