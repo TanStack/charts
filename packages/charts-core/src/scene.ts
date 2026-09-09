@@ -428,6 +428,7 @@ function createChartSceneWithScaleResolver<
         className: 'ts-chart__focus-layer',
         ariaHidden: true,
         focus: {
+          markId: mark.id,
           match: mark.focus.match ?? 'primary',
           anchors: rendered.focusAnchors ?? renderedPoints,
           points: presentedPoints,

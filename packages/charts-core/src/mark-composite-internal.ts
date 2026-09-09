@@ -132,6 +132,7 @@ export function composeInitializedMarks<
             className: 'ts-chart__focus-layer',
             ariaHidden: true,
             focus: {
+              markId: namespace.prefix,
               match: child.focus.match ?? 'primary',
               points: namespaced.points,
               placement:
@@ -448,6 +449,9 @@ function mapSceneNodes(
           ? {
               focus: {
                 ...node.focus,
+                ...(node.focus.markId !== undefined
+                  ? { markId: namespace.identity(node.focus.markId) }
+                  : {}),
                 points: node.focus.points.map(mapPoint),
                 ...(node.focus.candidates
                   ? {

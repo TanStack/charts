@@ -8,6 +8,7 @@ import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createMark } from './mark'
+import { compositeMark } from './mark-composite'
 import { motion, stagger } from './motion'
 import { polar, radialArea, radialBarRadius } from './polar'
 import { mountChartRenderer } from './renderer'
@@ -18,6 +19,7 @@ import { tooltip } from './tooltip'
 import { rectCornerRadiiPath } from './renderer-rect'
 import type {
   ChartMotionContext,
+  ChartMotionDefinition,
   ChartPoint,
   ChartScene,
   RectRadius,
@@ -28,6 +30,79 @@ const rows = [
   { id: 'a', category: 'A', value: 40 },
   { id: 'b', category: 'B', value: 80 },
 ]
+
+const groupedFocusRows = [
+  { id: 'a', series: 'series-a', x: 0, y: 4 },
+  { id: 'b', series: 'series-a', x: 1, y: 6 },
+]
+
+function groupedFocusScene(
+  focusMotion: ChartMotionDefinition<(typeof groupedFocusRows)[number]>,
+  candidateId = 'source-dots',
+  sourceMotion?: ChartMotionDefinition<(typeof groupedFocusRows)[number]>,
+  composed = false,
+) {
+  const candidates = dot(groupedFocusRows, {
+    id: candidateId,
+    x: 'x',
+    y: 'y',
+    z: 'series',
+    key: 'id',
+  })
+  const focused = createMark<(typeof groupedFocusRows)[number], number, number>(
+    (context) => {
+      const initialized = candidates.initialize(context)
+      return {
+        ...initialized,
+        id: 'focus-dots',
+        render(renderContext) {
+          const rendered = initialized.render(renderContext)
+          return {
+            ...rendered,
+            nodes: [
+              {
+                kind: 'group',
+                key: 'focus-dots',
+                className: 'custom-hover-dots',
+                children: rendered.nodes,
+              },
+            ],
+          }
+        },
+      }
+    },
+    focusMotion,
+  )
+  const focusOnly = whenFocused(focused, {
+    match: 'group',
+    retarget: true,
+  })
+
+  return createChartScene(
+    defineChart({
+      marks: [
+        dot(groupedFocusRows, {
+          id: 'source-dots',
+          x: 'x',
+          y: 'y',
+          z: 'series',
+          key: 'id',
+          ...(sourceMotion === undefined ? {} : { motion: sourceMotion }),
+        }),
+        composed
+          ? compositeMark([focusOnly], { id: 'focus-composite' })
+          : focusOnly,
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      },
+      guides: false,
+      focusRing: false,
+    }),
+    { width: 300, height: 180 },
+  )
+}
 
 describe('SVG motion', () => {
   it('maps client coordinates through the rendered SVG transform', () => {
@@ -2600,6 +2675,326 @@ describe('SVG motion', () => {
         .querySelector('[data-ts-focus-retarget]')
         ?.getAttribute('visibility'),
     ).toBe('hidden')
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('uses the focused mark motion for an unslotted retarget group', () => {
+    const contexts: ChartMotionContext<(typeof groupedFocusRows)[number]>[] = []
+    const scene = groupedFocusScene((context) => {
+      contexts.push(context)
+      return context.phase === 'enter'
+        ? false
+        : {
+            transition: {
+              type: 'spring',
+              stiffness: 90,
+              damping: 10,
+              mass: 1,
+            },
+          }
+    })
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 1_100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Grouped focus motion' })
+    const frames = installManagedFrames()
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: [scene.points[0]!],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const group = () =>
+      container.querySelector<SVGGElement>(
+        '[data-ts-focus-retarget] > g[data-ts-key="focus-dots"]',
+      )
+    expect(group()).not.toBeNull()
+    expect(group()?.querySelectorAll('circle')).toHaveLength(1)
+    expect(group()?.hasAttribute('opacity')).toBe(false)
+    expect(frames.pending()).toBe(0)
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'enter',
+        role: 'mark',
+        key: 'focus-dots',
+        markId: 'focus-dots',
+        seriesKey: 'focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
+
+    surface.paintFocus(null)
+    expect(group()).not.toBeNull()
+    expect(frames.pending()).toBe(1)
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'exit',
+        role: 'mark',
+        key: 'focus-dots',
+        markId: 'focus-dots',
+        seriesKey: 'focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
+    let time = 0
+    while (group() && time <= 10_000) {
+      frames.run(time)
+      time += 16
+    }
+    expect(group()).toBeNull()
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('uses composed child motion for an unslotted retarget group', () => {
+    const contexts: ChartMotionContext<(typeof groupedFocusRows)[number]>[] = []
+    const scene = groupedFocusScene(
+      (context) => {
+        contexts.push(context)
+        return false
+      },
+      'source-dots',
+      undefined,
+      true,
+    )
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Composed grouped focus motion' })
+    const frames = installManagedFrames()
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: scene.points,
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const group = container.querySelector<SVGGElement>(
+      '[data-ts-focus-retarget] > g[data-ts-key="focus-composite:focus-dots"]',
+    )
+    expect(group?.querySelectorAll('circle')).toHaveLength(2)
+    expect(group?.hasAttribute('opacity')).toBe(false)
+    expect(frames.pending()).toBe(0)
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'enter',
+        role: 'mark',
+        key: 'focus-composite:focus-dots',
+        markId: 'focus-composite:focus-dots',
+        seriesKey: 'focus-composite:focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('keeps point-free retarget groups point-free when scene keys collide', () => {
+    const contexts: ChartMotionContext<(typeof groupedFocusRows)[number]>[] = []
+    const scene = groupedFocusScene((context) => {
+      contexts.push(context)
+      return false
+    })
+    const collidingKey = 'focus-dots'
+    const collidingPoint = { ...scene.points[0]!, key: collidingKey }
+    const collidingScene = {
+      ...scene,
+      points: [collidingPoint, ...scene.points.slice(1)],
+    }
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(collidingScene, {
+      ariaLabel: 'Colliding grouped focus motion',
+    })
+    const frames = installManagedFrames()
+
+    surface.paintFocus({
+      primary: collidingPoint,
+      group: [collidingPoint],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'enter',
+        role: 'mark',
+        key: collidingKey,
+        markId: 'focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('applies motion false to retarget group entry and exit', () => {
+    const scene = groupedFocusScene(false)
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 1_100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Disabled grouped focus motion' })
+    const frames = installManagedFrames()
+    const group = () =>
+      container.querySelector<SVGGElement>(
+        '[data-ts-focus-retarget] > g[data-ts-key="focus-dots"]',
+      )
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: [scene.points[0]!],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(group()).not.toBeNull()
+    expect(group()?.hasAttribute('opacity')).toBe(false)
+    expect(frames.pending()).toBe(0)
+
+    surface.paintFocus(null)
+    expect(group()).toBeNull()
+    expect(frames.pending()).toBe(0)
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: scene.points,
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(group()?.querySelectorAll('circle')).toHaveLength(2)
+    expect(group()?.hasAttribute('opacity')).toBe(false)
+    expect(frames.pending()).toBe(0)
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('keeps selected retarget descendants on their point motion', () => {
+    const contexts: ChartMotionContext<(typeof groupedFocusRows)[number]>[] = []
+    const scene = groupedFocusScene(false, 'source-dots', (context) => {
+      contexts.push(context)
+      return false
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Selected focus point motion' })
+    const frames = installManagedFrames()
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: [scene.points[0]!],
+      source: 'pointer',
+      pinned: false,
+    })
+    contexts.length = 0
+    surface.paintFocus({
+      primary: scene.points[1]!,
+      group: [scene.points[1]!],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(frames.pending()).toBe(0)
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'update',
+        role: 'dot',
+        key: 'focus:focus-dots:selection:0',
+        markId: 'source-dots',
+        datum: groupedFocusRows[1],
+        point: expect.objectContaining({ datum: groupedFocusRows[1] }),
+      }),
+    )
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('does not alias invalid retarget slots to selection points', () => {
+    const contexts: ChartMotionContext<(typeof groupedFocusRows)[number]>[] = []
+    const scene = groupedFocusScene((context) => {
+      contexts.push(context)
+      return false
+    }, 'focus-dots:points')
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Malformed focus slot' })
+    const frames = installManagedFrames()
+
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: [scene.points[0]!],
+      source: 'pointer',
+      pinned: false,
+    })
+    const first = container.querySelector<SVGCircleElement>(
+      '[data-ts-key="focus:focus-dots:selection:0"]',
+    )
+    if (!first) throw new Error('Expected the first focused dot')
+    const corruptKey = 'focus:focus-dots:selection::corrupt'
+    first.setAttribute('data-ts-key', corruptKey)
+    contexts.length = 0
+
+    surface.paintFocus({
+      primary: scene.points[1]!,
+      group: [scene.points[1]!],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(container.querySelector(`[data-ts-key="${corruptKey}"]`)).toBeNull()
+    expect(frames.pending()).toBe(0)
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'exit',
+        role: 'dot',
+        key: corruptKey,
+        markId: 'focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
+
+    const second = container.querySelector<SVGCircleElement>(
+      '[data-ts-key="focus:focus-dots:selection:0"]',
+    )
+    if (!second) throw new Error('Expected the second focused dot')
+    const outOfRangeKey = 'focus:focus-dots:selection:99:corrupt'
+    second.setAttribute('data-ts-key', outOfRangeKey)
+    contexts.length = 0
+    surface.paintFocus({
+      primary: scene.points[0]!,
+      group: [scene.points[0]!],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(
+      container.querySelector(`[data-ts-key="${outOfRangeKey}"]`),
+    ).toBeNull()
+    expect(contexts).toContainEqual(
+      expect.objectContaining({
+        phase: 'exit',
+        key: outOfRangeKey,
+        markId: 'focus-dots',
+        datum: undefined,
+        point: undefined,
+      }),
+    )
 
     surface.destroy()
     frames.restore()

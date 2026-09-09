@@ -701,7 +701,7 @@ const entries = [
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    24.65,
+    24.66,
   ),
   budgeted(
     'D3-scale dots + static SVG',
@@ -908,7 +908,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    29.4,
+    29.41,
     {
       inputBoundary: {
         require: [
@@ -982,7 +982,7 @@ const entries = [
     'Difference mark + static SVG',
     'benchmarks/entries/charts-difference-svg.ts',
     'D3-scale line + static SVG',
-    7.03,
+    7.04,
     {
       inputBoundary: {
         require: [
@@ -1162,7 +1162,7 @@ const entries = [
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    16.95,
+    16.96,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(
@@ -1728,7 +1728,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    22.1,
+    22.19,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1834,7 +1834,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    55.8,
+    55.81,
   ),
   locked(
     'Custom-scale line scene',
@@ -1875,7 +1875,7 @@ const entries = [
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    22.05,
+    22.06,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',

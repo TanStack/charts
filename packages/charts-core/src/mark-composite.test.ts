@@ -3,13 +3,19 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import { barY } from './bar'
 import { boxY } from './box'
 import { dot } from './dot'
+import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { compositeMark } from './mark-composite'
 import { linearRegressionY } from './regression'
 import { createChartScene, defineChart } from './scene'
 import { tickY } from './tick'
-import type { ChartDefinition, ChartMotionContext, SceneNode } from './types'
+import type {
+  ChartDefinition,
+  ChartMotionContext,
+  SceneGroup,
+  SceneNode,
+} from './types'
 
 interface Row {
   id: string
@@ -123,6 +129,49 @@ describe('compositeMark', () => {
       'shared:base',
       'shared:ring',
       'shared:ring',
+    ])
+  })
+
+  it('namespaces nested focus owners with their composite marks', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          compositeMark(
+            [
+              compositeMark(
+                [
+                  whenFocused(
+                    dot(rows, {
+                      id: 'focused',
+                      x: 'category',
+                      y: 'value',
+                      key: 'id',
+                    }),
+                    { retarget: true },
+                  ),
+                ],
+                { id: 'inner' },
+              ),
+            ],
+            { id: 'outer' },
+          ),
+        ],
+        scales: {
+          x: { scale: scaleBand<string> },
+          y: { scale: scaleLinear },
+        },
+      }),
+      { width: 480, height: 280 },
+    )
+    const focusLayer = flatten(scene.nodes).find(
+      (node): node is SceneGroup =>
+        node.kind === 'group' && node.focus?.retarget === true,
+    )
+
+    expect(focusLayer?.focus?.markId).toBe('outer:inner:focused')
+    expect(focusLayer?.focus?.points.map(({ markId }) => markId)).toEqual([
+      'outer:inner:focused',
+      'outer:inner:focused',
     ])
   })
 

@@ -1429,6 +1429,8 @@ export interface SceneGroup extends SceneNodeBase {
   /** Point slot owned by this subtree inside an enclosing focus candidate tree. */
   focusCandidateIndex?: number
   focus?: {
+    /** Mark that owns this focus presentation subtree. */
+    markId?: string
     match: ChartFocusMatch
     /** Semantic focus anchors; these are not scene hit-test points. */
     anchors?: readonly ChartFocusAnchor[]

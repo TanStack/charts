@@ -334,6 +334,7 @@ Each entry records:
 | F-295 | Grouped tooltips did not identify the active series            | API                   | resolved   |
 | F-296 | CSS height changes did not relayout DOM charts                 | API/Documentation     | resolved   |
 | F-297 | Unified peer metadata rejected supported React releases        | API/Tooling           | resolved   |
+| F-298 | Focus mark groups ignored their mark motion                    | API                   | resolved   |
 
 ## Findings
 
@@ -8735,3 +8736,26 @@ Each entry records:
   without console warnings. The existing workspace suite continues to
   exercise React 19, and the full `pnpm validate` gate passes 288 test files and
   1,982 tests.
+
+### F-298 - Focus mark groups ignored their mark motion
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: GitHub issue #136 and a custom hover-dot mark with retargeted
+  grouped focus
+- Friction: a structural `SceneGroup` emitted by a focus-only mark borrowed
+  point zero from the active selection. When that point belonged to a source
+  mark, the group used the source mark or chart default motion instead of the
+  focus mark's spring, phase callback, or `motion: false` policy.
+- Decision: record the owner mark on each retarget focus layer and namespace it
+  through composed and embedded scenes. Keep valid selection slots point-owned
+  for descendant geometry, preserve the existing datum context for a single
+  point owned by the focus mark, and treat malformed or out-of-range slots as
+  point-free structural context.
+- Verification: focused motion regressions reproduce the single foreign-point
+  group, phase-aware enter and exit timing, constant `motion: false`, two-point
+  groups, composed child motion, point-owned descendant updates, nested and
+  embedded owner namespacing, invalid slots that must not alias point zero, and
+  point-key collisions that must remain point-free. The existing focus-guide
+  context and spring tests pass.

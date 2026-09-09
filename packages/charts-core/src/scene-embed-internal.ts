@@ -157,6 +157,9 @@ function mapScenePoints(
           ? {
               focus: {
                 ...node.focus,
+                ...(node.focus.markId !== undefined
+                  ? { markId: namespace.identity(node.focus.markId) }
+                  : {}),
                 points: node.focus.points.map(mapPoint),
                 anchors: (node.focus.anchors ?? node.focus.points).map(
                   mapFocusAnchor,
