@@ -244,9 +244,14 @@ describe('CI workflow contract', () => {
     })
   })
 
+  test('fetches complete pull request history before classification', () => {
+    const selection = job('changes')
+    assert.match(selection, /fetch-depth:\s*0/)
+    assert.match(selection, /git diff --no-renames --name-only -z/)
+  })
+
   test('runs every expensive partition outside pull requests', () => {
     const selection = job('changes')
-    assert.match(selection, /git diff --no-renames --name-only -z/)
     assert.match(selection, /if:\s*github\.event_name != 'pull_request'/)
     for (const output of ['compare', 'stress']) {
       assert.match(selection, new RegExp(`echo '${output}=true'`))
