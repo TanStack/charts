@@ -1,6 +1,6 @@
 ---
 title: Bar and Rect Marks
-description: Reference for barY, barX, rect, cell, interval endpoints, band sizing, grouped bars, color, insets, and focus anchors.
+description: Reference for barY, barX, rect, cell, interval endpoints, band sizing, grouped bars, selective corner radii, color, insets, and focus anchors.
 ---
 
 Bar marks encode a numeric interval against a categorical or positional
@@ -51,7 +51,7 @@ function barY<TDatum>(
 | `layout`          | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset        |
 | `inset`           | `number`                             | `0`                            | Pixels removed from both categorical edges       |
 | `maxThickness`    | `number`                             | Unbounded                      | Maximum painted width after grouping and inset   |
-| `radius`          | `number`                             | None                           | SVG rectangle corner radius                      |
+| `radius`          | `BarRadius<TDatum>`                  | None                           | Uniform, physical, or semantic end corner radii  |
 | `states`          | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides              |
 
 The interaction point is at the group-band center and the `y2`/`y` endpoint.
@@ -92,7 +92,7 @@ Its options transpose `barY`:
 | `layout`       | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset   |
 | `inset`        | `number`                             | `0`                            | Pixels removed from both categorical edges  |
 | `maxThickness` | `number`                             | Unbounded                      | Maximum painted height after grouping/inset |
-| `radius`       | `number`                             | None                           | Corner radius                               |
+| `radius`       | `BarRadius<TDatum>`                  | None                           | Uniform, physical, or semantic end radii    |
 | `states`       | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides         |
 
 The interaction point is at the `x2`/`x` endpoint and group-band center.
@@ -118,6 +118,69 @@ then centers the narrower bar in its resolved band. Narrow responsive bands
 keep their natural size. Negative finite values clamp to zero; nonfinite values
 do not cap the bar. Inline-state `inset` overrides remain absolute, but their
 resolved geometry still honors the cap.
+
+## Bar corner radii
+
+Use a number to round every corner and preserve the existing rectangle output:
+
+```ts
+barY(rows, {
+  x: 'category',
+  y: 'value',
+  radius: 4,
+})
+```
+
+A four-value tuple controls physical corners in top-left, top-right,
+bottom-right, bottom-left order. The order stays physical when a scale range or
+an interval is reversed. The option is a visual channel, so an accessor can
+return a different number or tuple for each row.
+
+```ts
+barY(rows, {
+  x: 'category',
+  y: 'value',
+  radius: [6, 6, 0, 0],
+})
+```
+
+Use `end` when the rounded corners should follow the semantic value endpoint.
+This works for positive and negative values and for reversed scale ranges.
+
+```ts
+barY(rows, {
+  x: 'category',
+  y: 'value',
+  radius: { end: 6 },
+})
+```
+
+For an implicit stack, an omitted `stack` rounds only the exposed positive or
+negative stack endpoint. For explicit intervals and grouped bars, it rounds
+each bar because there is no native stack envelope. Set `stack: 'each'` to
+round every implicit stack segment. An explicit `stack: 'outer'` requires an
+implicit stack and rejects explicit interval endpoints and `group()` layouts.
+The outer edge comes from the resolved stack geometry. If a nondiverging
+offset makes intervals overlap at that edge, every touching interval receives
+its own radius on the same physical envelope edge so a later fill cannot square
+off the envelope. Anchor-translated stacks can expose one end on each side of
+zero, and both resolved outer ends are rounded.
+
+```ts
+barY(rows, {
+  x: 'category',
+  y: 'value',
+  z: 'series',
+  radius: { end: 6, stack: 'each' },
+})
+```
+
+The related public types are `RectCornerRadii`, `RectRadius`,
+`BarEndRadius<TDatum>`, and `BarRadius<TDatum>`. Selective radii are clamped to
+finite nonnegative values. When adjacent values do not fit, they shrink
+proportionally without changing their ratio. Zero-length semantic bars have
+square corners. Inline-state `radius` overrides accept the same number or
+physical tuple forms.
 
 ## Grouped bars
 
@@ -306,27 +369,31 @@ function rect<TDatum>(
 
 ### Options
 
-| Option        | Type                           | Default                                | Meaning                                              |
-| ------------- | ------------------------------ | -------------------------------------- | ---------------------------------------------------- |
-| `id`          | `string`                       | Layer-derived                          | Stable mark ID                                       |
-| `x`           | `Channel<TDatum, ChartValue?>` | Row index                              | X center/category and preferred semantic focus value |
-| `x1`          | `Channel<TDatum, ChartValue?>` | `x`, or row index when x is absent     | First x endpoint                                     |
-| `x2`          | `Channel<TDatum, ChartValue?>` | `x`                                    | Second x endpoint                                    |
-| `y`           | `Channel<TDatum, ChartValue?>` | Numeric datum                          | Y center/category and preferred semantic focus value |
-| `y1`          | `Channel<TDatum, ChartValue?>` | `y`                                    | First y endpoint                                     |
-| `y2`          | `Channel<TDatum, ChartValue?>` | `y`                                    | Second y endpoint                                    |
-| `z`           | `Channel<TDatum, ChartKey?>`   | No group                               | Interaction group                                    |
-| `color`       | `Channel<TDatum, ChartKey?>`   | `z`                                    | Value sent to the chart color scale                  |
-| `key`         | `Channel<TDatum, ChartKey>`    | Top/nested `id`, x/y tuple, then index | Stable identity                                      |
-| `fill`        | `string`                       | Resolved color                         | Final constant fill override                         |
-| `fillOpacity` | `number`                       | SVG default                            | Fill opacity                                         |
-| `stroke`      | `string`                       | None                                   | Constant stroke                                      |
-| `strokeWidth` | `number`                       | SVG default                            | Stroke width                                         |
-| `inset`       | `number`                       | `0.75`                                 | Pixels removed from all four edges                   |
-| `radius`      | `number`                       | None                                   | Corner radius                                        |
-| `states`      | `readonly ChartMarkState[]`    | None                                   | Focus-driven presentation overrides                  |
+| Option        | Type                                | Default                                | Meaning                                              |
+| ------------- | ----------------------------------- | -------------------------------------- | ---------------------------------------------------- |
+| `id`          | `string`                            | Layer-derived                          | Stable mark ID                                       |
+| `x`           | `Channel<TDatum, ChartValue?>`      | Row index                              | X center/category and preferred semantic focus value |
+| `x1`          | `Channel<TDatum, ChartValue?>`      | `x`, or row index when x is absent     | First x endpoint                                     |
+| `x2`          | `Channel<TDatum, ChartValue?>`      | `x`                                    | Second x endpoint                                    |
+| `y`           | `Channel<TDatum, ChartValue?>`      | Numeric datum                          | Y center/category and preferred semantic focus value |
+| `y1`          | `Channel<TDatum, ChartValue?>`      | `y`                                    | First y endpoint                                     |
+| `y2`          | `Channel<TDatum, ChartValue?>`      | `y`                                    | Second y endpoint                                    |
+| `z`           | `Channel<TDatum, ChartKey?>`        | No group                               | Interaction group                                    |
+| `color`       | `Channel<TDatum, ChartKey?>`        | `z`                                    | Value sent to the chart color scale                  |
+| `key`         | `Channel<TDatum, ChartKey>`         | Top/nested `id`, x/y tuple, then index | Stable identity                                      |
+| `fill`        | `string`                            | Resolved color                         | Final constant fill override                         |
+| `fillOpacity` | `number`                            | SVG default                            | Fill opacity                                         |
+| `stroke`      | `string`                            | None                                   | Constant stroke                                      |
+| `strokeWidth` | `number`                            | SVG default                            | Stroke width                                         |
+| `inset`       | `number`                            | `0.75`                                 | Pixels removed from all four edges                   |
+| `radius`      | `VisualChannel<TDatum, RectRadius>` | None                                   | Uniform or physical per-corner radii                 |
+| `states`      | `readonly ChartMarkState[]`         | None                                   | Focus-driven presentation overrides                  |
 
 Both endpoints must be valid chart values. Endpoint order may be reversed.
+
+Rect and cell corner tuples always use physical top-left, top-right,
+bottom-right, bottom-left order. Reversing either semantic endpoint does not
+reorder the tuple.
 
 When two semantic endpoints are equal and the resolved scale has bandwidth,
 the rect spans that complete band. Otherwise it spans the mapped endpoint

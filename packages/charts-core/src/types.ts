@@ -147,6 +147,15 @@ export type MarkScaleBindings<
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
 
+export type RectCornerRadii = readonly [
+  topLeft: number,
+  topRight: number,
+  bottomRight: number,
+  bottomLeft: number,
+]
+
+export type RectRadius = number | RectCornerRadii
+
 export interface ChartMarkStateContext<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -173,7 +182,7 @@ export interface ChartMarkStateStyle<TDatum = unknown> {
   opacity?: ChartMarkStateValue<TDatum, number>
   strokeDasharray?: ChartMarkStateValue<TDatum, string>
   r?: ChartMarkStateValue<TDatum, number>
-  radius?: ChartMarkStateValue<TDatum, number>
+  radius?: ChartMarkStateValue<TDatum, RectRadius>
   inset?: ChartMarkStateValue<TDatum, number>
   fontSize?: ChartMarkStateValue<TDatum, number>
   fontWeight?: ChartMarkStateValue<TDatum, number>
@@ -1503,6 +1512,7 @@ export interface SceneRect extends InteractiveSceneNodeBase {
   width: number
   height: number
   radius?: number
+  cornerRadii?: RectCornerRadii
   /** Applied inset retained for absolute inline-state overrides. */
   inset?: number
   /** Axes affected by `inset`; bars use only their categorical axis. */
@@ -1990,6 +2000,8 @@ export interface ChartTooltipContent {
 }
 
 export interface ChartTooltipContentContext {
+  /** The hovered or keyboard-focused point, independent of tooltip row order. */
+  primaryPoint?: ChartPoint
   pinned: boolean
   xLabel: string
   yLabel: string
@@ -1998,6 +2010,8 @@ export interface ChartTooltipContentContext {
 }
 
 export interface ChartTooltipRow {
+  /** Emphasizes this row independently of its series color. */
+  active?: boolean
   label: string
   value: string
   color?: string
@@ -2008,6 +2022,7 @@ export interface ChartTooltipBodyContext<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   content: ChartTooltipContent | string
   pinned: boolean

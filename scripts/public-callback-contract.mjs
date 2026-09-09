@@ -44,12 +44,13 @@ const callbackInventory = {
     ['@tanstack/charts:src/band.ts:BandYOptions', 'color fill key y z'],
     [
       '@tanstack/charts:src/bar.ts:BarXOptions',
-      'color fill key stroke strokeDasharray x x1 x2 y z',
+      'color fill key radius stroke strokeDasharray x x1 x2 y z',
     ],
     [
       '@tanstack/charts:src/bar.ts:BarYOptions',
-      'color fill key stroke strokeDasharray x y y1 y2 z',
+      'color fill key radius stroke strokeDasharray x y y1 y2 z',
     ],
+    ['@tanstack/charts:src/bar.ts:BarEndRadius', 'end'],
     ['@tanstack/charts:src/box.ts:BoxOptions', 'key'],
     ['@tanstack/charts:src/box.ts:BoxXCallOptions', 'motion'],
     ['@tanstack/charts:src/box.ts:BoxXOptions', 'x y'],
@@ -261,7 +262,10 @@ const callbackInventory = {
       'motion',
     ],
     ['@tanstack/charts:src/regression.ts:LinearRegressionYOptions', 'x y'],
-    ['@tanstack/charts:src/rect.ts:RectOptions', 'color key x x1 x2 y y1 y2 z'],
+    [
+      '@tanstack/charts:src/rect.ts:RectOptions',
+      'color key radius x x1 x2 y y1 y2 z',
+    ],
     [
       '@tanstack/charts:src/ridgeline.ts:RidgelineOptions',
       'color fill height key stroke',

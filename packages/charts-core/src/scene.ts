@@ -10,6 +10,7 @@ import { setMappedFocusCoordinate } from './focus-coordinate-internal'
 import { readMaterializedPositionChannel } from './materialized-channel-internal'
 import { mapScenePointReferences } from './scene-point-map'
 import { chartSceneSource } from './scene-source'
+import { markDefaultFocusLayer } from './default-focus-internal'
 import type {
   ResponsiveChartDefinition,
   InitializedMark,
@@ -538,31 +539,33 @@ function createChartSceneWithScaleResolver<
     const stroke = focusRingOptions?.stroke
     const strokeWidth = finiteNonNegative(focusRingOptions?.strokeWidth, 2.5)
     for (const entry of defaultFocusEntries) {
-      nodes.push({
-        kind: 'group',
-        key: `default-focus:${entry.markId}`,
-        className: 'ts-chart__focus-layer ts-chart__focus-layer--default',
-        ariaHidden: true,
-        clip: entry.clipped ? chart : undefined,
-        focus: {
-          match: 'primary',
-          anchors: entry.points,
-          points: entry.points,
-          placement: 'over',
-        },
-        children: entry.points.map((point) => ({
-          kind: 'dot',
-          key: point.key,
-          x: point.x,
-          y: point.y,
-          radius,
-          style: {
-            fill,
-            stroke: stroke ?? point.color,
-            strokeWidth,
+      nodes.push(
+        markDefaultFocusLayer({
+          kind: 'group',
+          key: `default-focus:${entry.markId}`,
+          className: 'ts-chart__focus-layer ts-chart__focus-layer--default',
+          ariaHidden: true,
+          clip: entry.clipped ? chart : undefined,
+          focus: {
+            match: 'primary',
+            anchors: entry.points,
+            points: entry.points,
+            placement: 'over',
           },
-        })),
-      })
+          children: entry.points.map((point) => ({
+            kind: 'dot',
+            key: point.key,
+            x: point.x,
+            y: point.y,
+            radius,
+            style: {
+              fill,
+              stroke: stroke ?? point.color,
+              strokeWidth,
+            },
+          })),
+        }),
+      )
     }
   }
 

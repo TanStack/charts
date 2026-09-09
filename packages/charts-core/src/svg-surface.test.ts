@@ -36,22 +36,24 @@ describe('SVG surface coordinates', () => {
     const point = scene.points[0]
     if (!point) throw new Error('Expected a focus point')
     const container = document.createElement('div')
-    const surface = svgChartRenderer.mount(container, () => {})
+    const renderer = createSvgChartRenderer((currentScene, options) =>
+      renderChartSvg(currentScene, options).replaceAll(
+        '<circle ',
+        '<circle data-custom="true" ',
+      ),
+    )
+    const surface = renderer.mount(container, () => {})
     surface.render(scene, { ariaLabel: 'Configured focus ring' })
     const svg = container.querySelector('svg')
     const layer = container.querySelector<SVGGElement>(
       '.ts-chart__focus-layer--default',
     )
-    const ring = layer?.querySelector('circle')
 
     expect(svg?.getAttribute('role')).toBe('img')
     expect(svg?.getAttribute('aria-label')).toBe('Configured focus ring')
     expect(layer?.getAttribute('aria-hidden')).toBe('true')
     expect(layer?.getAttribute('visibility')).toBe('hidden')
-    expect(ring?.getAttribute('r')).toBe('4')
-    expect(ring?.getAttribute('fill')).toBe('#ffffff')
-    expect(ring?.getAttribute('stroke')).toBe('#0f172a')
-    expect(ring?.getAttribute('stroke-width')).toBe('1.5')
+    expect(layer?.querySelectorAll('circle')).toHaveLength(0)
 
     surface.paintFocus({
       primary: point,
@@ -60,9 +62,175 @@ describe('SVG surface coordinates', () => {
       pinned: false,
     })
 
+    const ring = layer?.querySelector('circle')
     expect(layer?.getAttribute('visibility')).toBe('visible')
     expect(ring?.getAttribute('visibility')).toBe('visible')
+    expect(ring?.getAttribute('data-custom')).toBe('true')
+    expect(ring?.getAttribute('r')).toBe('4')
+    expect(ring?.getAttribute('fill')).toBe('#ffffff')
+    expect(ring?.getAttribute('stroke')).toBe('#0f172a')
+    expect(ring?.getAttribute('stroke-width')).toBe('1.5')
     surface.destroy()
+  })
+
+  it('creates only active default focus circles without replacing base marks', () => {
+    const rows = Array.from({ length: 200 }, (_, x) => ({ x, y: x % 5 }))
+    const scene = createChartScene(
+      defineChart({
+        marks: [dot(rows, { x: 'x', y: 'y', fill: 'url(#points)' })],
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 199]),
+            viewport: { domain: [0, 100] },
+          },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
+        gradients: [
+          {
+            id: 'points',
+            stops: [
+              { offset: 0, color: 'red' },
+              { offset: 1, color: 'blue' },
+            ],
+          },
+        ],
+        guides: false,
+      }),
+      { width: 480, height: 240 },
+    )
+    const container = document.createElement('div')
+    const renderer = createSvgChartRenderer((currentScene, options) =>
+      renderChartSvg(currentScene, options).replaceAll(
+        '<circle ',
+        '<circle data-custom="true" ',
+      ),
+    )
+    const options = { ariaLabel: 'Dense focus', idPrefix: 'dense' }
+    container.innerHTML = renderer.prerender(scene, options)
+    const surface = renderer.mount(container, () => {})
+    surface.render(scene, options)
+    const marks = [...container.querySelectorAll('.ts-chart__marks circle')]
+    const layer = container.querySelector('.ts-chart__focus-layer--default')!
+    expect(marks).toHaveLength(200)
+    expect(layer.querySelectorAll('circle')).toHaveLength(0)
+    expect(scene.points).toHaveLength(200)
+    const [first, second] = scene.points
+    if (!first || !second) throw new Error('Expected focus candidates')
+    for (const [point, source] of [
+      [first, 'pointer'],
+      [second, 'keyboard'],
+    ] as const) {
+      surface.paintFocus({
+        primary: point,
+        group: [first, second],
+        source,
+        pinned: true,
+      })
+      const circles = [...layer.querySelectorAll('circle')]
+      expect(circles).toHaveLength(1)
+      expect(circles[0]?.getAttribute('data-ts-key')).toBe(point.key)
+      expect(circles[0]?.getAttribute('visibility')).toBe('visible')
+      expect(circles[0]?.getAttribute('data-custom')).toBe('true')
+      expect(circles[0]?.getAttribute('r')).toBe('5')
+      expect(circles[0]?.getAttribute('stroke')).toBe('url(#dense-points)')
+      expect(Number(circles[0]?.getAttribute('cx'))).toBeCloseTo(point.x)
+      expect(Number(circles[0]?.getAttribute('cy'))).toBeCloseTo(point.y)
+      expect(layer.getAttribute('clip-path')).toMatch(/^url\(#dense-/)
+      expect(layer.querySelector('clipPath rect')).not.toBeNull()
+      expect([
+        ...container.querySelectorAll('.ts-chart__marks circle'),
+      ]).toEqual(marks)
+    }
+    surface.paintFocus(null)
+    expect(layer.getAttribute('visibility')).toBe('hidden')
+    expect(layer.querySelectorAll('circle')).toHaveLength(0)
+    surface.destroy()
+  })
+
+  it('retains interpolated focus geometry when an animation starts after a static mount', () => {
+    const sceneAt = (offset: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            dot(
+              [
+                { id: 'a', x: 1 + offset, y: 1 },
+                { id: 'b', x: 2 + offset, y: 2 },
+              ],
+              { x: 'x', y: 'y', key: 'id' },
+            ),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 5]) },
+            y: { scale: scaleLinear().domain([0, 5]) },
+          },
+          guides: false,
+        }),
+        { width: 500, height: 250 },
+      )
+    const first = sceneAt(0)
+    const next = sceneAt(1)
+    const frames: FrameRequestCallback[] = []
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      frames.push(callback)
+      return frames.length
+    })
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Animated focus' })
+    expect(
+      container.querySelectorAll('.ts-chart__focus-layer--default circle'),
+    ).toHaveLength(0)
+    surface.render(next, {
+      ariaLabel: 'Animated focus',
+      animation: { duration: 100 },
+    })
+    const point = next.points[1]!
+    const focus = {
+      primary: point,
+      group: [point],
+      source: 'pointer' as const,
+      pinned: false,
+    }
+    surface.paintFocus(focus)
+    const ring = container.querySelector(
+      `.ts-chart__focus-layer--default circle[data-ts-key="${point.key}"]`,
+    )!
+    expect(Number(ring.getAttribute('cx'))).toBeCloseTo(first.points[1]!.x)
+    frames.shift()?.(0)
+    frames.shift()?.(50)
+    expect(Number(ring.getAttribute('cx'))).toBeGreaterThan(first.points[1]!.x)
+    expect(Number(ring.getAttribute('cx'))).toBeLessThan(point.x)
+    surface.paintFocus(focus)
+    expect(Number(ring.getAttribute('cx'))).toBeLessThan(point.x)
+    frames.shift()?.(100)
+    expect(Number(ring.getAttribute('cx'))).toBeCloseTo(point.x)
+    expect(ring.getAttribute('visibility')).toBe('visible')
+    surface.destroy()
+  })
+
+  it('does not leak deferred focus serialization into standalone exports after an error', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [dot([1, 2])],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        },
+      }),
+      { width: 200, height: 100 },
+    )
+    const options = { ariaLabel: 'Export' }
+    const renderer = createSvgChartRenderer(() => {
+      throw new Error('custom renderer')
+    })
+    expect(() => renderer.prerender(scene, options)).toThrow('custom renderer')
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, options)
+    expect(
+      container.querySelectorAll('.ts-chart__focus-layer--default circle'),
+    ).toHaveLength(2)
   })
 
   it('mounts viewport content with the fixed authored plot clip', () => {

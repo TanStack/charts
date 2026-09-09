@@ -1,5 +1,6 @@
 ---
 '@tanstack/charts': patch
+'@tanstack/react-native-charts': patch
 ---
 
 Reserve the correct gutter for a positioned axis in a right-to-left container.

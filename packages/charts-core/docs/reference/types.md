@@ -148,6 +148,10 @@ The complete overloads and runtime rules are in
 | `ChartMarkOptions`                 | Shared optional mark renderer contract                                               |
 | `ChartMarkRenderer`                | Universal renderer-selection token stored on mark-owned scene nodes                  |
 | `CartesianChartMark`               | Cartesian mark alias that derives selected x and y scale IDs from its options        |
+| `RectCornerRadii`                  | Physical top-left, top-right, bottom-right, and bottom-left radius tuple             |
+| `RectRadius`                       | Uniform numeric radius or physical per-corner tuple                                  |
+| `BarEndRadius`                     | Semantic bar-end radius with optional outer-stack or per-segment behavior            |
+| `BarRadius`                        | Uniform, physical, accessor, or semantic bar-end radius                              |
 | `OptionScaleId`                    | Resolves an optional named-scale selector to its fallback scale ID                   |
 | `MarkInitializeContext`            | Mark layer index                                                                     |
 | `InitializedMark`                  | Stable ID, channels, viewport ownership, render, and optional resolved layout        |
@@ -350,8 +354,8 @@ See [DOM host](./dom-host.md) and
 | `ChartDefinitionOptions`              | Focus, selection, controls, cursor, tooltip, and host interaction policy |
 | `ResponsiveChartConfig`               | Responsive builder plus definition-owned interaction policy              |
 | `ChartTooltipContent`                 | Safe title and row model for a built-in tooltip                          |
-| `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                        |
-| `ChartTooltipContentContext`          | Pinned state, axis labels, and value formatters for tooltip callbacks    |
+| `ChartTooltipRow`                     | Label, formatted value, optional color swatch, and active state          |
+| `ChartTooltipContentContext`          | Primary point, pinned state, axis labels, and value formatters           |
 | `ChartTooltipBodyContext`             | Focused points, content, pinned state, and dismissal                     |
 | `ChartTooltipBodyTarget`              | Renderer-adapter body mount element plus body context                    |
 | `TooltipBounds`                       | Host-local tooltip placement boundary                                    |

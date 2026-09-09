@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
+import {
+  rectCornerRadiiPath,
+  resolveRectCornerRadii,
+} from '@tanstack/charts/renderer/rect'
 import { NativeChartFocusOverlay } from './FocusOverlay'
 import { resolveNativePaint } from './paint'
 import {
@@ -62,6 +66,66 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).not.toContain('#fedcba')
     expect(markup).not.toContain('currentColor')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('renders selective rectangle corners as a fixed native SVG path', () => {
+    const selectiveScene = scene()
+    selectiveScene.theme = {
+      ...selectiveScene.theme,
+      background: 'transparent',
+    }
+    selectiveScene.nodes = [
+      {
+        kind: 'rect',
+        key: 'selective',
+        x: 10,
+        y: 20,
+        width: 40,
+        height: 30,
+        cornerRadii: [4, 0, 8, 2],
+        style: {
+          fill: '#00ff00',
+          stroke: '#111827',
+          strokeWidth: 2,
+        },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={selectiveScene}
+        color="#111827"
+        idPrefix="native-corners"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain(
+      'd="M14,20H50A0,0 0 0 1 50,20V42A8,8 0 0 1 42,50H12A2,2 0 0 1 10,48V24A4,4 0 0 1 14,20Z"',
+    )
+    expect(markup).toContain('fill="#00ff00"')
+    expect(markup).toContain('stroke="#111827"')
+    expect(markup).toContain('stroke-width="2"')
+    expect(markup).not.toContain('<rect')
+  })
+
+  it('normalizes invalid and oversized native corner radii proportionally', () => {
+    expect(resolveRectCornerRadii([8, 4, -2, Infinity], 6, 10)).toEqual([
+      4, 2, 0, 0,
+    ])
+    expect(resolveRectCornerRadii([8, 4, 2, 1], -6, -10)).toEqual([
+      4, 2, 1, 0.5,
+    ])
+    expect(resolveRectCornerRadii([8, 4, 2, 1], 0, 10)).toEqual([0, 0, 0, 0])
+
+    const path = rectCornerRadiiPath(0, 0, 6, 10, [8, 4, -2, Infinity])
+    expect(path).toBe(
+      'M4,0H4A2,2 0 0 1 6,2V10A0,0 0 0 1 6,10H0A0,0 0 0 1 0,10V4A4,4 0 0 1 4,0Z',
+    )
+    expect(path).not.toMatch(/NaN|Infinity|-[0-9]/)
+    expect(rectCornerRadiiPath(10, 20, -6, -10, [4, 2, 1, 0.5])).toBe(
+      'M8,10H8A2,2 0 0 1 10,12V19A1,1 0 0 1 9,20H4.5A0.5,0.5 0 0 1 4,19.5V14A4,4 0 0 1 8,10Z',
+    )
   })
 
   it('applies native typography and font scale to scene labels', () => {

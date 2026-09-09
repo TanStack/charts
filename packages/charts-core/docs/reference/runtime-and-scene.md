@@ -237,7 +237,7 @@ a `SceneInteraction`; groups and labels cannot.
 | `polyline` | point pairs and optional precomputed path data                      |
 | `area`     | closed points, structured polygons and holes, or optional path data |
 | `dot`      | center and radius                                                   |
-| `rect`     | origin, dimensions, and optional radius                             |
+| `rect`     | origin, dimensions, and optional uniform or per-corner radii        |
 | `label`    | origin, text, anchor, baseline, rotation, size, and weight          |
 
 `SceneStyle` supports fill, fill opacity, stroke, stroke opacity, stroke width,
@@ -254,7 +254,13 @@ overrides. Its optional `insetAxis` is `x`, `y`, or `xy`; vertical and
 horizontal bars use only their categorical axis, while ordinary rectangles use
 both axes. `SceneRect.maxThickness` retains a bar's categorical size ceiling so
 an inline-state inset cannot widen its resolved geometry past that ceiling.
-Renderers consume the already-resolved rectangle geometry.
+Renderers consume the already-resolved rectangle geometry. `SceneRect.radius`
+is the compatible uniform radius. `SceneRect.cornerRadii` stores physical
+top-left, top-right, bottom-right, and bottom-left radii. SVG and React Native
+render selective corners as a path, while Canvas paints the same normalized
+geometry directly. Custom renderers can import `resolveRectCornerRadii` and
+`rectCornerRadiiPath` from `@tanstack/charts/renderer/rect` instead of
+duplicating that geometry policy.
 
 ```ts
 type SceneInteraction =

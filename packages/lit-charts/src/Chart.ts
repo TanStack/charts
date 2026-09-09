@@ -162,6 +162,7 @@ export class Chart<
     }
     renderLit(
       renderTooltipBody({
+        primaryPoint: target.primaryPoint,
         points: target.points,
         content: target.content,
         defaultBody: renderDefaultTooltipBody(target.content),
@@ -273,7 +274,8 @@ function renderDefaultTooltipBody(
           (row) =>
             html`<div
               class="ts-chart-tooltip__row"
-              style="display:grid;grid-template-columns:0.55rem minmax(0,1fr) auto;align-items:center;column-gap:0.4rem"
+              data-active=${String(row.active === true)}
+              style="display:grid;grid-template-columns:0.55rem minmax(0,1fr) auto;align-items:center;column-gap:0.4rem;${row.active ? 'font-weight:var(--ts-chart-tooltip-active-row-font-weight, 700);background:var(--ts-chart-tooltip-active-row-background, color-mix(in srgb, currentColor 12%, transparent));border-radius:var(--ts-chart-tooltip-active-row-border-radius, .2rem);box-shadow:var(--ts-chart-tooltip-active-row-shadow, 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent))' : ''}"
             >
               ${
                 row.color ? renderTooltipSwatch(row.color) : html`<span></span>`

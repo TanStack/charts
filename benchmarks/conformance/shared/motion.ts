@@ -14,8 +14,8 @@ export function settleChartMotion(root: HTMLElement, timeout: number) {
     const check = () => {
       const state = readChartMotionState(root)
       if (
-        state === 'finished' ||
-        state === null ||
+        ((state === 'finished' || state === null) &&
+          !hasActiveAnimations(root)) ||
         view.performance.now() - started >= timeout
       ) {
         resolve()
@@ -25,4 +25,11 @@ export function settleChartMotion(root: HTMLElement, timeout: number) {
     }
     check()
   })
+}
+
+function hasActiveAnimations(root: HTMLElement) {
+  if (typeof root.getAnimations !== 'function') return false
+  return root
+    .getAnimations({ subtree: true })
+    .some((animation) => animation.pending || animation.playState === 'running')
 }

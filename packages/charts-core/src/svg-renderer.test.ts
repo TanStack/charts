@@ -3,9 +3,26 @@ import { describe, expect, it } from 'vitest'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
+import { withSvgRenderChildren } from './svg-render-context-internal'
 import type { ChartScene } from './types'
 
 describe('SVG scene renderer', () => {
+  it('escapes attributes and labels without changing entities or Unicode', () => {
+    const text = 'A &amp; <tag> "quoted" \u0000 🌈'
+    const scene = {
+      ...testScene(),
+      nodes: [{ kind: 'label' as const, key: text, text, x: 1, y: 2 }],
+    }
+    const svg = renderChartSvg(scene, { ariaLabel: text })
+    expect(svg).toContain(
+      'aria-label="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+    )
+    expect(svg).toContain(
+      'data-ts-key="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+    )
+    expect(svg).toContain('>A &amp;amp; &lt;tag&gt; "quoted" \u0000 🌈</text>')
+  })
+
   it('renders structured disconnected polygons and holes with even-odd fill', () => {
     const scene = testScene()
     const svg = renderChartSvg(scene, { ariaLabel: 'Density contour' })
@@ -69,6 +86,86 @@ describe('SVG scene renderer', () => {
     expect(svg).toMatch(/^<svg [^>]* direction="rtl"[^>]*>/)
     expect(svg).toMatch(
       /data-ts-key="y-tick-label:[^"]+"[^>]*text-anchor="end"/,
+    )
+  })
+
+  it('preserves RTL direction while rendering custom group children', () => {
+    const scene: ChartScene = {
+      ...testScene(),
+      direction: 'rtl',
+      nodes: [
+        {
+          kind: 'group',
+          key: 'layer',
+          children: [
+            {
+              kind: 'label',
+              key: 'original',
+              text: 'Original',
+              x: 1,
+              y: 2,
+            },
+          ],
+        },
+      ],
+    }
+    const options = { ariaLabel: 'RTL custom children' }
+    const svg = withSvgRenderChildren(
+      options,
+      (group) =>
+        group.key === 'layer'
+          ? [
+              {
+                kind: 'label',
+                key: 'replacement',
+                text: 'Replacement',
+                x: 1,
+                y: 2,
+              },
+            ]
+          : undefined,
+      () => renderChartSvg(scene, options),
+    )
+
+    expect(svg).toMatch(/^<svg [^>]* direction="rtl"[^>]*>/)
+    expect(svg).toContain('data-ts-key="replacement"')
+    expect(svg).not.toContain('data-ts-key="original"')
+  })
+
+  it('renders selective radii as a path and preserves numeric rect radii', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        nodes: [
+          {
+            kind: 'rect',
+            key: 'selective',
+            x: 10,
+            y: 10,
+            width: 40,
+            height: 20,
+            cornerRadii: [8, 4, 0, 0],
+            style: { fill: '#2563eb' },
+          },
+          {
+            kind: 'rect',
+            key: 'legacy',
+            x: 60,
+            y: 10,
+            width: 20,
+            height: 20,
+            radius: 6,
+          },
+        ],
+      },
+      { ariaLabel: 'Rounded rectangles' },
+    )
+
+    expect(svg).toContain(
+      '<path data-ts-key="selective" fill="#2563eb" d="M18,10H46A4,4 0 0 1 50,14V30A0,0 0 0 1 50,30H10A0,0 0 0 1 10,30V18A8,8 0 0 1 18,10Z"/>',
+    )
+    expect(svg).toContain(
+      '<rect data-ts-key="legacy" x="60" y="10" width="20" height="20" rx="6"/>',
     )
   })
 })

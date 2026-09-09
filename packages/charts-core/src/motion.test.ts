@@ -15,10 +15,12 @@ import { createChartScene, defineChart } from './scene'
 import { chartSceneSource } from './scene-source'
 import { renderChartSvg } from './svg'
 import { tooltip } from './tooltip'
+import { rectCornerRadiiPath } from './renderer-rect'
 import type {
   ChartMotionContext,
   ChartPoint,
   ChartScene,
+  RectRadius,
   SceneNode,
 } from './types'
 
@@ -1175,6 +1177,307 @@ describe('SVG motion', () => {
     surface.destroy()
     frames.restore()
   })
+
+  it('preserves renderer precision for numeric rectangles after motion', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ id: 'a', category: 'A', value: 1 / 3 }], {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            radius: 4,
+          }),
+        ],
+        scales: {
+          x: { scale: scaleBand().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
+        guides: false,
+        margin: 0,
+      }),
+      { width: 301, height: 197 },
+    )
+    const staticContainer = document.createElement('div')
+    staticContainer.innerHTML = renderChartSvg(scene, {
+      ariaLabel: 'Static numeric bar',
+    })
+    const expected = staticContainer.querySelector<SVGRectElement>(
+      'g.ts-chart__bar-y > rect',
+    )
+    if (!expected) throw new Error('Expected a static numeric bar rectangle')
+    const attributes = ['x', 'y', 'width', 'height'] as const
+    const expectedGeometry = attributes.map((name) =>
+      expected.getAttribute(name),
+    )
+
+    const container = document.createElement('div')
+    const frames = installFrames()
+    const surface = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Animated numeric bar' })
+    frames.run(0)
+    frames.run(100)
+
+    const rectangle = container.querySelector('g.ts-chart__bar-y > rect')
+    expect(attributes.map((name) => rectangle?.getAttribute(name))).toEqual(
+      expectedGeometry,
+    )
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('retains a callback radius path when its resolved form changes', () => {
+    const makeScene = (radius: RectRadius) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY([{ id: 'a', category: 'A', value: 60 }], {
+              x: 'category',
+              y: 'value',
+              key: 'id',
+              radius: () => radius,
+            }),
+          ],
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
+          guides: false,
+          margin: 0,
+        }),
+        { width: 300, height: 200 },
+      )
+    const first = makeScene(4)
+    const next = makeScene([8, 0, 0, 8])
+    const nextRect = flattenSceneNodes(next.nodes).find(
+      (node) => node.kind === 'rect' && node.cornerRadii,
+    )
+    if (nextRect?.kind !== 'rect' || !nextRect.cornerRadii) {
+      throw new Error('Expected a selective bar rectangle')
+    }
+
+    const container = document.createElement('div')
+    const frames = installFrames()
+    const surface = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Callback radius bar' })
+    const path = container.querySelector<SVGPathElement>(
+      'g.ts-chart__bar-y > path',
+    )
+    expect(path).not.toBeNull()
+    expect(container.querySelector('g.ts-chart__bar-y > rect')).toBeNull()
+    frames.run(0)
+    frames.run(100)
+
+    surface.render(next, { ariaLabel: 'Callback radius bar' })
+    const retained = container.querySelector<SVGPathElement>(
+      'g.ts-chart__bar-y > path',
+    )
+    expect(retained).toBe(path)
+    frames.run(100)
+    frames.run(200)
+    expect(retained?.getAttribute('d')).toBe(
+      rectCornerRadiiPath(
+        nextRect.x,
+        nextRect.y,
+        nextRect.width,
+        nextRect.height,
+        nextRect.cornerRadii,
+      ),
+    )
+    expect(container.querySelector('g.ts-chart__bar-y > rect')).toBeNull()
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('grows selective negative bars from the baseline and retains their path across sign updates', () => {
+    const makeScene = (value: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY([{ id: 'a', category: 'A', value }], {
+              x: 'category',
+              y: 'value',
+              key: 'id',
+              radius: { end: 8 },
+            }),
+          ],
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([-100, 100]) },
+          },
+          guides: false,
+          margin: 0,
+        }),
+        { width: 300, height: 200 },
+      )
+    const first = makeScene(-60)
+    const next = makeScene(60)
+    const firstRect = flattenSceneNodes(first.nodes).find(
+      (node) => node.kind === 'rect' && node.cornerRadii,
+    )
+    const nextRect = flattenSceneNodes(next.nodes).find(
+      (node) => node.kind === 'rect' && node.cornerRadii,
+    )
+    if (
+      firstRect?.kind !== 'rect' ||
+      !firstRect.cornerRadii ||
+      nextRect?.kind !== 'rect' ||
+      !nextRect.cornerRadii
+    ) {
+      throw new Error('Expected selective bar rectangles')
+    }
+
+    const container = document.createElement('div')
+    const frames = installFrames()
+    const surface = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Selective bars' })
+    const path = container.querySelector<SVGPathElement>(
+      'g.ts-chart__bar-y > path',
+    )
+    const baseline = first.scales.y.map(0)
+
+    expect(path?.getAttribute('d')).toBe(
+      rectCornerRadiiPath(
+        firstRect.x,
+        baseline,
+        firstRect.width,
+        0,
+        firstRect.cornerRadii,
+      ),
+    )
+    frames.run(0)
+    frames.run(100)
+    expect(path?.getAttribute('d')).toBe(
+      rectCornerRadiiPath(
+        firstRect.x,
+        firstRect.y,
+        firstRect.width,
+        firstRect.height,
+        firstRect.cornerRadii,
+      ),
+    )
+
+    surface.render(next, { ariaLabel: 'Selective bars' })
+    const retained = container.querySelector<SVGPathElement>(
+      'g.ts-chart__bar-y > path',
+    )
+    expect(retained).toBe(path)
+    frames.run(100)
+    frames.run(150)
+    expect(retained?.getAttribute('d')).not.toMatch(/NaN|Infinity/)
+    expect(surface.getPresentationPoints?.()?.[0]?.y).toBeCloseTo(
+      (first.points[0]!.y + next.points[0]!.y) / 2,
+    )
+    frames.run(200)
+    expect(retained?.getAttribute('d')).toBe(
+      rectCornerRadiiPath(
+        nextRect.x,
+        nextRect.y,
+        nextRect.width,
+        nextRect.height,
+        nextRect.cornerRadii,
+      ),
+    )
+    expect(surface.getPresentationPoints?.()).toBeUndefined()
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it.each([
+    { edgeCase: 'negative', value: -60, reverse: false },
+    { edgeCase: 'reversed', value: 60, reverse: true },
+  ])(
+    'grows focus-only $edgeCase selective bars from their authored baseline',
+    ({ value, reverse }) => {
+      const data = [{ id: 'a', category: 'A', value }]
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            dot(data, {
+              id: 'focus-source',
+              x: 'category',
+              y: 'value',
+              key: 'id',
+            }),
+            whenFocused(
+              barY(data, {
+                id: 'focus-bars',
+                x: 'category',
+                y: 'value',
+                key: 'id',
+                radius: { end: 8 },
+              }),
+            ),
+          ],
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: {
+              scale: scaleLinear().domain([-100, 100]),
+              reverse,
+            },
+          },
+          guides: false,
+          focusRing: false,
+          margin: 0,
+        }),
+        { width: 300, height: 200 },
+      )
+      const rectangle = flattenSceneNodes(scene.nodes).find(
+        (node) => node.kind === 'rect' && node.cornerRadii,
+      )
+      if (rectangle?.kind !== 'rect' || !rectangle.cornerRadii) {
+        throw new Error('Expected a focus-only selective bar rectangle')
+      }
+      expect(scene.points.some((point) => point.markId === 'focus-bars')).toBe(
+        false,
+      )
+
+      const container = document.createElement('div')
+      const frames = installFrames()
+      const surface = motion({
+        transition: { type: 'tween', duration: 100, easing: 'linear' },
+      }).mount(container, () => {})
+      surface.render(scene, { ariaLabel: 'Focus-only selective bar' })
+      const path = container.querySelector<SVGPathElement>(
+        '[data-ts-focus-layer] g.ts-chart__bar-y > path',
+      )
+      const baseline = scene.scales.y.map(0)
+
+      expect(baseline).not.toBeCloseTo(rectangle.y + rectangle.height)
+      expect(path?.getAttribute('d')).toBe(
+        rectCornerRadiiPath(
+          rectangle.x,
+          baseline,
+          rectangle.width,
+          0,
+          rectangle.cornerRadii,
+        ),
+      )
+      frames.run(0)
+      frames.run(100)
+      expect(path?.getAttribute('d')).toBe(
+        rectCornerRadiiPath(
+          rectangle.x,
+          rectangle.y,
+          rectangle.width,
+          rectangle.height,
+          rectangle.cornerRadii,
+        ),
+      )
+
+      surface.destroy()
+      frames.restore()
+    },
+  )
 
   it('lets a mark opt out of inherited chart motion', () => {
     const animated = [{ id: 'animated', category: 'A', value: 40 }]
@@ -3006,6 +3309,85 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('carries selective bar spring momentum when entrance is interrupted', () => {
+    const makeScene = (value: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY([{ id: 'a', category: 'A', value }], {
+              x: 'category',
+              y: 'value',
+              key: 'id',
+              radius: { end: 8 },
+            }),
+          ],
+          scales: {
+            x: { scale: scaleBand().domain(['A']) },
+            y: { scale: scaleLinear().domain([0, 100]) },
+          },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const entrance = makeScene(90)
+    const final = makeScene(10)
+    const finalRect = flattenSceneNodes(final.nodes).find(
+      (node) => node.kind === 'rect' && node.cornerRadii,
+    )
+    if (finalRect?.kind !== 'rect' || !finalRect.cornerRadii) {
+      throw new Error('Expected a selective bar rectangle')
+    }
+    const container = document.createElement('div')
+    const frames = installManagedFrames()
+    const surface = motion({
+      transition: {
+        type: 'spring',
+        stiffness: 170,
+        damping: 14,
+        mass: 1,
+      },
+    }).mount(container, () => {})
+    surface.render(entrance, { ariaLabel: 'Selective spring entrance' })
+    const path = container.querySelector<SVGPathElement>(
+      'g.ts-chart__bar-y > path',
+    )
+    if (!path) throw new Error('Expected a selective bar path')
+
+    frames.run(0)
+    frames.run(120)
+    const interruptedY = rectPathTop(path)
+    surface.render(final, { ariaLabel: 'Selective spring entrance' })
+
+    expect(container.querySelector('g.ts-chart__bar-y > path')).toBe(path)
+    expect(path.dataset.tsMotionRole).toBe('bar')
+    expect(rectPathTop(path)).toBeCloseTo(interruptedY)
+    frames.run(120)
+    frames.run(136)
+    const momentumY = rectPathTop(path)
+    expect(momentumY).toBeLessThan(interruptedY)
+    expect(final.scales.y.map(10)).toBeGreaterThan(interruptedY)
+    expect(surface.getPresentationPoints?.()?.[0]?.y).toBeCloseTo(momentumY)
+
+    for (let time = 152; time <= 4_000; time += 16) {
+      if (container.querySelector('svg')?.dataset.tsMotionState === 'finished')
+        break
+      frames.run(time)
+    }
+    expect(path.getAttribute('d')).toBe(
+      rectCornerRadiiPath(
+        finalRect.x,
+        finalRect.y,
+        finalRect.width,
+        finalRect.height,
+        finalRect.cornerRadii,
+      ),
+    )
+    expect(path.hasAttribute('data-ts-motion-role')).toBe(false)
+    expect(surface.getPresentationPoints?.()).toBeUndefined()
+    surface.destroy()
+    frames.restore()
+  })
+
   it('morphs compatible line topology and its presentation points together', () => {
     const firstRows = [
       { id: 'a', category: 'A', value: 20 },
@@ -3375,6 +3757,11 @@ function translateX(element: Element | null) {
   if (translate) return Number(translate[1])
   const matrix = matrixTransform(element)
   return matrix[4] ?? Number.NaN
+}
+
+function rectPathTop(element: SVGPathElement) {
+  const match = /^M[^,]+,([-+\d.e]+)/i.exec(element.getAttribute('d') ?? '')
+  return Number(match?.[1])
 }
 
 function matrixTransform(element: Element | null) {

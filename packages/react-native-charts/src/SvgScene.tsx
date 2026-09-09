@@ -22,6 +22,7 @@ import type {
   SceneNode,
   SceneStyle,
 } from '@tanstack/charts/types'
+import { rectCornerRadiiPath } from '@tanstack/charts/renderer/rect'
 import type { NativePaintResolver } from './paint'
 
 export interface NativeChartSceneProps {
@@ -253,7 +254,7 @@ function renderSceneNode(
         />
       )
     case 'rect':
-      return (
+      return node.cornerRadii === undefined ? (
         <Rect
           key={node.key}
           {...style}
@@ -262,6 +263,18 @@ function renderSceneNode(
           width={node.width}
           height={node.height}
           rx={node.radius}
+        />
+      ) : (
+        <Path
+          key={node.key}
+          {...style}
+          d={rectCornerRadiiPath(
+            node.x,
+            node.y,
+            node.width,
+            node.height,
+            node.cornerRadii,
+          )}
         />
       )
     case 'label':
