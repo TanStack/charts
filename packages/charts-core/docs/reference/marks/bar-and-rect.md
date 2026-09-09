@@ -160,6 +160,11 @@ negative stack endpoint. For explicit intervals and grouped bars, it rounds
 each bar because there is no native stack envelope. Set `stack: 'each'` to
 round every implicit stack segment. An explicit `stack: 'outer'` requires an
 implicit stack and rejects explicit interval endpoints and `group()` layouts.
+The outer edge comes from the resolved stack geometry. If a nondiverging
+offset makes intervals overlap at that edge, every touching interval receives
+its own radius on the same physical envelope edge so a later fill cannot square
+off the envelope. Anchor-translated stacks can expose one end on each side of
+zero, and both resolved outer ends are rounded.
 
 ```ts
 barY(rows, {

@@ -908,7 +908,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    29.15,
+    29.4,
     {
       inputBoundary: {
         require: [
@@ -1230,7 +1230,7 @@ const entries = [
   budgeted(
     'Representative marks + mark Canvas renderer',
     'benchmarks/entries/charts-representative-mark-canvas.ts',
-    37.4,
+    37.6,
     {
       rendererBoundary: 'mixed',
       inputBoundary: {
@@ -1834,7 +1834,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    55.35,
+    55.55,
   ),
   locked(
     'Custom-scale line scene',
@@ -2094,7 +2094,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    56.3,
+    56.55,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

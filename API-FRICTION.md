@@ -7951,6 +7951,9 @@ Each entry records:
   stacks and rounds each explicit or grouped bar. `stack: 'each'` rounds every
   segment, while an explicitly authored `stack: 'outer'` rejects endpoints and
   group layouts that have no native stack envelope.
+  When resolved intervals overlap at an outer edge, give each touching interval
+  its own resolved radius on that same physical envelope edge so later fills do
+  not square it off.
 - Renderer ownership: selective scene rectangles store physical
   `cornerRadii`. SVG and React Native serialize them as keyed paths, Canvas
   paints the same geometry, and exact hit testing uses the normalized outline.
@@ -7960,19 +7963,23 @@ Each entry records:
   rectangle and `rx` output.
 - Verification: mark and stack regressions cover explicit intervals, grouped
   bars, resolved stack order, sparse and zero values, outer-only and every-
-  segment policies, both orientations, negative values, and reversed scales.
+  segment policies, both orientations, negative values, reversed scales, and
+  normalized mixed-sign stacks whose overlapping intervals each receive their
+  own radius on the resolved physical envelope edge. Anchor-translated stacks
+  cover resolved envelopes that extend to both sides of zero.
   SVG, Canvas, React Native, nearest-point, inline-state, and motion regressions
   cover invalid and oversized radii, exact corner hits, layered state cascades,
   stable keyed paths, focus-only baselines, and numeric output precision. Cases
   84, 121, and 151 exercise the public API. The focused unit, type, export,
   callback-contract, packed-package, Metro, Expo, adapter, and unified-artifact
-  checks pass. Focused browser conformance passes case 121 at every tested
-  width and confirms exact selective-path paint parity for case 151 at 320 and
-  640 pixels. The remaining case 151 report is the existing shared 640-pixel
-  card-label clipping in both renderers, not bar geometry. The final
-  `pnpm validate` gate passes 288 test files and 1,958 tests, typechecking,
-  formatting, 188 catalog previews, 102 documentation pages, bundle policies,
-  all adapters, and packed web and React Native artifacts.
+  checks pass. Fresh standard browser conformance passes case 121 in both
+  themes at 320, 640, and 960 pixels. Case 151 keeps all 12 bars and paint
+  parity across its initial and updated scenes at every size and theme. Its
+  remaining visual report is the existing shared card-label clipping at 640
+  and 960 pixels in both renderers, not bar geometry. The final `pnpm validate`
+  gate passes 288 test files and 1,982 tests, typechecking, formatting, 188
+  catalog previews, 102 documentation pages, bundle policies, all adapters,
+  and packed web and React Native artifacts.
 
 ### F-262 — Mark inference accepted an unsupported style option
 
@@ -8693,9 +8700,11 @@ Each entry records:
 - Verification: renderer-host regressions cover a fixed width with height-only
   changes, coalescing and redundant notifications, explicit-height and
   aspect-ratio precedence, transitions between fixed and container-owned
-  height, and zero, `NaN`, and infinite measurements. The shared host covers
+  height, independent valid-axis updates when the other measurement is
+  unusable, and zero, `NaN`, and infinite measurements. The shared host covers
   SVG, Canvas, mixed renderers, and every web framework adapter; React Native
-  continues to use its platform layout callback.
+  continues to use its platform layout callback. The full `pnpm validate` gate
+  passes 288 test files and 1,982 tests.
 
 ### F-297 - Unified peer metadata rejected supported React releases
 
@@ -8709,8 +8718,13 @@ Each entry records:
   `@tanstack/charts` dependency with incompatible optional peer metadata.
 - Decision: declare React and React DOM `^18.0.0 || ^19.0.0` for both published
   package entry points. Keep the React Native compatibility table at React 19
-  because its framework peer requirements remain separate.
+  because its framework peer requirements remain separate. Use the layout
+  effect only when `document` exists, and use `useEffect` during server
+  rendering so both published React entry points render without the React 18
+  layout-effect warning.
 - Verification: the packed-package gate installs both artifacts with React
   18.0.0 under strict peer checking, compiles a consumer with React 18 types,
-  and server-renders both the compatibility and unified adapter entry points.
-  The existing workspace suite continues to exercise React 19.
+  and server-renders both the compatibility and unified adapter entry points
+  without console warnings. The existing workspace suite continues to
+  exercise React 19, and the full `pnpm validate` gate passes 288 test files and
+  1,982 tests.

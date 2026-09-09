@@ -681,7 +681,8 @@ normalized geometry as a stable SVG path. The helper accepts reversed width or
 height and keeps the tuple in physical corner order.
 
 `requestRender()` asks the shared host to rebuild and repaint on its next
-animation frame; ordinary requests proceed only when responsive width changed.
+animation frame; ordinary requests proceed only when a container-owned width
+or height changed.
 `requestRender(true)` forces the work when renderer state changed without a
 width or chart-option change, such as device-pixel ratio or resolved theme
 colors. Requests made before the same frame are coalesced.
