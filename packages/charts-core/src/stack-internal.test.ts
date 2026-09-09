@@ -470,7 +470,7 @@ describe('stack end topology', () => {
   })
 
   it('finds the exposed positive and negative ends in resolved stack order', () => {
-    const outerEnds = stackOuterEnds(
+    const outerEnds = resolvedStackOuterEnds(
       ['A', 'A', 'A', 'A', 'B', 'B'],
       [4, 2, -3, -2, 0, 5],
       ['Query', 'Router', 'SQL', 'Vue', 'Query', 'Router'],
@@ -478,11 +478,18 @@ describe('stack end topology', () => {
       'index',
     )
 
-    expect(outerEnds).toEqual([true, false, true, false, false, true])
+    expect(outerEnds).toEqual([
+      { start: false, end: true },
+      undefined,
+      { start: true, end: false },
+      undefined,
+      undefined,
+      { start: false, end: true },
+    ])
   })
 
   it('skips absent and zero-valued series when finding a normalized outer end', () => {
-    const outerEnds = stackOuterEnds(
+    const outerEnds = resolvedStackOuterEnds(
       ['A', 'A', 'B', 'B'],
       [2, 0, 3, 4],
       ['First', 'Last', 'First', 'Middle'],
@@ -493,18 +500,38 @@ describe('stack end topology', () => {
       'index',
     )
 
-    expect(outerEnds).toEqual([true, false, false, true])
+    expect(outerEnds).toEqual([
+      { start: false, end: true },
+      undefined,
+      undefined,
+      { start: false, end: true },
+    ])
+  })
+
+  it('uses the painted resolved envelope for mixed-sign normalized stacks', () => {
+    expect(
+      resolvedStackOuterEnds(
+        ['A', 'A'],
+        [10, -5],
+        ['Positive', 'Negative'],
+        { offset: 'normalize' },
+        'index',
+      ),
+    ).toEqual([
+      { start: false, end: true },
+      { start: true, end: false },
+    ])
   })
 
   it('follows inside-out and reversed series order for exposed ends', () => {
     const positions = rows.map((row) => row.position)
     const values = rows.map((row) => row.value)
     const series = rows.map((row) => row.series)
-    const forward = stackOuterEnds(positions, values, series, {
+    const forward = resolvedStackOuterEnds(positions, values, series, {
       order: 'inside-out',
       offset: 'wiggle',
     })
-    const reversed = stackOuterEnds(positions, values, series, {
+    const reversed = resolvedStackOuterEnds(positions, values, series, {
       order: 'inside-out',
       offset: 'wiggle',
       reverse: true,
@@ -529,4 +556,29 @@ function expectExtent(
   expect(extent).toBeDefined()
   expect(extent!.start).toBeCloseTo(start)
   expect(extent!.end).toBeCloseTo(end)
+}
+
+function resolvedStackOuterEnds(
+  positions: readonly unknown[],
+  values: readonly unknown[],
+  series: readonly unknown[],
+  options: Parameters<typeof stackValues>[3] = {},
+  fallbackSeries: Parameters<typeof stackValues>[4] = 'value',
+) {
+  const stacked = stackValues(
+    positions,
+    values,
+    series,
+    options,
+    fallbackSeries,
+  )
+  return stackOuterEnds(
+    positions,
+    values,
+    series,
+    stacked.starts,
+    stacked.ends,
+    options,
+    fallbackSeries,
+  )
 }

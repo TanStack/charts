@@ -19,7 +19,7 @@ import {
   type SceneMotionMetadata,
 } from './scene-motion-internal'
 import { valueKey } from './scales'
-import { stackOuterEnds } from './stack-ends-internal'
+import { stackOuterEnds, type StackOuterEnd } from './stack-ends-internal'
 import { stackValues } from './stack-internal'
 import type {
   Channel,
@@ -213,6 +213,8 @@ export function barY<TDatum>(
               xValues,
               rawYValues,
               seriesValues,
+              stacked.starts,
+              stacked.ends,
               stackLayout,
               'index',
             )
@@ -321,6 +323,7 @@ export function barY<TDatum>(
               valueEnd === 'start' ? baselinePosition : valuePosition
             const semanticBaselinePosition =
               valueEnd === 'start' ? valuePosition : baselinePosition
+            const outerEnd = outerEnds?.[datumIndex]
             const x =
               center - totalBandwidth / 2 + groupOffset + thickness.inset
             const y = Math.min(baselinePosition, valuePosition)
@@ -335,7 +338,10 @@ export function barY<TDatum>(
               'y',
               semanticValuePosition,
               semanticBaselinePosition,
-              outerEnds?.[datumIndex] ?? true,
+              outerEnds !== undefined,
+              outerEnd,
+              baselinePosition,
+              valuePosition,
               preferCornerRadii,
             )
             const point: ChartPoint<TDatum> = {
@@ -483,6 +489,8 @@ export function barX<TDatum>(
               yValues,
               rawXValues,
               seriesValues,
+              stacked.starts,
+              stacked.ends,
               stackLayout,
               'index',
             )
@@ -590,6 +598,7 @@ export function barX<TDatum>(
               valueEnd === 'start' ? baselinePosition : valuePosition
             const semanticBaselinePosition =
               valueEnd === 'start' ? valuePosition : baselinePosition
+            const outerEnd = outerEnds?.[datumIndex]
             const center = scales[yScale]!.map(yValue)
             const y =
               center - totalBandwidth / 2 + groupOffset + thickness.inset
@@ -605,7 +614,10 @@ export function barX<TDatum>(
               'x',
               semanticValuePosition,
               semanticBaselinePosition,
-              outerEnds?.[datumIndex] ?? true,
+              outerEnds !== undefined,
+              outerEnd,
+              baselinePosition,
+              valuePosition,
               preferCornerRadii,
             )
             const point: ChartPoint<TDatum> = {
@@ -701,7 +713,10 @@ function resolveBarRadius<TDatum>(
   valueAxis: 'x' | 'y',
   valuePosition: number,
   baselinePosition: number,
-  outer: boolean,
+  stackOuter: boolean,
+  outerEnd: StackOuterEnd | undefined,
+  stackStartPosition: number,
+  stackEndPosition: number,
   preferCornerRadii: boolean,
 ): Pick<SceneRect, 'radius' | 'cornerRadii'> {
   if (radius === undefined) {
@@ -712,8 +727,20 @@ function resolveBarRadius<TDatum>(
     if (valuePosition === baselinePosition) {
       return { cornerRadii: [0, 0, 0, 0] }
     }
-    if ((radius.stack ?? 'outer') === 'outer' && !outer) {
-      return { cornerRadii: [0, 0, 0, 0] }
+    if (stackOuter) {
+      if (!outerEnd) return { cornerRadii: [0, 0, 0, 0] }
+      if (outerEnd.start && outerEnd.end) {
+        return { cornerRadii: [endRadius, endRadius, endRadius, endRadius] }
+      }
+      const roundStart = outerEnd.start
+      return {
+        cornerRadii: endCornerRadii(
+          endRadius,
+          valueAxis,
+          roundStart ? stackStartPosition : stackEndPosition,
+          roundStart ? stackEndPosition : stackStartPosition,
+        ),
+      }
     }
     return {
       cornerRadii: endCornerRadii(

@@ -1102,6 +1102,67 @@ describe('core marks and categorical scales', () => {
     )
   })
 
+  it('rounds the painted envelope of mixed-sign normalized stacks', () => {
+    const rows = [
+      { category: 'A', series: 'Positive', value: 10 },
+      { category: 'A', series: 'Negative', value: -5 },
+    ]
+    const layout = stack({ offset: 'normalize' })
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 2]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandYAxes([0, 2], ['A']),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      vertical.points.map(({ y1Value, y2Value }) => ({ y1Value, y2Value })),
+    ).toEqual([
+      { y1Value: 0, y2Value: 2 },
+      { y1Value: 2, y2Value: 1 },
+    ])
+    expect(
+      flatten(vertical.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [4, 4, 0, 0],
+      [4, 4, 0, 0],
+    ])
+    expect(
+      flatten(horizontal.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [0, 4, 4, 0],
+      [0, 4, 4, 0],
+    ])
+  })
+
   it('supports automatic semantic ends for explicit and grouped bars', () => {
     const explicitScene = createChartScene(
       defineChart({

@@ -770,18 +770,26 @@ import { renderToStaticMarkup } from 'react-dom/server'
       : ''
   const assertion =
     mode === 'runtime'
-      ? `for (const Chart of [CompatibilityChart, UnifiedChart]) {
-  const chart = createElement(Chart, {
-    definition,
-    width: 320,
-    height: 180,
-    ariaLabel: 'React 18 chart',
-  })
-  const markup = renderToStaticMarkup(chart)
-  assert.match(markup, /ts-chart-host/)
-  assert.match(markup, /<svg/)
-  assert.match(markup, /ts-chart__line/)
-}`
+      ? `const serverWarnings = []
+const originalConsoleError = console.error
+console.error = (...values) => serverWarnings.push(values.map(String).join(' '))
+try {
+  for (const Chart of [CompatibilityChart, UnifiedChart]) {
+    const chart = createElement(Chart, {
+      definition,
+      width: 320,
+      height: 180,
+      ariaLabel: 'React 18 chart',
+    })
+    const markup = renderToStaticMarkup(chart)
+    assert.match(markup, /ts-chart-host/)
+    assert.match(markup, /<svg/)
+    assert.match(markup, /ts-chart__line/)
+  }
+} finally {
+  console.error = originalConsoleError
+}
+assert.deepEqual(serverWarnings, [])`
       : `export const compatibilityChart = <CompatibilityChart definition={definition} width={320} height={180} ariaLabel="React 18 compatibility chart" />
 export const unifiedChart = <UnifiedChart definition={definition} width={320} height={180} ariaLabel="React 18 unified chart" />`
   return `
