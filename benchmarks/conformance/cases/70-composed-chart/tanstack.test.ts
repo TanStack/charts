@@ -127,6 +127,35 @@ describe('native composed-chart bar sizing', () => {
     )
   })
 
+  it('keeps the native legend and all three axes in the compact preview', () => {
+    const scene = render({
+      ...input,
+      width: 288,
+      height: 192,
+      preview: true,
+    })
+    const nodes = flatten(scene.nodes)
+    const legendLabels = nodes.filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('legend-label:'),
+    )
+    const axisTitles = nodes.filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.endsWith('-label'),
+    )
+
+    expect(legendLabels).toHaveLength(4)
+    expect(Math.max(...legendLabels.map(({ y }) => y))).toBeLessThan(
+      scene.chart.y,
+    )
+    expect(axisTitles.map(({ text }) => text)).toEqual([
+      'Temperature (°C)',
+      'Precipitation (mm)',
+      'Wind (m/s)',
+    ])
+    expect(scene.chart.height).toBeGreaterThan(60)
+  })
+
   it('does not hide responsive bar geometry outside the definition', async () => {
     const closure = await loadTanStackSources('70-composed-chart')
     const source = closure.files.map((file) => file.source).join('\n')

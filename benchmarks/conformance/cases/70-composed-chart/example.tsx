@@ -130,7 +130,7 @@ export const createExampleChart = (input: ChartOptions) => {
         domain: Object.values(weatherSeries),
         range: ['#8884d8', '#413ea0', '#ff7300', '#ef4444'],
         legend: colorLegend<WeatherSeries>({
-          placement: 'bottom',
+          placement: input.preview === true ? 'top' : 'bottom',
           items: colorLegendItems({
             justify: 'center',
             gap: 18,
@@ -153,12 +153,13 @@ export const createExampleChart = (input: ChartOptions) => {
         }),
       },
 
-      margin: { top: 20 },
+      margin: input.preview === true ? {} : { top: 20 },
     },
     { keyboard: true, tooltip: exampleTooltip },
   )
 }
 export interface ChartOptions {
+  preview?: boolean
   revision: number
 }
 
