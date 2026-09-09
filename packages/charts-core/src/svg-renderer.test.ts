@@ -7,20 +7,42 @@ import { withSvgRenderChildren } from './svg-render-context-internal'
 import type { ChartScene } from './types'
 
 describe('SVG scene renderer', () => {
-  it('escapes attributes and labels without changing entities or Unicode', () => {
-    const text = 'A &amp; <tag> "quoted" \u0000 🌈'
+  it('replaces XML-invalid characters while escaping markup', () => {
+    const invalidCharacters = [
+      '\u0000',
+      '\u0008',
+      '\u000b',
+      '\u000c',
+      '\u000e',
+      '\u001f',
+      '\ud800',
+      '\udc00',
+      '\ufffe',
+      '\uffff',
+    ]
+    const invalid = invalidCharacters.join('|')
+    const replaced = invalidCharacters.map(() => '\ufffd').join('|')
+    const preserved = '\t\n\r\u007f\u0085\ud7ff\ue000\ufffd🌈'
+    const text = `A &amp; <tag> "quoted" ${invalid} ${preserved}`
     const scene = {
       ...testScene(),
       nodes: [{ kind: 'label' as const, key: text, text, x: 1, y: 2 }],
     }
     const svg = renderChartSvg(scene, { ariaLabel: text })
     expect(svg).toContain(
-      'aria-label="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+      `aria-label="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; ${replaced} ${preserved}"`,
     )
     expect(svg).toContain(
-      'data-ts-key="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; \u0000 🌈"',
+      `data-ts-key="A &amp;amp; &lt;tag&gt; &quot;quoted&quot; ${replaced} ${preserved}"`,
     )
-    expect(svg).toContain('>A &amp;amp; &lt;tag&gt; "quoted" \u0000 🌈</text>')
+    expect(svg).toContain(
+      `>A &amp;amp; &lt;tag&gt; "quoted" ${replaced} ${preserved}</text>`,
+    )
+    for (const character of invalidCharacters) {
+      expect(svg).not.toContain(character)
+    }
+    const document = new DOMParser().parseFromString(svg, 'image/svg+xml')
+    expect(document.querySelector('parsererror')).toBeNull()
   })
 
   it('renders structured disconnected polygons and holes with even-odd fill', () => {
