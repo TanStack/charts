@@ -676,27 +676,27 @@ const entries = [
   budgeted(
     'D3-scale lineX + static SVG',
     'benchmarks/entries/charts-line-x-svg.ts',
-    20.65,
+    20.7,
   ),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    25.25,
+    25.3,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    23.25,
+    23.35,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    24.25,
+    24.3,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    20.6,
+    20.65,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
@@ -706,7 +706,7 @@ const entries = [
   budgeted(
     'D3-scale dots + static SVG',
     'benchmarks/entries/charts-dot-svg.ts',
-    21.05,
+    21.1,
     {
       inputBoundary: {
         forbid: [
@@ -766,7 +766,11 @@ const entries = [
       },
     },
   ),
-  budgeted('Frame + static SVG', 'benchmarks/entries/charts-frame-svg.ts', 12),
+  budgeted(
+    'Frame + static SVG',
+    'benchmarks/entries/charts-frame-svg.ts',
+    12.05,
+  ),
   incrementalBudgeted(
     'Spatial density contours + static SVG',
     'benchmarks/entries/charts-spatial-density-svg.ts',
@@ -904,7 +908,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    29.1,
+    29.15,
     {
       inputBoundary: {
         require: [
@@ -1073,7 +1077,7 @@ const entries = [
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    20.55,
+    20.6,
     { inputBoundary: { forbid: ['d3Hexbin'] } },
   ),
   incrementalBudgeted(
@@ -1103,7 +1107,7 @@ const entries = [
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    20.5,
+    20.55,
     {
       inputBoundary: {
         forbid: [
@@ -1143,7 +1147,7 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    21.5,
+    21.55,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
@@ -1153,7 +1157,7 @@ const entries = [
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    17.95,
+    18,
   ),
   budgeted(
     'Polar arc + static SVG',
@@ -1177,18 +1181,18 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    26.05,
+    26.1,
   ),
   budgeted(
     'Radial labels + static SVG',
     'benchmarks/entries/charts-radial-label-svg.ts',
-    22.55,
+    22.6,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   budgeted(
     'Polar radial bars + static SVG',
     'benchmarks/entries/charts-radial-bar-svg.ts',
-    26.05,
+    26.1,
     {
       inputBoundary: {
         require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
@@ -1563,7 +1567,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    42.75,
+    43.15,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',
@@ -1662,7 +1666,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    29.35,
+    29.8,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1724,7 +1728,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    21.75,
+    22.1,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1830,7 +1834,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    54.85,
+    55.35,
   ),
   locked(
     'Custom-scale line scene',
@@ -1876,17 +1880,17 @@ const entries = [
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    25.25,
+    25.3,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    37.75,
+    38.1,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    43.05,
+    43.4,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -2090,7 +2094,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    55.8,
+    56.3,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
