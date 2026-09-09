@@ -1,5 +1,12 @@
 # @tanstack/alpine-charts
 
+## 0.17.0
+
+### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
 ## 0.16.2
 
 ### Patch Changes

@@ -1,5 +1,101 @@
 # Changelog
 
+## 0.17.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Add physical per-corner and semantic value-end radii for Cartesian bar, rect,
+  and cell marks across SVG, Canvas, and React Native renderers.
+
+#### Patch Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Relayout DOM charts when a CSS-owned container height changes, including when
+  the chart uses a fixed width.
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Support React 18 and React 19 in the web React adapter peer dependencies, and
+  avoid layout-effect warnings when rendering either React entry point on the
+  server.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Support React 18 and React 19 in the web React adapter peer dependencies, and
+  avoid layout-effect warnings when rendering either React entry point on the
+  server.
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/react-native-charts
+
+#### Minor Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Add physical per-corner and semantic value-end radii for Cartesian bar, rect,
+  and cell marks across SVG, Canvas, and React Native renderers.
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
 ## 0.16.2
 
 ### @tanstack/charts

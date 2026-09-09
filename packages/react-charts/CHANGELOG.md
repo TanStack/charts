@@ -1,5 +1,15 @@
 # @tanstack/react-charts
 
+## 0.17.0
+
+### Patch Changes
+
+- [#142](https://github.com/TanStack/charts/pull/142) [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a) - Support React 18 and React 19 in the web React adapter peer dependencies, and
+  avoid layout-effect warnings when rendering either React entry point on the
+  server.
+- Updated dependencies [[`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a), [`b6f19c2`](https://github.com/TanStack/charts/commit/b6f19c2c23f5c301b0935a5d8e37d2553e4c944a)]:
+  - @tanstack/charts@0.17.0
+
 ## 0.16.2
 
 ### Patch Changes
