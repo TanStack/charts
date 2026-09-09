@@ -22,6 +22,104 @@ describe('keyed SVG reconciliation', () => {
     expect(container.querySelector('[data-ts-key="b"]')).not.toBeNull()
   })
 
+  it('replaces a keyed gradient type without leaving duplicate ids', () => {
+    const container = document.createElement('div')
+    reconcileChartSvg(
+      container,
+      '<svg><defs><linearGradient data-ts-key="gradient:fill" id="fill"><stop offset="0%" stop-color="red"/></linearGradient></defs></svg>',
+    )
+
+    reconcileChartSvg(
+      container,
+      '<svg><defs><radialGradient data-ts-key="gradient:fill" id="fill"><stop offset="0%" stop-color="blue"/></radialGradient></defs></svg>',
+      { duration: 100 },
+    )
+
+    expect(container.querySelector('linearGradient')).toBeNull()
+    expect(
+      container
+        .querySelector('radialGradient stop')
+        ?.getAttribute('stop-color'),
+    ).toBe('blue')
+    expect(container.querySelectorAll('[id="fill"]')).toHaveLength(1)
+  })
+
+  it('interpolates retained radial gradient focal coordinates', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><defs><radialGradient data-ts-key="gradient:fill" id="fill" fx="0%" fy="0%"/></defs></svg>',
+    )
+    const gradient = container.querySelector('radialGradient')
+
+    reconcileChartSvg(
+      container,
+      '<svg><defs><radialGradient data-ts-key="gradient:fill" id="fill" fx="100%" fy="50%"/></defs></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    expect(container.querySelector('radialGradient')).toBe(gradient)
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(gradient?.getAttribute('fx')).toBe('50%')
+    expect(gradient?.getAttribute('fy')).toBe('25%')
+    callbacks.shift()?.(100)
+    expect(gradient?.getAttribute('fx')).toBe('100%')
+    expect(gradient?.getAttribute('fy')).toBe('50%')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('keeps enter and exit fades for keyed tag switches outside defs', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><rect data-ts-key="shape" width="10" height="10"/></svg>',
+    )
+
+    reconcileChartSvg(
+      container,
+      '<svg><circle data-ts-key="shape" cx="5" cy="5" r="5"/></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    const rectangle = container.querySelector('rect')
+    const circle = container.querySelector('circle')
+    expect(rectangle).not.toBeNull()
+    expect(circle?.getAttribute('opacity')).toBe('0')
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(rectangle?.getAttribute('opacity')).toBe('0.5')
+    expect(circle?.getAttribute('opacity')).toBe('0.5')
+    callbacks.shift()?.(100)
+    expect(container.querySelector('rect')).toBeNull()
+    expect(circle?.hasAttribute('opacity')).toBe(false)
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
   it('reconciles one SVG fragment without touching sibling chart geometry', () => {
     const container = document.createElement('div')
     container.innerHTML =

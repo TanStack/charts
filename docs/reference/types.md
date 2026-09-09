@@ -252,7 +252,10 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `CrosshairLabelOptions`         | Guide label formatting, spacing, text, and halo paint                 |
 | `CrosshairMarkerOptions`        | Primary-coordinate marker geometry and paint                          |
 | `ChartTheme`                    | Foreground, muted, grid, background, and palette                      |
+| `ChartGradient`                 | Linear or radial chart-gradient resource union                        |
+| `ChartGradientBase`             | Shared gradient ID and stops                                          |
 | `ChartLinearGradient`           | Named linear-gradient resource                                        |
+| `ChartRadialGradient`           | Named radial-gradient resource                                        |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                          |
 | `ChartCurve`                    | Line and y-area path generation                                       |
 

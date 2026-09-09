@@ -66,6 +66,87 @@ describe('SVG scene renderer', () => {
       '<rect data-ts-key="legacy" x="60" y="10" width="20" height="20" rx="6"/>',
     )
   })
+
+  it('preserves the untyped linear gradient markup', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        gradients: [
+          {
+            id: 'legacy',
+            stops: [
+              { offset: 0, color: '#123456', opacity: 0.4 },
+              { offset: 1, color: '#abcdef' },
+            ],
+          },
+        ],
+      },
+      { ariaLabel: 'Legacy gradient', idPrefix: 'chart.one' },
+    )
+
+    expect(svg).toContain(
+      '<defs data-ts-key="gradients"><linearGradient data-ts-key="gradient:legacy" id="chartone-legacy" x1="0%" y1="100%" x2="0%" y2="0%"><stop data-ts-key="gradient:legacy:stop:0" offset="0%" stop-color="#123456" stop-opacity="0.4"/><stop data-ts-key="gradient:legacy:stop:1" offset="100%" stop-color="#abcdef"/></linearGradient></defs>',
+    )
+  })
+
+  it('renders radial gradients with inherited focal defaults', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        gradients: [
+          {
+            type: 'radial',
+            id: 'spot',
+            cx: 0.25,
+            cy: 0.75,
+            r: 1.5,
+            fx: -1,
+            stops: [{ offset: 0.5, color: '#123456', opacity: 0.6 }],
+          },
+          {
+            type: 'radial',
+            id: 'non-finite',
+            cx: Number.NaN,
+            cy: Number.POSITIVE_INFINITY,
+            r: Number.NEGATIVE_INFINITY,
+            fy: Number.NaN,
+            stops: [{ offset: Number.POSITIVE_INFINITY, color: '#abcdef' }],
+          },
+        ],
+      },
+      { ariaLabel: 'Radial gradient', idPrefix: 'chart.one' },
+    )
+
+    expect(svg).toContain(
+      '<radialGradient data-ts-key="gradient:spot" id="chartone-spot" cx="25%" cy="75%" r="100%" fx="0%" fy="75%"><stop data-ts-key="gradient:spot:stop:0" offset="50%" stop-color="#123456" stop-opacity="0.6"/></radialGradient>',
+    )
+    expect(svg).toContain(
+      '<radialGradient data-ts-key="gradient:non-finite" id="chartone-non-finite" cx="0%" cy="100%" r="0%" fx="0%" fy="0%"><stop data-ts-key="gradient:non-finite:stop:0" offset="100%" stop-color="#abcdef"/></radialGradient>',
+    )
+  })
+
+  it('clamps decreasing gradient stops forward without reordering colors', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        gradients: [
+          {
+            type: 'radial',
+            id: 'authored-order',
+            stops: [
+              { offset: 1, color: '#ff0000' },
+              { offset: 0, color: '#0000ff' },
+            ],
+          },
+        ],
+      },
+      { ariaLabel: 'Ordered gradient' },
+    )
+
+    expect(svg).toContain(
+      '<stop data-ts-key="gradient:authored-order:stop:0" offset="100%" stop-color="#ff0000"/><stop data-ts-key="gradient:authored-order:stop:1" offset="100%" stop-color="#0000ff"/>',
+    )
+  })
 })
 
 function testScene(): ChartScene {

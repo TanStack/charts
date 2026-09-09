@@ -596,14 +596,38 @@ export interface ChartGradientStop {
   opacity?: number
 }
 
-export interface ChartLinearGradient {
+export interface ChartGradientBase {
   id: string
+  stops: readonly ChartGradientStop[]
+}
+
+export interface ChartLinearGradient extends ChartGradientBase {
+  type?: 'linear'
   x1?: number
   y1?: number
   x2?: number
   y2?: number
-  stops: readonly ChartGradientStop[]
+  cx?: never
+  cy?: never
+  r?: never
+  fx?: never
+  fy?: never
 }
+
+export interface ChartRadialGradient extends ChartGradientBase {
+  type: 'radial'
+  cx?: number
+  cy?: number
+  r?: number
+  fx?: number
+  fy?: number
+  x1?: never
+  y1?: never
+  x2?: never
+  y2?: never
+}
+
+export type ChartGradient = ChartLinearGradient | ChartRadialGradient
 
 /** A scale-contributing mark that does not own interactive chart points. */
 export type DecorativeChartMark<
@@ -725,7 +749,7 @@ interface ChartSpecBase {
   /** Omit all Cartesian axes and grids. */
   guides?: boolean
   color?: ChartColorOptions
-  gradients?: readonly ChartLinearGradient[]
+  gradients?: readonly ChartGradient[]
   clip?: boolean
   margin?: number | Partial<ChartMargin>
   theme?: Partial<ChartTheme>
@@ -1535,7 +1559,7 @@ export interface ChartScene<
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
-  gradients: readonly ChartLinearGradient[]
+  gradients: readonly ChartGradient[]
   theme: ChartTheme
   controls?: readonly ChartHostControl[]
   focusGuides?: readonly SceneFocusGuide[]

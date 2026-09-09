@@ -20,6 +20,7 @@ import type {
   ChartBounds,
   ChartMarkStateTransition,
   ChartPoint,
+  ChartRadialGradient,
   ChartRuntime,
   ChartScene,
   ChartValue,
@@ -134,6 +135,21 @@ interface ScenePainter {
   scene: ChartScene
   Path: typeof Path2D | undefined
   font: FontState
+}
+
+interface RadialFillPaint {
+  gradient: ChartRadialGradient
+  bounds: ChartBounds
+}
+
+interface FillTarget {
+  path?: Path2D
+  fillRule?: CanvasFillRule
+}
+
+interface ResolvedGradientStop {
+  offset: number
+  color: string
 }
 
 const defaultPaint: PaintState = {
@@ -1479,11 +1495,16 @@ function fillPath(
   bounds: ChartBounds | null,
   path: Path2D,
 ): void {
+  const radial = resolveRadialFill(painter, state.fill, bounds)
+  if (radial) {
+    fillObjectBoundingBoxRadial(painter, state, radial, { path })
+    return
+  }
   const fill = resolvePaint(painter, state.fill, bounds)
   if (!fill) return
   painter.context.globalAlpha = state.opacity * state.fillOpacity
   painter.context.fillStyle = fill
-  painter.context.fill(path)
+  fillTarget(painter.context, { path })
 }
 
 function strokePath(
@@ -1492,6 +1513,7 @@ function strokePath(
   bounds: ChartBounds | null,
   path: Path2D,
 ): void {
+  rejectRadialStroke(painter, state.stroke)
   const stroke = resolvePaint(painter, state.stroke, bounds)
   if (!stroke) return
   configureStroke(painter.context, state, stroke)
@@ -1504,12 +1526,16 @@ function fillCurrentPath(
   bounds: ChartBounds | null,
   fillRule?: CanvasFillRule,
 ): void {
+  const radial = resolveRadialFill(painter, state.fill, bounds)
+  if (radial) {
+    fillObjectBoundingBoxRadial(painter, state, radial, { fillRule })
+    return
+  }
   const fill = resolvePaint(painter, state.fill, bounds)
   if (!fill) return
   painter.context.globalAlpha = state.opacity * state.fillOpacity
   painter.context.fillStyle = fill
-  if (fillRule === undefined) painter.context.fill()
-  else painter.context.fill(fillRule)
+  fillTarget(painter.context, { fillRule })
 }
 
 function strokeCurrentPath(
@@ -1517,6 +1543,7 @@ function strokeCurrentPath(
   state: PaintState,
   bounds: ChartBounds | null,
 ): void {
+  rejectRadialStroke(painter, state.stroke)
   const stroke = resolvePaint(painter, state.stroke, bounds)
   if (!stroke) return
   configureStroke(painter.context, state, stroke)
@@ -1624,28 +1651,180 @@ function resolvePaint(
     (candidate) => candidate.id === match[1],
   )
   if (!gradient) return null
+  if (gradient.type === 'radial') {
+    if (!bounds) {
+      throw new Error(
+        `Canvas gradient "${gradient.id}" requires geometry with measurable bounds.`,
+      )
+    }
+    throw new Error(
+      `Canvas radial gradient "${gradient.id}" is supported for fills only.`,
+    )
+  }
   if (!bounds) {
     throw new Error(
       `Canvas gradient "${gradient.id}" requires geometry with measurable bounds.`,
     )
   }
   const canvasGradient = painter.context.createLinearGradient(
-    bounds.x + (gradient.x1 ?? 0) * bounds.width,
-    bounds.y + (gradient.y1 ?? 1) * bounds.height,
-    bounds.x + (gradient.x2 ?? 0) * bounds.width,
-    bounds.y + (gradient.y2 ?? 0) * bounds.height,
+    bounds.x + clampUnit(gradient.x1 ?? 0) * bounds.width,
+    bounds.y + clampUnit(gradient.y1 ?? 1) * bounds.height,
+    bounds.x + clampUnit(gradient.x2 ?? 0) * bounds.width,
+    bounds.y + clampUnit(gradient.y2 ?? 0) * bounds.height,
   )
-  for (const stop of gradient.stops) {
-    const color = painter.resolver.resolve(stop.color)
-    if (!color) continue
-    canvasGradient.addColorStop(
-      Math.max(0, Math.min(1, stop.offset)),
-      stop.opacity === undefined
-        ? color
-        : painter.resolver.withOpacity(color, stop.opacity),
-    )
+  for (const stop of resolveGradientStops(painter, gradient.stops)) {
+    canvasGradient.addColorStop(stop.offset, stop.color)
   }
   return canvasGradient
+}
+
+function resolveRadialFill(
+  painter: ScenePainter,
+  value: string | null,
+  bounds: ChartBounds | null,
+): RadialFillPaint | null {
+  const gradient = referencedGradient(painter, value)
+  if (!gradient || gradient.type !== 'radial') return null
+  if (!bounds) {
+    throw new Error(
+      `Canvas gradient "${gradient.id}" requires geometry with measurable bounds.`,
+    )
+  }
+  return { gradient, bounds }
+}
+
+function rejectRadialStroke(painter: ScenePainter, value: string | null): void {
+  const gradient = referencedGradient(painter, value)
+  if (gradient?.type !== 'radial') return
+  throw new Error(
+    `Canvas radial gradient "${gradient.id}" is supported for fills only.`,
+  )
+}
+
+function referencedGradient(painter: ScenePainter, value: string | null) {
+  if (!value) return null
+  const match = /^url\(#([^)]+)\)$/.exec(value)
+  if (!match) return null
+  return (
+    painter.scene.gradients.find((candidate) => candidate.id === match[1]) ??
+    null
+  )
+}
+
+function fillObjectBoundingBoxRadial(
+  painter: ScenePainter,
+  state: PaintState,
+  paint: RadialFillPaint,
+  target: FillTarget,
+): void {
+  const bounds = normalizePaintBounds(paint.bounds)
+  if (!bounds || bounds.width === 0 || bounds.height === 0) return
+
+  const { gradient } = paint
+  const cx = clampUnit(gradient.cx ?? 0.5)
+  const cy = clampUnit(gradient.cy ?? 0.5)
+  const radius = clampUnit(gradient.r ?? 0.5)
+  const fx = clampUnit(gradient.fx ?? cx)
+  const fy = clampUnit(gradient.fy ?? cy)
+  const stops = resolveGradientStops(painter, gradient.stops)
+  if (!stops.length) return
+
+  if (stops.length === 1 || (radius === 0 && fx === cx && fy === cy)) {
+    painter.context.globalAlpha = state.opacity * state.fillOpacity
+    painter.context.fillStyle = stops[stops.length - 1]!.color
+    fillTarget(painter.context, target)
+    return
+  }
+  if (radius === 0) return
+
+  const { context } = painter
+  context.save()
+  try {
+    clipTarget(context, target)
+    context.transform(bounds.width, 0, 0, bounds.height, bounds.x, bounds.y)
+    const canvasGradient = context.createRadialGradient(
+      fx,
+      fy,
+      0,
+      cx,
+      cy,
+      radius,
+    )
+    for (const stop of stops) {
+      canvasGradient.addColorStop(stop.offset, stop.color)
+    }
+    context.globalAlpha = state.opacity * state.fillOpacity
+    context.fillStyle = canvasGradient
+    context.fillRect(0, 0, 1, 1)
+  } finally {
+    context.restore()
+  }
+}
+
+function resolveGradientStops(
+  painter: ScenePainter,
+  stops: ChartScene['gradients'][number]['stops'],
+): ResolvedGradientStop[] {
+  const resolved: ResolvedGradientStop[] = []
+  let minimumOffset = 0
+  for (const stop of stops) {
+    const offset = Math.max(minimumOffset, clampUnit(stop.offset))
+    minimumOffset = offset
+    const color = painter.resolver.resolve(stop.color)
+    if (!color) continue
+    resolved.push({
+      offset,
+      color:
+        stop.opacity === undefined
+          ? color
+          : painter.resolver.withOpacity(color, stop.opacity),
+    })
+  }
+  return resolved
+}
+
+function fillTarget(
+  context: CanvasRenderingContext2D,
+  target: FillTarget,
+): void {
+  if (target.path) {
+    if (target.fillRule === undefined) context.fill(target.path)
+    else context.fill(target.path, target.fillRule)
+  } else if (target.fillRule === undefined) context.fill()
+  else context.fill(target.fillRule)
+}
+
+function clipTarget(
+  context: CanvasRenderingContext2D,
+  target: FillTarget,
+): void {
+  if (target.path) {
+    if (target.fillRule === undefined) context.clip(target.path)
+    else context.clip(target.path, target.fillRule)
+  } else if (target.fillRule === undefined) context.clip()
+  else context.clip(target.fillRule)
+}
+
+function normalizePaintBounds(bounds: ChartBounds): ChartBounds | null {
+  if (
+    !Number.isFinite(bounds.x) ||
+    !Number.isFinite(bounds.y) ||
+    !Number.isFinite(bounds.width) ||
+    !Number.isFinite(bounds.height)
+  ) {
+    return null
+  }
+  return {
+    x: bounds.width < 0 ? bounds.x + bounds.width : bounds.x,
+    y: bounds.height < 0 ? bounds.y + bounds.height : bounds.y,
+    width: Math.abs(bounds.width),
+    height: Math.abs(bounds.height),
+  }
+}
+
+function clampUnit(value: number): number {
+  if (Number.isNaN(value)) return 0
+  return Math.max(0, Math.min(1, value))
 }
 
 function boundsForNode(node: Exclude<SceneNode, { kind: 'group' | 'label' }>) {

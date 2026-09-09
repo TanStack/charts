@@ -173,9 +173,13 @@ share a document.
 Set `clip: true` when marks should be clipped to the resolved plot rectangle.
 Clipping is a geometry policy, not a substitute for correct scale domains.
 
-Canvas consumes the same declared gradients and group clips. A Canvas gradient
-needs measurable node bounds; path-only geometry with no point bounds should
-use an explicit paint instead.
+SVG and React Native consume both linear and radial gradients for fills and
+strokes. Canvas consumes linear fills and strokes plus radial fills. It maps a
+radial fill through each shape's normalized bounds, so a non-square shape has
+the same `objectBoundingBox` ellipse as SVG, then clips the paint to the shape.
+A Canvas gradient needs measurable node bounds; path-only geometry with no
+point bounds should use an explicit paint instead. Canvas rejects radial
+strokes because the required nonuniform transform would distort stroke width.
 
 ## HTML tooltip styling
 

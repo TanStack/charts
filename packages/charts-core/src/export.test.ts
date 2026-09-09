@@ -50,7 +50,13 @@ describe('optional export', () => {
           ...linearAxes([0, 2], [0, 3]),
           gradients: [
             {
+              type: 'radial',
               id: 'trend',
+              cx: 0.35,
+              cy: 0.45,
+              r: 0.7,
+              fx: 0.2,
+              fy: 0.3,
               stops: [
                 { offset: 0, color: 'var(--trend-start)' },
                 { offset: 1, color: 'var(--trend-end)' },
@@ -84,6 +90,9 @@ describe('optional export', () => {
 
     const result = serializeChartSvg(container)
 
+    expect(result).toContain(
+      '<radialGradient data-ts-key="gradient:trend" id="trend" cx="35%" cy="45%" r="70%" fx="20%" fy="30%">',
+    )
     expect(result).toContain('stop-color="rgb(37, 99, 235)"')
     expect(result).toContain('stop-opacity="0.35"')
     readStyle.mockRestore()

@@ -1,15 +1,29 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import packageJson from '../package.json'
 import type {
+  ChartGradient as RootChartGradient,
+  ChartGradientBase as RootChartGradientBase,
+  ChartLinearGradient as RootChartLinearGradient,
+  ChartRadialGradient as RootChartRadialGradient,
   CreateDotLayoutOptions as RootCreateDotLayoutOptions,
   DotLayout as RootDotLayout,
   DotLayoutResolveContext as RootDotLayoutResolveContext,
 } from '@tanstack/charts'
 import type {
+  ChartGradient as UniversalChartGradient,
+  ChartGradientBase as UniversalChartGradientBase,
+  ChartLinearGradient as UniversalChartLinearGradient,
+  ChartRadialGradient as UniversalChartRadialGradient,
   CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
   DotLayout as UniversalDotLayout,
   DotLayoutResolveContext as UniversalDotLayoutResolveContext,
 } from '@tanstack/charts/universal'
+import type {
+  ChartGradient as TypesChartGradient,
+  ChartGradientBase as TypesChartGradientBase,
+  ChartLinearGradient as TypesChartLinearGradient,
+  ChartRadialGradient as TypesChartRadialGradient,
+} from '@tanstack/charts/types'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
 const specializedLoaderSpecifiers = new Set([
@@ -31,6 +45,75 @@ describe('public package exports', () => {
       RootDotLayout<'y', 'row'>
     >()
     expectTypeOf<UniversalDotLayoutResolveContext>().toEqualTypeOf<RootDotLayoutResolveContext>()
+  })
+
+  it('exports gradient resource types from every authoring barrel', () => {
+    expectTypeOf<UniversalChartGradient>().toEqualTypeOf<RootChartGradient>()
+    expectTypeOf<TypesChartGradient>().toEqualTypeOf<RootChartGradient>()
+    expectTypeOf<UniversalChartGradientBase>().toEqualTypeOf<RootChartGradientBase>()
+    expectTypeOf<TypesChartGradientBase>().toEqualTypeOf<RootChartGradientBase>()
+    expectTypeOf<UniversalChartLinearGradient>().toEqualTypeOf<RootChartLinearGradient>()
+    expectTypeOf<TypesChartLinearGradient>().toEqualTypeOf<RootChartLinearGradient>()
+    expectTypeOf<UniversalChartRadialGradient>().toEqualTypeOf<RootChartRadialGradient>()
+    expectTypeOf<TypesChartRadialGradient>().toEqualTypeOf<RootChartRadialGradient>()
+
+    const gradients: readonly RootChartGradient[] = [
+      { id: 'legacy', stops: [] },
+      { type: 'linear', id: 'linear', x1: 0, stops: [] },
+      { type: 'radial', id: 'radial', cx: 0.5, stops: [] },
+    ]
+    expect(gradients.map((gradient) => gradient.id)).toEqual([
+      'legacy',
+      'linear',
+      'radial',
+    ])
+
+    const radialGradient: RootChartRadialGradient = {
+      type: 'radial',
+      id: 'radial',
+      stops: [],
+    }
+    const legacyLinearGradient: RootChartLinearGradient = {
+      id: 'legacy',
+      stops: [],
+    }
+    const explicitLinearGradient: RootChartLinearGradient = {
+      type: 'linear',
+      id: 'linear',
+      stops: [],
+    }
+    if (false) {
+      // @ts-expect-error Radial gradients do not accept x1.
+      radialGradient.x1 = 0
+      // @ts-expect-error Radial gradients do not accept y1.
+      radialGradient.y1 = 0
+      // @ts-expect-error Radial gradients do not accept x2.
+      radialGradient.x2 = 1
+      // @ts-expect-error Radial gradients do not accept y2.
+      radialGradient.y2 = 1
+
+      // @ts-expect-error Untyped linear gradients do not accept cx.
+      legacyLinearGradient.cx = 0.5
+      // @ts-expect-error Untyped linear gradients do not accept cy.
+      legacyLinearGradient.cy = 0.5
+      // @ts-expect-error Untyped linear gradients do not accept r.
+      legacyLinearGradient.r = 0.5
+      // @ts-expect-error Untyped linear gradients do not accept fx.
+      legacyLinearGradient.fx = 0.5
+      // @ts-expect-error Untyped linear gradients do not accept fy.
+      legacyLinearGradient.fy = 0.5
+
+      // @ts-expect-error Explicit linear gradients do not accept cx.
+      explicitLinearGradient.cx = 0.5
+      // @ts-expect-error Explicit linear gradients do not accept cy.
+      explicitLinearGradient.cy = 0.5
+      // @ts-expect-error Explicit linear gradients do not accept r.
+      explicitLinearGradient.r = 0.5
+      // @ts-expect-error Explicit linear gradients do not accept fx.
+      explicitLinearGradient.fx = 0.5
+      // @ts-expect-error Explicit linear gradients do not accept fy.
+      explicitLinearGradient.fy = 0.5
+    }
   })
 
   it('resolves every manifest capability subpath supported by the generic loader', async () => {

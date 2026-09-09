@@ -30,6 +30,71 @@ const rows = [
 ]
 
 describe('SVG motion', () => {
+  it('replaces a gradient resource type synchronously without duplicate ids', () => {
+    const makeScene = (gradient: ChartScene['gradients'][number]) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            dot([{ x: 1, y: 1 }], {
+              x: 'x',
+              y: 'y',
+              r: 20,
+              fill: 'url(#spot)',
+            }),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 2]) },
+            y: { scale: scaleLinear().domain([0, 2]) },
+          },
+          gradients: [gradient],
+          guides: false,
+        }),
+        { width: 200, height: 120 },
+      )
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(
+      makeScene({
+        id: 'spot',
+        stops: [
+          { offset: 0, color: '#ffffff' },
+          { offset: 1, color: '#000000' },
+        ],
+      }),
+      { ariaLabel: 'Gradient type motion' },
+    )
+
+    surface.render(
+      makeScene({
+        type: 'radial',
+        id: 'spot',
+        cx: 0.4,
+        cy: 0.6,
+        r: 0.7,
+        fx: 0.2,
+        fy: 0.3,
+        stops: [
+          { offset: 0, color: '#ffffff' },
+          { offset: 1, color: '#000000' },
+        ],
+      }),
+      { ariaLabel: 'Gradient type motion' },
+    )
+
+    expect(container.querySelector('linearGradient')).toBeNull()
+    const radial = container.querySelector('radialGradient')
+    expect(radial?.getAttribute('cx')).toBe('40%')
+    expect(radial?.getAttribute('cy')).toBe('60%')
+    expect(radial?.getAttribute('r')).toBe('70%')
+    expect(radial?.getAttribute('fx')).toBe('20%')
+    expect(radial?.getAttribute('fy')).toBe('30%')
+    expect(container.querySelectorAll('[id="spot"]')).toHaveLength(1)
+    surface.destroy()
+  })
+
   it('maps client coordinates through the rendered SVG transform', () => {
     const scene = createChartScene(
       defineChart({

@@ -195,7 +195,7 @@ interface ChartScene<
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
-  gradients: readonly ChartLinearGradient[]
+  gradients: readonly ChartGradient[]
   theme: ChartTheme
   focusGuides?: readonly SceneFocusGuide[]
 }
@@ -210,7 +210,7 @@ interface ChartScene<
 | `points`          | Complete interaction set, including viewport-clipped points      |
 | `scales`          | Resolved positional scales, normally under `x` and `y`           |
 | `colors`          | Resolved chart color scale                                       |
-| `gradients`       | Declared linear-gradient resources                               |
+| `gradients`       | Declared linear and radial gradient resources                    |
 | `theme`           | Fully resolved theme                                             |
 | `focusGuides`     | Optional data-less guide descriptors resolved from current focus |
 
