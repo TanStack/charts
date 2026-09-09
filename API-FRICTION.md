@@ -8856,9 +8856,16 @@ Each entry records:
   categorical labels and indicators while retaining chart-owned measurement
   and wrapping. The separate factory keeps its machinery out of default legend
   bundles. Keep the equal-column layout as the default. Compact start and center
-  layouts use the chart host's configured text measurer. Indicator callbacks
-  receive resolved color-scale items and a measured bounds box.
+  layouts use the chart host's configured text measurer, including painted
+  glyph bearings. Treat the opaque presentation contravariantly so a callback
+  that accepts a broader domain is safe, while a narrower callback cannot be
+  attached to a broader legend. Indicator callbacks receive resolved
+  color-scale items and a measured bounds box. A line-dot center uses the
+  concrete chart background or the host's semantic `Canvas` color.
 - Verification: focused layout, measurement, renderer, type, and mixed-mark
-  tests cover compact wrapping, per-series symbols, resolved label paint, and
-  custom scene indicators. The composed and pie catalog examples use the
-  built-in legend instead of application-owned layout.
+  tests cover compact wrapping, positive and negative LTR and RTL glyph
+  bearings, whole-record fallback for each invalid metric field, safe generic
+  variance, empty and quantitative domains, per-series symbols, light and dark
+  line-dot centers, resolved label paint, and single-node and multi-node custom
+  indicators. The composed and pie catalog examples use the built-in legend
+  instead of application-owned layout.

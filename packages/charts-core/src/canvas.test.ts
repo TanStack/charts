@@ -85,6 +85,37 @@ afterEach(() => {
 })
 
 describe('Canvas renderer', () => {
+  it('resolves the Canvas system paint against a dark host', () => {
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      color: 'rgb(15, 23, 42)',
+    } as CSSStyleDeclaration)
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(
+      scene([
+        {
+          kind: 'dot',
+          key: 'hollow-center',
+          x: 20,
+          y: 20,
+          radius: 4,
+          style: { fill: 'Canvas' },
+        },
+      ]),
+      renderOptions(),
+    )
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.operations).toContain('fill:rgb(15, 23, 42):1')
+
+    surface.destroy()
+  })
+
   it('paints authored caps and joins for both line directions', () => {
     const scene = createChartScene(
       defineChart({

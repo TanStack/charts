@@ -67,8 +67,8 @@ export interface ColorLegendItemOptions<TValue extends ChartKey = ChartKey> {
 
 declare const colorLegendItemsBrand: unique symbol
 
-export interface ColorLegendItems<TValue extends ChartKey = ChartKey> {
-  readonly [colorLegendItemsBrand]: TValue
+export interface ColorLegendItems<in TValue extends ChartKey = ChartKey> {
+  readonly [colorLegendItemsBrand]: unknown
 }
 
 export interface ColorLegendOptions<TValue extends ChartKey = ChartKey> {
@@ -156,7 +156,11 @@ export function colorLegendItems<TValue extends ChartKey = ChartKey>(
         {
           kind: 'label',
           key: `legend-label:${item.key}`,
-          x: indicatorBounds.x + indicatorBounds.width + indicatorGap,
+          x:
+            indicatorBounds.x +
+            indicatorBounds.width +
+            indicatorGap -
+            item.textX,
           y,
           text: item.label,
           anchor: physicalTextAnchor('left', direction),
@@ -348,6 +352,7 @@ interface ResolvedCategoricalLegendItem<TValue extends ChartKey> {
   value: TValue
   label: string
   context: ColorLegendItemContext
+  textX: number
   width: number
 }
 
@@ -418,6 +423,7 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
     return {
       ...item,
       context: itemContext,
+      textX: measured.x,
       width: indicatorWidth + indicatorGap + measured.width,
     }
   })
@@ -522,7 +528,7 @@ function renderCategoricalLegendIndicator<TValue extends ChartKey>(
         y: centerY,
         radius,
         style: {
-          fill: background === 'transparent' ? '#fff' : background,
+          fill: background === 'transparent' ? 'Canvas' : background,
           stroke: context.color,
           strokeWidth: Math.min(2, radius),
         },

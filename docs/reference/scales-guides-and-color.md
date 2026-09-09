@@ -658,7 +658,7 @@ declare function colorLegendItems<TValue extends ChartKey = ChartKey>(
 ): ColorLegendItems<TValue>
 
 // Opaque presentation returned by colorLegendItems().
-interface ColorLegendItems<TValue extends ChartKey = ChartKey> {}
+interface ColorLegendItems<in TValue extends ChartKey = ChartKey> {}
 
 interface ColorLegendItemContext {
   color: string
@@ -721,7 +721,13 @@ item edge.
 the label. A custom `render` callback receives the categorical value plus
 `{ bounds, color, index, label }`; the built-in legend still measures, wraps,
 and positions the item. Label `fill` callbacks receive the same resolved color
-and formatted label.
+and formatted label. A line-dot center uses the chart background, or the host's
+`Canvas` color when that background is transparent, so it remains hollow on
+light and dark hosts.
+
+An item presentation can handle the same value type as its legend or a broader
+one. TypeScript rejects a narrower presentation because its callbacks could
+otherwise receive a value they do not accept.
 
 Continuous scales render a sampled ramp. Quantize, quantile, and threshold
 scales render exact range bins at their resolved thresholds. `width` and the
