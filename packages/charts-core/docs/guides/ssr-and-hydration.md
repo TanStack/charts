@@ -35,6 +35,10 @@ The server cannot measure a container. Supply one of these policies:
 - `initialWidth` and `height` for a responsive chart;
 - `initialWidth` and `aspectRatio` when height should follow width.
 
+When CSS owns height and neither height option is present, server output uses
+the `320` fallback. The browser adopts the positive measured container height
+after mounting. Supply `height` when exact server height matters.
+
 ```tsx
 <Chart
   definition={trafficChart}
@@ -46,8 +50,8 @@ The server cannot measure a container. Supply one of these policies:
 
 The adapter uses an explicit `width` before `initialWidth` when deriving the
 server height. After mounting, a responsive host observes the container and
-renders at its measured width. Pick an `initialWidth` close to the layout's
-common size to minimize the first responsive adjustment.
+renders at its measured width and any CSS-owned height. Pick an `initialWidth`
+close to the layout's common size to minimize the first responsive adjustment.
 
 See [Responsive Charts](./responsive-charts.md) for the complete size policy.
 

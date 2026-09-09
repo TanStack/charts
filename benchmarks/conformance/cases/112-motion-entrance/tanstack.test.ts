@@ -109,6 +109,41 @@ describe('declarative entrance motion', () => {
     expect(readChartMotionState(root)).toBe('finished')
     requestFrame.mockRestore()
 
+    let animationPending = true
+    Object.defineProperty(root, 'getAnimations', {
+      configurable: true,
+      value: vi.fn(() => [
+        {
+          get pending() {
+            return animationPending
+          },
+          playState: 'paused',
+        },
+      ]),
+    })
+    const animationRequestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        nextFrame = callback
+        return 1
+      })
+    settled = false
+    const pendingAnimation = settleChartMotion(root, 1_000).then(() => {
+      settled = true
+    })
+
+    await Promise.resolve()
+    expect(settled).toBe(false)
+    expect(nextFrame).toBeTypeOf('function')
+
+    animationPending = false
+    nextFrame?.(window.performance.now())
+    await pendingAnimation
+
+    expect(settled).toBe(true)
+    Reflect.deleteProperty(root, 'getAnimations')
+    animationRequestFrame.mockRestore()
+
     svg.setAttribute('data-ts-motion-state', 'running')
     const clock = vi
       .spyOn(window.performance, 'now')

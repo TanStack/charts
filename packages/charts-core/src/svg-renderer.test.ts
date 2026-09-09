@@ -29,6 +29,43 @@ describe('SVG scene renderer', () => {
     )
     expect(svg).not.toContain('M99,99Z')
   })
+
+  it('renders selective radii as a path and preserves numeric rect radii', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        nodes: [
+          {
+            kind: 'rect',
+            key: 'selective',
+            x: 10,
+            y: 10,
+            width: 40,
+            height: 20,
+            cornerRadii: [8, 4, 0, 0],
+            style: { fill: '#2563eb' },
+          },
+          {
+            kind: 'rect',
+            key: 'legacy',
+            x: 60,
+            y: 10,
+            width: 20,
+            height: 20,
+            radius: 6,
+          },
+        ],
+      },
+      { ariaLabel: 'Rounded rectangles' },
+    )
+
+    expect(svg).toContain(
+      '<path data-ts-key="selective" fill="#2563eb" d="M18,10H46A4,4 0 0 1 50,14V30A0,0 0 0 1 50,30H10A0,0 0 0 1 10,30V18A8,8 0 0 1 18,10Z"/>',
+    )
+    expect(svg).toContain(
+      '<rect data-ts-key="legacy" x="60" y="10" width="20" height="20" rx="6"/>',
+    )
+  })
 })
 
 function testScene(): ChartScene {

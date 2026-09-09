@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "dea4d109a28ccf64c7744e34402fe5d8fc2ec7455277e71f5ab7595bb4e27f82",
+  "sourceHash": "78751d85909edc7b77859fefff45b1fc2575ee4c26ccb22db48c107c61e70e34",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -371,8 +371,8 @@
     },
     {
       "id": "84-pinned-nested-chart-tooltip",
-      "sha256": "9fa2d6d0965a4e6baef591c425d6eb341cebd0d37299342b6662a5a1db43c28e",
-      "bytes": 25352
+      "sha256": "82fa55860e9708a29873016898ae94654d6d29e6cf59355aed4bb066419592de",
+      "bytes": 26417
     },
     {
       "id": "85-scrollable-resource-lanes",
@@ -561,8 +561,8 @@
     },
     {
       "id": "121-active-bar-dashboard",
-      "sha256": "f30ba8a97d5a293637a0a0dc345324bdb3eeec2a391d00d81cd1b6363683469a",
-      "bytes": 12508
+      "sha256": "cff16a78c545f29e5c6208797697873b83770040bc5ba34de83151394603597a",
+      "bytes": 14539
     },
     {
       "id": "122-premium-kpi-sparklines",
@@ -711,8 +711,8 @@
     },
     {
       "id": "151-shadcn-bar-stacked",
-      "sha256": "481d635d087cd8d651b30fdde2678f658390bf73585642ba534bad5cd8c059bd",
-      "bytes": 5276
+      "sha256": "8f6ab9c06ccef62303ebdb16e026effecec7df07ec59f9a8ab4598e4b1f6ab03",
+      "bytes": 6144
     },
     {
       "id": "152-shadcn-line-default",

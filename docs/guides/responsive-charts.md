@@ -6,7 +6,8 @@ description: Size charts from their containers while preserving readable guides,
 TanStack Charts treats width and height differently:
 
 - width is normally measured from the chart container;
-- height is a product decision supplied as pixels or an aspect ratio;
+- height is a product decision supplied as pixels, an aspect ratio, or the
+  container's CSS height;
 - scale factories infer domains while configured instances retain fixed domains;
 - TanStack Charts copies those scales and assigns responsive pixel ranges.
 
@@ -16,8 +17,8 @@ card, a split pane, and a full-width report.
 ## Container-responsive width
 
 Omit `width` from `mountChart` or framework adapter options to follow the
-container. The shared DOM host observes the container and updates only when
-its measured width changes.
+container. The shared DOM host observes every container-owned dimension and
+updates when its measured width or height changes.
 
 ```ts
 const host = mountChart(element, {
@@ -45,12 +46,14 @@ Use one of these policies:
 
 - `height`: fixed product height in CSS pixels;
 - a positive, finite `aspectRatio`: derive height from the measured width;
-- neither: use the host default.
+- neither: follow a positive, finite CSS container height, falling back to the
+  host default of `320` until one is available.
 
 Do not supply both as competing policies. A fixed height is usually more stable
 for dashboards and scrolling pages. An aspect ratio is useful for editorial
 layouts where the chart should scale as one visual block. Invalid ratios fall
-back to the default height.
+back to container height. A fixed `width` does not disable height observation
+when CSS owns height.
 
 ## Automatic guide space
 

@@ -327,6 +327,40 @@ describe('scene interaction geometry', () => {
     expect(nearestScenePoint(scene, 100, 82, 48)?.key).toBe('rounded')
   })
 
+  it('respects each selective radius from the rendered rectangle', () => {
+    const rounded = point('selective', 100, 100)
+    const scene = testScene(
+      [
+        {
+          ...rect(rounded, 80, 80, 40, 40, 'geometry'),
+          cornerRadii: [20, 0, 10, 0],
+        },
+      ],
+      [rounded],
+    )
+
+    expect(nearestScenePoint(scene, 82, 82, 48)).toBeNull()
+    expect(nearestScenePoint(scene, 118, 82, 48)?.key).toBe('selective')
+    expect(nearestScenePoint(scene, 118, 118, 48)).toBeNull()
+    expect(nearestScenePoint(scene, 100, 82, 48)?.key).toBe('selective')
+  })
+
+  it('measures selective-radius fallback from the matching corner arc', () => {
+    const rounded = point('selective', 100, 100)
+    const scene = testScene(
+      [
+        {
+          ...rect(rounded, 80, 80, 40, 40),
+          cornerRadii: [20, 0, 0, 0],
+        },
+      ],
+      [rounded],
+    )
+
+    expect(nearestScenePoint(scene, 82, 82, 5)).toBeNull()
+    expect(nearestScenePoint(scene, 82, 82, 6)?.key).toBe('selective')
+  })
+
   it('measures rounded-rectangle fallback from the curved boundary', () => {
     const rounded = point('rounded', 100, 100)
     const scene = testScene(

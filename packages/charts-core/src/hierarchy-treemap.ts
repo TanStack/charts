@@ -16,6 +16,10 @@ import {
 } from './hierarchy-flat-internal'
 import { channelValues, isChartKey, markStates, visualValue } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import {
+  markStatesMayUseCornerRadii,
+  resolveSceneRectRadius,
+} from './rect-radius-state-internal'
 import { valueKey } from './scales'
 import type {
   FlatHierarchyDatum,
@@ -209,6 +213,7 @@ export function treemap<TDatum>(
   assertNonnegativeFinite(paddingOuter, 'paddingOuter')
   const inset = options.inset ?? 0.75
   const labelPadding = options.labelPadding ?? 4
+  const stateMayUseCornerRadii = markStatesMayUseCornerRadii(options.states)
   assertNonnegativeFinite(inset, 'inset')
   assertNonnegativeFinite(labelPadding, 'labelPadding')
 
@@ -303,7 +308,10 @@ export function treemap<TDatum>(
                   y: cell.y0 + inset,
                   width: Math.max(0, cell.x1 - cell.x0 - inset * 2),
                   height: Math.max(0, cell.y1 - cell.y0 - inset * 2),
-                  radius: options.radius,
+                  ...resolveSceneRectRadius(
+                    options.radius,
+                    stateMayUseCornerRadii,
+                  ),
                   inset,
                   insetAxis: 'xy',
                   interaction: { point },

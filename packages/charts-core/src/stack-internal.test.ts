@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { stackExtents } from './stack-internal'
+import { stackExtents, stackValues } from './stack-internal'
+import { stackOuterEnds } from './stack-ends-internal'
 import { stackRowsX, stackRowsY } from './transform-stack'
 
 const rows = [
@@ -456,6 +457,65 @@ describe('diverging offset zero handling', () => {
     })
     expect(vertical[3]!.y1).toBeCloseTo(10)
     expect(vertical[3]!.y2).toBeCloseTo(10)
+  })
+})
+
+describe('stack end topology', () => {
+  it('keeps ordinary stack values limited to materialized extents', () => {
+    expect(
+      stackValues(['A', 'A'], [2, 3], ['First', 'Second'], {
+        order: ['First', 'Second'],
+      }),
+    ).toEqual({ starts: [0, 2], ends: [2, 5] })
+  })
+
+  it('finds the exposed positive and negative ends in resolved stack order', () => {
+    const outerEnds = stackOuterEnds(
+      ['A', 'A', 'A', 'A', 'B', 'B'],
+      [4, 2, -3, -2, 0, 5],
+      ['Query', 'Router', 'SQL', 'Vue', 'Query', 'Router'],
+      { order: ['Vue', 'Router', 'SQL', 'Query'] },
+      'index',
+    )
+
+    expect(outerEnds).toEqual([true, false, true, false, false, true])
+  })
+
+  it('skips absent and zero-valued series when finding a normalized outer end', () => {
+    const outerEnds = stackOuterEnds(
+      ['A', 'A', 'B', 'B'],
+      [2, 0, 3, 4],
+      ['First', 'Last', 'First', 'Middle'],
+      {
+        offset: 'normalize',
+        order: ['First', 'Middle', 'Last'],
+      },
+      'index',
+    )
+
+    expect(outerEnds).toEqual([true, false, false, true])
+  })
+
+  it('follows inside-out and reversed series order for exposed ends', () => {
+    const positions = rows.map((row) => row.position)
+    const values = rows.map((row) => row.value)
+    const series = rows.map((row) => row.series)
+    const forward = stackOuterEnds(positions, values, series, {
+      order: 'inside-out',
+      offset: 'wiggle',
+    })
+    const reversed = stackOuterEnds(positions, values, series, {
+      order: 'inside-out',
+      offset: 'wiggle',
+      reverse: true,
+    })
+
+    expect(
+      forward.flatMap((outer, index) => (outer ? [index] : [])),
+    ).toEqual([2, 5, 9, 13])
+    expect(
+      reversed.flatMap((outer, index) => (outer ? [index] : [])),
+    ).toEqual([0, 6, 10, 14])
   })
 })
 
