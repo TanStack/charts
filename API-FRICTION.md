@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-09-03
+Last updated: 2026-09-09
 
 ## Triage rule
 
@@ -2413,8 +2413,8 @@ Each entry records:
   Focused tests cover both modifier keys, unmodified passthrough while focused,
   horizontal-wheel pan, unconditional capture, bounds and zero deltas, grouped
   commits, cancellation, controlled updates, and mode-specific instructions.
-  The added policy and instructions bring the exact optional bundle to 20,957
-  bytes, or 20.47 KiB gzip, under a narrow 20.55 KiB cap without changing root
+  The added policy and instructions bring the exact optional bundle to 20,901
+  bytes, or 20.41 KiB gzip, under a narrow 20.55 KiB cap without changing root
   or universal consumers.
 - Scale-handle follow-up: cases 91 and 92 now use exact-subpath `handleX` in
   their ordinary definitions. The behavior maps ordered semantic candidates
