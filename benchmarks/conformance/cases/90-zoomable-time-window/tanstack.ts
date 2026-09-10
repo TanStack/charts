@@ -20,6 +20,7 @@ import {
   initialZoomWindow,
   selectZoomRows,
   visibleZoomData,
+  visibleZoomLineData,
   zoomDateFromAnchor,
   zoomDateKey,
   zoomSpanDays,
@@ -152,12 +153,12 @@ function zoomGeometry(
   const bounds = svg.getBoundingClientRect()
   const scaleX = bounds.width / scene.width
   const scaleY = bounds.height / scene.height
-  const points = visibleZoomData(zoomRows, window).map(
+  const visiblePoints = visibleZoomData(zoomRows, window).map(
     (row) =>
       [scene.scales.x.map(row.Date), scene.scales.y.map(row.Close)] as const,
   )
   if (query.role === 'dot') {
-    return points.map(([x, y]) => ({
+    return visiblePoints.map(([x, y]) => ({
       x: bounds.left + (x - 3.5) * scaleX,
       y: bounds.top + (y - 3.5) * scaleY,
       width: 7 * scaleX,
@@ -166,7 +167,12 @@ function zoomGeometry(
     }))
   }
   if (query.role !== 'line') return []
-  const sample = clientPointBounds(points, bounds, {
+  const linePoints = visibleZoomLineData(zoomRows, window).map(
+    (row) =>
+      [scene.scales.x.map(row.Date), scene.scales.y.map(row.Close)] as const,
+  )
+  if (linePoints.length < 2) return []
+  const sample = clientPointBounds(linePoints, bounds, {
     scaleX,
     scaleY,
     paint: color,

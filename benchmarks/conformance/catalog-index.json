@@ -6393,6 +6393,10 @@
               ]
             },
             {
+              "type": "screenshot",
+              "name": "fractional-boundary-line-continuity"
+            },
+            {
               "type": "wheel",
               "target": {
                 "view": "main",

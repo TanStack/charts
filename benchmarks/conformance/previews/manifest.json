@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "0d57c98df332cbbdaae0254f3bd0579b4547cc5f9bf2b1f5bc2923e3d09d3acb",
+  "sourceHash": "ab84d8b76b8e0c9ed480ccd16c43c0158893fc303cd76f4cc4acdba9eb5229cc",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -401,8 +401,8 @@
     },
     {
       "id": "90-zoomable-time-window",
-      "sha256": "0278fb0d29f8cf41fb2f3309b8d5850b525a14b2a701d78824d86afdd526ca5c",
-      "bytes": 3875
+      "sha256": "442a60e1a5a18d2226862b177d3c44fd75637104f0a2a9220c84cb33540f5490",
+      "bytes": 4050
     },
     {
       "id": "91-timeline-playback-scrubber",
