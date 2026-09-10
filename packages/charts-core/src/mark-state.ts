@@ -243,13 +243,30 @@ function applyStateStyle(
       const amount = nextInset - currentInset
       const insetX = output.insetAxis !== 'y' ? amount : 0
       const insetY = output.insetAxis !== 'x' ? amount : 0
+      const width = Math.max(0, output.width - insetX * 2)
+      const height = Math.max(0, output.height - insetY * 2)
+      const keepsSelectiveShape = output.cornerRadii !== undefined
+      const cornerRadii =
+        radius === undefined
+          ? output.cornerRadii
+          : typeof radius === 'number'
+            ? keepsSelectiveShape
+              ? ([radius, radius, radius, radius] as const)
+              : undefined
+            : radius
       output = {
         ...output,
         x: output.x + insetX + dx,
         y: output.y + insetY + dy,
-        width: Math.max(0, output.width - insetX * 2),
-        height: Math.max(0, output.height - insetY * 2),
-        radius: radius ?? output.radius,
+        width,
+        height,
+        radius:
+          radius === undefined
+            ? output.radius
+            : typeof radius === 'number' && !keepsSelectiveShape
+              ? radius
+              : undefined,
+        cornerRadii,
         inset: nextInset,
       }
       break

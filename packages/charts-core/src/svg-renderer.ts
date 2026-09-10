@@ -1,3 +1,4 @@
+import { number, escapeText, escapeAttribute } from './markup-internal'
 import type {
   ChartScene,
   RenderChartSvgOptions,
@@ -6,6 +7,11 @@ import type {
   ScenePolygon,
   SceneStyle,
 } from './types'
+import {
+  svgRenderChildren,
+  type SvgRenderChildren,
+} from './svg-render-context-internal'
+import { rectCornerRadiiPath } from './renderer-rect'
 
 export interface ChartSvgRenderHooks {
   renderDefinitions?: (scene: ChartScene, idPrefix: string) => string
@@ -46,15 +52,19 @@ export function renderChartSvgWithHooks(
           idPrefix,
         )
 
-  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks)}</svg>`
+  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks, svgRenderChildren(options))}</svg>`
 }
 
 export function renderSceneNodes(
   nodes: readonly SceneNode[],
   idPrefix = '',
   hooks?: ChartSvgRenderHooks,
+  children?: SvgRenderChildren,
 ): string {
-  return nodes.map((node) => renderNode(node, hooks, idPrefix)).join('')
+  let markup = ''
+  for (const node of nodes)
+    markup += renderNode(node, hooks, idPrefix, children)
+  return markup
 }
 
 export function renderFocusGuideLayer(
@@ -68,13 +78,14 @@ export function renderFocusGuideLayer(
 }
 
 const focusGuideRenderHooks: ChartSvgRenderHooks = {
-  renderGroup: renderFocusGuideClip,
+  renderGroup: renderSvgClip,
 }
 
 function renderNode(
   node: SceneNode,
   hooks: ChartSvgRenderHooks | undefined,
   idPrefix: string,
+  children?: SvgRenderChildren,
 ): string {
   const common = renderCommon(node, hooks, idPrefix)
 
@@ -88,19 +99,12 @@ function renderNode(
       const focus = node.focus
         ? ` data-ts-focus-layer="${node.focus.placement}"${node.focus.retarget ? ' data-ts-focus-retarget="true"' : ''} visibility="hidden"`
         : ''
-      return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${node.children.map((child) => renderNode(child, hooks, idPrefix)).join('')}</g>`
+      return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${renderSceneNodes(children?.(node) ?? node.children, idPrefix, hooks, children)}</g>`
     }
     case 'rule':
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`
     case 'polyline': {
-      const path =
-        node.path ??
-        node.points
-          .map(
-            ([x, y], index) =>
-              `${index === 0 ? 'M' : 'L'}${number(x)},${number(y)}`,
-          )
-          .join('')
+      const path = node.path ?? pointsPath(node.points, false)
       return `<path${common} d="${path}" vector-effect="non-scaling-stroke"/>`
     }
     case 'area': {
@@ -114,7 +118,9 @@ function renderNode(
     case 'dot':
       return `<circle${common} cx="${number(node.x)}" cy="${number(node.y)}" r="${number(node.radius)}"/>`
     case 'rect':
-      return `<rect${common} x="${number(node.x)}" y="${number(node.y)}" width="${number(node.width)}" height="${number(node.height)}"${node.radius === undefined ? '' : ` rx="${number(node.radius)}"`}/>`
+      return node.cornerRadii === undefined
+        ? `<rect${common} x="${number(node.x)}" y="${number(node.y)}" width="${number(node.width)}" height="${number(node.height)}"${node.radius === undefined ? '' : ` rx="${number(node.radius)}"`}/>`
+        : `<path${common} d="${rectCornerRadiiPath(node.x, node.y, node.width, node.height, node.cornerRadii)}"/>`
     case 'label': {
       const transform =
         node.rotate === undefined
@@ -156,7 +162,7 @@ function pointsPath(
     .join('')}${close ? 'Z' : ''}`
 }
 
-function renderFocusGuideClip(node: SceneGroup, idPrefix: string) {
+export function renderSvgClip(node: SceneGroup, idPrefix: string) {
   if (!node.clip) return undefined
   const prefix = idPrefix.replaceAll(/[^a-zA-Z0-9_-]/g, '')
   const id = `${prefix ? `${prefix}-` : ''}ts-chart-clip-${stableId(node.key)}`
@@ -193,39 +199,34 @@ function renderStyle(
   idPrefix: string,
 ): string {
   if (!style) return ''
-  const paint = (value: string | undefined) =>
-    value && hooks?.resolvePaint ? hooks.resolvePaint(value, idPrefix) : value
-  const attributes: [string, string | number | undefined][] = [
-    ['fill', paint(style.fill)],
-    ['fill-opacity', style.fillOpacity],
-    ['stroke', paint(style.stroke)],
-    ['stroke-opacity', style.strokeOpacity],
-    ['stroke-width', style.strokeWidth],
-    ['opacity', style.opacity],
-    ['stroke-linecap', style.lineCap],
-    ['stroke-linejoin', style.lineJoin],
-    ['stroke-dasharray', style.strokeDasharray],
-  ]
-  return attributes
-    .filter((entry): entry is [string, string | number] => entry[1] != null)
-    .map(
-      ([name, value]) =>
-        ` ${name}="${typeof value === 'number' ? number(value) : escapeAttribute(value)}"`,
-    )
-    .join('')
+  return (
+    renderAttribute('fill', paint(style.fill, hooks, idPrefix)) +
+    renderAttribute('fill-opacity', style.fillOpacity) +
+    renderAttribute('stroke', paint(style.stroke, hooks, idPrefix)) +
+    renderAttribute('stroke-opacity', style.strokeOpacity) +
+    renderAttribute('stroke-width', style.strokeWidth) +
+    renderAttribute('opacity', style.opacity) +
+    renderAttribute('stroke-linecap', style.lineCap) +
+    renderAttribute('stroke-linejoin', style.lineJoin) +
+    renderAttribute('stroke-dasharray', style.strokeDasharray)
+  )
 }
 
-function number(value: number): string {
-  return String(Math.round(value * 100) / 100)
+function paint(
+  value: string | undefined,
+  hooks: ChartSvgRenderHooks | undefined,
+  idPrefix: string,
+) {
+  return value && hooks?.resolvePaint
+    ? hooks.resolvePaint(value, idPrefix)
+    : value
 }
 
-function escapeText(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-}
-
-function escapeAttribute(value: string): string {
-  return escapeText(value).replaceAll('"', '&quot;')
+function renderAttribute(
+  name: string,
+  value: string | number | undefined,
+): string {
+  return value == null
+    ? ''
+    : ` ${name}="${typeof value === 'number' ? number(value) : escapeAttribute(value)}"`
 }

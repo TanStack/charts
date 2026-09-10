@@ -77,6 +77,27 @@ if (false) {
 }
 
 describe('React Canvas adapter', () => {
+  it('builds a client-only canvas scene once', async () => {
+    const getContext = mockCanvasContexts()
+    const build = vi.fn(() => definition)
+    const target = document.createElement('div')
+    const root = createRoot(target)
+    await act(async () =>
+      root.render(
+        <CanvasChart
+          definition={defineChart(build)}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+        />,
+      ),
+    )
+    expect(build).toHaveBeenCalledTimes(1)
+    expect(target.querySelector('.ts-chart-canvas__scene')).not.toBeNull()
+    await act(async () => root.unmount())
+    getContext.mockRestore()
+  })
+
   it('server-renders an accessible Canvas shell without using Canvas APIs', () => {
     const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext')
 

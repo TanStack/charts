@@ -8,6 +8,10 @@ import type {
   SceneNode,
   ScenePolygon,
 } from './types'
+import {
+  containsRectCornerRadii,
+  squaredDistanceToRectCornerRadii,
+} from './rect-radius-internal'
 
 type GeometricSceneNode = Exclude<SceneNode, { kind: 'group' | 'label' }>
 type InteractiveSceneNode = GeometricSceneNode & {
@@ -278,7 +282,17 @@ function containsTarget(target: SceneInteractionTarget, x: number, y: number) {
   const { node } = target
   switch (node.kind) {
     case 'rect':
-      return containsRoundedRect(node, localX, localY)
+      return node.cornerRadii === undefined
+        ? containsRoundedRect(node, localX, localY)
+        : containsRectCornerRadii(
+            node.x,
+            node.y,
+            node.width,
+            node.height,
+            node.cornerRadii,
+            localX,
+            localY,
+          )
     case 'dot': {
       const dx = localX - node.x
       const dy = localY - node.y
@@ -320,9 +334,20 @@ function distanceToTarget(
   let distance: number
   switch (node.kind) {
     case 'rect':
-      distance = node.radius
-        ? squaredDistanceToRoundedRect(node, localX, localY)
-        : squaredDistanceToBounds(node, localX, localY)
+      distance =
+        node.cornerRadii !== undefined
+          ? squaredDistanceToRectCornerRadii(
+              node.x,
+              node.y,
+              node.width,
+              node.height,
+              node.cornerRadii,
+              localX,
+              localY,
+            )
+          : node.radius
+            ? squaredDistanceToRoundedRect(node, localX, localY)
+            : squaredDistanceToBounds(node, localX, localY)
       break
     case 'dot': {
       const dx = localX - node.x

@@ -207,6 +207,14 @@ const node: SceneRect = {
 return { nodes: [node], points: [point] }
 ```
 
+For custom rectangle renderers, preserve `SceneRect.radius` as the uniform
+radius and consume `SceneRect.cornerRadii` in physical top-left, top-right,
+bottom-right, bottom-left order. Selective corners need equivalent path or
+native geometry in every renderer the mark supports. Import
+`resolveRectCornerRadii` and `rectCornerRadiiPath` from
+`@tanstack/charts/renderer/rect` to share the built-in normalization and path
+serialization.
+
 Use `x` for vertically oriented marks, `y` for horizontal marks, `xy` for
 ordinary two-dimensional proximity, and `geometry` when only exact
 containment should focus the mark. The default resolver checks containment
