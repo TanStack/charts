@@ -390,6 +390,11 @@ export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
 export interface ChartAxisLabelOptions {
   text: string
   offset?: number | 'auto'
+  fontSize?: number
+  fontWeight?: number
+  /** Text fill color. Defaults to the theme foreground. */
+  fill?: string
+  opacity?: number
   motion?: ChartMotionDefinition
 }
 
@@ -528,6 +533,7 @@ export interface ChartColorLegendContext {
   theme: ChartTheme
   width: number
   height: number
+  direction?: ChartTextTypography['direction']
 }
 
 export type ChartLegendPlacement = 'top' | 'bottom'
@@ -588,6 +594,17 @@ export interface ChartTheme {
   grid: string
   background: string
   palette: readonly string[]
+  /** Default presentation for the built-in primary-point focus ring. */
+  focusRing?: boolean | ChartFocusRingOptions
+}
+
+/** Paint and geometry for the built-in primary-point focus indicator. */
+export interface ChartFocusRingOptions {
+  radius?: number
+  fill?: string
+  /** Defaults to the focused point's resolved color. */
+  stroke?: string
+  strokeWidth?: number
 }
 
 export interface ChartGradientStop {
@@ -888,8 +905,8 @@ export interface ChartDefinitionOptions<
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  /** Shows the built-in primary-point focus ring. Defaults to true. */
-  focusRing?: boolean
+  /** Shows and optionally styles the built-in primary-point focus ring. Overrides the theme default. */
+  focusRing?: boolean | ChartFocusRingOptions
   /** Optional app-owned cursor shared by one or more chart definitions. */
   cursor?: ChartCursorBinding<
     NoInfer<TDatum>,
@@ -922,7 +939,7 @@ export interface ChartDefinitionOptions<
 interface StoredChartDefinitionOptions<TTooltipHost extends string = string> {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
-  focusRing?: boolean
+  focusRing?: boolean | ChartFocusRingOptions
   cursor?: ChartCursorBinding<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   svgAnimation?: boolean | ChartAnimationOptions
@@ -1393,6 +1410,7 @@ export interface SceneFocusGuide {
   projectY?: (value: ChartValue) => number | undefined
   motion?: ChartMotionDefinition<never>
   measureText?: ChartTextMeasurer
+  direction?: ChartTextTypography['direction']
   /** Facet-owned point-key prefix. Omitted for a top-level guide. */
   scope?: string
   /** Resolves this guide's dynamic presentation without retaining its implementation in every renderer bundle. */
@@ -1537,6 +1555,7 @@ export interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  direction?: ChartTextTypography['direction']
   controls?: readonly ChartHostControl[]
   focusGuides?: readonly SceneFocusGuide[]
 }

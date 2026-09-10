@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ColorValue } from 'react-native'
+import { Platform, type ColorValue } from 'react-native'
 import {
   Circle,
   ClipPath,
@@ -49,6 +49,7 @@ export function NativeChartSceneNodes({
   nodes,
   color,
   focusFill,
+  direction,
   fontScale,
   idPrefix,
   resolvePaint,
@@ -72,7 +73,13 @@ export function NativeChartSceneNodes({
   return (
     <>
       {nodes.map((node) =>
-        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+        renderSceneNode(
+          node,
+          idPrefix,
+          paint,
+          positiveFinite(fontScale, 1),
+          direction,
+        ),
       )}
     </>
   )
@@ -85,6 +92,7 @@ export const NativeChartScene = React.memo(function NativeChartScene({
   fontStyle,
   fontStretch,
   letterSpacing,
+  direction,
   fontScale,
   idPrefix,
   resolvePaint,
@@ -158,13 +166,31 @@ export const NativeChartScene = React.memo(function NativeChartScene({
         />
       )}
       {focusPresentation?.under.map((node) =>
-        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+        renderSceneNode(
+          node,
+          idPrefix,
+          paint,
+          positiveFinite(fontScale, 1),
+          direction,
+        ),
       )}
       {scene.nodes.map((node) =>
-        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+        renderSceneNode(
+          node,
+          idPrefix,
+          paint,
+          positiveFinite(fontScale, 1),
+          direction,
+        ),
       )}
       {focusPresentation?.over.map((node) =>
-        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+        renderSceneNode(
+          node,
+          idPrefix,
+          paint,
+          positiveFinite(fontScale, 1),
+          direction,
+        ),
       )}
     </Svg>
   )
@@ -175,13 +201,14 @@ function renderSceneNode(
   idPrefix: string,
   paint: (value: string) => ColorValue,
   fontScale: number,
+  direction: ChartTextTypography['direction'],
 ): React.ReactNode {
   if (node.kind === 'group' && node.focus) return null
   const style = nativeSceneStyle(node.style, paint)
 
   switch (node.kind) {
     case 'group':
-      return renderGroup(node, idPrefix, paint, style, fontScale)
+      return renderGroup(node, idPrefix, paint, style, fontScale, direction)
     case 'rule':
       return (
         <Line
@@ -255,9 +282,10 @@ function renderSceneNode(
         <Text
           key={node.key}
           {...style}
+          {...webTextDirection(direction)}
           x={node.x}
           y={node.y}
-          textAnchor={node.anchor}
+          textAnchor={resolveNativeTextAnchor(node.anchor, direction)}
           alignmentBaseline={
             node.baseline === 'auto' ? 'baseline' : node.baseline
           }
@@ -281,6 +309,7 @@ function renderGroup(
   paint: (value: string) => ColorValue,
   style: ReturnType<typeof nativeSceneStyle>,
   fontScale: number,
+  direction: ChartTextTypography['direction'],
 ) {
   const clipId = node.clip
     ? scopedId(idPrefix, `clip-${stableId(node.key)}`)
@@ -310,7 +339,7 @@ function renderGroup(
         </Defs>
       ) : null}
       {node.children.map((child) =>
-        renderSceneNode(child, idPrefix, paint, fontScale),
+        renderSceneNode(child, idPrefix, paint, fontScale, direction),
       )}
     </G>
   )
@@ -340,6 +369,19 @@ export function resolveNativeLineJoin(
   if (lineJoin === 'arcs') return 'round'
   if (lineJoin === 'miter-clip') return 'miter'
   return lineJoin
+}
+
+function resolveNativeTextAnchor(
+  anchor: Extract<SceneNode, { kind: 'label' }>['anchor'],
+  direction: ChartTextTypography['direction'],
+) {
+  if (Platform.OS === 'web' || direction !== 'rtl') return anchor
+  if (anchor === 'end') return 'start'
+  return anchor === 'middle' ? 'middle' : 'end'
+}
+
+function webTextDirection(direction: ChartTextTypography['direction']) {
+  return Platform.OS === 'web' && direction !== undefined ? { direction } : {}
 }
 
 function resolveScenePaint(

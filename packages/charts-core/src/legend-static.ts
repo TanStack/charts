@@ -2,6 +2,7 @@ import {
   layoutCategoricalLegendItems,
   resolveCategoricalLegendItems,
 } from './legend-layout-internal'
+import { physicalTextAnchor } from './guide-layout'
 import type {
   ChartColorLegend,
   ChartLegendPlacement,
@@ -56,7 +57,7 @@ export function colorLegend(
       if (isSteppedLegend(context.colors.kind)) {
         return renderSteppedLegend(options, context)
       }
-      const { colors, bounds, theme } = context
+      const { colors, bounds, theme, direction } = context
       const items = resolveCategoricalLegendItems(colors)
       const layout = layoutCategoricalLegendItems(
         items.length,
@@ -71,6 +72,7 @@ export function colorLegend(
           x: bounds.x,
           y: bounds.y + 11,
           text: options.label,
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 11,
           fontWeight: 600,
           style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -96,6 +98,7 @@ export function colorLegend(
             x: x + 13,
             y,
             text: item.label,
+            anchor: physicalTextAnchor('left', direction),
             baseline: 'middle',
             fontSize: 11,
             style: { fill: theme.foreground, fillOpacity: 0.76 },
@@ -130,7 +133,12 @@ function isQuantitativeLegend(
 
 function renderSteppedLegend(
   options: ColorLegendOptions,
-  { colors, bounds, theme }: Parameters<ChartColorLegend['render']>[0],
+  {
+    colors,
+    bounds,
+    theme,
+    direction,
+  }: Parameters<ChartColorLegend['render']>[0],
 ): SceneNode {
   const width = Math.min(bounds.width, Math.max(80, options.width ?? 240))
   const x = bounds.x
@@ -146,6 +154,7 @@ function renderSteppedLegend(
       x,
       y: bounds.y + 10,
       text: options.label,
+      anchor: physicalTextAnchor('left', direction),
       fontSize: 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -172,36 +181,36 @@ function renderSteppedLegend(
       ? thresholds.map((value, index) => ({
           value,
           index: index + 1,
-          anchor: 'middle' as const,
+          side: 'middle' as const,
         }))
       : [
           ...(typeof first === 'number'
-            ? [{ value: first, index: 0, anchor: 'start' as const }]
+            ? [{ value: first, index: 0, side: 'left' as const }]
             : []),
           ...thresholds.map((value, index) => ({
             value,
             index: index + 1,
-            anchor: 'middle' as const,
+            side: 'middle' as const,
           })),
           ...(typeof last === 'number'
             ? [
                 {
                   value: last,
                   index: colors.range.length,
-                  anchor: 'end' as const,
+                  side: 'right' as const,
                 },
               ]
             : []),
         ]
 
-  boundaries.forEach(({ value, index, anchor }) => {
+  boundaries.forEach(({ value, index, side }) => {
     children.push({
       kind: 'label',
       key: `legend-step-label:${index}:${value}`,
       x: x + index * itemWidth,
       y: y + 21,
       text: format(value),
-      anchor,
+      anchor: physicalTextAnchor(side, direction),
       fontSize: 10,
       style: { fill: theme.muted, fillOpacity: 0.72 },
     })
@@ -266,7 +275,7 @@ export function colorGradientLegend(
     height() {
       return options.label ? 55 : 42
     },
-    render({ colors, bounds, theme }) {
+    render({ colors, bounds, theme, direction }) {
       const first = colors.domain[0]
       const last = colors.domain.at(-1)
       if (typeof first !== 'number' || typeof last !== 'number') {
@@ -289,6 +298,7 @@ export function colorGradientLegend(
           x,
           y: bounds.y + 10,
           text: options.label,
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 11,
           fontWeight: 600,
           style: { fill: theme.foreground, fillOpacity: 0.78 },
@@ -314,7 +324,7 @@ export function colorGradientLegend(
           x,
           y: y + 21,
           text: format(first),
-          anchor: 'start',
+          anchor: physicalTextAnchor('left', direction),
           fontSize: 10,
           style: { fill: theme.muted, fillOpacity: 0.72 },
         },
@@ -324,7 +334,7 @@ export function colorGradientLegend(
           x: x + width,
           y: y + 21,
           text: format(last),
-          anchor: 'end',
+          anchor: physicalTextAnchor('right', direction),
           fontSize: 10,
           style: { fill: theme.muted, fillOpacity: 0.72 },
         },

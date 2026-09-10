@@ -93,6 +93,37 @@ Keep these responsibilities separate:
 For categorical or quantitative color mapping, use the canonical
 [Legends and Color](./legends-and-color.md) guide.
 
+## Axis title styling
+
+String axis titles use the chart foreground and built-in title typography.
+Use the object form when one title needs an explicit text color, opacity, size,
+weight, or offset:
+
+```ts
+const definition = defineChart({
+  marks,
+  scales: {
+    x: { scale: xScale, axis: { label: 'Month' } },
+    y: {
+      scale: yScale,
+      axis: {
+        label: {
+          text: 'Revenue (USD)',
+          fontSize: 14,
+          fontWeight: 700,
+          fill: '#2563eb',
+          opacity: 0.85,
+        },
+      },
+    },
+  },
+})
+```
+
+`fill` is the title's text color. The layout measures the configured font size
+and weight before resolving automatic guide margins, so larger titles do not
+need matching manual margins.
+
 ## Canvas styling
 
 The Canvas renderer resolves scene paints such as `currentColor` and CSS

@@ -5,11 +5,13 @@ import { d3Curve } from './d3-shape'
 import { lineX, lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
+import type { LineXOptions, LineYOptions } from './line'
 import type {
   ChartDefinition,
   ChartMark,
   SceneNode,
   ScenePolyline,
+  SceneStyle,
 } from './types'
 
 interface Row {
@@ -39,6 +41,75 @@ const rows: readonly Row[] = [
     enabled: true,
   },
 ]
+
+describe('line presentation', () => {
+  it('applies authored caps and joins to vertical and horizontal lines', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([4, 9], {
+            id: 'vertical',
+            lineCap: 'butt',
+            lineJoin: 'bevel',
+          }),
+          lineX([4, 9], {
+            id: 'horizontal',
+            lineCap: 'square',
+            lineJoin: 'miter-clip',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const lines = flatten(scene.nodes).filter(
+      (node): node is ScenePolyline => node.kind === 'polyline',
+    )
+    const svg = renderChartSvg(scene, { ariaLabel: 'Line presentation' })
+
+    expect(lines.map(({ style }) => style)).toEqual([
+      expect.objectContaining({ lineCap: 'butt', lineJoin: 'bevel' }),
+      expect.objectContaining({ lineCap: 'square', lineJoin: 'miter-clip' }),
+    ])
+    expect(svg).toContain('stroke-linecap="butt" stroke-linejoin="bevel"')
+    expect(svg).toContain(
+      'stroke-linecap="square" stroke-linejoin="miter-clip"',
+    )
+  })
+
+  it('keeps round caps and joins as the default', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([4, 9], { id: 'vertical' }),
+          lineX([4, 9], { id: 'horizontal' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear },
+          y: { scale: scaleLinear },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const lines = flatten(scene.nodes).filter(
+      (node): node is ScenePolyline => node.kind === 'polyline',
+    )
+    const svg = renderChartSvg(scene, {
+      ariaLabel: 'Default line presentation',
+    })
+
+    expect(lines.map(({ style }) => style)).toEqual([
+      expect.objectContaining({ lineCap: 'round', lineJoin: 'round' }),
+      expect.objectContaining({ lineCap: 'round', lineJoin: 'round' }),
+    ])
+    expect(
+      svg.match(/stroke-linecap="round" stroke-linejoin="round"/g),
+    ).toHaveLength(2)
+  })
+})
 
 describe('lineX mark', () => {
   it('transposes the implicit value and index channels from lineY', () => {
@@ -232,6 +303,24 @@ if (false) {
 
   expectTypeOf(numeric).toEqualTypeOf<ChartMark<Row, number, string>>()
   expectTypeOf(temporal).toEqualTypeOf<ChartMark<Row, number, Date>>()
+  expectTypeOf<LineYOptions<Row>['lineCap']>().toEqualTypeOf<
+    SceneStyle['lineCap']
+  >()
+  expectTypeOf<LineYOptions<Row>['lineJoin']>().toEqualTypeOf<
+    SceneStyle['lineJoin']
+  >()
+  expectTypeOf<LineXOptions<Row>['lineCap']>().toEqualTypeOf<
+    SceneStyle['lineCap']
+  >()
+  expectTypeOf<LineXOptions<Row>['lineJoin']>().toEqualTypeOf<
+    SceneStyle['lineJoin']
+  >()
+
+  // @ts-expect-error Line caps must use a renderer-supported scene value.
+  lineY(rows, { x: 'at', y: 'value', lineCap: 'flat' })
+
+  // @ts-expect-error Line joins must use a renderer-supported scene value.
+  lineX(rows, { x: 'value', y: 'at', lineJoin: 'sharp' })
 
   // @ts-expect-error Horizontal line values must be numeric.
   lineX(rows, { x: 'category', y: 'at' })

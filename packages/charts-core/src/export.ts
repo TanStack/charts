@@ -34,6 +34,7 @@ export function serializeChartSvg(
   const svg = resolveSvg(target)
   const clone = svg.cloneNode(true) as SVGSVGElement
   inlinePresentation(svg, clone)
+  inlineComputedDirection(svg, clone)
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
   if (!options.includeFocus) {
     clone
@@ -48,6 +49,14 @@ export function serializeChartSvg(
   const Serializer =
     svg.ownerDocument.defaultView?.XMLSerializer ?? XMLSerializer
   return new Serializer().serializeToString(clone)
+}
+
+function inlineComputedDirection(source: SVGSVGElement, clone: SVGSVGElement) {
+  const direction =
+    source.ownerDocument.defaultView?.getComputedStyle(source).direction
+  if (direction === 'ltr' || direction === 'rtl') {
+    clone.setAttribute('direction', direction)
+  }
 }
 
 export function downloadChartSvg(
