@@ -2,7 +2,7 @@ import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { loadTanStackSources } from '../../native-catalog'
 import { createExampleChart } from './tanstack'
-import type { SceneNode, SceneRule } from '@tanstack/charts'
+import type { SceneLabel, SceneNode, SceneRule } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
 const input = {
@@ -65,6 +65,36 @@ describe('native composed-chart bar sizing', () => {
     )
     expect(precipitationAxis?.x1).toBe(scene.chart.x + scene.chart.width)
     expect(windAxis?.x1).toBeGreaterThan(precipitationAxis?.x1 ?? Infinity)
+  })
+
+  it('styles each axis title through the chart definition', () => {
+    const titles = flatten(render(input).nodes).filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.endsWith('-label'),
+    )
+
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Temperature (°C)',
+          fontSize: 12,
+          fontWeight: 700,
+          style: { fill: '#8884d8', opacity: 0.8 },
+        }),
+        expect.objectContaining({
+          text: 'Precipitation (mm)',
+          fontSize: 12,
+          fontWeight: 700,
+          style: { fill: '#413ea0', opacity: 0.8 },
+        }),
+        expect.objectContaining({
+          text: 'Wind (m/s)',
+          fontSize: 12,
+          fontWeight: 700,
+          style: { fill: '#ef4444', opacity: 0.8 },
+        }),
+      ]),
+    )
   })
 
   it('does not hide responsive bar geometry outside the definition', async () => {

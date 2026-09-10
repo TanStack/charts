@@ -2392,8 +2392,10 @@
         "mixed marks",
         "independent y scales",
         "left axis and stacked right axes",
+        "styled axis titles",
         "daily observations",
         "monotone curves",
+        "butt line cap",
         "resolved maximum bar thickness"
       ],
       "geometry": [

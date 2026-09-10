@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-26
+Last updated: 2026-09-09
 
 ## Triage rule
 
@@ -334,6 +334,10 @@ Each entry records:
 | F-295 | Grouped tooltips did not identify the active series            | API                   | resolved   |
 | F-296 | CSS height changes did not relayout DOM charts                 | API/Documentation     | resolved   |
 | F-297 | Unified peer metadata rejected supported React releases        | API/Tooling           | resolved   |
+| F-298 | Line marks forced round endpoints                              | API                   | resolved   |
+| F-299 | Axis titles could not carry authored typography or paint       | API                   | resolved   |
+| F-300 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
+| F-301 | Physical axis sides depended on logical text direction         | API                   | resolved   |
 
 ## Findings
 
@@ -7322,7 +7326,7 @@ Each entry records:
   threshold generators, and consumer-called service methods as classified
   exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 778
+  functions, and values into nested package-owned types. It classifies all 803
   reachable callable surfaces, including Alpine's external directive protocol,
   Vue's nested tooltip slot, live-chart interaction and presentation service
   handles, cursor controllers and host sessions, focus-guide resolvers, the
@@ -7355,6 +7359,10 @@ Each entry records:
   supplies one stable context shape and all first-party examples use it.
 - Follow-up verification: transform regressions cover datum, index, and complete
   data; the public callback inventory and root TypeScript pass.
+- Follow-up verification: narrowing the public composable-responsive chart
+  callback exposed it as a separately reachable surface. It is classified as an
+  application callback with one `ChartBuildContext` object, and the full
+  803-surface inventory passes.
 
 ### F-239 — Example keys collapsed distinct source rows
 
@@ -8750,3 +8758,100 @@ Each entry records:
   without console warnings. The existing workspace suite continues to
   exercise React 19, and the full `pnpm validate` gate passes 288 test files and
   1,982 tests.
+
+### F-298 - Line marks forced round endpoints
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: migrating Rewardo's composed statistics chart from Recharts and
+  issue #119
+- Friction: `lineY` and `lineX` exposed stroke width, opacity, dash pattern,
+  and curve options, but hard-coded round caps and joins. Reproducing the
+  previous Recharts line, which inherited SVG's butt cap, required replacing
+  or patching rendered output.
+- Decision: expose `lineCap` and `lineJoin` on the shared line options using
+  the values from `SceneStyle`. Preserve round as the default for both options.
+- Verification: public type tests bind both line APIs to the scene renderer's
+  supported values. Scene, SVG, Canvas, motion, export, and React Native tests
+  preserve configured values. The Rewardo chart can use `lineCap: 'butt'` on
+  its existing pink `lineY` mark.
+
+### F-299 - Axis titles could not carry authored typography or paint
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: migrating Rewardo dashboard charts to TanStack Charts on the
+  `experimental-tanstack-charts` branch and issue #93
+- Friction: tick labels accepted font size, weight, and opacity, but
+  `axis.label` accepted only text, offset, and motion. Rewardo's 14-pixel chart
+  typography and foreground treatment therefore required a generated-node CSS
+  override that Canvas and React Native could not honor.
+- Decision: extend the existing axis-label object with `fontSize`,
+  `fontWeight`, `fill`, and `opacity`. Keep the string form and every omitted
+  object field on the existing defaults. Resolve the options into the shared
+  scene label so automatic guide measurement and every renderer use one
+  contract.
+- Verification: scene layout covers configured typography, paint, default
+  compatibility, automatic margins, and shared facet titles. SVG, Canvas,
+  React Native, and motion tests exercise the same public definition. The
+  composed weather catalog case uses independently styled titles on three y
+  axes without renderer callbacks or CSS selectors. The dedicated styled-title
+  fixture adds 94 minified bytes and 55 gzip bytes with no retained modules
+  over the ordinary line plus static SVG consumer.
+
+### F-300 - Focus ring paint required generated SVG selectors
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: Rewardo's TanStack Charts migration and issue #94
+- Friction: the built-in primary-point ring exposed only a boolean definition
+  option. Rewardo had to target `.ts-chart__focus-layer--default circle` to
+  reduce the fixed 5-pixel radius, tying application styling to generated SVG
+  structure and leaving Canvas and React Native without the same control.
+- Decision: extend `focusRing` to accept a reusable `ChartFocusRingOptions`
+  object with radius, stroke width, fill, and stroke on both chart definitions
+  and themes. Preserve `true`, `false`, and every existing default. An omitted
+  stroke keeps each point's resolved series color. An explicitly supplied
+  definition value takes precedence over the theme default. Composed views and
+  facets take that default from their outer host and reject child ownership
+  instead of silently discarding it while rebuilding the shared focus layer.
+- Verification: scene, SVG, Canvas, and React Native tests cover configured
+  geometry and paint, theme defaults, definition override and disable behavior,
+  invalid theme geometry, outer view propagation, rejected child ownership,
+  series-color fallback, keyboard focus, and hidden accessibility presentation.
+  The catalog's pointer-tooltip case uses the object form, and the reference
+  docs record the complete contract. Bundle boundaries pass without retaining
+  undeclared inputs, and the refreshed locked baseline records the reviewed
+  shared-path cost.
+
+### F-301 - Physical axis sides depended on logical text direction
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #117, with a right-side y axis inside an RTL host
+- Friction: automatic tick-label anchors encoded a physical outward placement
+  with logical `start` and `end` values that change sides under RTL. Browser
+  layout could therefore measure a right-axis label over the plot and reserve
+  no right gutter. Canvas paint, fallback measurement, exported SVG, and React
+  Native also disagreed about whether those values were logical or physical.
+- Decision: keep scene anchors logical, map every automatic physical text
+  placement through the resolved inline direction, and normalize at renderer
+  boundaries that do not support logical anchors. This covers Cartesian axes,
+  crosshair labels, static legends, and polar outside labels. Carry the
+  resolved direction with the scene so direct static SVG rendering preserves
+  the same layout. Explicit authored anchors retain their SVG meaning.
+- Verification: layout tests cover both y-axis sides, both rotated x-axis
+  directions, crosshair labels, categorical and quantitative legends, polar
+  outside labels, explicit anchors, and direct static SVG. Estimator, DOM
+  fallback, Canvas, SVG export, and React Native tests cover their
+  direction-specific boundaries. A Chromium reproduction with the issue's
+  data measures the same 51.24 px right gutter in LTR and RTL, keeps labels 8
+  px beyond the plot, and produces byte-identical LTR and RTL Canvas output.
+  A second Chromium pass confirms that direct static SVG matches the live
+  mount, the crosshair label stays 8 px left of the plot, quantitative legend
+  endpoints stay inside their physical bounds, and polar outside labels stay
+  8 px beyond both physical edges.

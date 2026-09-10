@@ -9,6 +9,70 @@ import { renderChartSvgWithResources } from './svg-resources'
 import { createSvgChartRenderer, svgChartRenderer } from './svg-surface'
 
 describe('SVG surface coordinates', () => {
+  it('paints a configured focus ring without exposing it to accessibility', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY([{ x: 1, y: 2 }], {
+            id: 'trend',
+            x: 'x',
+            y: 'y',
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
+        guides: false,
+        focusRing: {
+          radius: 4,
+          strokeWidth: 1.5,
+          fill: '#ffffff',
+          stroke: '#0f172a',
+        },
+      }),
+      { width: 200, height: 120 },
+    )
+    const point = scene.points[0]
+    if (!point) throw new Error('Expected a focus point')
+    const container = document.createElement('div')
+    const renderer = createSvgChartRenderer((currentScene, options) =>
+      renderChartSvg(currentScene, options).replaceAll(
+        '<circle ',
+        '<circle data-custom="true" ',
+      ),
+    )
+    const surface = renderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Configured focus ring' })
+    const svg = container.querySelector('svg')
+    const layer = container.querySelector<SVGGElement>(
+      '.ts-chart__focus-layer--default',
+    )
+
+    expect(svg?.getAttribute('role')).toBe('img')
+    expect(svg?.getAttribute('aria-label')).toBe('Configured focus ring')
+    expect(layer?.getAttribute('aria-hidden')).toBe('true')
+    expect(layer?.getAttribute('visibility')).toBe('hidden')
+    expect(layer?.querySelectorAll('circle')).toHaveLength(0)
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'keyboard',
+      pinned: false,
+    })
+
+    const ring = layer?.querySelector('circle')
+    expect(layer?.getAttribute('visibility')).toBe('visible')
+    expect(ring?.getAttribute('visibility')).toBe('visible')
+    expect(ring?.getAttribute('data-custom')).toBe('true')
+    expect(ring?.getAttribute('r')).toBe('4')
+    expect(ring?.getAttribute('fill')).toBe('#ffffff')
+    expect(ring?.getAttribute('stroke')).toBe('#0f172a')
+    expect(ring?.getAttribute('stroke-width')).toBe('1.5')
+    surface.destroy()
+  })
+
   it('creates only active default focus circles without replacing base marks', () => {
     const rows = Array.from({ length: 200 }, (_, x) => ({ x, y: x % 5 }))
     const scene = createChartScene(

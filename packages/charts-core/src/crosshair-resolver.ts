@@ -1,4 +1,4 @@
-import { measureSceneLabelBounds } from './guide-layout'
+import { measureSceneLabelBounds, physicalTextAnchor } from './guide-layout'
 import { valueKey } from './scales'
 import type {
   ChartBounds,
@@ -303,7 +303,7 @@ function resolveFocusGuide(
                 target.yValue,
                 guide.y.label.format,
               ),
-              anchor: 'end',
+              anchor: physicalTextAnchor('right', guide.direction),
               baseline: 'middle',
               fontSize: guide.y.label.fontSize,
               fontWeight: guide.y.label.fontWeight,

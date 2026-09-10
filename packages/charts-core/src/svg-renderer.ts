@@ -35,6 +35,10 @@ export function renderChartSvgWithHooks(
     ? `<desc>${escapeText(options.ariaDescription)}</desc>`
     : ''
   const definitions = hooks?.renderDefinitions?.(scene, idPrefix) ?? ''
+  const direction =
+    scene.direction === 'ltr' || scene.direction === 'rtl'
+      ? ` direction="${scene.direction}"`
+      : ''
   const background =
     scene.theme.background === 'transparent'
       ? ''
@@ -52,7 +56,7 @@ export function renderChartSvgWithHooks(
           idPrefix,
         )
 
-  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks, svgRenderChildren(options))}</svg>`
+  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}"${direction} style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks, svgRenderChildren(options))}</svg>`
 }
 
 export function renderSceneNodes(
@@ -105,7 +109,7 @@ function renderNode(
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`
     case 'polyline': {
       const path = node.path ?? pointsPath(node.points, false)
-      return `<path${common} d="${path}" vector-effect="non-scaling-stroke"/>`
+      return `<path${common} d="${escapeAttribute(path)}" vector-effect="non-scaling-stroke"/>`
     }
     case 'area': {
       const path =
@@ -113,7 +117,7 @@ function renderNode(
           ? polygonsPath(node.polygons)
           : (node.path ?? pointsPath(node.points, true))
       const fillRule = node.polygons === undefined ? '' : ' fill-rule="evenodd"'
-      return `<path${common} d="${path}"${fillRule} vector-effect="non-scaling-stroke"/>`
+      return `<path${common} d="${escapeAttribute(path)}"${fillRule} vector-effect="non-scaling-stroke"/>`
     }
     case 'dot':
       return `<circle${common} cx="${number(node.x)}" cy="${number(node.y)}" r="${number(node.radius)}"/>`

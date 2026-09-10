@@ -13,6 +13,7 @@ import {
   resolveViewLayoutInternal,
 } from './view-layout'
 import type {
+  ChartBuildContext,
   ChartMargin,
   ChartDefinition,
   ChartMotionDefinition,
@@ -73,6 +74,14 @@ type WithoutEmbeddedHostOptions<TDefinition> = Omit<
   [TOption in EmbeddedHostOption]?: never
 }
 
+type ComposableChartTheme = Omit<
+  Partial<ChartTheme>,
+  'background' | 'focusRing'
+> & {
+  background?: never
+  focusRing?: never
+}
+
 /** A chart definition that can be embedded without creating a second host. */
 export type ComposableStaticChartDefinition<
   TDatum = unknown,
@@ -83,7 +92,7 @@ export type ComposableStaticChartDefinition<
   'gradients' | 'theme'
 > & {
   gradients?: readonly []
-  theme?: Omit<Partial<ChartTheme>, 'background'> & { background?: never }
+  theme?: ComposableChartTheme
 }
 
 /** A responsive chart definition whose resolved spec can be embedded in a view. */
@@ -91,9 +100,16 @@ export type ComposableResponsiveChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> = WithoutEmbeddedHostOptions<
-  ResponsiveChartDefinition<TDatum, TXValue, TYValue>
->
+> = Omit<
+  WithoutEmbeddedHostOptions<
+    ResponsiveChartDefinition<TDatum, TXValue, TYValue>
+  >,
+  'chart'
+> & {
+  chart: (
+    context: ChartBuildContext,
+  ) => ComposableStaticChartDefinition<TDatum, TXValue, TYValue>
+}
 
 export type ComposableChartDefinition<
   TDatum = unknown,
@@ -203,6 +219,23 @@ type NamedViewXValue<TViews extends ViewDefinitions> = DefinitionXValue<
 type NamedViewYValue<TViews extends ViewDefinitions> = DefinitionYValue<
   NamedViewDefinition<TViews>
 >
+
+type InvalidResponsiveViewDefinition<TDefinition> =
+  TDefinition extends ResponsiveChartDefinition<any, any, any>
+    ? ReturnType<TDefinition['chart']> extends infer TResult
+      ? TResult extends { theme: infer TTheme }
+        ? 'focusRing' extends keyof TTheme
+          ? TResult
+          : never
+        : never
+      : never
+    : never
+
+type ValidResponsiveViewDefinitions<TDefinition> = [
+  InvalidResponsiveViewDefinition<TDefinition>,
+] extends [never]
+  ? unknown
+  : never
 
 type ValidViewLayout<
   TViews extends ViewDefinitions,
@@ -318,9 +351,10 @@ export function composeViews<
   const TViews extends ViewDefinitions,
   const TLayout extends ViewLayout<any, any>,
 >(
-  options: ComposeViewsOptions<TViews, TLayout> & {
-    layout: TLayout & ValidViewLayout<NoInfer<TViews>, TLayout>
-  },
+  options: ComposeViewsOptions<TViews, TLayout> &
+    ValidResponsiveViewDefinitions<NamedViewDefinition<TViews>> & {
+      layout: TLayout & ValidViewLayout<NoInfer<TViews>, TLayout>
+    },
 ): StaticChartDefinition<
   NamedViewDatum<TViews>,
   NamedViewXValue<TViews>,
@@ -355,7 +389,8 @@ export function viewGrid<
     TrackId<TColumns>
   >[],
 >(
-  options: ViewGridOptions<TRows, TColumns, TViews>,
+  options: ViewGridOptions<TRows, TColumns, TViews> &
+    ValidResponsiveViewDefinitions<ViewDefinition<TViews[number]>>,
 ): StaticChartDefinition<
   ViewDatum<TViews>,
   ViewXValue<TViews>,
@@ -756,6 +791,11 @@ function assertChildDefinition(
   if (definition.theme?.background !== undefined) {
     throw new TypeError(
       `View "${id}" cannot own a scene background; use an ordinary background mark inside the child definition`,
+    )
+  }
+  if (definition.theme?.focusRing !== undefined) {
+    throw new TypeError(
+      `View "${id}" cannot own a focus ring theme; configure theme.focusRing on the outer definition`,
     )
   }
   for (const axis of ['x', 'y'] as const) {

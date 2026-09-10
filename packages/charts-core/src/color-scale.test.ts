@@ -331,6 +331,55 @@ describe('continuous color', () => {
   })
 
   it.each([
+    { direction: 'ltr' as const, left: 'start', right: 'end' },
+    { direction: 'rtl' as const, left: 'end', right: 'start' },
+  ])(
+    'keeps automatic legend labels on their physical sides in $direction',
+    ({ direction, left, right }) => {
+      const categorical = createColorScale(
+        ['Alpha', 'Beta'],
+        {},
+        defaultChartTheme,
+      )
+      const stepped = createColorScale(
+        [0, 12],
+        {
+          scale: scaleQuantize<string>,
+          range: ['#eff6ff', '#93c5fd', '#1d4ed8'],
+        },
+        defaultChartTheme,
+      )
+      const continuous = createColorScale(
+        [10, 20],
+        { scale: scaleLinear<string>, range: ['#eff6ff', '#1d4ed8'] },
+        defaultChartTheme,
+      )
+
+      expect(
+        legendLabelAnchors(
+          colorLegend({ label: 'Category' }),
+          categorical,
+          direction,
+        ),
+      ).toEqual([left, left, left])
+      expect(
+        legendLabelAnchors(
+          colorLegend({ label: 'Intensity' }),
+          stepped,
+          direction,
+        ),
+      ).toEqual([left, left, 'middle', 'middle', right])
+      expect(
+        legendLabelAnchors(
+          colorGradientLegend({ label: 'Intensity', steps: 4 }),
+          continuous,
+          direction,
+        ),
+      ).toEqual([left, left, right])
+    },
+  )
+
+  it.each([
     {
       kind: 'quantize',
       colors: createColorScale(
@@ -403,6 +452,7 @@ describe('continuous color', () => {
 function renderLegend(
   legend: ReturnType<typeof colorLegend>,
   colors: ReturnType<typeof createColorScale>,
+  direction?: 'ltr' | 'rtl',
 ) {
   const node = legend.render({
     colors,
@@ -411,9 +461,20 @@ function renderLegend(
     theme: defaultChartTheme,
     width: 480,
     height: 320,
+    direction,
   })
   if (node.kind !== 'group') throw new Error('Expected a legend group')
   return node
+}
+
+function legendLabelAnchors(
+  legend: ReturnType<typeof colorLegend>,
+  colors: ReturnType<typeof createColorScale>,
+  direction: 'ltr' | 'rtl',
+) {
+  return renderLegend(legend, colors, direction)
+    .children.filter((child) => child.kind === 'label')
+    .map((child) => child.anchor)
 }
 
 function legendRects(
