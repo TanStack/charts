@@ -1277,6 +1277,213 @@ describe('native mark and channel scene', () => {
     }
   })
 
+  it('keeps empty guide style objects byte-equivalent to true', () => {
+    const makeScene = (styleObjects: boolean) => {
+      const axes = linearAxes([0, 2], [0, 3])
+      return createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2])],
+          scales: {
+            x: {
+              ...axes.scales.x,
+              grid: styleObjects ? {} : true,
+              axis: { line: styleObjects ? {} : true },
+            },
+            y: { ...axes.scales.y, grid: false, axis: false },
+          },
+        }),
+        { width: 480, height: 260 },
+      )
+    }
+    const legacy = makeScene(false)
+    const styled = makeScene(true)
+
+    expect(styled.nodes).toEqual(legacy.nodes)
+    expect(renderChartSvg(styled, { ariaLabel: 'Guide defaults' })).toBe(
+      renderChartSvg(legacy, { ariaLabel: 'Guide defaults' }),
+    )
+  })
+
+  it('styles each grid and only the axis baseline through guide options', () => {
+    const axes = linearAxes([0, 2], [0, 3])
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 3, 2])],
+        scales: {
+          x: {
+            ...axes.scales.x,
+            grid: {
+              stroke: '#2563eb',
+              strokeOpacity: 0.4,
+              strokeWidth: 2,
+              strokeDasharray: '4 2',
+              lineCap: 'round',
+            },
+            axis: {
+              line: {
+                stroke: '#0f172a',
+                strokeOpacity: 0,
+                strokeWidth: 0,
+                strokeDasharray: '6 2',
+                lineCap: 'square',
+              },
+              ticks: { values: [0, 1, 2] },
+            },
+          },
+          y: {
+            ...axes.scales.y,
+            grid: {
+              strokeOpacity: 0,
+              strokeWidth: 0,
+              strokeDasharray: '1 3',
+            },
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const nodes = flatten(scene.nodes)
+    const grid = nodes.find((node) => node.key === 'grid')
+    const xGridRules = nodes.filter((node) => node.key.startsWith('x-grid:'))
+    const yGridRules = nodes.filter((node) => node.key.startsWith('y-grid:'))
+    const xAxis = nodes.find((node) => node.key === 'x-axis')
+    const xTickRules = nodes.filter((node) =>
+      node.key.startsWith('x-tick-rule:'),
+    )
+
+    expect(grid?.style).toEqual({
+      stroke: 'currentColor',
+      strokeOpacity: 0.11,
+      strokeWidth: 1,
+    })
+    expect(xGridRules.length).toBeGreaterThan(0)
+    for (const rule of xGridRules) {
+      expect(rule.style).toEqual({
+        stroke: '#2563eb',
+        strokeOpacity: 0.4,
+        strokeWidth: 2,
+        strokeDasharray: '4 2',
+        lineCap: 'round',
+      })
+    }
+    expect(yGridRules.length).toBeGreaterThan(0)
+    for (const rule of yGridRules) {
+      expect(rule.style).toEqual({
+        strokeOpacity: 0,
+        strokeWidth: 0,
+        strokeDasharray: '1 3',
+      })
+    }
+    expect(xAxis?.style).toEqual({
+      stroke: '#0f172a',
+      strokeOpacity: 0,
+      strokeWidth: 0,
+      strokeDasharray: '6 2',
+      lineCap: 'square',
+    })
+    expect(xTickRules.length).toBeGreaterThan(0)
+    for (const rule of xTickRules) {
+      expect(rule.style).toEqual({
+        stroke: 'currentColor',
+        strokeOpacity: 0.28,
+      })
+    }
+
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, { ariaLabel: 'Styled guides' })
+    const xGrid = container.querySelector('[data-ts-key^="x-grid:"]')
+    const yGrid = container.querySelector('[data-ts-key^="y-grid:"]')
+    const baseline = container.querySelector('[data-ts-key="x-axis"]')
+    const tick = container.querySelector('[data-ts-key^="x-tick-rule:"]')
+
+    expect(xGrid?.getAttribute('stroke')).toBe('#2563eb')
+    expect(xGrid?.getAttribute('stroke-opacity')).toBe('0.4')
+    expect(xGrid?.getAttribute('stroke-width')).toBe('2')
+    expect(xGrid?.getAttribute('stroke-dasharray')).toBe('4 2')
+    expect(xGrid?.getAttribute('stroke-linecap')).toBe('round')
+    expect(yGrid?.getAttribute('stroke-opacity')).toBe('0')
+    expect(yGrid?.getAttribute('stroke-width')).toBe('0')
+    expect(yGrid?.getAttribute('stroke-dasharray')).toBe('1 3')
+    expect(baseline?.getAttribute('stroke')).toBe('#0f172a')
+    expect(baseline?.getAttribute('stroke-opacity')).toBe('0')
+    expect(baseline?.getAttribute('stroke-width')).toBe('0')
+    expect(baseline?.getAttribute('stroke-dasharray')).toBe('6 2')
+    expect(baseline?.getAttribute('stroke-linecap')).toBe('square')
+    expect(tick?.getAttribute('stroke')).toBe('currentColor')
+    expect(tick?.getAttribute('stroke-opacity')).toBe('0.28')
+    expect(tick?.hasAttribute('stroke-width')).toBe(false)
+    expect(tick?.hasAttribute('stroke-dasharray')).toBe(false)
+    expect(tick?.hasAttribute('stroke-linecap')).toBe(false)
+  })
+
+  it('reserves unlocked margins for thick guide strokes', () => {
+    const makeAxes = () => linearAxes([0, 1], [0, 1]).scales
+    const thickAxis = createChartScene(
+      defineChart({
+        marks: [lineY([0, 1])],
+        scales: {
+          x: {
+            ...makeAxes().x,
+            axis: {
+              line: { strokeWidth: 20, lineCap: 'square' },
+              ticks: false,
+              tickLabels: false,
+            },
+          },
+          y: { ...makeAxes().y, axis: false },
+        },
+      }),
+      { width: 300, height: 200 },
+    )
+    const thickGrid = createChartScene(
+      defineChart({
+        marks: [lineY([0, 1])],
+        scales: {
+          x: {
+            ...makeAxes().x,
+            grid: { strokeWidth: 20, lineCap: 'square' },
+            axis: false,
+          },
+          y: { ...makeAxes().y, axis: false },
+        },
+      }),
+      { width: 300, height: 200 },
+    )
+    const zeroWidthGrid = createChartScene(
+      defineChart({
+        marks: [lineY([0, 1])],
+        scales: {
+          x: {
+            ...makeAxes().x,
+            grid: { strokeWidth: 0, lineCap: 'square' },
+            axis: false,
+          },
+          y: { ...makeAxes().y, axis: false },
+        },
+      }),
+      { width: 300, height: 200 },
+    )
+
+    expect(thickAxis.margin).toEqual({
+      top: 4,
+      right: 10,
+      bottom: 10,
+      left: 10,
+    })
+    expect(thickGrid.margin).toEqual({
+      top: 10,
+      right: 10,
+      bottom: 10,
+      left: 10,
+    })
+    expect(zeroWidthGrid.margin).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })
+  })
+
   it('mounts, updates, interacts, and destroys through vanilla TypeScript', () => {
     const firstDatum = { id: 'a', x: 0, y: 10 }
     const definition = defineChart({

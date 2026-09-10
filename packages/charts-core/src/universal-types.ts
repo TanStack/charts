@@ -241,6 +241,7 @@ export type {
   ChartGradient,
   ChartGradientBase,
   ChartGradientStop,
+  ChartGuideLineStyle,
   ChartKey,
   ChartLayoutOptions,
   ChartMargin,

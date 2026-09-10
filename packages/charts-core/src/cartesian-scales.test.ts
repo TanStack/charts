@@ -35,6 +35,25 @@ describe('Cartesian scale registry', () => {
     expect(temperatureAxis.x1).toBeGreaterThan(percentAxis.x1)
   })
 
+  it('keeps thick stacked axis lines from overlapping', () => {
+    const scene = createNamedScaleScene('ltr', true)
+    const rules = flatten(scene.nodes).filter(
+      (node): node is SceneRule => node.kind === 'rule',
+    )
+    const percentAxis = rules.find((node) => node.key === 'percent-axis')
+    const temperatureAxis = rules.find(
+      (node) => node.key === 'temperature-axis',
+    )
+    if (!percentAxis || !temperatureAxis) {
+      throw new Error('Expected both named right-side axes')
+    }
+
+    expect(
+      temperatureAxis.x1 - 10 - (percentAxis.x1 + 10),
+    ).toBeGreaterThanOrEqual(8)
+    expect(temperatureAxis.x1 + 10).toBeLessThanOrEqual(scene.width)
+  })
+
   it('supports top, right, bottom, and left axis sides', () => {
     const scene = createChartScene(
       defineChart({
@@ -322,7 +341,17 @@ describe('Cartesian scale registry', () => {
   })
 })
 
-function createNamedScaleScene(direction: 'ltr' | 'rtl' = 'ltr') {
+function createNamedScaleScene(
+  direction: 'ltr' | 'rtl' = 'ltr',
+  thickAxisLines = false,
+) {
+  const axis = thickAxisLines
+    ? {
+        line: { strokeWidth: 20 },
+        ticks: false as const,
+        tickLabels: false as const,
+      }
+    : undefined
   return createChartScene(
     defineChart({
       marks: [
@@ -347,11 +376,13 @@ function createNamedScaleScene(direction: 'ltr' | 'rtl' = 'ltr') {
           channel: 'y',
           side: 'right',
           scale: scaleLinear().domain([0, 1]),
+          axis,
         },
         temperature: {
           channel: 'y',
           side: 'right',
           scale: scaleLinear().domain([-40, 40]),
+          axis,
         },
       },
     }),

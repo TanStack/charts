@@ -1,6 +1,7 @@
 import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import {
+  includeGuideStrokeMargins,
   measureSceneLabelBounds,
   physicalTextAnchor,
   withChartTextTypography,
@@ -29,6 +30,7 @@ import type {
   ResponsiveChartConfig,
   ChartColorLegend,
   ChartFocusFilter,
+  ChartGuideLineStyle,
   ChartLayoutOptions,
   ChartMargin,
   ChartMark,
@@ -59,6 +61,7 @@ import type {
   SceneGroup,
   SceneLabel,
   SceneNode,
+  SceneStyle,
 } from './types'
 
 export const defaultChartTheme: ChartTheme = {
@@ -1115,6 +1118,13 @@ function resolveSceneLayout(
       layout.measureText,
       layout.typography?.direction === 'rtl',
     )
+    if (gridScales.length) {
+      includeGuideStrokeMargins(
+        resolvedAxes.margin,
+        createGrid(chart, gridScales, theme),
+        chart,
+      )
+    }
     return {
       margin,
       chart,
@@ -1196,7 +1206,7 @@ function hasScaleGuide(
 function hasScaleGrid(
   scale: PositionScaleDefinition | ResolvedPositionScale,
 ): boolean {
-  return scale.options != null && scale.options.grid === true
+  return scale.options != null && Boolean(scale.options.grid)
 }
 
 function resolveMarkLayouts(
@@ -1338,6 +1348,7 @@ function createGrid(
 
   for (const guide of guides) {
     if (!guide.options?.grid) continue
+    const style = guideLineStyle(guide.options.grid)
     for (const tick of guide.scale.ticks) {
       const key = `${guide.id}-grid:${valueKey(tick.value)}`
       children.push(
@@ -1349,6 +1360,7 @@ function createGrid(
               x2: tick.position,
               y1: chart.y,
               y2: chart.y + chart.height,
+              ...(style ? { style } : {}),
             }
           : {
               kind: 'rule',
@@ -1357,6 +1369,7 @@ function createGrid(
               x2: chart.x + chart.width,
               y1: tick.position,
               y2: tick.position,
+              ...(style ? { style } : {}),
             },
       )
     }
@@ -1393,11 +1406,20 @@ function createAxes(
     bottom: 0,
     left: 0,
   }
+  const guideCounts: Record<ChartAxisSide, number> = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  }
   const chartRight = chart.x + chart.width
   const chartBottom = chart.y + chart.height
 
   for (const guide of guides) {
-    const offset = offsets[guide.side]
+    const presentation = axisPresentation(guide.options)
+    const lineHalfWidth = guideLineHalfWidth(presentation?.line)
+    const offset =
+      offsets[guide.side] + (guideCounts[guide.side] > 0 ? lineHalfWidth : 0)
     margin[guide.side] = Math.max(
       margin[guide.side],
       offset + automaticGuideInset,
@@ -1443,18 +1465,18 @@ function createAxes(
             ? outward - chartBottom
             : chart.x - outward
     offsets[guide.side] = Math.max(offset, distance) + 8
+    guideCounts[guide.side] += 1
   }
 
-  return {
-    axes: {
-      kind: 'group',
-      key: 'axes',
-      className: 'ts-chart__axes',
-      ariaHidden: true,
-      children,
-    },
-    margin,
+  const axes: SceneGroup = {
+    kind: 'group',
+    key: 'axes',
+    className: 'ts-chart__axes',
+    ariaHidden: true,
+    children,
   }
+  includeGuideStrokeMargins(margin, axes, chart)
+  return { axes, margin }
 
   function renderXAxis(
     guide: ResolvedPositionScale,
@@ -1473,8 +1495,11 @@ function createAxes(
         x2: chartRight,
         y1: axisY,
         y2: axisY,
-        style: axisStyle(),
+        style: axisStyle(presentation?.line),
       })
+      includeCoordinate(
+        axisY + direction * guideLineHalfWidth(presentation?.line),
+      )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
     const tickSize = finiteMargin(
@@ -1577,8 +1602,11 @@ function createAxes(
         x2: axisX,
         y1: chart.y,
         y2: chartBottom,
-        style: axisStyle(),
+        style: axisStyle(presentation?.line),
       })
+      includeCoordinate(
+        axisX + direction * guideLineHalfWidth(presentation?.line),
+      )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
     const tickSize = finiteMargin(
@@ -1671,9 +1699,42 @@ function createAxes(
     children.push(label)
   }
 
-  function axisStyle() {
-    return { stroke: theme.foreground, strokeOpacity: 0.28 }
+  function axisStyle(line?: boolean | ChartGuideLineStyle): SceneStyle {
+    return {
+      stroke: theme.foreground,
+      strokeOpacity: 0.28,
+      ...(guideLineStyle(line) ?? {}),
+    }
   }
+}
+
+function guideLineStyle(
+  value: boolean | ChartGuideLineStyle | undefined,
+): SceneStyle | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const style: SceneStyle = {}
+  if (value.stroke !== undefined) style.stroke = value.stroke
+  if (value.strokeOpacity !== undefined) {
+    style.strokeOpacity = value.strokeOpacity
+  }
+  if (value.strokeWidth !== undefined) style.strokeWidth = value.strokeWidth
+  if (value.strokeDasharray !== undefined) {
+    style.strokeDasharray = value.strokeDasharray
+  }
+  if (value.lineCap !== undefined) style.lineCap = value.lineCap
+  return Object.keys(style).length ? style : undefined
+}
+
+function guideLineHalfWidth(
+  value: boolean | ChartGuideLineStyle | undefined,
+): number {
+  if (!value || typeof value !== 'object' || value.stroke === 'none') return 0
+  const strokeWidth = value.strokeWidth
+  return strokeWidth !== undefined &&
+    Number.isFinite(strokeWidth) &&
+    strokeWidth > 0
+    ? strokeWidth / 2
+    : 0
 }
 
 function resolveTickCount(

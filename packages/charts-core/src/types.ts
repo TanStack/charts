@@ -398,8 +398,18 @@ export interface ChartAxisLabelOptions {
   motion?: ChartMotionDefinition
 }
 
+/** Renderer-neutral stroke presentation for Cartesian grid and axis lines. */
+export interface ChartGuideLineStyle {
+  stroke?: string
+  strokeOpacity?: number
+  strokeWidth?: number
+  strokeDasharray?: string
+  lineCap?: 'butt' | 'round' | 'square'
+}
+
 export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
-  line?: boolean
+  /** Draws the axis baseline and optionally overrides its stroke presentation. */
+  line?: boolean | ChartGuideLineStyle
   ticks?: false | ChartAxisTickOptions<TValue>
   tickLabels?: false | ChartAxisTickLabelOptions<TValue>
   label?: string | ChartAxisLabelOptions
@@ -437,7 +447,7 @@ export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /** A semantic window over the scale's complete configured or inferred domain. */
   viewport?: ChartAxisViewportFor<TValue>
   /** Grid lines use semantic tick candidates before label thinning. */
-  grid?: boolean
+  grid?: boolean | ChartGuideLineStyle
   /** Axis presentation. False keeps the scale but omits the visible axis. */
   axis?: false | ChartAxisPresentationOptions<TValue>
 }
