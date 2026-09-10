@@ -44,6 +44,10 @@ interface FakeCanvasContext {
     direction: CanvasDirection
     textAlign: CanvasTextAlign
   }>
+  linearGradients: Array<[number, number, number, number]>
+  radialGradients: Array<[number, number, number, number, number, number]>
+  fillStyles: Array<string | CanvasGradient>
+  globalAlphas: number[]
   arcTos: Array<[number, number, number, number, number]>
   context: CanvasRenderingContext2D
 }
@@ -999,6 +1003,391 @@ describe('Canvas renderer', () => {
     expect(fake.operations).toContain('fillText:Canvas,0,0')
     expect(fake.gradientStops).toHaveLength(2)
     expect(surface.element).toBe(container.querySelector('.ts-chart-canvas'))
+    surface.destroy()
+  })
+
+  it('normalizes legacy linear coordinates and decreasing stops', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(
+      scene(
+        [
+          {
+            kind: 'rect',
+            key: 'linear-gradient',
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 40,
+            style: { fill: 'url(#linear)' },
+          },
+        ],
+        [
+          {
+            id: 'linear',
+            x1: -1,
+            y1: Number.NaN,
+            x2: Number.POSITIVE_INFINITY,
+            y2: 2,
+            stops: [
+              { offset: 1, color: '#ff0000' },
+              { offset: 0, color: '#0000ff' },
+            ],
+          },
+        ],
+      ),
+      renderOptions(),
+    )
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.linearGradients).toEqual([[10, 20, 110, 60]])
+    expect(painted.gradientStops.map(([offset]) => offset)).toEqual([1, 1])
+    surface.destroy()
+  })
+
+  it('paints radial fills inside normalized object-bounding-box clips', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer({ pixelRatio: 2 }).mount(
+      container,
+      () => {},
+    )
+    surface.render(
+      scene(
+        [
+          {
+            kind: 'group',
+            key: 'translated',
+            translateX: 7,
+            translateY: 9,
+            children: [
+              {
+                kind: 'rect',
+                key: 'rect',
+                x: 10,
+                y: 20,
+                width: 100,
+                height: 40,
+                style: {
+                  fill: 'url(#radial)',
+                  stroke: '#112233',
+                },
+              },
+              {
+                kind: 'area',
+                key: 'hole',
+                points: [],
+                polygons: [
+                  [
+                    [
+                      [0, 0],
+                      [40, 0],
+                      [40, 20],
+                      [0, 20],
+                    ],
+                    [
+                      [10, 5],
+                      [30, 5],
+                      [30, 15],
+                      [10, 15],
+                    ],
+                  ],
+                ],
+                style: { fill: 'url(#radial)' },
+              },
+              {
+                kind: 'area',
+                key: 'path',
+                points: [
+                  [20, 10],
+                  [120, 50],
+                ],
+                path: 'M20,10H120V50H20Z',
+                style: {
+                  fill: 'url(#defaults)',
+                  stroke: '#445566',
+                },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            type: 'radial',
+            id: 'radial',
+            cx: 0.2,
+            cy: 0.3,
+            r: 2,
+            fx: -0.2,
+            fy: 0.8,
+            stops: [
+              { offset: -1, color: '#2563eb', opacity: 0.25 },
+              { offset: 2, color: '#7c3aed' },
+            ],
+          },
+          {
+            type: 'radial',
+            id: 'defaults',
+            stops: [
+              { offset: 0, color: '#ffffff' },
+              { offset: 1, color: '#000000' },
+            ],
+          },
+        ],
+      ),
+      renderOptions(),
+    )
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+
+    expect(painted.operations).toContain('translate:7,9')
+    expect(painted.radialGradients).toEqual([
+      [0, 0.8, 0, 0.2, 0.3, 1],
+      [0, 0.8, 0, 0.2, 0.3, 1],
+      [0.5, 0.5, 0, 0.5, 0.5, 0.5],
+    ])
+    expect(painted.operations).toContain('clip:current')
+    expect(painted.operations).toContain('clip:evenodd')
+    expect(painted.operations).toContain('clip:path')
+    expect(painted.operations).toContain('transform:100,0,0,40,10,20')
+    expect(painted.operations).toContain('transform:40,0,0,20,0,0')
+    expect(painted.operations).toContain('transform:100,0,0,40,20,10')
+
+    const pathClip = painted.operations.lastIndexOf('clip:path')
+    const pathTransform = painted.operations.lastIndexOf(
+      'transform:100,0,0,40,20,10',
+    )
+    const unitFill = painted.operations.lastIndexOf('fillRect:0,0,1,1')
+    const restored = painted.operations.indexOf('restore', unitFill)
+    const stroke = painted.operations.lastIndexOf('stroke:path')
+    expect(pathClip).toBeLessThan(pathTransform)
+    expect(pathTransform).toBeLessThan(unitFill)
+    expect(unitFill).toBeLessThan(restored)
+    expect(restored).toBeLessThan(stroke)
+    surface.destroy()
+  })
+
+  it('clamps decreasing gradient stops forward without reordering colors', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(
+      scene(
+        [
+          {
+            kind: 'rect',
+            key: 'ordered-stops',
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 60,
+            style: { fill: 'url(#authored-order)' },
+          },
+        ],
+        [
+          {
+            type: 'radial',
+            id: 'authored-order',
+            stops: [
+              { offset: 1, color: '#ff0000' },
+              { offset: 0, color: '#0000ff' },
+            ],
+          },
+        ],
+      ),
+      renderOptions(),
+    )
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.gradientStops.map(([offset]) => offset)).toEqual([1, 1])
+    surface.destroy()
+  })
+
+  it('handles radial stop and zero-size edge cases without Canvas cones', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(
+      scene(
+        [
+          {
+            kind: 'rect',
+            key: 'one-stop',
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 10,
+            style: {
+              fill: 'url(#one-stop)',
+              fillOpacity: 0.5,
+              opacity: 0.5,
+            },
+          },
+          {
+            kind: 'rect',
+            key: 'zero-radius',
+            x: 20,
+            y: 0,
+            width: 10,
+            height: 10,
+            style: { fill: 'url(#zero-radius)' },
+          },
+          {
+            kind: 'rect',
+            key: 'off-center-zero-radius',
+            x: 40,
+            y: 0,
+            width: 10,
+            height: 10,
+            style: { fill: 'url(#off-center)' },
+          },
+          {
+            kind: 'rect',
+            key: 'zero-width',
+            x: 60,
+            y: 0,
+            width: 0,
+            height: 10,
+            style: {
+              fill: 'url(#ordinary)',
+              stroke: '#112233',
+            },
+          },
+          {
+            kind: 'rect',
+            key: 'empty-stops',
+            x: 80,
+            y: 0,
+            width: 10,
+            height: 10,
+            style: { fill: 'url(#empty)' },
+          },
+        ],
+        [
+          {
+            type: 'radial',
+            id: 'one-stop',
+            stops: [{ offset: 0.5, color: '#2563eb', opacity: 0.4 }],
+          },
+          {
+            type: 'radial',
+            id: 'zero-radius',
+            r: 0,
+            stops: [
+              { offset: 0, color: '#ffffff' },
+              { offset: 1, color: '#000000' },
+            ],
+          },
+          {
+            type: 'radial',
+            id: 'off-center',
+            r: 0,
+            fx: 0,
+            stops: [
+              { offset: 0, color: '#ffffff' },
+              { offset: 1, color: '#000000' },
+            ],
+          },
+          {
+            type: 'radial',
+            id: 'ordinary',
+            stops: [
+              { offset: 0, color: '#ffffff' },
+              { offset: 1, color: '#000000' },
+            ],
+          },
+          { type: 'radial', id: 'empty', stops: [] },
+        ],
+      ),
+      renderOptions(),
+    )
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.radialGradients).toHaveLength(0)
+    expect(
+      painted.operations.filter((operation) => operation === 'fill:current'),
+    ).toHaveLength(2)
+    expect(painted.operations).toContain('stroke:current')
+    expect(painted.globalAlphas).toContain(0.25)
+    surface.destroy()
+  })
+
+  it('rejects radial gradient strokes before checking measurable bounds', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    expect(() =>
+      surface.render(
+        scene(
+          [
+            {
+              kind: 'polyline',
+              key: 'empty-line',
+              points: [],
+              style: { fill: 'none', stroke: 'url(#radial-stroke)' },
+            },
+          ],
+          [
+            {
+              type: 'radial',
+              id: 'radial-stroke',
+              stops: [
+                { offset: 0, color: '#ffffff' },
+                { offset: 1, color: '#000000' },
+              ],
+            },
+          ],
+        ),
+        renderOptions(),
+      ),
+    ).toThrow(
+      'Canvas radial gradient "radial-stroke" is supported for fills only.',
+    )
+    surface.destroy()
+  })
+
+  it('keeps radial-gradient dots on independent geometry bounds', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(
+      scene(
+        [
+          {
+            kind: 'dot',
+            key: 'one',
+            x: 20,
+            y: 20,
+            radius: 5,
+            style: { fill: 'url(#radial)' },
+          },
+          {
+            kind: 'dot',
+            key: 'two',
+            x: 50,
+            y: 30,
+            radius: 10,
+            style: { fill: 'url(#radial)' },
+          },
+        ],
+        [
+          {
+            type: 'radial',
+            id: 'radial',
+            stops: [
+              { offset: 0, color: '#ffffff' },
+              { offset: 1, color: '#000000' },
+            ],
+          },
+        ],
+      ),
+      renderOptions(),
+    )
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.radialGradients).toHaveLength(2)
+    expect(painted.operations).toContain('transform:10,0,0,10,15,15')
+    expect(painted.operations).toContain('transform:20,0,0,20,40,20')
     surface.destroy()
   })
 
@@ -2666,6 +3055,12 @@ function fakeContext(): FakeCanvasContext {
   const operations: string[] = []
   const gradientStops: Array<[number, string]> = []
   const textPaints: FakeCanvasContext['textPaints'] = []
+  const linearGradients: Array<[number, number, number, number]> = []
+  const radialGradients: Array<
+    [number, number, number, number, number, number]
+  > = []
+  const fillStyles: Array<string | CanvasGradient> = []
+  const globalAlphas: number[] = []
   const arcTos: Array<[number, number, number, number, number]> = []
   let fillStyle: string | CanvasGradient = '#000000'
   let strokeStyle: string | CanvasGradient = '#000000'
@@ -2702,15 +3097,32 @@ function fakeContext(): FakeCanvasContext {
     },
     translate: (...values: number[]) =>
       operations.push(`translate:${values.join(',')}`),
+    transform: (...values: number[]) =>
+      operations.push(`transform:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
-    clip: () => operations.push('clip'),
-    fill: (pathOrRule?: Path2D | CanvasFillRule) => {
+    clip: (...values: unknown[]) => {
+      operations.push('clip')
+      const [pathOrRule, fillRule] = values
       operations.push(
-        pathOrRule === 'evenodd'
-          ? 'fill:evenodd'
-          : pathOrRule
-            ? 'fill:path'
-            : 'fill:current',
+        fillRule
+          ? `clip:path:${String(fillRule)}`
+          : pathOrRule === 'evenodd' || pathOrRule === 'nonzero'
+            ? `clip:${pathOrRule}`
+            : pathOrRule
+              ? 'clip:path'
+              : 'clip:current',
+      )
+    },
+    fill: (...values: unknown[]) => {
+      const [pathOrRule, fillRule] = values
+      operations.push(
+        fillRule
+          ? `fill:path:${String(fillRule)}`
+          : pathOrRule === 'evenodd' || pathOrRule === 'nonzero'
+            ? `fill:${pathOrRule}`
+            : pathOrRule
+              ? 'fill:path'
+              : 'fill:current',
       )
       operations.push(`fill:${String(fillStyle)}:${globalAlpha}`)
     },
@@ -2734,7 +3146,22 @@ function fakeContext(): FakeCanvasContext {
       operations.push(`strokeText:${text},${x},${y}`),
     setLineDash: (values: number[]) =>
       operations.push(`setLineDash:${values.join(',')}`),
-    createLinearGradient: () => gradient,
+    createLinearGradient: (x0: number, y0: number, x1: number, y1: number) => {
+      linearGradients.push([x0, y0, x1, y1])
+      return gradient
+    },
+    createRadialGradient: (
+      x0: number,
+      y0: number,
+      r0: number,
+      x1: number,
+      y1: number,
+      r1: number,
+    ) => {
+      radialGradients.push([x0, y0, r0, x1, y1, r1])
+      operations.push(`radial:${x0},${y0},${r0},${x1},${y1},${r1}`)
+      return gradient
+    },
     drawImage: (source: CanvasImageSource) => {
       const className =
         source instanceof HTMLCanvasElement ? source.className : ''
@@ -2745,6 +3172,7 @@ function fakeContext(): FakeCanvasContext {
     },
     set fillStyle(value) {
       fillStyle = value
+      fillStyles.push(value)
     },
     get strokeStyle() {
       return strokeStyle
@@ -2763,6 +3191,7 @@ function fakeContext(): FakeCanvasContext {
     },
     set globalAlpha(value) {
       globalAlpha = value
+      globalAlphas.push(value)
     },
     get lineCap() {
       return lineCap
@@ -2785,5 +3214,15 @@ function fakeContext(): FakeCanvasContext {
     textAlign: 'left',
     textBaseline: 'alphabetic',
   } as unknown as CanvasRenderingContext2D
-  return { operations, gradientStops, textPaints, arcTos, context }
+  return {
+    operations,
+    gradientStops,
+    textPaints,
+    linearGradients,
+    radialGradients,
+    fillStyles,
+    globalAlphas,
+    arcTos,
+    context,
+  }
 }

@@ -15,6 +15,8 @@ const interpolatedAttributes = new Set([
   'fill-opacity',
   'font-size',
   'font-weight',
+  'fx',
+  'fy',
   'height',
   'opacity',
   'r',
@@ -121,6 +123,10 @@ function reconcileElement(
       retained.add(matched)
       if (rendered !== cursor) current.insertBefore(rendered, cursor)
       reconcileElement(rendered, nextChild, tweens)
+    } else if (matched && current.localName === 'defs') {
+      rendered = nextChild.cloneNode(true) as Element
+      matched.replaceWith(rendered)
+      if (matched !== cursor) current.insertBefore(rendered, cursor)
     } else {
       rendered = nextChild.cloneNode(true) as Element
       current.insertBefore(rendered, cursor)

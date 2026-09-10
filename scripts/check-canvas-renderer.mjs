@@ -31,6 +31,7 @@ const bundle = await build({
       import { polar, radialDot, radialLine } from '@tanstack/charts/polar'
       import { rect } from '@tanstack/charts/rect'
       import { defineChart } from '@tanstack/charts/scene'
+      import { renderChartSvg } from '@tanstack/charts/svg'
       import { text } from '@tanstack/charts/text'
       import { tickY } from '@tanstack/charts/tick'
       import { vector } from '@tanstack/charts/vector'
@@ -208,6 +209,163 @@ const bundle = await build({
           scale: 1,
         })
         surface.destroy()
+
+        const radialScene = {
+          ...makeScene(200, 104),
+          nodes: [
+            {
+              kind: 'rect',
+              key: 'radial-gradient',
+              x: 20,
+              y: 20,
+              width: 160,
+              height: 64,
+              style: { fill: 'url(#radial-parity)' },
+            },
+          ],
+          points: [],
+          gradients: [
+            {
+              id: 'radial-parity',
+              type: 'radial',
+              cx: 0.5,
+              cy: 0.5,
+              r: 0.5,
+              stops: [
+                { offset: 0, color: '#ff0000' },
+                { offset: 1, color: '#0000ff' },
+              ],
+            },
+          ],
+        }
+        const radialContainer = document.querySelector('#radial')
+        const radialSurface = createCanvasChartRenderer().mount(
+          radialContainer,
+          () => {},
+        )
+        radialSurface.render(radialScene, {
+          ariaLabel: 'Canvas radial gradient parity check',
+          tabIndex: -1,
+        })
+        const radialCanvasContext = radialSurface.canvas.getContext('2d')
+        const svgMarkup = renderChartSvg(radialScene, {
+          ariaLabel: 'SVG radial gradient parity check',
+          tabIndex: -1,
+          idPrefix: 'radial-parity-check',
+        }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+        const svgImage = new Image()
+        svgImage.src =
+          'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgMarkup)
+        await svgImage.decode()
+        const svgCanvas = document.createElement('canvas')
+        svgCanvas.width = radialScene.width * ratio
+        svgCanvas.height = radialScene.height * ratio
+        const svgContext = svgCanvas.getContext('2d')
+        svgContext.scale(ratio, ratio)
+        svgContext.drawImage(
+          svgImage,
+          0,
+          0,
+          radialScene.width,
+          radialScene.height,
+        )
+        const radialSamples = {
+          center: [100, 52],
+          samePixelsHorizontal: [124, 52],
+          sameNormalizedHorizontal: [160, 52],
+          sameNormalizedVertical: [100, 76],
+        }
+        const sampleContext = (context, [x, y]) =>
+          [
+            ...context.getImageData(
+              Math.round(x * ratio),
+              Math.round(y * ratio),
+              1,
+              1,
+            ).data,
+          ]
+        const canvasRadialSamples = Object.fromEntries(
+          Object.entries(radialSamples).map(([key, point]) => [
+            key,
+            sampleContext(radialCanvasContext, point),
+          ]),
+        )
+        const svgRadialSamples = Object.fromEntries(
+          Object.entries(radialSamples).map(([key, point]) => [
+            key,
+            sampleContext(svgContext, point),
+          ]),
+        )
+        const channelDelta = (left, right) =>
+          Math.max(...left.map((value, index) => Math.abs(value - right[index])))
+        const radialResult = {
+          canvas: canvasRadialSamples,
+          svg: svgRadialSamples,
+          normalizedAxisDelta: channelDelta(
+            canvasRadialSamples.sameNormalizedHorizontal,
+            canvasRadialSamples.sameNormalizedVertical,
+          ),
+          equalPixelDistanceDelta: channelDelta(
+            canvasRadialSamples.samePixelsHorizontal,
+            canvasRadialSamples.sameNormalizedVertical,
+          ),
+          svgParityDeltas: Object.fromEntries(
+            Object.keys(radialSamples).map((key) => [
+              key,
+              channelDelta(canvasRadialSamples[key], svgRadialSamples[key]),
+            ]),
+          ),
+        }
+        const decreasingStopsScene = {
+          ...radialScene,
+          gradients: [
+            {
+              ...radialScene.gradients[0],
+              stops: [
+                { offset: 1, color: '#ff0000' },
+                { offset: 0, color: '#0000ff' },
+              ],
+            },
+          ],
+        }
+        radialSurface.render(decreasingStopsScene, {
+          ariaLabel: 'Canvas decreasing gradient stops check',
+          tabIndex: -1,
+        })
+        const decreasingCanvasSample = sampleContext(radialCanvasContext, [
+          100, 52,
+        ])
+        const decreasingSvgMarkup = renderChartSvg(decreasingStopsScene, {
+          ariaLabel: 'SVG decreasing gradient stops check',
+          tabIndex: -1,
+          idPrefix: 'decreasing-stops-check',
+        }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+        const decreasingSvgImage = new Image()
+        decreasingSvgImage.src =
+          'data:image/svg+xml;charset=utf-8,' +
+          encodeURIComponent(decreasingSvgMarkup)
+        await decreasingSvgImage.decode()
+        const decreasingSvgCanvas = document.createElement('canvas')
+        decreasingSvgCanvas.width = decreasingStopsScene.width * ratio
+        decreasingSvgCanvas.height = decreasingStopsScene.height * ratio
+        const decreasingSvgContext = decreasingSvgCanvas.getContext('2d')
+        decreasingSvgContext.scale(ratio, ratio)
+        decreasingSvgContext.drawImage(
+          decreasingSvgImage,
+          0,
+          0,
+          decreasingStopsScene.width,
+          decreasingStopsScene.height,
+        )
+        const decreasingSvgSample = sampleContext(decreasingSvgContext, [
+          100, 52,
+        ])
+        radialResult.decreasingStops = {
+          canvas: decreasingCanvasSample,
+          svg: decreasingSvgSample,
+          delta: channelDelta(decreasingCanvasSample, decreasingSvgSample),
+        }
+        radialSurface.destroy()
 
         const data = [
           { id: 'a', x: 0, y: 1 },
@@ -699,6 +857,7 @@ const bundle = await build({
 
         return {
           surface: surfaceResult,
+          radial: radialResult,
           export: { type: exported.type, size: exported.size },
           interaction: {
             focused,
@@ -727,7 +886,7 @@ try {
   })
   const page = await context.newPage()
   await page.setContent(
-    '<div id="surface" style="width:160px;height:90px"></div><div id="interaction" style="width:320px;height:180px"></div><div id="mixed"></div>',
+    '<div id="surface" style="width:160px;height:90px"></div><div id="radial" style="width:200px;height:104px"></div><div id="interaction" style="width:320px;height:180px"></div><div id="mixed"></div>',
   )
   await page.addScriptTag({ content: bundle.outputFiles[0].text })
   const result = await page.evaluate(() => window.runCanvasRendererCheck())
@@ -744,6 +903,34 @@ try {
   assert.ok(result.surface.pathPixels > 100)
   assert.equal(result.surface.basePreservedOnFocus, true)
   assert.equal(result.surface.focusChanged, true)
+  assert.ok(
+    result.radial.normalizedAxisDelta <= 8,
+    'Canvas radial gradient is not elliptical in object-bounding-box space: ' +
+      JSON.stringify(result.radial),
+  )
+  assert.ok(
+    result.radial.equalPixelDistanceDelta >= 80,
+    'Canvas radial gradient painted as a circle: ' +
+      JSON.stringify(result.radial),
+  )
+  for (const [name, delta] of Object.entries(result.radial.svgParityDeltas)) {
+    assert.ok(
+      delta <= 8,
+      name +
+        ' radial sample diverged from SVG: ' +
+        JSON.stringify(result.radial),
+    )
+    assert.equal(result.radial.canvas[name][3], 255)
+    assert.equal(result.radial.svg[name][3], 255)
+  }
+  assert.ok(
+    result.radial.decreasingStops.delta <= 8,
+    'Canvas decreasing gradient stops diverged from SVG: ' +
+      JSON.stringify(result.radial),
+  )
+  assert.ok(result.radial.decreasingStops.canvas[0] >= 240)
+  assert.ok(result.radial.decreasingStops.canvas[2] <= 15)
+  assert.equal(result.radial.decreasingStops.canvas[3], 255)
   assert.equal(result.export.type, 'image/png')
   assert.ok(result.export.size > 100)
   assert.deepEqual(result.interaction.focused.slice(0, 2), ['a', 'b'])
