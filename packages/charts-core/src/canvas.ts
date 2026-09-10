@@ -1,3 +1,4 @@
+import { escapeAttribute } from './markup-internal'
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import { resolveFocusScene } from './focus-layer'
@@ -22,12 +23,14 @@ import type {
   ChartRuntime,
   ChartScene,
   ChartValue,
+  RectCornerRadii,
   RenderChartOptions,
   SceneNode,
   SceneFocusGuide,
   ScenePolygon,
   SceneStyle,
 } from './types'
+import { resolveRectCornerRadii } from './renderer-rect'
 
 export interface CanvasChartRendererOptions {
   pixelRatio?: number
@@ -1256,14 +1259,25 @@ function paintNode(
         paintCurrentPath(painter, state, boundsForNode(node))
         return
       case 'rect':
-        beginRoundedRect(
-          context,
-          node.x,
-          node.y,
-          node.width,
-          node.height,
-          node.radius ?? 0,
-        )
+        if (node.cornerRadii === undefined) {
+          beginRoundedRect(
+            context,
+            node.x,
+            node.y,
+            node.width,
+            node.height,
+            node.radius ?? 0,
+          )
+        } else {
+          beginCornerRadiiRect(
+            context,
+            node.x,
+            node.y,
+            node.width,
+            node.height,
+            node.cornerRadii,
+          )
+        }
         paintCurrentPath(painter, state, boundsForNode(node))
         return
       case 'label':
@@ -1399,6 +1413,43 @@ function beginRoundedRect(
   context.arcTo(x, y + height, x, y + height - resolved, resolved)
   context.lineTo(x, y + resolved)
   context.arcTo(x, y, x + resolved, y, resolved)
+  context.closePath()
+}
+
+function beginCornerRadiiRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  cornerRadii: RectCornerRadii,
+): void {
+  const left = Math.min(x, x + width)
+  const top = Math.min(y, y + height)
+  const resolvedWidth = Math.abs(width)
+  const resolvedHeight = Math.abs(height)
+  const right = left + resolvedWidth
+  const bottom = top + resolvedHeight
+  const [topLeft, topRight, bottomRight, bottomLeft] = resolveRectCornerRadii(
+    cornerRadii,
+    resolvedWidth,
+    resolvedHeight,
+  )
+
+  context.beginPath()
+  if (topLeft + topRight + bottomRight + bottomLeft === 0) {
+    context.rect(left, top, resolvedWidth, resolvedHeight)
+    return
+  }
+  context.moveTo(left + topLeft, top)
+  context.lineTo(right - topRight, top)
+  context.arcTo(right, top, right, top + topRight, topRight)
+  context.lineTo(right, bottom - bottomRight)
+  context.arcTo(right, bottom, right - bottomRight, bottom, bottomRight)
+  context.lineTo(left + bottomLeft, bottom)
+  context.arcTo(left, bottom, left, bottom - bottomLeft, bottomLeft)
+  context.lineTo(left, top + topLeft)
+  context.arcTo(left, top, left + topLeft, top, topLeft)
   context.closePath()
 }
 
@@ -1775,12 +1826,4 @@ function requiredContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
 
 function integer(value: number): string {
   return String(Math.max(0, Math.round(value)))
-}
-
-function escapeAttribute(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
 }

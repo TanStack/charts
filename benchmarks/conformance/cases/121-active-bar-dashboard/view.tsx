@@ -91,8 +91,8 @@ export const ActiveBarDashboard = forwardRef<
         const index = id ? rows.findIndex((row) => row.id === id) : -1
         const bar =
           index >= 0
-            ? root.current?.querySelectorAll<SVGRectElement>(
-                '.ts-chart__bar rect',
+            ? root.current?.querySelectorAll<SVGPathElement>(
+                '.ts-chart__bar path',
               )[index]
             : null
         const svg = root.current?.querySelector<SVGSVGElement>('svg.ts-chart')
