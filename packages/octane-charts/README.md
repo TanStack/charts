@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=octane&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=octane"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?framework=octane"
+      alt="TanStack Octane Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/octane-charts`
 
 This compatibility package remains supported for existing applications. New

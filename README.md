@@ -1,5 +1,19 @@
 <div align="center">
-  <img src="./media/header_charts.png" alt="TanStack Charts" />
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png"
+      alt="TanStack Charts"
+      width="900"
+    />
+  </picture>
 </div>
 
 <br />

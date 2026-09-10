@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=lit&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=lit"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?framework=lit"
+      alt="TanStack Lit Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/lit-charts`
 
 This compatibility package remains supported for existing applications. New

@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=vue&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=vue"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?framework=vue"
+      alt="TanStack Vue Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/vue-charts`
 
 This compatibility package remains supported for existing applications. New

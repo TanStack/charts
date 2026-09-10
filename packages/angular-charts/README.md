@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=angular&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=angular"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?framework=angular"
+      alt="TanStack Angular Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/angular-charts`
 
 This compatibility package remains supported for existing applications. New

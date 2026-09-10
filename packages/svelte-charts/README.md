@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=svelte&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?framework=svelte"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?framework=svelte"
+      alt="TanStack Svelte Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/svelte-charts`
 
 This compatibility package remains supported for existing applications. New
