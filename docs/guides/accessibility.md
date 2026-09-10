@@ -96,10 +96,13 @@ retain the accepted handle paint but need an application-owned semantic input.
 
 `zoomX` exposes one named plot surface with visible focus. Plus and minus zoom,
 the arrow keys pan, Home resets, and Escape cancels an active gesture. Wheel
-input is captured only while that surface is focused; an unfocused chart must
-not trap page scrolling. Keep a visible Reset button and current-window text
-bound to the same controlled window. Static SVG and React Native render the
-accepted window but need application-owned semantic zoom controls.
+input is captured only while that surface is focused by default. For scrolling
+dashboards, `wheelActivation: 'modifier'` lets Control+wheel or Command+wheel
+act immediately under the pointer while every unmodified wheel keeps scrolling
+the page. `wheelActivation: 'always'` deliberately captures every wheel over
+the plot. Keep a visible Reset button and current-window text bound to the same
+controlled window. Static SVG and React Native render the accepted window but
+need application-owned semantic zoom controls.
 
 ## Never rely on color alone
 
