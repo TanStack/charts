@@ -1,5 +1,23 @@
 # @tanstack/react-native-charts
 
+## 0.18.0
+
+### Minor Changes
+
+- [#147](https://github.com/TanStack/charts/pull/147) [`956d08e`](https://github.com/TanStack/charts/commit/956d08ec2533a410607e1b8f1b2335a463996203) - Add renderer-neutral radial gradient resources with SVG and React Native fill
+  and stroke support, plus exact `objectBoundingBox` Canvas fills. Normalize
+  linear coordinates and authored stop order consistently across renderers.
+
+### Patch Changes
+
+- [#124](https://github.com/TanStack/charts/pull/124) [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583) - Reserve the correct gutter for a positioned axis in a right-to-left container.
+  A y scale with `side: 'right'` anchored its tick labels for a left-to-right
+  inline direction, so an RTL host painted them across the plot instead of beside
+  it. Automatic anchors, fallback measurement, Canvas, native rendering, and SVG
+  export now agree on logical `start` and `end` anchors for the host direction.
+- Updated dependencies [[`956d08e`](https://github.com/TanStack/charts/commit/956d08ec2533a410607e1b8f1b2335a463996203), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`98177d8`](https://github.com/TanStack/charts/commit/98177d8bd3fd75750dfdefaf12b83b2df8ef277b), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`ff287ae`](https://github.com/TanStack/charts/commit/ff287ae0212179aba2b20cd584b6d464a8ba45ef), [`a9f8591`](https://github.com/TanStack/charts/commit/a9f8591d88ed9cc7b8f9cd426363392ef070e8a5), [`aea93f4`](https://github.com/TanStack/charts/commit/aea93f479f198c274a6b131ae9cd617163785c26)]:
+  - @tanstack/charts@0.18.0
+
 ## 0.17.0
 
 ### Minor Changes
