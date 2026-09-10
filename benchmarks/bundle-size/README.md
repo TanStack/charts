@@ -108,6 +108,22 @@ The interactive categorical legend fixture adds 2.53 KiB gzip over the DOM
 host and has a 2.6 KiB incremental cap. Both retain only their declared exact
 subpath modules.
 
+The static categorical legend fixtures measure the default legend separately
+from the tree-shakeable `colorLegendItems()` presentation. The configured
+fixture covers centered flow layout, custom label paint, and mixed square and
+line-dot indicators through the exact `@tanstack/charts/legend` subpath. Their
+retained-input gates reject the interactive legend, host renderers,
+interactions, and D3 geometry. The default fixture has a 1.8 KiB gzip ceiling;
+item presentation adds 1.85 KiB gzip and has a 1.9 KiB ceiling. That increment
+includes deterministic fallback measurement with host typography when a text
+measurer is missing or returns invalid metrics, plus measured title and row
+extents that keep scaled or asymmetric text from overlapping.
+
+Passing the host layout into the legend context adds 27 minified bytes and 4 to
+7 gzip bytes to shared scene consumers. The locked baseline records that
+reviewed cost. Isolated consumers that were already within a few bytes of their
+ceilings have matching 0.01 to 0.02 KiB budget adjustments.
+
 Update the universal baseline only after reviewing why a shared path changed:
 
 ```sh

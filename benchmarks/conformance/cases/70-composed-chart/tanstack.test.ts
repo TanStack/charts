@@ -17,7 +17,11 @@ describe('native composed-chart bar sizing', () => {
     const points = scene.points.filter(
       ({ markId }) => markId === 'precipitation-bars',
     )
-    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+    const bars = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'rect' &&
+        node.interaction?.point?.markId === 'precipitation-bars',
+    )
 
     expect(points).toHaveLength(6)
     expect(bars).toHaveLength(6)
@@ -30,7 +34,11 @@ describe('native composed-chart bar sizing', () => {
 
   it('keeps narrower responsive bands instead of forcing 20 pixels', () => {
     const scene = render({ ...input, width: 180 })
-    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+    const bars = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'rect' &&
+        node.interaction?.point?.markId === 'precipitation-bars',
+    )
 
     expect(scene.scales.x.bandwidth).toBeLessThan(20)
     expect(bars).toHaveLength(6)
@@ -95,6 +103,57 @@ describe('native composed-chart bar sizing', () => {
         }),
       ]),
     )
+  })
+
+  it('renders one native legend item for every mixed mark series', () => {
+    const scene = render(input)
+    const legend = scene.nodes.find(
+      (node) => node.kind === 'group' && node.key === 'legend',
+    )
+    if (legend?.kind !== 'group') throw new Error('Expected a legend group')
+
+    expect(
+      legend.children
+        .filter((node) => node.kind === 'label')
+        .map(({ text }) => text),
+    ).toEqual(['High temperature', 'Precipitation', 'Low temperature', 'Wind'])
+    expect(legend.children.map(({ key }) => key)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^legend-square:.*High temperature$/),
+        expect.stringMatching(/^legend-square:.*Precipitation$/),
+        expect.stringMatching(/^legend-line-dot:.*Low temperature$/),
+        expect.stringMatching(/^legend-dot:.*Wind$/),
+      ]),
+    )
+  })
+
+  it('keeps the native legend and all three axes in the compact preview', () => {
+    const scene = render({
+      ...input,
+      width: 288,
+      height: 192,
+      preview: true,
+    })
+    const nodes = flatten(scene.nodes)
+    const legendLabels = nodes.filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('legend-label:'),
+    )
+    const axisTitles = nodes.filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.endsWith('-label'),
+    )
+
+    expect(legendLabels).toHaveLength(4)
+    expect(Math.max(...legendLabels.map(({ y }) => y))).toBeLessThan(
+      scene.chart.y,
+    )
+    expect(axisTitles.map(({ text }) => text)).toEqual([
+      'Temperature (°C)',
+      'Precipitation (mm)',
+      'Wind (m/s)',
+    ])
+    expect(scene.chart.height).toBeGreaterThan(60)
   })
 
   it('does not hide responsive bar geometry outside the definition', async () => {

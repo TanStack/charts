@@ -87,8 +87,10 @@ Exact core subpaths keep Metro from retaining unrelated universal-entry
 exports. The `/universal` barrel remains valid when portability matters more
 than the native bundle floor.
 
-`focusFill` supplies the native fallback for the built-in focus ring's default
-CSS-variable fill. A literal `definition.focusRing.fill` takes precedence.
+`focusFill` supplies the native `Canvas` fallback for the built-in focus ring's
+default CSS-variable fill and for line-dot legend centers when the chart
+background is transparent. Set it to the host background in dark themes. A
+literal `definition.focusRing.fill` takes precedence.
 
 The bare fixture uses React Native 0.86.2 with `react-native-svg` 15.15.5. The
 Expo 57 fixture uses `react-native-svg` 15.15.4 and renders in Expo Go on an iOS

@@ -190,6 +190,7 @@ describe('catalog previews', () => {
       'bar-horizontal-ranking',
     ])
     expect(catalogLegendPreviewCaseIds).toEqual([
+      '70-composed-chart',
       '81-recharts-interactive-legend',
     ])
     expect(catalogMarginPreviewCaseIds).toEqual([
@@ -272,15 +273,24 @@ describe('catalog previews', () => {
   })
 
   it('requires the active bar dashboard preview composition', () => {
-    const bars = Array.from(
-      { length: 24 },
-      (_, index) =>
-        `<rect data-ts-key="daily-visitors:null:${String(index + 1).padStart(2, '0')}"></rect>`,
-    ).join('')
-    const preview = `${bars}<linearGradient data-ts-key="gradient:visitor-bars"></linearGradient><text x="0">May 1</text>`
+    const previewWithBars = (element) => {
+      const bars = Array.from(
+        { length: 24 },
+        (_, index) =>
+          `<${element} data-ts-key="daily-visitors:null:${String(index + 1).padStart(2, '0')}"></${element}>`,
+      ).join('')
+      return `${bars}<linearGradient data-ts-key="gradient:visitor-bars"></linearGradient><text x="0">May 1</text>`
+    }
+    const preview = previewWithBars('rect')
 
     expect(() =>
       validateCatalogPreviewPresentation(preview, '121-active-bar-dashboard'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        previewWithBars('path'),
+        '121-active-bar-dashboard',
+      ),
     ).not.toThrow()
     expect(() =>
       validateCatalogPreviewPresentation(
@@ -309,6 +319,50 @@ describe('catalog previews', () => {
         '82-chart-table-selection',
       ),
     ).toThrow('must retain its native selected point')
+  })
+
+  it('requires the native pie legend preview composition', () => {
+    const legendItems = ['Chrome', 'Safari', 'Firefox', 'Edge', 'Other']
+      .map(
+        (label, index) =>
+          `<rect data-ts-key="legend-square:${index}"></rect><text>${label}</text>`,
+      )
+      .join('')
+    const preview = `<g class="ts-chart__legend">${legendItems}</g>`
+
+    expect(() =>
+      validateCatalogPreviewPresentation(preview, '168-shadcn-pie-legend', {
+        guides: true,
+        legend: true,
+        text: 'retain',
+      }),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('Firefox', 'Missing'),
+        '168-shadcn-pie-legend',
+        { guides: true, legend: true, text: 'retain' },
+      ),
+    ).toThrow('must retain all five native legend items')
+  })
+
+  it('requires the mixed-mark legend preview composition', () => {
+    const preview = `<g class="ts-chart__legend">
+      <rect data-ts-key="legend-square:high"></rect><text x="0">High temperature</text>
+      <rect data-ts-key="legend-square:precipitation"></rect><text x="0">Precipitation</text>
+      <path data-ts-key="legend-line:low"></path><circle data-ts-key="legend-line-dot:low"></circle><text x="0">Low temperature</text>
+      <circle data-ts-key="legend-dot:wind"></circle><text x="0">Wind</text>
+    </g>`
+
+    expect(() =>
+      validateCatalogPreviewPresentation(preview, '70-composed-chart'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('Low temperature', 'Missing'),
+        '70-composed-chart',
+      ),
+    ).toThrow('must retain all four mixed-mark legend items')
   })
 
   it('requires the active donut preview composition', () => {

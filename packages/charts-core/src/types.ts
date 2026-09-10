@@ -541,6 +541,7 @@ export interface ChartColorLegendContext {
   chart: ChartBounds
   bounds: ChartBounds
   theme: ChartTheme
+  layout?: ChartLayoutOptions
   width: number
   height: number
   direction?: ChartTextTypography['direction']
