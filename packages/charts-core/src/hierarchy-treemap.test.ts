@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { treemapDice } from 'd3-hierarchy'
 import { defineChart, createChartScene } from './scene'
+import { svgChartRenderer } from './svg-surface'
 import { treeLayout } from './hierarchy-tree'
 import { treemap } from './hierarchy-treemap'
 import type {
@@ -420,7 +421,7 @@ describe('treemap', () => {
       states: [
         {
           when: { focus: 'primary' },
-          style: { inset: 2, fillOpacity: 1 },
+          style: { inset: 2, fillOpacity: 1, radius: [4, 4, 0, 0] },
         },
       ],
       motion,
@@ -429,6 +430,31 @@ describe('treemap', () => {
     const nodes = allNodes(rendered.nodes)
     const rects = nodes.filter((node) => node.kind === 'rect')
     const labels = nodes.filter((node) => node.kind === 'label')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(rendered, { ariaLabel: 'Stateful treemap' })
+    const initialTiles = [
+      ...container.querySelectorAll<SVGPathElement>(
+        '.ts-chart__treemap > path',
+      ),
+    ]
+    expect(initialTiles).toHaveLength(4)
+    const initialPath = initialTiles[0]!.getAttribute('d')
+    const point = rendered.points[0]!
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+    const focusedTiles = [
+      ...container.querySelectorAll<SVGPathElement>(
+        '.ts-chart__treemap > path',
+      ),
+    ]
+    expect(focusedTiles).toEqual(initialTiles)
+    expect(focusedTiles[0]!.getAttribute('d')).not.toBe(initialPath)
+    surface.destroy()
 
     expect(new Set(rendered.colors.domain)).toEqual(
       new Set(['/root/alpha', '/root/beta']),

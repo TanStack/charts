@@ -4,8 +4,8 @@ description: Install TanStack Charts with compact scales, framework adapters, an
 ---
 
 These docs follow unreleased `main`, the official Alpha line. The latest
-published release is TanStack Charts `0.16.0`; use its
-[release-source docs](https://github.com/TanStack/charts/tree/v0.16.0/docs)
+published release is TanStack Charts `0.17.0`; use its
+[release-source docs](https://github.com/TanStack/charts/tree/v0.17.0/docs)
 for the exact surface. Alpha releases use regular `0.x` versions and may break
 APIs between minor releases. Install TanStack Charts in each application that
 authors chart definitions:
@@ -91,7 +91,7 @@ D3 dependency.
 
 | Adapter subpath                 | Framework peers                                                                 |
 | ------------------------------- | ------------------------------------------------------------------------------- |
-| `@tanstack/charts/react`        | React and React DOM `^19.0.0`                                                   |
+| `@tanstack/charts/react`        | React and React DOM 18 or 19                                                    |
 | `@tanstack/charts/react-native` | React `^19.2.3`, React Native `^0.86.0`, and `react-native-svg` `>=15.15.4 <16` |
 | `@tanstack/charts/preact`       | Preact `>=10`                                                                   |
 | `@tanstack/charts/vue`          | Vue `>=3.5`                                                                     |

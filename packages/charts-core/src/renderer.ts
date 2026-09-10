@@ -137,6 +137,8 @@ export function mountChartRenderer<
   let pointerPosition: ChartTooltipPosition | null = null
   let pinnedKey: string | null = null
   let observer: ResizeObserver | undefined
+  let observedContentSize:
+    { width: number | undefined; height: number | undefined } | undefined
   let renderFrame: number | undefined
   let forceScheduledRender = false
   let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
@@ -284,20 +286,89 @@ export function mountChartRenderer<
     }
   }
 
-  const currentWidth = () => {
-    const width = options.width ?? container.getBoundingClientRect().width
-    return options.width !== undefined || width > 0 ? width : undefined
+  const observesContainerWidth = () => options.width === undefined
+
+  const observesContainerHeight = () =>
+    options.height === undefined && !isPositiveFiniteNumber(options.aspectRatio)
+
+  const currentContainerContentSize = (bounds: DOMRect | undefined) => {
+    const styles = view?.getComputedStyle(container)
+    const paddingWidth =
+      cssPixelLength(styles?.paddingLeft) + cssPixelLength(styles?.paddingRight)
+    const paddingHeight =
+      cssPixelLength(styles?.paddingTop) + cssPixelLength(styles?.paddingBottom)
+    const borderWidth =
+      cssPixelLength(styles?.borderLeftWidth) +
+      cssPixelLength(styles?.borderRightWidth)
+    const borderHeight =
+      cssPixelLength(styles?.borderTopWidth) +
+      cssPixelLength(styles?.borderBottomWidth)
+    return {
+      width: contentBoxDimension(
+        styles?.width,
+        styles?.boxSizing,
+        bounds?.width,
+        paddingWidth,
+        borderWidth,
+      ),
+      height: contentBoxDimension(
+        styles?.height,
+        styles?.boxSizing,
+        bounds?.height,
+        paddingHeight,
+        borderHeight,
+      ),
+    }
+  }
+
+  const currentSize = () => {
+    const measureWidth = observesContainerWidth()
+    const measureHeight = observesContainerHeight()
+    const bounds =
+      (measureWidth || measureHeight) && !observedContentSize
+        ? container.getBoundingClientRect()
+        : undefined
+    const contentSize =
+      measureWidth || measureHeight
+        ? (observedContentSize ?? currentContainerContentSize(bounds))
+        : undefined
+    const width = options.width ?? contentSize?.width
+    return {
+      width,
+      height: measureHeight ? contentSize?.height : undefined,
+    }
+  }
+
+  const responsiveSizeChanged = () => {
+    const next = currentSize()
+    return (
+      (observesContainerWidth() &&
+        next.width !== undefined &&
+        next.width !== scene.width) ||
+      (observesContainerHeight() &&
+        next.height !== undefined &&
+        next.height !== scene.height)
+    )
   }
 
   const configureObserver = () => {
     observer?.disconnect()
     observer = undefined
-    if (options.width !== undefined) return
+    observedContentSize = undefined
+    if (!observesContainerWidth() && !observesContainerHeight()) return
     const ResizeObserverConstructor = view?.ResizeObserver
     if (!ResizeObserverConstructor) return
-    observer = new ResizeObserverConstructor(() => {
-      const width = currentWidth()
-      if (width === undefined || width === scene.width) return
+    observer = new ResizeObserverConstructor((entries) => {
+      const entry =
+        entries.find((candidate) => candidate.target === container) ??
+        entries[0]
+      observedContentSize = entry
+        ? {
+            width: positiveFiniteNumber(entry.contentRect.width),
+            height: positiveFiniteNumber(entry.contentRect.height),
+          }
+        : undefined
+      if (!responsiveSizeChanged()) return
       scheduleRender(false, 'resize')
     })
     observer.observe(container)
@@ -314,10 +385,7 @@ export function mountChartRenderer<
         : 'resize'
     if (renderFrame !== undefined) return
     if (!view?.requestAnimationFrame) {
-      const nextWidth = currentWidth()
-      const shouldRender =
-        forceScheduledRender ||
-        (nextWidth !== undefined && nextWidth !== scene.width)
+      const shouldRender = forceScheduledRender || responsiveSizeChanged()
       forceScheduledRender = false
       const nextReason = scheduledRenderReason ?? 'layout'
       scheduledRenderReason = undefined
@@ -326,10 +394,7 @@ export function mountChartRenderer<
     }
     renderFrame = view.requestAnimationFrame(() => {
       renderFrame = undefined
-      const nextWidth = currentWidth()
-      const shouldRender =
-        forceScheduledRender ||
-        (nextWidth !== undefined && nextWidth !== scene.width)
+      const shouldRender = forceScheduledRender || responsiveSizeChanged()
       forceScheduledRender = false
       const nextReason = scheduledRenderReason ?? 'layout'
       scheduledRenderReason = undefined
@@ -888,7 +953,10 @@ export function mountChartRenderer<
         options.renderer !== nextOptions.renderer ||
         options.measureText !== nextOptions.measureText ||
         fontChanged
-      const observerChanged = options.width !== nextOptions.width
+      const observerChanged =
+        options.width !== nextOptions.width ||
+        options.height !== nextOptions.height ||
+        options.aspectRatio !== nextOptions.aspectRatio
       const pointerDisabled =
         options.definition.pointer !== false &&
         nextOptions.definition.pointer === false &&
@@ -960,7 +1028,9 @@ export function mountChartRenderer<
   }
 
   function createScene(): ChartScene<TDatum, TXValue, TYValue> {
-    const width = currentWidth() ?? options.initialWidth ?? 640
+    const size = currentSize()
+    const width =
+      size.width ?? (hasRendered ? scene.width : (options.initialWidth ?? 640))
     return runtime.render(
       options.definition,
       {
@@ -969,7 +1039,7 @@ export function mountChartRenderer<
           options.height ??
           (isPositiveFiniteNumber(options.aspectRatio)
             ? width / options.aspectRatio
-            : 320),
+            : (size.height ?? (hasRendered ? scene.height : 320))),
       },
       {
         measureText: options.measureText ?? domText.measureText,
@@ -1253,6 +1323,38 @@ function resolveTooltipInput<
 
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function cssPixelLength(value: string | undefined) {
+  return cssPixelValue(value) ?? 0
+}
+
+function contentBoxDimension(
+  computedSize: string | undefined,
+  boxSizing: string | undefined,
+  boundingSize: number | undefined,
+  padding: number,
+  border: number,
+) {
+  const resolvedSize = isPositiveFiniteNumber(boundingSize)
+    ? cssPixelValue(computedSize)
+    : undefined
+  const size =
+    resolvedSize === undefined
+      ? (boundingSize ?? 0) - padding - border
+      : resolvedSize - (boxSizing === 'border-box' ? padding + border : 0)
+  return isPositiveFiniteNumber(size) ? size : undefined
+}
+
+function cssPixelValue(value: string | undefined) {
+  const match = /^(-?(?:\d+(?:\.\d*)?|\.\d+))px$/i.exec(value?.trim() ?? '')
+  if (!match) return undefined
+  const length = Number(match[1])
+  return Number.isFinite(length) ? length : undefined
+}
+
+function positiveFiniteNumber(value: number) {
+  return isPositiveFiniteNumber(value) ? value : undefined
 }
 
 function resolveRendererFocusStrategy<
