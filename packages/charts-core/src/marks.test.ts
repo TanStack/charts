@@ -9,7 +9,7 @@ import { dot } from './dot'
 import { group } from './group'
 import { colorLegend } from './legend'
 import { lineY } from './line'
-import { cell } from './rect'
+import { cell, rect } from './rect'
 import { ruleX, ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
 import { stack } from './stack'
@@ -55,7 +55,230 @@ describe('core marks and categorical scales', () => {
     expect(scene.scales.x.bandwidth).toBeGreaterThan(0)
     expect(scene.scales.y.domain[0]).toBeLessThanOrEqual(0)
     expect(rectangles).toHaveLength(2)
+    expect(rectangles).toMatchObject([{ radius: 3 }, { radius: 3 }])
     expect(scene.points.map((point) => point.datum)).toEqual(data)
+  })
+
+  it('resolves physical corner tuples and accessors for bars and rectangles', () => {
+    const barRows = [
+      { category: 'A', value: 2, corners: [1, 2, 3, 4] as const },
+      { category: 'B', value: 4, corners: [4, 3, 2, 1] as const },
+      { category: 'C', value: 3, corners: 4 },
+    ]
+    const barScene = createChartScene(
+      defineChart({
+        marks: [
+          barY(barRows, {
+            x: 'category',
+            y: 'value',
+            radius: (row) => row.corners,
+          }),
+        ],
+        ...bandXAxes(['A', 'B', 'C'], [0, 4]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const rectRows = [
+      { x1: 0, x2: 1, y1: 0, y2: 1, corners: [2, 4, 6, 8] as const },
+      { x1: 1, x2: 2, y1: 0, y2: 1, corners: 4 },
+    ]
+    const rectScene = createChartScene(
+      defineChart({
+        marks: [
+          rect(rectRows, {
+            x1: 'x1',
+            x2: 'x2',
+            y1: 'y1',
+            y2: 'y2',
+            radius: (row) => row.corners,
+          }),
+        ],
+        ...linearAxes([0, 2], [0, 1]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const bars = flatten(barScene.nodes).filter((node) => node.kind === 'rect')
+    const rectangles = flatten(rectScene.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+
+    expect(bars).toMatchObject([
+      { cornerRadii: [1, 2, 3, 4] },
+      { cornerRadii: [4, 3, 2, 1] },
+      { cornerRadii: [4, 4, 4, 4] },
+    ])
+    expect(rectangles).toMatchObject([
+      { cornerRadii: [2, 4, 6, 8] },
+      { cornerRadii: [4, 4, 4, 4] },
+    ])
+    expect(bars[0]).not.toHaveProperty('radius')
+    expect(bars[2]).not.toHaveProperty('radius')
+    expect(rectangles[0]).not.toHaveProperty('radius')
+    expect(rectangles[1]).not.toHaveProperty('radius')
+  })
+
+  it('hints selective state shape without changing numeric-only rectangle topology', () => {
+    const barScene = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ category: 'Tuple', value: 2 }], {
+            id: 'bar-tuple-state',
+            x: 'category',
+            y: 'value',
+            radius: 2,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { radius: [0, 6, 6, 0] },
+              },
+            ],
+          }),
+          barY([{ category: 'Number', value: 3 }], {
+            id: 'bar-number-state',
+            x: 'category',
+            y: 'value',
+            radius: 2,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { radius: 6 },
+              },
+            ],
+          }),
+        ],
+        ...bandXAxes(['Tuple', 'Number'], [0, 3]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const rectScene = createChartScene(
+      defineChart({
+        marks: [
+          rect([{ x1: 0, x2: 1, y1: 0, y2: 1 }], {
+            id: 'rect-callback-state',
+            x1: 'x1',
+            x2: 'x2',
+            y1: 'y1',
+            y2: 'y2',
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { radius: () => [0, 6, 6, 0] },
+              },
+            ],
+          }),
+          rect([{ x1: 1, x2: 2, y1: 0, y2: 1 }], {
+            id: 'rect-number-state',
+            x1: 'x1',
+            x2: 'x2',
+            y1: 'y1',
+            y2: 'y2',
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { radius: 6 },
+              },
+            ],
+          }),
+        ],
+        ...linearAxes([0, 2], [0, 1]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const findRect = (nodes: readonly SceneNode[], markId: string) =>
+      flatten(nodes).find(
+        (node) =>
+          node.kind === 'rect' && node.interaction?.point?.markId === markId,
+      )
+
+    expect(findRect(barScene.nodes, 'bar-tuple-state')).toMatchObject({
+      cornerRadii: [2, 2, 2, 2],
+    })
+    expect(findRect(barScene.nodes, 'bar-number-state')).toMatchObject({
+      radius: 2,
+    })
+    expect(findRect(barScene.nodes, 'bar-number-state')).not.toHaveProperty(
+      'cornerRadii',
+    )
+    expect(findRect(rectScene.nodes, 'rect-callback-state')).toMatchObject({
+      cornerRadii: [0, 0, 0, 0],
+    })
+    expect(findRect(rectScene.nodes, 'rect-number-state')).not.toHaveProperty(
+      'cornerRadii',
+    )
+  })
+
+  it('rounds semantic bar ends in physical space after scale reversal', () => {
+    const rows = [
+      { category: 'Positive', value: 5 },
+      { category: 'Negative', value: -5 },
+    ]
+    const verticalCorners = (reverse: boolean) => {
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            barY(rows, {
+              x: 'category',
+              y: 'value',
+              radius: { end: 6, stack: 'each' },
+            }),
+          ],
+          scales: {
+            x: {
+              scale: scaleBand<string>()
+                .domain(['Positive', 'Negative'])
+                .padding(0.1),
+            },
+            y: { scale: scaleLinear().domain([-5, 5]), reverse },
+          },
+        }),
+        { width: 480, height: 260 },
+      )
+      return flatten(scene.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => (node.kind === 'rect' ? node.cornerRadii : undefined))
+    }
+    const horizontalCorners = (reverse: boolean) => {
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            barX(rows, {
+              x: 'value',
+              y: 'category',
+              radius: { end: 6, stack: 'each' },
+            }),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([-5, 5]), reverse },
+            y: {
+              scale: scaleBand<string>()
+                .domain(['Positive', 'Negative'])
+                .padding(0.1),
+            },
+          },
+        }),
+        { width: 480, height: 260 },
+      )
+      return flatten(scene.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => (node.kind === 'rect' ? node.cornerRadii : undefined))
+    }
+
+    expect(verticalCorners(false)).toEqual([
+      [6, 6, 0, 0],
+      [0, 0, 6, 6],
+    ])
+    expect(verticalCorners(true)).toEqual([
+      [0, 0, 6, 6],
+      [6, 6, 0, 0],
+    ])
+    expect(horizontalCorners(false)).toEqual([
+      [0, 6, 6, 0],
+      [6, 0, 0, 6],
+    ])
+    expect(horizontalCorners(true)).toEqual([
+      [6, 0, 0, 6],
+      [0, 6, 6, 0],
+    ])
   })
 
   it('resolves authored bar outlines in both orientations', () => {
@@ -811,6 +1034,300 @@ describe('core marks and categorical scales', () => {
       { group: 'Router', yValue: 6, y1Value: 0, y2Value: 6 },
     ])
     expect(scene.scales.y.domain).toEqual([-4, 20])
+  })
+
+  it('resolves ordered stack ends before applying outer-only or per-segment radii', () => {
+    const rows = [
+      { id: 'query', category: 'A', series: 'Query', value: 4 },
+      { id: 'router', category: 'A', series: 'Router', value: 2 },
+      { id: 'sql', category: 'A', series: 'SQL', value: -3 },
+      { id: 'vue', category: 'A', series: 'Vue', value: -2 },
+    ]
+    const render = (stackMode: 'outer' | 'each') =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY(rows, {
+              x: 'category',
+              y: 'value',
+              z: 'series',
+              key: 'id',
+              layout: stack({ order: ['Vue', 'Router', 'SQL', 'Query'] }),
+              radius: { end: 4, stack: stackMode },
+            }),
+          ],
+          ...bandXAxes(['A'], [-5, 6]),
+        }),
+        { width: 480, height: 260 },
+      )
+    const outerScene = render('outer')
+    const eachScene = render('each')
+    const outerBars = flatten(outerScene.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+    const eachBars = flatten(eachScene.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+
+    expect(
+      outerScene.points.map(({ group, y1Value, y2Value }) => ({
+        group,
+        y1Value,
+        y2Value,
+      })),
+    ).toEqual([
+      { group: 'Query', y1Value: 2, y2Value: 6 },
+      { group: 'Router', y1Value: 0, y2Value: 2 },
+      { group: 'SQL', y1Value: -5, y2Value: -2 },
+      { group: 'Vue', y1Value: -2, y2Value: 0 },
+    ])
+    expect(outerBars.map((node) => node.cornerRadii)).toEqual([
+      [4, 4, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 4, 4],
+      [0, 0, 0, 0],
+    ])
+    expect(eachBars.map((node) => node.cornerRadii)).toEqual([
+      [4, 4, 0, 0],
+      [4, 4, 0, 0],
+      [0, 0, 4, 4],
+      [0, 0, 4, 4],
+    ])
+    const negativeOuter = outerScene.points.find(
+      (point) => point.datum.id === 'sql',
+    )!
+    const negativeOuterRect = outerBars[2]!
+    expect(negativeOuter.y).toBeCloseTo(
+      negativeOuterRect.y + negativeOuterRect.height,
+    )
+  })
+
+  it('rounds the painted envelope of mixed-sign normalized stacks', () => {
+    const rows = [
+      { category: 'A', series: 'Positive', value: 10 },
+      { category: 'A', series: 'Negative', value: -5 },
+    ]
+    const layout = stack({ offset: 'normalize' })
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 2]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandYAxes([0, 2], ['A']),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      vertical.points.map(({ y1Value, y2Value }) => ({ y1Value, y2Value })),
+    ).toEqual([
+      { y1Value: 0, y2Value: 2 },
+      { y1Value: 2, y2Value: 1 },
+    ])
+    expect(
+      flatten(vertical.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [4, 4, 0, 0],
+      [4, 4, 0, 0],
+    ])
+    expect(
+      flatten(horizontal.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [0, 4, 4, 0],
+      [0, 4, 4, 0],
+    ])
+  })
+
+  it('rounds both resolved ends of an anchored stack', () => {
+    const rows = [
+      { category: 'A', series: 'Disagree', value: 2 },
+      { category: 'A', series: 'Neutral', value: 2 },
+      { category: 'A', series: 'Agree', value: 3 },
+    ]
+    const layout = stack({
+      order: ['Disagree', 'Neutral', 'Agree'],
+      anchor: { series: 'Neutral' },
+    })
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandXAxes(['A'], [-3, 4]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            layout,
+            radius: { end: 4 },
+          }),
+        ],
+        ...bandYAxes([-3, 4], ['A']),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      flatten(vertical.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [0, 0, 4, 4],
+      [0, 0, 0, 0],
+      [4, 4, 0, 0],
+    ])
+    expect(
+      flatten(horizontal.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [4, 0, 0, 4],
+      [0, 0, 0, 0],
+      [0, 4, 4, 0],
+    ])
+  })
+
+  it('supports automatic semantic ends for explicit and grouped bars', () => {
+    const explicitScene = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ category: 'A', start: 2, end: 5 }], {
+            x: 'category',
+            y1: 'start',
+            y2: 'end',
+            radius: { end: 3 },
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 5]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const groupedScene = createChartScene(
+      defineChart({
+        marks: [
+          barY(
+            [
+              { category: 'A', series: 'One', value: 2 },
+              { category: 'A', series: 'Two', value: 3 },
+            ],
+            {
+              x: 'category',
+              y: 'value',
+              z: 'series',
+              layout: group(),
+              radius: { end: 3 },
+            },
+          ),
+        ],
+        ...bandXAxes(['A'], [0, 3]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      flatten(explicitScene.nodes).find((node) => node.kind === 'rect'),
+    ).toMatchObject({ cornerRadii: [3, 3, 0, 0] })
+    expect(
+      flatten(groupedScene.nodes)
+        .filter((node) => node.kind === 'rect')
+        .map((node) => node.cornerRadii),
+    ).toEqual([
+      [3, 3, 0, 0],
+      [3, 3, 0, 0],
+    ])
+  })
+
+  it('rejects explicitly outer semantic ends without an implicit stack', () => {
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY([{ category: 'A', start: 0, end: 2 }], {
+              x: 'category',
+              y1: 'start',
+              y2: 'end',
+              radius: { end: 3, stack: 'outer' },
+            }),
+          ],
+          ...bandXAxes(['A'], [0, 2]),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow(/requires an implicit y extent/u)
+
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barX([{ category: 'A', value: 2 }], {
+              x: 'value',
+              y: 'category',
+              layout: group(),
+              radius: { end: 3, stack: 'outer' },
+            }),
+          ],
+          ...bandYAxes([0, 2], ['A']),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow(/cannot be used with a group layout/u)
+  })
+
+  it('squares a zero-length semantic bar', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ category: 'A', value: 0 }], {
+            x: 'category',
+            y: 'value',
+            radius: { end: 5 },
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 1]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      flatten(scene.nodes).find((node) => node.kind === 'rect'),
+    ).toMatchObject({ cornerRadii: [0, 0, 0, 0] })
   })
 
   it('configures implicit stacks through the stack layout', () => {

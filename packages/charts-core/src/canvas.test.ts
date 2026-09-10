@@ -37,6 +37,7 @@ import type { ChartScene, SceneNode } from './types'
 interface FakeCanvasContext {
   operations: string[]
   gradientStops: Array<[number, string]>
+  arcTos: Array<[number, number, number, number, number]>
   context: CanvasRenderingContext2D
 }
 
@@ -77,6 +78,37 @@ afterEach(() => {
 })
 
 describe('Canvas renderer', () => {
+  it('paints each physical rectangle corner with its resolved radius', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    surface.render(
+      scene([
+        {
+          kind: 'rect',
+          key: 'selective',
+          x: 10,
+          y: 10,
+          width: 40,
+          height: 20,
+          cornerRadii: [5, 10, 15, 0],
+          style: { fill: '#2563eb' },
+        },
+      ]),
+      renderOptions(),
+    )
+
+    const arcTos = [...contexts.values()].flatMap((value) => value.arcTos)
+    expect(arcTos).toEqual(
+      expect.arrayContaining([
+        [50, 10, 50, 18, 8],
+        [50, 30, 38, 30, 12],
+        [10, 30, 10, 30, 0],
+        [10, 10, 14, 10, 4],
+      ]),
+    )
+    surface.destroy()
+  })
+
   it('composes renderer-tagged marks in source order', () => {
     const data = [
       { id: 'a', category: 'A', value: 3 },
@@ -2432,6 +2464,7 @@ function renderOptions(): ChartSurfaceRenderOptions {
 function fakeContext(): FakeCanvasContext {
   const operations: string[] = []
   const gradientStops: Array<[number, string]> = []
+  const arcTos: Array<[number, number, number, number, number]> = []
   let fillStyle: string | CanvasGradient = '#000000'
   let strokeStyle: string | CanvasGradient = '#000000'
   let lineWidth = 1
@@ -2461,7 +2494,10 @@ function fakeContext(): FakeCanvasContext {
     rect: (...values: number[]) => operations.push(`rect:${values.join(',')}`),
     arc: (x: number, y: number, radius: number) =>
       operations.push(`arc:${x},${y},${radius}`),
-    arcTo: () => operations.push('arcTo'),
+    arcTo: (...values: [number, number, number, number, number]) => {
+      arcTos.push(values)
+      operations.push('arcTo')
+    },
     translate: (...values: number[]) =>
       operations.push(`translate:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
@@ -2537,5 +2573,5 @@ function fakeContext(): FakeCanvasContext {
     textAlign: 'left',
     textBaseline: 'alphabetic',
   } as unknown as CanvasRenderingContext2D
-  return { operations, gradientStops, context }
+  return { operations, gradientStops, arcTos, context }
 }

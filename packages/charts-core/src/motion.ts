@@ -15,6 +15,7 @@ import { renderChartSvgWithResources } from './svg-resources'
 import { svgClientToScene } from './svg-coordinates'
 import { valueKey } from './scales'
 import { resolveRollingPathPlan } from './motion-path'
+import { rectCornerRadiiPath, resolveRectCornerRadii } from './renderer-rect'
 import type {
   RollingPathPlan,
   RollingPathSnapshot,
@@ -57,8 +58,10 @@ import type {
   ChartTooltipPosition,
   ChartValue,
   InitializedMark,
+  RectCornerRadii,
   SceneGroup,
   SceneNode,
+  SceneRect,
   StaticChartDefinition,
 } from './types'
 import type { ChartSpring } from './spring'
@@ -1225,22 +1228,21 @@ function createBarTracks(
 
   groups.forEach((group, seriesIndex) => {
     const horizontal = group.classList.contains('ts-chart__bar-x')
-    const rectangles = [...group.children].filter(
-      (element): element is SVGRectElement => element.localName === 'rect',
-    )
+    const shapes = barShapeElements(group)
     const seriesKey =
       group.getAttribute('data-ts-key') ?? `series:${seriesIndex}`
 
-    rectangles.forEach((rectangle, datumIndex) => {
+    shapes.forEach((shape, datumIndex) => {
       const key =
-        rectangle.getAttribute('data-ts-key') ?? `${seriesKey}:${datumIndex}`
+        shape.getAttribute('data-ts-key') ?? `${seriesKey}:${datumIndex}`
       const point = points.get(key)
-      const targetX = numberAttribute(rectangle, 'x')
-      const targetY = numberAttribute(rectangle, 'y')
-      const targetWidth = numberAttribute(rectangle, 'width')
-      const targetHeight = numberAttribute(rectangle, 'height')
+      const geometry = barShapeGeometry(shape, scene)
+      if (!geometry) return
+      const { x: targetX, y: targetY } = geometry
+      const { width: targetWidth, height: targetHeight } = geometry
       const baseline = resolveBarBaseline(
         scene,
+        key,
         point,
         horizontal,
         horizontal ? targetX : targetY + targetHeight,
@@ -1253,28 +1255,45 @@ function createBarTracks(
         seriesKey,
         seriesIndex,
         datumIndex,
-        datumCount: rectangles.length,
+        datumCount: shapes.length,
         datum: point?.datum,
         point,
       })
 
-      rectangle.dataset.tsMotionRole = 'bar'
+      shape.dataset.tsMotionRole = 'bar'
+      if (shape.localName === 'path' && geometry.cornerRadii) {
+        const to = barPathGeometryValues(geometry)
+        const from = barPathEntranceValues(to, horizontal, baseline)
+        const states = elementValueStates(runtime, shape, 'bar-geometry', from)
+        const apply = (values: readonly number[]) => {
+          applyBarPathGeometry(shape, values)
+        }
+        const finish = () => {
+          finishBarShapeGeometry(shape, geometry)
+          delete shape.dataset.tsMotionRole
+        }
+        apply(from)
+        tracks.push({
+          ...timing,
+          values: bindMotionValues(states, from, to),
+          apply,
+          finish,
+          cancel: () => delete shape.dataset.tsMotionRole,
+        })
+        return
+      }
       const names = horizontal ? ['x', 'width'] : ['y', 'height']
       const from = [baseline, 0]
       const to = horizontal ? [targetX, targetWidth] : [targetY, targetHeight]
       const states = names.flatMap((name, index) =>
-        elementValueStates(runtime, rectangle, name, [from[index] ?? 0]),
+        elementValueStates(runtime, shape, name, [from[index] ?? 0]),
       )
       const apply = (values: readonly number[]) => {
-        rectangle.setAttribute(names[0]!, formatNumber(values[0] ?? 0))
-        rectangle.setAttribute(names[1]!, formatNumber(values[1] ?? 0))
+        applyBarShapeGeometry(shape, geometry, horizontal, values)
       }
       const finish = () => {
-        rectangle.setAttribute('x', formatNumber(targetX))
-        rectangle.setAttribute('y', formatNumber(targetY))
-        rectangle.setAttribute('width', formatNumber(targetWidth))
-        rectangle.setAttribute('height', formatNumber(targetHeight))
-        delete rectangle.dataset.tsMotionRole
+        finishBarShapeGeometry(shape, geometry)
+        delete shape.dataset.tsMotionRole
       }
       apply(from)
       tracks.push({
@@ -1282,12 +1301,179 @@ function createBarTracks(
         values: bindMotionValues(states, from, to),
         apply,
         finish,
-        cancel: () => delete rectangle.dataset.tsMotionRole,
+        cancel: () => delete shape.dataset.tsMotionRole,
       })
     })
   })
 
   return tracks
+}
+
+type BarShapeElement = SVGRectElement | SVGPathElement
+
+interface BarShapeGeometry {
+  x: number
+  y: number
+  width: number
+  height: number
+  cornerRadii?: SceneRect['cornerRadii']
+}
+
+type BarPathGeometryValues = [
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  topLeft: number,
+  topRight: number,
+  bottomRight: number,
+  bottomLeft: number,
+]
+
+function barPathGeometryValues(
+  geometry: BarShapeGeometry,
+): BarPathGeometryValues {
+  const [topLeft, topRight, bottomRight, bottomLeft] = resolveRectCornerRadii(
+    geometry.cornerRadii,
+    geometry.width,
+    geometry.height,
+  )
+  return [
+    geometry.x,
+    geometry.y,
+    geometry.width,
+    geometry.height,
+    topLeft,
+    topRight,
+    bottomRight,
+    bottomLeft,
+  ]
+}
+
+function barPathEntranceValues(
+  target: BarPathGeometryValues,
+  horizontal: boolean,
+  baseline: number,
+): BarPathGeometryValues {
+  const values = [...target] as BarPathGeometryValues
+  if (horizontal) {
+    values[0] = baseline
+    values[2] = 0
+  } else {
+    values[1] = baseline
+    values[3] = 0
+  }
+  return values
+}
+
+function applyBarPathGeometry(
+  element: Element,
+  values: readonly number[],
+): void {
+  const cornerRadii: RectCornerRadii = [
+    values[4] ?? 0,
+    values[5] ?? 0,
+    values[6] ?? 0,
+    values[7] ?? 0,
+  ]
+  element.setAttribute(
+    'd',
+    rectCornerRadiiPath(
+      values[0] ?? 0,
+      values[1] ?? 0,
+      values[2] ?? 0,
+      values[3] ?? 0,
+      cornerRadii,
+    ),
+  )
+}
+
+function barShapeElements(group: SVGGElement): BarShapeElement[] {
+  return [...group.children].filter(isBarShapeElement)
+}
+
+function isBarShapeElement(element: Element): element is BarShapeElement {
+  return element.localName === 'rect' || element.localName === 'path'
+}
+
+function barShapeGeometry(
+  element: BarShapeElement,
+  scene: ChartScene,
+): BarShapeGeometry | undefined {
+  if (element.localName === 'rect') {
+    return {
+      x: numberAttribute(element, 'x'),
+      y: numberAttribute(element, 'y'),
+      width: numberAttribute(element, 'width'),
+      height: numberAttribute(element, 'height'),
+    }
+  }
+  const key = element.getAttribute('data-ts-key')
+  const node = key ? sceneNodeContext(scene, key)?.node : undefined
+  if (node?.kind === 'rect' && node.cornerRadii) {
+    return {
+      x: node.x,
+      y: node.y,
+      width: node.width,
+      height: node.height,
+      cornerRadii: node.cornerRadii,
+    }
+  }
+  return undefined
+}
+
+function applyBarShapeGeometry(
+  element: BarShapeElement,
+  geometry: BarShapeGeometry,
+  horizontal: boolean,
+  values: readonly number[],
+): void {
+  const next = {
+    ...geometry,
+    ...(horizontal
+      ? { x: values[0] ?? geometry.x, width: values[1] ?? geometry.width }
+      : { y: values[0] ?? geometry.y, height: values[1] ?? geometry.height }),
+  }
+  if (element.localName === 'path' && next.cornerRadii) {
+    element.setAttribute(
+      'd',
+      rectCornerRadiiPath(
+        next.x,
+        next.y,
+        next.width,
+        next.height,
+        next.cornerRadii,
+      ),
+    )
+    return
+  }
+  element.setAttribute('x', formatNumber(next.x))
+  element.setAttribute('y', formatNumber(next.y))
+  element.setAttribute('width', formatNumber(next.width))
+  element.setAttribute('height', formatNumber(next.height))
+}
+
+function finishBarShapeGeometry(
+  element: BarShapeElement,
+  geometry: BarShapeGeometry,
+): void {
+  if (element.localName === 'path' && geometry.cornerRadii) {
+    element.setAttribute(
+      'd',
+      rectCornerRadiiPath(
+        geometry.x,
+        geometry.y,
+        geometry.width,
+        geometry.height,
+        geometry.cornerRadii,
+      ),
+    )
+    return
+  }
+  element.setAttribute('x', formatNumber(geometry.x))
+  element.setAttribute('y', formatNumber(geometry.y))
+  element.setAttribute('width', formatNumber(geometry.width))
+  element.setAttribute('height', formatNumber(geometry.height))
 }
 
 function createCartesianPathTracks(
@@ -1507,7 +1693,7 @@ function scenePathAffinity(
   scene: ChartScene,
   key: string,
 ): 'x' | 'y' | 'xy' | 'geometry' | undefined {
-  const node = findSceneNodeContext(scene.nodes, key)?.node
+  const node = sceneNodeContext(scene, key)?.node
   if (!node) return undefined
   const visit = (
     candidate: SceneNode,
@@ -1530,7 +1716,7 @@ function sceneArcGeometry(
   scene: ChartScene,
   key: string,
 ): { startAngle: number; sweep: number; radius: number } | undefined {
-  const node = findSceneNodeContext(scene.nodes, key)?.node
+  const node = sceneNodeContext(scene, key)?.node
   if (!node) return undefined
   const pointSets: (readonly (readonly [number, number])[])[] = []
   const visit = (candidate: SceneNode) => {
@@ -1736,7 +1922,7 @@ function scenePathSnapshot(
   scene: ChartScene,
   key: string,
 ): RollingPathSnapshot | undefined {
-  const context = findSceneNodeContext(scene.nodes, key)
+  const context = sceneNodeContext(scene, key)
   const node = context?.node
   if (!node || (node.kind !== 'polyline' && node.kind !== 'area')) {
     return undefined
@@ -1778,34 +1964,49 @@ function motionPointScaleId(
   return mark?.channels[channel]?.scale
 }
 
-function findSceneNodeContext(
-  nodes: readonly SceneNode[],
-  key: string,
-  translateX = 0,
-  translateY = 0,
-  clipped = false,
-):
-  | {
-      node: SceneNode
-      translateX: number
-      translateY: number
-      clipped: boolean
-    }
-  | undefined {
-  for (const node of nodes) {
-    if (node.key === key) return { node, translateX, translateY, clipped }
-    if (node.kind === 'group') {
-      const nested = findSceneNodeContext(
-        node.children,
-        key,
-        translateX + (node.translateX ?? 0),
-        translateY + (node.translateY ?? 0),
-        clipped || node.clip !== undefined,
-      )
-      if (nested) return nested
+interface SceneNodeContext {
+  node: SceneNode
+  translateX: number
+  translateY: number
+  clipped: boolean
+}
+
+const sceneNodeContextsCache = new WeakMap<
+  ChartScene,
+  ReadonlyMap<string, SceneNodeContext>
+>()
+
+function sceneNodeContexts(scene: ChartScene) {
+  const cached = sceneNodeContextsCache.get(scene)
+  if (cached) return cached
+  const contexts = new Map<string, SceneNodeContext>()
+  const visit = (
+    nodes: readonly SceneNode[],
+    translateX = 0,
+    translateY = 0,
+    clipped = false,
+  ) => {
+    for (const node of nodes) {
+      if (!contexts.has(node.key)) {
+        contexts.set(node.key, { node, translateX, translateY, clipped })
+      }
+      if (node.kind === 'group') {
+        visit(
+          node.children,
+          translateX + (node.translateX ?? 0),
+          translateY + (node.translateY ?? 0),
+          clipped || node.clip !== undefined,
+        )
+      }
     }
   }
-  return undefined
+  visit(scene.nodes)
+  sceneNodeContextsCache.set(scene, contexts)
+  return contexts
+}
+
+function sceneNodeContext(scene: ChartScene, key: string) {
+  return sceneNodeContexts(scene).get(key)
 }
 
 function isRollingPathMotion(
@@ -1953,17 +2154,21 @@ function addUpdateTrack(
   const pointRollingSnap =
     pointRolling?.outcome.kind === 'fallback' &&
     pointRolling.outcome.fallback === 'snap'
-  const semanticPath = addSemanticPathUpdateTrack(
+  const barPath = addBarPathUpdateTrack(
     current,
     next,
     tracks,
     context,
     timingContext,
   )
+  const semanticPath =
+    !barPath &&
+    addSemanticPathUpdateTrack(current, next, tracks, context, timingContext)
   const nextNames = new Set(next.getAttributeNames())
   for (const name of current.getAttributeNames()) {
     if (
       !nextNames.has(name) &&
+      !((barPath || semanticPath) && name === 'data-ts-motion-role') &&
       !(rollingTransform !== undefined && name === 'transform')
     ) {
       current.removeAttribute(name)
@@ -1975,7 +2180,7 @@ function addUpdateTrack(
     const target = next.getAttribute(name)
     const previous = current.getAttribute(name)
     if (target === previous) continue
-    if (semanticPath && name === 'd') continue
+    if ((barPath || semanticPath) && name === 'd') continue
     if (
       pointRollingSnap &&
       rollingPointGeometryAttributes.has(name) &&
@@ -2075,6 +2280,69 @@ function addUpdateTrack(
       current.removeAttribute('data-ts-motion-role')
     },
   })
+}
+
+function addBarPathUpdateTrack(
+  current: Element,
+  next: Element,
+  tracks: MotionTrack[],
+  context: MotionReconcileContext,
+  timingContext: ChartMotionContext | undefined,
+) {
+  if (
+    current.localName !== 'path' ||
+    next.localName !== 'path' ||
+    timingContext?.role !== 'bar' ||
+    !context.previousScene
+  ) {
+    return false
+  }
+  const key = current.getAttribute('data-ts-key')
+  const targetPath = next.getAttribute('d')
+  if (!key || next.getAttribute('data-ts-key') !== key || !targetPath) {
+    return false
+  }
+  const previous = sceneNodeContext(context.previousScene, key)?.node
+  const target = sceneNodeContext(context.scene, key)?.node
+  if (
+    previous?.kind !== 'rect' ||
+    !previous.cornerRadii ||
+    target?.kind !== 'rect' ||
+    !target.cornerRadii
+  ) {
+    return false
+  }
+  const previousValues = barPathGeometryValues(previous)
+  const targetValues = barPathGeometryValues(target)
+  const states = elementValueStates(
+    context.runtime,
+    current,
+    'bar-geometry',
+    previousValues,
+  )
+  const sourceValues = states.map((state) => state.value)
+  const settledAtTarget = states.every(
+    (state, index) =>
+      Math.abs(state.value - (targetValues[index] ?? state.value)) <= 0.002 &&
+      state.velocity === 0,
+  )
+  if (current.getAttribute('d') === targetPath && settledAtTarget) return false
+  current.setAttribute('data-ts-motion-role', timingContext.role)
+  tracks.push({
+    ...context.timingFor(timingContext),
+    values: bindMotionValues(states, sourceValues, targetValues),
+    apply(values) {
+      applyBarPathGeometry(current, values)
+    },
+    finish() {
+      current.setAttribute('d', targetPath)
+      current.removeAttribute('data-ts-motion-role')
+    },
+    cancel() {
+      current.removeAttribute('data-ts-motion-role')
+    },
+  })
+  return true
 }
 
 function addSemanticPathUpdateTrack(
@@ -2214,20 +2482,51 @@ function addEnterMotionTrack(
 
   if (
     timingContext.role === 'bar' &&
-    element.localName === 'rect' &&
+    isBarShapeElement(element) &&
     !element.closest('[data-ts-focus-retarget]')
   ) {
     const horizontal = Boolean(element.closest('g.ts-chart__bar-x'))
-    const targetX = numberAttribute(element, 'x')
-    const targetY = numberAttribute(element, 'y')
-    const targetWidth = numberAttribute(element, 'width')
-    const targetHeight = numberAttribute(element, 'height')
+    const geometry = barShapeGeometry(element, context.scene)
+    if (!geometry) {
+      element.removeAttribute('data-ts-motion-role')
+      return
+    }
+    const { x: targetX, y: targetY } = geometry
+    const { width: targetWidth, height: targetHeight } = geometry
     const baseline = resolveBarBaseline(
       context.scene,
+      timingContext.key,
       timingContext.point,
       horizontal,
       horizontal ? targetX : targetY + targetHeight,
     )
+    if (element.localName === 'path' && geometry.cornerRadii) {
+      const to = barPathGeometryValues(geometry)
+      const from = barPathEntranceValues(to, horizontal, baseline)
+      const states = elementValueStates(
+        context.runtime,
+        element,
+        'bar-geometry',
+        from,
+      )
+      const apply = (values: readonly number[]) => {
+        applyBarPathGeometry(element, values)
+      }
+      apply(from)
+      tracks.push({
+        ...timing,
+        values: bindMotionValues(states, from, to),
+        apply,
+        finish() {
+          finishBarShapeGeometry(element, geometry)
+          element.removeAttribute('data-ts-motion-role')
+        },
+        cancel() {
+          element.removeAttribute('data-ts-motion-role')
+        },
+      })
+      return
+    }
     const names = horizontal ? ['x', 'width'] : ['y', 'height']
     const from = [baseline, 0]
     const to = horizontal ? [targetX, targetWidth] : [targetY, targetHeight]
@@ -2235,8 +2534,7 @@ function addEnterMotionTrack(
       elementValueStates(context.runtime, element, name, [from[index] ?? 0]),
     )
     const apply = (values: readonly number[]) => {
-      element.setAttribute(names[0]!, formatNumber(values[0] ?? 0))
-      element.setAttribute(names[1]!, formatNumber(values[1] ?? 0))
+      applyBarShapeGeometry(element, geometry, horizontal, values)
     }
     apply(from)
     tracks.push({
@@ -2244,10 +2542,7 @@ function addEnterMotionTrack(
       values: bindMotionValues(states, from, to),
       apply,
       finish() {
-        element.setAttribute('x', formatNumber(targetX))
-        element.setAttribute('y', formatNumber(targetY))
-        element.setAttribute('width', formatNumber(targetWidth))
-        element.setAttribute('height', formatNumber(targetHeight))
+        finishBarShapeGeometry(element, geometry)
         element.removeAttribute('data-ts-motion-role')
       },
       cancel() {
@@ -2483,29 +2778,44 @@ interface SceneMotionEntry {
   metadata: SceneMotionMetadata
 }
 
-const sceneMotionEntriesCache = new WeakMap<
+interface SceneMotionEntryIndex {
+  entries: readonly SceneMotionEntry[]
+  byKey: ReadonlyMap<string, SceneMotionEntry>
+}
+
+const sceneMotionEntryIndexCache = new WeakMap<
   ChartScene,
-  readonly SceneMotionEntry[]
+  SceneMotionEntryIndex
 >()
 
-function sceneMotionEntries(scene: ChartScene) {
-  const cached = sceneMotionEntriesCache.get(scene)
+function sceneMotionEntryIndex(scene: ChartScene) {
+  const cached = sceneMotionEntryIndexCache.get(scene)
   if (cached) return cached
   const entries: SceneMotionEntry[] = []
+  const byKey = new Map<string, SceneMotionEntry>()
   const visit = (nodes: readonly SceneNode[]) => {
     for (const node of nodes) {
       const metadata = (node as SceneMotionNode)[sceneMotionNode]
-      if (metadata) entries.push({ node, metadata })
+      if (metadata) {
+        const entry = { node, metadata }
+        entries.push(entry)
+        if (!byKey.has(node.key)) byKey.set(node.key, entry)
+      }
       if (node.kind === 'group') visit(node.children)
     }
   }
   visit(scene.nodes)
-  sceneMotionEntriesCache.set(scene, entries)
-  return entries
+  const index = { entries, byKey }
+  sceneMotionEntryIndexCache.set(scene, index)
+  return index
+}
+
+function sceneMotionEntries(scene: ChartScene) {
+  return sceneMotionEntryIndex(scene).entries
 }
 
 function sceneMotionEntry(scene: ChartScene, key: string) {
-  return sceneMotionEntries(scene).find((entry) => entry.node.key === key)
+  return sceneMotionEntryIndex(scene).byKey.get(key)
 }
 
 function compatiblePathGeometry(
@@ -2580,11 +2890,9 @@ function elementTimingContext(
   const point = scene.points.find(
     (candidate) => candidate.key === key || key === `${candidate.key}:dot`,
   )
-  const rectangles = barGroup
-    ? [...barGroup.children].filter((child) => child.localName === 'rect')
-    : []
+  const shapes = barGroup ? barShapeElements(barGroup) : []
   const datumIndex =
-    point?.datumIndex ?? Math.max(0, rectangles.indexOf(element))
+    point?.datumIndex ?? Math.max(0, shapes.indexOf(element as BarShapeElement))
   return {
     phase,
     role,
@@ -2593,7 +2901,7 @@ function elementTimingContext(
     seriesKey,
     seriesIndex,
     datumIndex,
-    datumCount: barGroup ? Math.max(1, rectangles.length) : 1,
+    datumCount: barGroup ? Math.max(1, shapes.length) : 1,
     datum: point?.datum,
     point,
   }
@@ -2850,6 +3158,7 @@ function markMotionRole(owner: Element, element: Element): ChartMotionRole {
   if (className.includes('ts-chart__link')) return 'link'
   if (className.includes('ts-chart__text')) return 'text'
   if (className.includes('ts-chart__rect')) return 'rect'
+  if (className.includes('ts-chart__waffle')) return 'rect'
   if (className.includes('ts-chart__rule')) return 'rule'
   if (className.includes('ts-chart__tick')) return 'tick'
   if (className.includes('ts-chart__vector')) return 'vector'
@@ -2887,8 +3196,14 @@ function createPresentationTracks(
   runtime: MotionRuntime,
   rollingPlans?: RollingPathPlans,
 ) {
-  const verticalBars = keyedElements(root, 'g.ts-chart__bar-y > rect')
-  const horizontalBars = keyedElements(root, 'g.ts-chart__bar-x > rect')
+  const verticalBars = keyedElements(
+    root,
+    'g.ts-chart__bar-y > rect, g.ts-chart__bar-y > path',
+  )
+  const horizontalBars = keyedElements(
+    root,
+    'g.ts-chart__bar-x > rect, g.ts-chart__bar-x > path',
+  )
   const pathGroups = keyedElementMap(
     root,
     'g.ts-chart__line, g.ts-chart__area, g.ts-chart__radial-area',
@@ -2981,6 +3296,7 @@ function createPresentationTracks(
     const phase: ChartMotionPhase = previous ? 'update' : 'enter'
     const baseline = resolveBarBaseline(
       scene,
+      point.key,
       point,
       horizontal,
       horizontal ? point.x : point.y,
@@ -3525,10 +3841,13 @@ function motionSceneSource(scene: ChartScene): SceneMotionSource | undefined {
 
 function resolveBarBaseline(
   scene: ChartScene,
+  nodeKey: string,
   point: ChartPoint | undefined,
   horizontal: boolean,
   fallback: number,
 ) {
+  const authored = sceneMotionEntry(scene, nodeKey)?.metadata.bar?.baseline
+  if (authored !== undefined && Number.isFinite(authored)) return authored
   const scale = scene.scales[horizontal ? 'x' : 'y']
   const value = horizontal ? point?.x1Value : point?.y1Value
   if (!scale || value === undefined) return fallback

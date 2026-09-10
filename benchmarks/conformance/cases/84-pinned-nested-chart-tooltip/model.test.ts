@@ -1,3 +1,4 @@
+import { createChartScene, type SceneNode } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import {
   consumptionBreakdown,
@@ -7,6 +8,7 @@ import {
   monthFromTarget,
 } from './model'
 import { mount } from './view'
+import { energyDefinition } from './example'
 
 describe('expanding energy tooltip model', () => {
   it('keeps monthly totals and breakdown segments internally consistent', () => {
@@ -49,6 +51,23 @@ describe('expanding energy tooltip model', () => {
       energyAnnualOverview.consumption,
     )
     expect(energyAnnualOverview.generation).toBe(3_509)
+  })
+
+  it('rounds only the exposed end of each exported-energy bar', () => {
+    const rows = energyMonths()
+    const scene = createChartScene(energyDefinition(rows, 480), {
+      width: 480,
+      height: 320,
+    })
+    const exported = flatten(scene.nodes).filter(
+      (node) =>
+        node.kind === 'rect' && node.interaction?.point?.markId === 'exported',
+    )
+
+    expect(exported).toHaveLength(rows.length)
+    expect(exported).toMatchObject(
+      rows.map(() => ({ cornerRadii: [3, 3, 0, 0] })),
+    )
   })
 
   it('updates a stable month without changing the domain', () => {
@@ -99,3 +118,9 @@ describe('expanding energy tooltip model', () => {
     container.remove()
   })
 })
+
+function flatten(nodes: readonly SceneNode[]) {
+  return nodes.flatMap((node): SceneNode[] =>
+    node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
+  )
+}

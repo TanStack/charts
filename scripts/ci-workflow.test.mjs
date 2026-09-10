@@ -80,6 +80,10 @@ describe('CI workflow contract', () => {
   test('keeps packed-consumer installs offline without resolving optional peers', () => {
     assert.equal(
       (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
+      2,
+    )
+    assert.equal(
+      (packedConsumer.match(/strictPeerDependencies: true/g) ?? []).length,
       1,
     )
     assert.equal(
@@ -88,7 +92,7 @@ describe('CI workflow contract', () => {
           /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/g,
         ) ?? []
       ).length,
-      1,
+      2,
     )
     assert.match(unifiedArtifact, /'autoInstallPeers: false'/)
     assert.match(unifiedArtifact, /linkedUnifiedConsumerDependencies\(/)
@@ -240,9 +244,14 @@ describe('CI workflow contract', () => {
     })
   })
 
+  test('fetches complete pull request history before classification', () => {
+    const selection = job('changes')
+    assert.match(selection, /fetch-depth:\s*0/)
+    assert.match(selection, /git diff --no-renames --name-only -z/)
+  })
+
   test('runs every expensive partition outside pull requests', () => {
     const selection = job('changes')
-    assert.match(selection, /git diff --no-renames --name-only -z/)
     assert.match(selection, /if:\s*github\.event_name != 'pull_request'/)
     for (const output of ['compare', 'stress']) {
       assert.match(selection, new RegExp(`echo '${output}=true'`))

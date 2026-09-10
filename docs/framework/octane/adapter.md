@@ -129,7 +129,9 @@ Octane-specific presentation props apply to the outer host:
   width, height, or aspect ratio.
 
 Do not conflict a fixed `width` prop with `style.width`. The style changes the
-outer CSS box while the prop continues to lock scene measurement.
+outer CSS box while the prop continues to lock scene width. A custom
+`style.height` remains live when both `height` and `aspectRatio` are absent.
+Either sizing prop stays authoritative over CSS height when supplied.
 
 The core renderer's `className` option applies to a directly rendered surface,
 not the Octane outer host.

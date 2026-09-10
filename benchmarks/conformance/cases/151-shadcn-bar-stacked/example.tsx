@@ -19,7 +19,7 @@ export function createExampleChart() {
           color: 'series',
           key: (row) => `${row.month}:${row.series}`,
           layout: stack({ order: twoSeries }),
-          radius: 4,
+          radius: { end: 4 },
         }),
       ],
       scales: {

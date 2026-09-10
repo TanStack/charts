@@ -74,7 +74,7 @@ export function energyDefinition(
           y2: 'generation',
           fill: 'url(#energy-exported-hatch)',
           inset: 0.5,
-          radius: 3,
+          radius: { end: 3 },
         }),
         lineY(rows, {
           id: 'consumption-line',

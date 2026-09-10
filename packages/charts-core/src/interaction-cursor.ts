@@ -13,6 +13,7 @@ import type {
   SceneNode,
   SceneStyle,
 } from './types'
+import { rectCornerRadiiPath } from './renderer-rect'
 import type {
   ChartHostControlExtension,
   ChartHostControlInstance,
@@ -663,7 +664,8 @@ function syncGuideElements(layer: SVGGElement, nodes: readonly SceneNode[]) {
 function nodeTag(node: SceneNode) {
   if (node.kind === 'rule') return 'line'
   if (node.kind === 'dot') return 'circle'
-  if (node.kind === 'rect') return 'rect'
+  if (node.kind === 'rect')
+    return node.cornerRadii === undefined ? 'rect' : 'path'
   if (node.kind === 'label') return 'text'
   return null
 }
@@ -681,11 +683,25 @@ function updateGuideElement(element: SVGElement, node: SceneNode) {
     setAttribute(element, 'cy', node.y)
     setAttribute(element, 'r', node.radius)
   } else if (node.kind === 'rect') {
-    setAttribute(element, 'x', node.x)
-    setAttribute(element, 'y', node.y)
-    setAttribute(element, 'width', node.width)
-    setAttribute(element, 'height', node.height)
-    setAttribute(element, 'rx', node.radius)
+    if (node.cornerRadii === undefined) {
+      setAttribute(element, 'x', node.x)
+      setAttribute(element, 'y', node.y)
+      setAttribute(element, 'width', node.width)
+      setAttribute(element, 'height', node.height)
+      setAttribute(element, 'rx', node.radius)
+    } else {
+      setAttribute(
+        element,
+        'd',
+        rectCornerRadiiPath(
+          node.x,
+          node.y,
+          node.width,
+          node.height,
+          node.cornerRadii,
+        ),
+      )
+    }
   } else if (node.kind === 'label') {
     setAttribute(element, 'x', node.x)
     setAttribute(element, 'y', node.y)

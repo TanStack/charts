@@ -772,10 +772,10 @@ async function inspectWorkspace(browser, result, variant) {
           caseId === 'bar-vertical-sorted'
             ? renderer === 'observable-plot'
               ? '[aria-label="bar"] rect'
-              : '.ts-chart__bar rect'
+              : '.ts-chart__bar rect, .ts-chart__bar path'
             : renderer === 'observable-plot'
               ? '[aria-label="rect"] rect'
-              : '.ts-chart__rect rect'
+              : '.ts-chart__rect rect, .ts-chart__rect path'
         const elements = container
           ? [...container.querySelectorAll(selector)]
           : []

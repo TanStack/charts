@@ -10,7 +10,16 @@ import {
   visualValue,
 } from './mark'
 import { resolveScaleInput } from './scale-input'
+import {
+  markStatesMayUseCornerRadii,
+  resolveSceneRectRadius,
+} from './rect-radius-state-internal'
+import {
+  sceneMotionNode,
+  type SceneMotionMetadata,
+} from './scene-motion-internal'
 import { valueKey } from './scales'
+import { stackOuterEnds, type StackOuterEnd } from './stack-ends-internal'
 import { stackValues } from './stack-internal'
 import type {
   Channel,
@@ -27,14 +36,25 @@ import type {
   MarkCallOptions,
   MarkChannelOutput,
   MarkScaleBindings,
+  RectCornerRadii,
+  RectRadius,
   ResolvedScale,
   SceneNode,
+  SceneRect,
   VisualChannel,
 } from './types'
 import type { GroupLayout } from './group'
 import type { StackLayout } from './stack'
 
 type BarLayout = GroupLayout | StackLayout
+
+export interface BarEndRadius<TDatum> {
+  end: VisualChannel<TDatum, number>
+  stack?: 'outer' | 'each'
+}
+
+export type BarRadius<TDatum> =
+  VisualChannel<TDatum, RectRadius> | BarEndRadius<TDatum>
 
 export interface BarYOptions<TDatum>
   extends ChartMarkMotionOptions<TDatum>, CartesianScaleBindings {
@@ -57,7 +77,7 @@ export interface BarYOptions<TDatum>
   inset?: number
   /** Maximum painted width in pixels after grouping and inset. */
   maxThickness?: number
-  radius?: number
+  radius?: BarRadius<TDatum>
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
@@ -82,7 +102,7 @@ export interface BarXOptions<TDatum>
   inset?: number
   /** Maximum painted height in pixels after grouping and inset. */
   maxThickness?: number
-  radius?: number
+  radius?: BarRadius<TDatum>
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
@@ -141,6 +161,9 @@ export function barY<TDatum>(
   const data = Array.isArray(source) ? source : Array.from(source)
   const xScale = options.xScale ?? 'x'
   const yScale = options.yScale ?? 'y'
+  const preferCornerRadii =
+    typeof options.radius === 'function' ||
+    markStatesMayUseCornerRadii(options.states)
 
   return createMark(
     ({ markIndex }) => {
@@ -172,10 +195,29 @@ export function barY<TDatum>(
         )
       }
       const grouped = options.layout?.type === 'group'
-      const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+      validateEndRadius(options.radius, explicitExtent, grouped, 'y')
+      const stackLayout =
+        options.layout?.type === 'stack' ? options.layout : undefined
+      const endRadius = isBarEndRadius(options.radius)
+        ? options.radius
+        : undefined
+      const divergingStack =
+        stackLayout?.offset === undefined || stackLayout.offset === 'diverging'
       const stacked =
         !explicitExtent && !grouped
           ? stackValues(xValues, rawYValues, seriesValues, stackLayout, 'index')
+          : undefined
+      const outerEnds =
+        stacked && endRadius && (endRadius.stack ?? 'outer') === 'outer'
+          ? stackOuterEnds(
+              xValues,
+              rawYValues,
+              seriesValues,
+              stacked.starts,
+              stacked.ends,
+              stackLayout,
+              'index',
+            )
           : undefined
       const y1Values = explicitExtent
         ? numericChannelValues(data, options.y1, () => 0)
@@ -275,12 +317,33 @@ export function barY<TDatum>(
             const center = scales[xScale]!.map(xValue)
             const baselinePosition = scales[yScale]!.map(y1Value)
             const valuePosition = scales[yScale]!.map(y2Value)
+            const valueEnd =
+              stacked && divergingStack && yValue < 0 ? 'start' : 'end'
+            const semanticValuePosition =
+              valueEnd === 'start' ? baselinePosition : valuePosition
+            const semanticBaselinePosition =
+              valueEnd === 'start' ? valuePosition : baselinePosition
+            const outerEnd = outerEnds?.[datumIndex]
             const x =
               center - totalBandwidth / 2 + groupOffset + thickness.inset
             const y = Math.min(baselinePosition, valuePosition)
             const width = thickness.size
             const height = Math.abs(baselinePosition - valuePosition)
             const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const resolvedRadius = resolveBarRadius(
+              options.radius,
+              datum,
+              datumIndex,
+              data,
+              'y',
+              semanticValuePosition,
+              semanticBaselinePosition,
+              outerEnds !== undefined,
+              outerEnd,
+              baselinePosition,
+              valuePosition,
+              preferCornerRadii,
+            )
             const point: ChartPoint<TDatum> = {
               key,
               markId: id,
@@ -294,17 +357,17 @@ export function barY<TDatum>(
               y2Value,
               yInterval: 'difference',
               x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
-              y: valuePosition,
+              y: semanticValuePosition,
               color: fill,
             }
-            nodes.push({
+            const node = {
               kind: 'rect',
               key,
               x,
               y,
               width,
               height,
-              radius: options.radius,
+              ...resolvedRadius,
               inset: thickness.inset,
               insetAxis: 'x',
               ...(thickness.maximum === undefined
@@ -319,7 +382,13 @@ export function barY<TDatum>(
                 strokeWidth: options.strokeWidth,
                 strokeDasharray,
               },
-            })
+              [sceneMotionNode]: {
+                bar: { baseline: semanticBaselinePosition },
+              },
+            } satisfies SceneRect & {
+              readonly [sceneMotionNode]: SceneMotionMetadata
+            }
+            nodes.push(node)
           })
 
           return {
@@ -368,6 +437,9 @@ export function barX<TDatum>(
   const data = Array.isArray(source) ? source : Array.from(source)
   const xScale = options.xScale ?? 'x'
   const yScale = options.yScale ?? 'y'
+  const preferCornerRadii =
+    typeof options.radius === 'function' ||
+    markStatesMayUseCornerRadii(options.states)
 
   return createMark(
     ({ markIndex }) => {
@@ -399,10 +471,29 @@ export function barX<TDatum>(
         )
       }
       const grouped = options.layout?.type === 'group'
-      const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+      validateEndRadius(options.radius, explicitExtent, grouped, 'x')
+      const stackLayout =
+        options.layout?.type === 'stack' ? options.layout : undefined
+      const endRadius = isBarEndRadius(options.radius)
+        ? options.radius
+        : undefined
+      const divergingStack =
+        stackLayout?.offset === undefined || stackLayout.offset === 'diverging'
       const stacked =
         !explicitExtent && !grouped
           ? stackValues(yValues, rawXValues, seriesValues, stackLayout, 'index')
+          : undefined
+      const outerEnds =
+        stacked && endRadius && (endRadius.stack ?? 'outer') === 'outer'
+          ? stackOuterEnds(
+              yValues,
+              rawXValues,
+              seriesValues,
+              stacked.starts,
+              stacked.ends,
+              stackLayout,
+              'index',
+            )
           : undefined
       const x1Values = explicitExtent
         ? numericChannelValues(data, options.x1, () => 0)
@@ -501,6 +592,13 @@ export function barX<TDatum>(
             )
             const baselinePosition = scales[xScale]!.map(x1Value)
             const valuePosition = scales[xScale]!.map(x2Value)
+            const valueEnd =
+              stacked && divergingStack && xValue < 0 ? 'start' : 'end'
+            const semanticValuePosition =
+              valueEnd === 'start' ? baselinePosition : valuePosition
+            const semanticBaselinePosition =
+              valueEnd === 'start' ? valuePosition : baselinePosition
+            const outerEnd = outerEnds?.[datumIndex]
             const center = scales[yScale]!.map(yValue)
             const y =
               center - totalBandwidth / 2 + groupOffset + thickness.inset
@@ -508,6 +606,20 @@ export function barX<TDatum>(
             const width = Math.abs(baselinePosition - valuePosition)
             const height = thickness.size
             const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const resolvedRadius = resolveBarRadius(
+              options.radius,
+              datum,
+              datumIndex,
+              data,
+              'x',
+              semanticValuePosition,
+              semanticBaselinePosition,
+              outerEnds !== undefined,
+              outerEnd,
+              baselinePosition,
+              valuePosition,
+              preferCornerRadii,
+            )
             const point: ChartPoint<TDatum> = {
               key,
               markId: id,
@@ -520,18 +632,18 @@ export function barX<TDatum>(
               x1Value,
               x2Value,
               xInterval: 'difference',
-              x: valuePosition,
+              x: semanticValuePosition,
               y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
               color: fill,
             }
-            nodes.push({
+            const node = {
               kind: 'rect',
               key,
               x,
               y,
               width,
               height,
-              radius: options.radius,
+              ...resolvedRadius,
               inset: thickness.inset,
               insetAxis: 'y',
               ...(thickness.maximum === undefined
@@ -546,7 +658,13 @@ export function barX<TDatum>(
                 strokeWidth: options.strokeWidth,
                 strokeDasharray,
               },
-            })
+              [sceneMotionNode]: {
+                bar: { baseline: semanticBaselinePosition },
+              },
+            } satisfies SceneRect & {
+              readonly [sceneMotionNode]: SceneMotionMetadata
+            }
+            nodes.push(node)
           })
 
           return {
@@ -566,6 +684,103 @@ export function barX<TDatum>(
     options.motion,
     options.renderer,
   )
+}
+
+function validateEndRadius<TDatum>(
+  radius: BarRadius<TDatum> | undefined,
+  explicitExtent: boolean,
+  grouped: boolean,
+  valueAxis: 'x' | 'y',
+) {
+  if (!isBarEndRadius(radius) || radius.stack !== 'outer') return
+  if (explicitExtent) {
+    throw new TypeError(
+      `Bar radius stack "outer" requires an implicit ${valueAxis} extent`,
+    )
+  }
+  if (grouped) {
+    throw new TypeError(
+      'Bar radius stack "outer" cannot be used with a group layout',
+    )
+  }
+}
+
+function resolveBarRadius<TDatum>(
+  radius: BarRadius<TDatum> | undefined,
+  datum: TDatum,
+  index: number,
+  data: readonly TDatum[],
+  valueAxis: 'x' | 'y',
+  valuePosition: number,
+  baselinePosition: number,
+  stackOuter: boolean,
+  outerEnd: StackOuterEnd | undefined,
+  stackStartPosition: number,
+  stackEndPosition: number,
+  preferCornerRadii: boolean,
+): Pick<SceneRect, 'radius' | 'cornerRadii'> {
+  if (radius === undefined) {
+    return resolveSceneRectRadius(undefined, preferCornerRadii)
+  }
+  if (isBarEndRadius(radius)) {
+    const endRadius = visualValue(radius.end, datum, index, data, 0)
+    if (valuePosition === baselinePosition) {
+      return { cornerRadii: [0, 0, 0, 0] }
+    }
+    if (stackOuter) {
+      if (!outerEnd) return { cornerRadii: [0, 0, 0, 0] }
+      if (outerEnd.start && outerEnd.end) {
+        return { cornerRadii: [endRadius, endRadius, endRadius, endRadius] }
+      }
+      const roundStart = outerEnd.start
+      return {
+        cornerRadii: endCornerRadii(
+          endRadius,
+          valueAxis,
+          roundStart ? stackStartPosition : stackEndPosition,
+          roundStart ? stackEndPosition : stackStartPosition,
+        ),
+      }
+    }
+    return {
+      cornerRadii: endCornerRadii(
+        endRadius,
+        valueAxis,
+        valuePosition,
+        baselinePosition,
+      ),
+    }
+  }
+
+  const resolved = visualValue(radius, datum, index, data, 0)
+  return resolveSceneRectRadius(resolved, preferCornerRadii)
+}
+
+function isBarEndRadius<TDatum>(
+  radius: BarRadius<TDatum> | undefined,
+): radius is BarEndRadius<TDatum> {
+  return (
+    radius !== undefined &&
+    radius !== null &&
+    typeof radius === 'object' &&
+    !Array.isArray(radius)
+  )
+}
+
+function endCornerRadii(
+  radius: number,
+  valueAxis: 'x' | 'y',
+  valuePosition: number,
+  baselinePosition: number,
+): RectCornerRadii {
+  if (valueAxis === 'y') {
+    return valuePosition <= baselinePosition
+      ? [radius, radius, 0, 0]
+      : [0, 0, radius, radius]
+  }
+  return valuePosition <= baselinePosition
+    ? [radius, 0, 0, radius]
+    : [0, radius, radius, 0]
 }
 
 function resolveBarThickness(
