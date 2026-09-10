@@ -929,7 +929,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    29.7,
+    29.73,
     {
       inputBoundary: {
         require: [
@@ -1003,7 +1003,7 @@ const entries = [
     'Difference mark + static SVG',
     'benchmarks/entries/charts-difference-svg.ts',
     'D3-scale line + static SVG',
-    7.03,
+    7.04,
     {
       inputBoundary: {
         require: [
@@ -1749,7 +1749,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    22.2,
+    22.3,
     {
       rendererBoundary: 'svg',
       inputBoundary: {

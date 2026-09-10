@@ -339,6 +339,7 @@ Each entry records:
 | F-300 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
 | F-301 | Physical axis sides depended on logical text direction         | API                   | resolved   |
 | F-302 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
+| F-303 | Focus mark groups ignored their mark motion                    | API                   | resolved   |
 
 ## Findings
 
@@ -8897,3 +8898,26 @@ Each entry records:
   The catalog-wide example contract validates all 188 cases. Representative
   date and number output tests pass under Korean and German process locales,
   and regenerated checked previews pass the preview integrity contract.
+
+### F-303 - Focus mark groups ignored their mark motion
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: GitHub issue #136 and a custom hover-dot mark with retargeted
+  grouped focus
+- Friction: a structural `SceneGroup` emitted by a focus-only mark borrowed
+  point zero from the active selection. When that point belonged to a source
+  mark, the group used the source mark or chart default motion instead of the
+  focus mark's spring, phase callback, or `motion: false` policy.
+- Decision: record the owner mark on each retarget focus layer and namespace it
+  through composed and embedded scenes. Keep valid selection slots point-owned
+  for descendant geometry, preserve the existing datum context for a single
+  point owned by the focus mark, and treat malformed or out-of-range slots as
+  point-free structural context.
+- Verification: focused motion regressions reproduce the single foreign-point
+  group, phase-aware enter and exit timing, constant `motion: false`, two-point
+  groups, composed child motion, point-owned descendant updates, nested and
+  embedded owner namespacing, invalid slots that must not alias point zero, and
+  point-key collisions that must remain point-free. The existing focus-guide
+  context and spring tests pass.
