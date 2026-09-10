@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { createChartScene } from '@tanstack/charts'
 import { act } from 'react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { formatFreeCursorValue } from './format'
 import { catalogCase, freeCursorDefinition, mount } from './tanstack'
 import type {
   ChartDefinition,
@@ -20,6 +21,10 @@ const input = {
 } satisfies ConformanceInput
 
 describe('definition-owned free cursor', () => {
+  it('formats values with the catalog locale', () => {
+    expect(formatFreeCursorValue('HP', 1_234.5)).toBe('HP 1,234.5')
+  })
+
   it('keeps plotting data raw and the cursor independent of datum focus', () => {
     const definition = freeCursorDefinition(null, () => {})
     const scene = createChartScene(definition, {

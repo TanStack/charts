@@ -133,7 +133,9 @@ export async function loadCatalogSourceClosure(
 
   await visit(entryPath)
   files.sort(compareCatalogSourceFiles)
-  harnessFiles.sort((left, right) => left.path.localeCompare(right.path))
+  harnessFiles.sort((left, right) =>
+    left.path.localeCompare(right.path, 'en-US'),
+  )
   const roles = catalogSourceRoleMetrics(files, harnessFiles)
   const totalFiles =
     roles.entry.files + roles.support.files + roles.fixture.files
@@ -145,7 +147,7 @@ export async function loadCatalogSourceClosure(
   return {
     files,
     datasets: [...datasets.values()].sort((left, right) =>
-      left.title.localeCompare(right.title),
+      left.title.localeCompare(right.title, 'en-US'),
     ),
     totalFiles,
     totalLines,
@@ -153,7 +155,7 @@ export async function loadCatalogSourceClosure(
     roles,
     harnessFiles,
     excludedHarnessPaths: [...excludedHarnessPaths].sort((left, right) =>
-      left.localeCompare(right),
+      left.localeCompare(right, 'en-US'),
     ),
   }
 }
@@ -281,7 +283,7 @@ function compareCatalogSourceFiles(
   }
   return (
     kindOrder[left.kind] - kindOrder[right.kind] ||
-    left.path.localeCompare(right.path)
+    left.path.localeCompare(right.path, 'en-US')
   )
 }
 

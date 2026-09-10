@@ -598,7 +598,7 @@ function sizeView(view: HTMLDivElement, input: ConformanceInput) {
 }
 
 function compactDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',

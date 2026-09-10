@@ -913,10 +913,11 @@ function parseCatalogPreviewXml(svg, caseId, JSDOM) {
   return document
 }
 
-function createCatalogPreviewContext(browser) {
+export function createCatalogPreviewContext(browser) {
   return browser.newContext({
     colorScheme: 'light',
     deviceScaleFactor: 1,
+    locale: 'en-US',
     reducedMotion: 'reduce',
     viewport: {
       width: catalogPreviewWidth,

@@ -154,7 +154,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                     (row) => penguinSelectionId(row) === selectedId,
                   )
                   return selected
-                    ? `Selected ${penguinSelectionLabel(selected)}: ${selected.body_mass_g.toLocaleString()} g`
+                    ? `Selected ${penguinSelectionLabel(selected)}: ${selected.body_mass_g.toLocaleString('en-US')} g`
                     : 'No observation selected'
                 })()
               : 'No observation selected',
