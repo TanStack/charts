@@ -25,8 +25,8 @@ may add only its transport module over the tooltip consumer. Ordinary line,
 compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has an 11.94 KiB gzip ceiling. The React compact-scale line consumer has a
-30.51 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
+scene has a 12.46 KiB gzip ceiling. The React compact-scale line consumer has a
+31.03 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
 allowed only in the compact linear path; categorical compact-scale kernels
 reject every D3 runtime input. All compact fixtures reject `d3-scale`,
 `d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
@@ -41,14 +41,22 @@ Cartesian axis-title styling is also part of the shared scene contract. Its
 static SVG fixture adds no retained modules over the ordinary line consumer
 and keeps authored title options under a 0.25 KiB incremental gzip ceiling.
 
+Configurable Cartesian grid and axis-line strokes, including geometry-aware
+automatic margins, are also part of the default scene contract. Their reviewed
+shared-path cost is recorded in the locked entries and complete-consumer
+budgets. In the cumulative release, guide styling adds 504 gzip bytes to the
+compact scene and 516 bytes to the DOM host. Its complete-consumer ceilings
+retain roughly 30 bytes of headroom above the measured output.
+
 Continuous viewports and the controlled interaction controller are also part
 of the default scene and host contracts. Default static SVG consumes scene
 clips and gradients. Their reviewed shared-path cost is recorded in the locked
 entries and the corresponding complete-consumer budgets. Rolling path planning
 remains confined to the opt-in motion renderer, whose complete SVG budget is
 22.45 KiB gzip. The cumulative styling, focus-motion, and radial-gradient
-integration measures 22.42 KiB for this optional renderer and 29.81 KiB for the
-composite SVG consumer, whose ceiling is 29.84 KiB. Radial resources add 112
+integration measures 22.42 KiB for this optional renderer. The composite SVG
+consumer measures 30.33 KiB after guide styling, with a 30.36 KiB ceiling.
+Radial resources add 112
 gzip bytes to the static SVG consumer and 124 bytes to the DOM host. Scene-only
 consumers remain unchanged apart from one byte of compression variation.
 

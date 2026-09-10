@@ -5,6 +5,7 @@ import type {
   ChartGradientBase as RootChartGradientBase,
   ChartLinearGradient as RootChartLinearGradient,
   ChartRadialGradient as RootChartRadialGradient,
+  ChartGuideLineStyle as RootChartGuideLineStyle,
   CreateDotLayoutOptions as RootCreateDotLayoutOptions,
   DotLayout as RootDotLayout,
   DotLayoutResolveContext as RootDotLayoutResolveContext,
@@ -14,6 +15,7 @@ import type {
   ChartGradientBase as UniversalChartGradientBase,
   ChartLinearGradient as UniversalChartLinearGradient,
   ChartRadialGradient as UniversalChartRadialGradient,
+  ChartGuideLineStyle as UniversalChartGuideLineStyle,
   CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
   DotLayout as UniversalDotLayout,
   DotLayoutResolveContext as UniversalDotLayoutResolveContext,
@@ -24,6 +26,7 @@ import type {
   ChartLinearGradient as TypesChartLinearGradient,
   ChartRadialGradient as TypesChartRadialGradient,
 } from '@tanstack/charts/types'
+import type { ChartGuideLineStyle as TypesChartGuideLineStyle } from '@tanstack/charts/types'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
 const specializedLoaderSpecifiers = new Set([
@@ -114,6 +117,11 @@ describe('public package exports', () => {
       // @ts-expect-error Explicit linear gradients do not accept fy.
       explicitLinearGradient.fy = 0.5
     }
+  })
+
+  it('keeps guide line styles aligned across public type barrels', () => {
+    expectTypeOf<UniversalChartGuideLineStyle>().toEqualTypeOf<RootChartGuideLineStyle>()
+    expectTypeOf<TypesChartGuideLineStyle>().toEqualTypeOf<RootChartGuideLineStyle>()
   })
 
   it('resolves every manifest capability subpath supported by the generic loader', async () => {

@@ -12,6 +12,7 @@ import type {
   ChartMarkMotionOptions,
   ChartMargin,
   ChartMotionDefinition,
+  ChartGuideLineStyle,
   ChartPoint,
   ChartPositionScaleOptions,
   ChartScene,
@@ -197,7 +198,6 @@ export function facet<TDatum>(
               layout,
             ),
           )
-          assertOuterAxes(id, definitions, guideScenes)
           const margin = resolveOuterMargin<TDatum, unknown>({
             id,
             entries,
@@ -294,13 +294,21 @@ function resolveOuterMargin<TDatum, TChildDatum>(options: {
         (node): node is SceneGroup =>
           node.kind === 'group' && node.key === 'axes',
       )
-      return axes
-        ? resolveGuideMargins(
-            axes,
-            { x: 0, y: 0, width: plotWidth, height: plotHeight },
-            { measureText: layout?.measureText },
-          )
-        : { top: 0, right: 0, bottom: 0, left: 0 }
+      const grid = scene.nodes.find(
+        (node): node is SceneGroup =>
+          node.kind === 'group' && node.key === 'grid',
+      )
+      const plot = { x: 0, y: 0, width: plotWidth, height: plotHeight }
+      return maxMargins([
+        axes
+          ? resolveGuideMargins(axes, plot, {
+              measureText: layout?.measureText,
+            })
+          : { top: 0, right: 0, bottom: 0, left: 0 },
+        grid
+          ? resolveGuideMargins(grid, plot, { inset: 0 })
+          : { top: 0, right: 0, bottom: 0, left: 0 },
+      ])
     })
     const next = maxMargins([margin, ...measured])
     if (sameMargin(margin, next)) return next
@@ -761,13 +769,32 @@ function sameAxis(
   const leftLabel = leftAxis?.label
   const rightLabel = rightAxis?.label
   return (
-    leftAxis?.line === rightAxis?.line &&
+    sameGuideLineStyle(leftAxis?.line, rightAxis?.line) &&
     sameAxisTicks(leftTicks, rightTicks) &&
     sameAxisTickLabels(leftLabels, rightLabels) &&
     (typeof leftLabel === 'string' ? leftLabel : leftLabel?.text) ===
       (typeof rightLabel === 'string' ? rightLabel : rightLabel?.text) &&
     (typeof leftLabel === 'object' ? leftLabel.offset : undefined) ===
       (typeof rightLabel === 'object' ? rightLabel.offset : undefined)
+  )
+}
+
+function sameGuideLineStyle(
+  left: boolean | ChartGuideLineStyle | undefined,
+  right: boolean | ChartGuideLineStyle | undefined,
+): boolean {
+  const leftEnabled = left !== false
+  const rightEnabled = right !== false
+  if (leftEnabled !== rightEnabled) return false
+  if (!leftEnabled) return true
+  const leftStyle = typeof left === 'object' ? left : undefined
+  const rightStyle = typeof right === 'object' ? right : undefined
+  return (
+    leftStyle?.stroke === rightStyle?.stroke &&
+    leftStyle?.strokeOpacity === rightStyle?.strokeOpacity &&
+    leftStyle?.strokeWidth === rightStyle?.strokeWidth &&
+    leftStyle?.strokeDasharray === rightStyle?.strokeDasharray &&
+    leftStyle?.lineCap === rightStyle?.lineCap
   )
 }
 

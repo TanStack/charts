@@ -167,14 +167,16 @@ const x = {
 | Option            | Purpose                                                  |
 | ----------------- | -------------------------------------------------------- |
 | `axis`            | Configure the axis or hide it with `false`               |
-| `axis.line`       | Show or hide the baseline                                |
+| `axis.line`       | Show, hide, or style the baseline                        |
 | `axis.ticks`      | Configure candidates, stubs, padding, and formatting     |
 | `axis.tickLabels` | Configure label rotation and collision thinning          |
 | `axis.label`      | Configure axis title text, typography, paint, and offset |
-| `grid`            | Draw grid lines at semantic candidates                   |
+| `grid`            | Draw or style grid lines at semantic candidates          |
 | `reverse`         | Reverse the responsive range                             |
 
-The y grid defaults to visible and the x grid defaults to hidden when `grid` is omitted.
+Both grids default to hidden when `grid` is omitted. A style object enables
+the grid or baseline and accepts renderer-neutral stroke, opacity, width,
+dash, and line-cap fields.
 
 Candidate generation and label layout are separate. Choose at most one of
 `axis.ticks.count`, `axis.ticks.spacing`, and `axis.ticks.values`. Grid lines

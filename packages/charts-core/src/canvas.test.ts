@@ -819,6 +819,7 @@ describe('Canvas renderer', () => {
           strokeOpacity: 0.4,
           strokeWidth: 3,
           strokeDasharray: '2 4',
+          lineCap: 'round',
         },
         children: [
           {
@@ -987,6 +988,7 @@ describe('Canvas renderer', () => {
     expect(fake.operations).toContain('translate:10,12')
     expect(fake.operations).toContain('clip')
     expect(fake.operations).toContain('setLineDash:2,4')
+    expect(fake.operations).toContain('lineCap:round')
     expect(fake.operations).toContain('lineJoin:round')
     expect(fake.operations).toContain('lineJoin:miter')
     expect(fake.operations).toEqual(
@@ -1389,6 +1391,119 @@ describe('Canvas renderer', () => {
     expect(painted.operations).toContain('transform:10,0,0,10,15,15')
     expect(painted.operations).toContain('transform:20,0,0,20,40,20')
     surface.destroy()
+  })
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'skips invisible radial strokes before checking paint support at width %s',
+    (strokeWidth) => {
+      const container = document.createElement('div')
+      const surface = createCanvasChartRenderer().mount(container, () => {})
+      const style = { fill: 'none', stroke: 'url(#radial)', strokeWidth }
+      try {
+        expect(() =>
+          surface.render(
+            scene(
+              [
+                {
+                  kind: 'rule',
+                  key: 'rule',
+                  x1: 0,
+                  y1: 0,
+                  x2: 20,
+                  y2: 20,
+                  style,
+                },
+                { kind: 'polyline', key: 'path', points: [], style },
+                {
+                  kind: 'label',
+                  key: 'text',
+                  x: 10,
+                  y: 10,
+                  text: 'Invisible',
+                  anchor: 'middle',
+                  fontSize: 12,
+                  style,
+                },
+              ],
+              [
+                {
+                  type: 'radial',
+                  id: 'radial',
+                  stops: [
+                    { offset: 0, color: '#ffffff' },
+                    { offset: 1, color: '#000000' },
+                  ],
+                },
+              ],
+            ),
+            renderOptions(),
+          ),
+        ).not.toThrow()
+        const painted = contexts.get(surface.sceneCanvas)
+        if (!painted) throw new Error('Expected a painted scene canvas')
+        expect(
+          painted.operations.filter(
+            (operation) =>
+              operation.startsWith('stroke:') ||
+              operation.startsWith('strokeText:'),
+          ),
+        ).toEqual([])
+      } finally {
+        surface.destroy()
+      }
+    },
+  )
+
+  it('does not paint zero-width Canvas strokes', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    try {
+      surface.render(
+        scene([
+          {
+            kind: 'rule',
+            key: 'visible-rule',
+            x1: 0,
+            y1: 0,
+            x2: 20,
+            y2: 20,
+            style: { stroke: '#123456', strokeWidth: 2 },
+          },
+          {
+            kind: 'rule',
+            key: 'hidden-rule',
+            x1: 0,
+            y1: 20,
+            x2: 20,
+            y2: 0,
+            style: { stroke: '#abcdef', strokeWidth: 0 },
+          },
+          {
+            kind: 'label',
+            key: 'hidden-label-outline',
+            x: 10,
+            y: 10,
+            text: 'Hidden outline',
+            anchor: 'middle',
+            fontSize: 12,
+            style: { fill: 'none', stroke: '#abcdef', strokeWidth: 0 },
+          },
+        ]),
+        renderOptions(),
+      )
+      const painted = contexts.get(surface.sceneCanvas)
+      if (!painted) throw new Error('Expected a painted scene canvas')
+
+      expect(
+        painted.operations.filter(
+          (operation) => operation === 'stroke:current',
+        ),
+      ).toHaveLength(1)
+      expect(painted.operations).not.toContain('strokeText:Hidden outline,0,0')
+    } finally {
+      surface.destroy()
+    }
   })
 
   it('keeps the public canvas as a focus-free base bitmap', () => {
