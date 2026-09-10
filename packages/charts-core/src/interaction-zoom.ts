@@ -29,6 +29,7 @@ export interface ZoomXWindow<TValue extends ZoomXValue> {
 
 export type ZoomXSource = 'wheel' | 'pointer' | 'touch' | 'keyboard'
 export type ZoomXAction = 'zoom' | 'pan' | 'reset'
+export type ZoomXWheelActivation = 'focus' | 'modifier' | 'always'
 
 export type ZoomXChange<TValue extends ZoomXValue> =
   | ZoomXChangeEvent<
@@ -60,6 +61,8 @@ export interface ZoomXOptions<TValue extends ZoomXValue> {
   extent: readonly [TValue, TValue]
   /** Minimum and maximum zoom factors relative to `extent`. */
   scaleExtent?: readonly [number, number]
+  /** When wheel input may zoom or pan. Defaults to `focus`. */
+  wheelActivation?: ZoomXWheelActivation
   keyboard?: boolean
   ariaLabel?: string
   ariaDescription?: string
@@ -77,6 +80,7 @@ interface ZoomXControl<TValue extends ZoomXValue> extends ChartHostControl {
   readonly window: ZoomXWindow<TValue>
   readonly extent: ZoomXWindow<TValue>
   readonly scaleExtent: readonly [number, number]
+  readonly wheelActivation: ZoomXWheelActivation
   readonly keyboard: boolean
   readonly ariaLabel: string
   readonly ariaDescription?: string
@@ -90,10 +94,12 @@ interface ZoomXControl<TValue extends ZoomXValue> extends ChartHostControl {
 
 const defaultId = 'zoom-x'
 const defaultAriaLabel = 'Zoomable horizontal chart region'
+const defaultWheelActivation: ZoomXWheelActivation = 'focus'
 
 /**
- * Controls a continuous x-domain with focus-gated wheel, pan, touch, and
- * keyboard input. The application owns the accepted semantic window.
+ * Controls a continuous x-domain with configurable wheel activation, pan,
+ * touch, and keyboard input. The application owns the accepted semantic
+ * window.
  */
 export function zoomX<TValue extends ZoomXValue>(
   options: ZoomXOptions<TValue>,
@@ -103,6 +109,7 @@ export function zoomX<TValue extends ZoomXValue>(
     throw new TypeError('zoomX id cannot be empty')
   }
   const scaleExtent = resolveScaleExtent(options.scaleExtent)
+  const wheelActivation = resolveWheelActivation(options.wheelActivation)
 
   return {
     id,
@@ -138,6 +145,7 @@ export function zoomX<TValue extends ZoomXValue>(
         window,
         extent,
         scaleExtent,
+        wheelActivation,
         keyboard: options.keyboard !== false,
         ariaLabel: options.ariaLabel ?? defaultAriaLabel,
         ariaDescription: options.ariaDescription,
@@ -355,7 +363,8 @@ function createZoomXControl({
   }
 
   function handleWheel(event: WheelEvent) {
-    if (!active || !control || !scene) return
+    if (!control || !scene) return
+    if (!wheelInputEnabled(control.wheelActivation, event, active)) return
     const vertical = Math.abs(event.deltaY) >= Math.abs(event.deltaX)
     const rawDelta = vertical ? event.deltaY : event.deltaX
     if (!rawDelta) return
@@ -902,10 +911,42 @@ function cloneChange<TValue extends ZoomXValue>(
 }
 
 function defaultDescription(control: ZoomXControl<ZoomXValue>) {
-  const pointerInstructions = `${control.format(control.window.start)} to ${control.format(control.window.end)}. Focus before wheel zoom. Drag or use a horizontal wheel to pan.`
+  const wheelInstructions =
+    control.wheelActivation === 'modifier'
+      ? 'Hold Control or Command while using a vertical wheel to zoom or a horizontal wheel to pan.'
+      : control.wheelActivation === 'always'
+        ? 'Use a vertical wheel to zoom or a horizontal wheel to pan.'
+        : 'Focus before using a vertical wheel to zoom or a horizontal wheel to pan.'
+  const pointerInstructions = `${control.format(control.window.start)} to ${control.format(control.window.end)}. ${wheelInstructions} Drag to pan.`
   return control.keyboard
     ? `${pointerInstructions} Use plus, minus, arrow keys, or Home.`
     : pointerInstructions
+}
+
+function resolveWheelActivation(
+  activation: ZoomXWheelActivation | undefined,
+): ZoomXWheelActivation {
+  if (activation === undefined) return defaultWheelActivation
+  if (
+    activation !== 'focus' &&
+    activation !== 'modifier' &&
+    activation !== 'always'
+  ) {
+    throw new TypeError(
+      'zoomX wheelActivation must be "focus", "modifier", or "always"',
+    )
+  }
+  return activation
+}
+
+function wheelInputEnabled(
+  activation: ZoomXWheelActivation,
+  event: WheelEvent,
+  active: boolean,
+) {
+  if (activation === 'always') return true
+  if (activation === 'modifier') return event.ctrlKey || event.metaKey
+  return active
 }
 
 function defaultFormat(value: ZoomXValue) {

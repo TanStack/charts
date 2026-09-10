@@ -1513,7 +1513,7 @@ const entries = [
     'Horizontal zoom + DOM host',
     'benchmarks/entries/charts-zoom-x.ts',
     'TanStack DOM host',
-    20.35,
+    20.55,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
