@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { downloads } from '@tanstack/charts-data/downloads'
 import {
+  formatStreamingDate,
   streamingStatus,
   streamingViewportForMode,
   visibleStreamingData,
@@ -53,6 +54,10 @@ describe('streaming package downloads', () => {
         announcement: 'Added one visible sample.',
       }),
     ).toBe('Added one visible sample.')
+  })
+
+  it('formats UTC dates with the catalog locale', () => {
+    expect(formatStreamingDate(new Date('2018-10-06T00:00:00Z'))).toBe('Oct 6')
   })
 })
 

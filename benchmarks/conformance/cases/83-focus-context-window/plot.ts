@@ -429,7 +429,7 @@ function styleBrush(group: SVGGElement) {
 }
 
 function monthLabel(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',

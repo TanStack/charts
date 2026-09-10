@@ -527,7 +527,7 @@ function renderDateRuler(ruler: HTMLDivElement, input: ConformanceInput) {
   for (let timestamp = start; timestamp <= end; timestamp += week) {
     const tick = document.createElement('span')
     tick.dataset.conformanceDateTick = ''
-    tick.textContent = new Date(timestamp).toLocaleDateString(undefined, {
+    tick.textContent = new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       timeZone: 'UTC',

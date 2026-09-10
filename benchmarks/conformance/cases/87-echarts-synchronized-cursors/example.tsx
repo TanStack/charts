@@ -80,7 +80,7 @@ function SummaryValue({
 }
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -341,13 +341,13 @@ export default function SynchronizedCursorsExample({
           dataAttribute="current"
           label="2020 travelers"
           color={synchronizedCursorColors.current}
-          value={row?.current.toLocaleString() ?? '—'}
+          value={row?.current.toLocaleString('en-US') ?? '—'}
         />
         <SummaryValue
           dataAttribute="previous"
           label="2019 travelers"
           color={synchronizedCursorColors.previous}
-          value={row?.previous.toLocaleString() ?? '—'}
+          value={row?.previous.toLocaleString('en-US') ?? '—'}
         />
       </div>
       <div

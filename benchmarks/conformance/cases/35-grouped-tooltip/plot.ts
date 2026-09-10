@@ -45,7 +45,7 @@ export const mount: ConformanceMount = (container, input) => {
                   const observation = atDate.find(
                     (candidate) => candidate.industry === industry,
                   )
-                  return `${industry}: ${(observation?.unemployed ?? 0).toLocaleString()}`
+                  return `${industry}: ${(observation?.unemployed ?? 0).toLocaleString('en-US')}`
                 })
                 .join('\n')
             },

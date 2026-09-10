@@ -46,7 +46,8 @@ export function drillableSunburstDefinition(rootId: string) {
             rootId,
             visibleDepth: flareVisibleDepth(rootId),
             sort: (left, right) =>
-              right.value - left.value || left.name.localeCompare(right.name),
+              right.value - left.value ||
+              left.name.localeCompare(right.name, 'en-US'),
             innerRadius: ({ radius }) => radius * 0.32,
             outerRadius: ({ radius }) => {
               const innerRadius = radius * 0.32

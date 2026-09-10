@@ -123,7 +123,7 @@ export default function ChartTableExample({
   )
 
   const announcement = selectedDatum
-    ? `Selected ${penguinSelectionLabel(selectedDatum)}: ${selectedDatum.body_mass_g.toLocaleString()} g`
+    ? `Selected ${penguinSelectionLabel(selectedDatum)}: ${selectedDatum.body_mass_g.toLocaleString('en-US')} g`
     : 'No observation selected'
 
   return (
@@ -263,7 +263,7 @@ export default function ChartTableExample({
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    {datum.body_mass_g.toLocaleString()}
+                    {datum.body_mass_g.toLocaleString('en-US')}
                   </td>
                 </tr>
               )

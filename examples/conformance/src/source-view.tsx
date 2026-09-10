@@ -119,7 +119,7 @@ function compareSourceFiles(
 ): number {
   return (
     sourceKindOrder[left.kind] - sourceKindOrder[right.kind] ||
-    left.path.localeCompare(right.path)
+    left.path.localeCompare(right.path, 'en-US')
   )
 }
 

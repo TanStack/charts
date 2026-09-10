@@ -9,6 +9,7 @@ import {
   catalogMarginPreviewCaseIds,
   catalogTextPreviewCaseIds,
   createCatalogPreviewSourceHash,
+  createCatalogPreviewContext,
   createPortableCatalogPreviewSvg,
   isTransientCatalogPreviewBrowserError,
   retryCatalogPreviewBrowserRender,
@@ -125,6 +126,15 @@ describe('catalog previews', () => {
         darkRenderedChart,
       ),
     ).toThrow('did not render a TanStack chart SVG')
+  })
+
+  it('pins the browser locale used to render checked previews', () => {
+    const newContext = vi.fn((options) => options)
+
+    expect(createCatalogPreviewContext({ newContext })).toMatchObject({
+      locale: 'en-US',
+    })
+    expect(newContext).toHaveBeenCalledOnce()
   })
 
   it('rejects light and dark renders that differ beyond paint', () => {

@@ -99,7 +99,7 @@ const StreamingExample = forwardRef<
     setAppended(nextAppended)
     setAnnouncement(
       added
-        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
+        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString('en-US')} downloads). ${
             visibleStreamingData([added], nextViewport).length
               ? 'The new sample is visible.'
               : `It is outside the locked viewport ending ${formatStreamingDate(nextViewport[1])}.`

@@ -209,7 +209,7 @@ function clearInteractionState(state: InteractionState) {
 }
 
 function tooltipHtml(date: Date, rows: readonly AxisPointerDatum[]) {
-  const title = date.toLocaleDateString(undefined, {
+  const title = date.toLocaleDateString('en-US', {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
@@ -217,7 +217,7 @@ function tooltipHtml(date: Date, rows: readonly AxisPointerDatum[]) {
   const body = rows
     .map(
       (row) =>
-        `<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="width:8px;height:8px;border-radius:2px;background:${axisPointerColors[row.industry]}"></span><span>${row.industry}</span><strong style="margin-left:auto">${row.unemployed.toLocaleString()}</strong></div>`,
+        `<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="width:8px;height:8px;border-radius:2px;background:${axisPointerColors[row.industry]}"></span><span>${row.industry}</span><strong style="margin-left:auto">${row.unemployed.toLocaleString('en-US')}</strong></div>`,
     )
     .join('')
   return `<div data-conformance-tooltip="grouped"><strong>${title}</strong>${body}</div>`
