@@ -338,6 +338,7 @@ Each entry records:
 | F-299 | Axis titles could not carry authored typography or paint       | API                   | resolved   |
 | F-300 | Focus ring paint required generated SVG selectors              | API                   | resolved   |
 | F-301 | Physical axis sides depended on logical text direction         | API                   | resolved   |
+| F-302 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
 
 ## Findings
 
@@ -8855,3 +8856,31 @@ Each entry records:
   mount, the crosshair label stays 8 px left of the plot, quantitative legend
   endpoints stay inside their physical bounds, and polar outside labels stay
   8 px beyond both physical edges.
+
+### F-302 - Catalog formatting inherited the host locale
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: updating pull request 68 after the source catalog and checked
+  previews replaced the old published catalog package
+- Friction: 42 number and date formatting calls plus 11 string collation calls
+  across 34 source files in 13 catalog cases, the catalog app shell, and its
+  conformance runtime and tests omitted the locale or passed `undefined`. UTC
+  options kept the date boundary stable, but presentation and tie-breaking
+  order still followed the machine locale. A Korean process rendered October
+  6 as `10월 6일`, and a German process rendered `HP 1,234.5` as `HP 1.234,5`.
+  That made checked previews and visible catalog output differ by contributor
+  or CI host.
+- Decision: pass the fixed `en-US` locale at every affected catalog formatter
+  and pin the Playwright preview context to the same locale. Check every
+  TypeScript and JavaScript file in the conformance tree and catalog app shell
+  through the compiler AST so multiline calls, optional chains, computed
+  properties, `localeCompare`, and both forms of `Intl` formatter construction
+  cannot silently return to the host default. Keep the library's
+  general-purpose formatting behavior unchanged.
+- Verification: AST unit tests cover omitted, `undefined`, multiline,
+  optional-chain, computed-property, collation, and `Intl` constructor forms.
+  The catalog-wide example contract validates all 188 cases. Representative
+  date and number output tests pass under Korean and German process locales,
+  and regenerated checked previews pass the preview integrity contract.

@@ -398,7 +398,7 @@ function countBy<T extends Record<TKey, string>, TKey extends keyof T>(
         counts.set(value, (counts.get(value) ?? 0) + 1)
         return counts
       }, new Map<string, number>()),
-    ].sort(([left], [right]) => left.localeCompare(right)),
+    ].sort(([left], [right]) => left.localeCompare(right, 'en-US')),
   )
 }
 

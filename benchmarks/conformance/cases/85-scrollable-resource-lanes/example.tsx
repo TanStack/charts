@@ -56,7 +56,7 @@ function taskDetails(task: ResourceTask) {
 }
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -131,7 +131,7 @@ export const resourceTimelineDefinition = (input: ExampleChartInput) => {
 }
 
 function formatTaskDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',

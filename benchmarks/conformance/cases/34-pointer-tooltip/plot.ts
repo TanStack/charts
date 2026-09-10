@@ -33,7 +33,7 @@ export const mount: ConformanceMount = (container, input) => {
             x: 'Date',
             y: 'Close',
             title: (row) =>
-              `Apple: ${row.Close.toLocaleString(undefined, {
+              `Apple: ${row.Close.toLocaleString('en-US', {
                 maximumFractionDigits: 2,
               })}`,
           }),

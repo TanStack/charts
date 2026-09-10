@@ -50,7 +50,7 @@ const chartHeight = 480
 const casesById = new Map(conformanceCases.map((entry) => [entry.id, entry]))
 const families = [
   ...new Set(conformanceCases.map((entry) => entry.family)),
-].sort((left, right) => left.localeCompare(right))
+].sort((left, right) => left.localeCompare(right, 'en-US'))
 let comparisonCatalogPromise:
   | Promise<typeof import('../../../benchmarks/conformance/comparison-catalog')>
   | undefined
@@ -186,7 +186,7 @@ function ShadcnCollectionPage({
   const collectionFamilies = useMemo(
     () =>
       [...new Set(allEntries.map((entry) => entry.family))].sort(
-        (left, right) => left.localeCompare(right),
+        (left, right) => left.localeCompare(right, 'en-US'),
       ),
     [allEntries],
   )
@@ -1315,7 +1315,7 @@ function collectionCases(collectionId: string): ConformanceCaseMeta[] {
     .sort(
       (left, right) =>
         familyOrder.indexOf(left.family) - familyOrder.indexOf(right.family) ||
-        left.source.url.localeCompare(right.source.url),
+        left.source.url.localeCompare(right.source.url, 'en-US'),
     )
 }
 
