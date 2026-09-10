@@ -45,6 +45,43 @@ const packageManifest = JSON.parse(
 )
 
 describe('CI workflow contract', () => {
+  test('keeps targeted stress diagnostics manual and isolated from normal CI', () => {
+    const diagnostic = job('stats-diagnostic')
+    assert.match(
+      diagnostic,
+      /if: github\.event_name == 'workflow_dispatch' && inputs\.diagnose_stats/,
+    )
+    assert.match(diagnostic, /timeout-minutes: 5/)
+    assert.match(
+      diagnostic,
+      /--profile=standard --library=tanstack --workload=stats-multi-series-line --diagnostics/,
+    )
+    assert.doesNotMatch(
+      diagnostic,
+      /matrix:|benchmark:stress:full|pnpm validate|nx run/,
+    )
+    assert.doesNotMatch(diagnostic, /^\s+needs:/m)
+    for (const name of ['changes', 'static']) {
+      assert.match(
+        job(name),
+        /if: github\.event_name != 'workflow_dispatch' \|\| !inputs\.diagnose_stats/,
+      )
+    }
+    for (const name of [
+      'ci',
+      'compare-container-canary',
+      'bundle-baseline-candidate',
+    ]) {
+      assert.match(job(name), /if:.*!inputs\.diagnose_stats/)
+    }
+    assert.match(
+      workflow,
+      /inputs\.diagnose_stats && '-stats-diagnostic' \|\| ''/,
+    )
+    assert.match(job('stress'), /Run quick stress shard/)
+    assert.match(diagnostic, /name: Upload phase diagnostics\s+if: always\(\)/)
+  })
+
   test('uses least-privilege permissions and public Nx Cloud access', () => {
     assert.match(workflow, /^permissions:\s*\n\s+contents:\s*read\s*$/m)
     assert.match(workflow, /^\s+actions:\s*read\s*$/m)
