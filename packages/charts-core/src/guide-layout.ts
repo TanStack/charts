@@ -147,7 +147,48 @@ export function resolveGuideMargins(
     left = Math.max(left, plot.x - boundsLeft + inset)
   })
 
-  return { top, right, bottom, left }
+  const strokeMargin = { top, right, bottom, left }
+  includeGuideStrokeMargins(strokeMargin, axes, plot)
+
+  return strokeMargin
+}
+
+export function includeGuideStrokeMargins(
+  margin: ChartMargin,
+  guides: SceneGroup,
+  plot: ChartBounds,
+): void {
+  visitRules(guides, 0, 0, (rule, translateX, translateY) => {
+    const style = rule.style
+    const extendsGeometry =
+      style?.strokeWidth !== undefined ||
+      (style?.lineCap !== undefined && style.lineCap !== 'butt')
+    if (!extendsGeometry || style?.stroke === 'none') return
+    const strokeWidth = style?.strokeWidth ?? 1
+    if (!Number.isFinite(strokeWidth) || strokeWidth <= 0) return
+    const halfWidth = strokeWidth / 2
+    const x1 = rule.x1 + translateX
+    const x2 = rule.x2 + translateX
+    const y1 = rule.y1 + translateY
+    const y2 = rule.y2 + translateY
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const length = Math.hypot(dx, dy)
+    const unitX = length > 0 ? dx / length : 0
+    const unitY = length > 0 ? dy / length : 0
+    const cap = style?.lineCap && style.lineCap !== 'butt' ? halfWidth : 0
+    const extendX = Math.abs(unitY) * halfWidth + Math.abs(unitX) * cap
+    const extendY = Math.abs(unitX) * halfWidth + Math.abs(unitY) * cap
+    const left = Math.min(x1, x2) - extendX
+    const right = Math.max(x1, x2) + extendX
+    const top = Math.min(y1, y2) - extendY
+    const bottom = Math.max(y1, y2) + extendY
+
+    margin.top = Math.max(margin.top, plot.y - top)
+    margin.right = Math.max(margin.right, right - plot.x - plot.width)
+    margin.bottom = Math.max(margin.bottom, bottom - plot.y - plot.height)
+    margin.left = Math.max(margin.left, plot.x - left)
+  })
 }
 
 function visitLabels(
@@ -167,6 +208,30 @@ function visitLabels(
   const childTranslateY = translateY + (node.translateY ?? 0)
   for (const child of node.children) {
     visitLabels(child, childTranslateX, childTranslateY, visit)
+  }
+}
+
+function visitRules(
+  node: SceneNode,
+  translateX: number,
+  translateY: number,
+  visit: (
+    rule: Extract<SceneNode, { kind: 'rule' }>,
+    translateX: number,
+    translateY: number,
+  ) => void,
+): void {
+  if (node.kind === 'rule') {
+    visit(node, translateX, translateY)
+    return
+  }
+
+  if (node.kind !== 'group') return
+
+  const childTranslateX = translateX + (node.translateX ?? 0)
+  const childTranslateY = translateY + (node.translateY ?? 0)
+  for (const child of node.children) {
+    visitRules(child, childTranslateX, childTranslateY, visit)
   }
 }
 

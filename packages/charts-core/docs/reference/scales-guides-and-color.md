@@ -164,16 +164,24 @@ interface ChartPositionScaleOptions<
   side?: 'top' | 'right' | 'bottom' | 'left'
 }
 
+interface ChartGuideLineStyle {
+  stroke?: string
+  strokeOpacity?: number
+  strokeWidth?: number
+  strokeDasharray?: string
+  lineCap?: 'butt' | 'round' | 'square'
+}
+
 interface ChartAxisOptions<TValue extends ChartValue> {
   scale: ChartScale | ChartScaleInput<TValue>
   nice?: boolean | number
   reverse?: boolean
   viewport?: ChartAxisViewportOptions<Extract<TValue, ChartContinuousValue>>
-  grid?: boolean
+  grid?: boolean | ChartGuideLineStyle
   axis?:
     | false
     | {
-        line?: boolean
+        line?: boolean | ChartGuideLineStyle
         ticks?:
           | false
           | {
@@ -239,10 +247,16 @@ interface ChartAxisOptions<TValue extends ChartValue> {
 | `nice`     | `false`                      | Nice the resolved domain using the responsive or supplied tick count.    |
 | `reverse`  | `false`                      | Reverses the responsive pixel range without changing the caller's scale. |
 | `viewport` | None                         | Commits a continuous semantic window and optional transient translation. |
-| `grid`     | `false` for x; `true` for y  | Draws grid rules from semantic tick candidates.                          |
+| `grid`     | `false`                      | Draws grid rules from semantic tick candidates.                          |
 | `axis`     | Inferred axis                | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
 | `channel`  | Inferred for `x` and `y`     | Required on named scales; selects the Cartesian channel and range.       |
 | `side`     | `bottom` for x; `left` for y | Places an x axis on top/bottom or a y axis on left/right.                |
+
+Set `grid` or `axis.line` to a `ChartGuideLineStyle` object to enable the
+guide and override its stroke, opacity, width, dash pattern, or line cap.
+Omitted style fields keep the normal theme defaults. An empty object is
+equivalent to `true`, and `axis.line` styles only the axis baseline, not its
+tick stubs. Use finite non-negative widths and opacity values from zero to one.
 
 ```ts
 type ChartContinuousValue = number | Date

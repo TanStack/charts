@@ -37,6 +37,60 @@ describe('optional export', () => {
     expect(result).not.toContain('data-ts-focus-layer')
   })
 
+  it('preserves authored grid and axis line styles in serialized SVG', () => {
+    const axes = linearAxes([0, 2], [0, 3])
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(
+      createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2])],
+          scales: {
+            x: {
+              ...axes.scales.x,
+              grid: {
+                stroke: '#2563eb',
+                strokeOpacity: 0.35,
+                strokeWidth: 2,
+                strokeDasharray: '4 2',
+                lineCap: 'round',
+              },
+              axis: {
+                line: {
+                  stroke: '#0f172a',
+                  strokeOpacity: 0.7,
+                  strokeWidth: 3,
+                  strokeDasharray: '6 3',
+                  lineCap: 'square',
+                },
+              },
+            },
+            y: { ...axes.scales.y, grid: false, axis: false },
+          },
+        }),
+        { width: 480, height: 260 },
+      ),
+      { ariaLabel: 'Styled guide export' },
+    )
+    const exported = document.createElement('div')
+    exported.innerHTML = serializeChartSvg(container)
+
+    for (const root of [container, exported]) {
+      const grid = root.querySelector('[data-ts-key^="x-grid:"]')
+      const axis = root.querySelector('[data-ts-key="x-axis"]')
+
+      expect(grid?.getAttribute('stroke')).toBe('#2563eb')
+      expect(grid?.getAttribute('stroke-opacity')).toBe('0.35')
+      expect(grid?.getAttribute('stroke-width')).toBe('2')
+      expect(grid?.getAttribute('stroke-dasharray')).toBe('4 2')
+      expect(grid?.getAttribute('stroke-linecap')).toBe('round')
+      expect(axis?.getAttribute('stroke')).toBe('#0f172a')
+      expect(axis?.getAttribute('stroke-opacity')).toBe('0.7')
+      expect(axis?.getAttribute('stroke-width')).toBe('3')
+      expect(axis?.getAttribute('stroke-dasharray')).toBe('6 3')
+      expect(axis?.getAttribute('stroke-linecap')).toBe('square')
+    }
+  })
+
   it('inlines computed presentation for gradient stops', () => {
     const container = document.createElement('div')
     container.innerHTML = renderChartSvgWithResources(

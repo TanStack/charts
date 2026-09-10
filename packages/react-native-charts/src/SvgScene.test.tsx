@@ -40,7 +40,10 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('url(#native-one-fill)')
     expect(markup).toContain('<clipPath')
     expect(markup).toContain('transform="translate(10 12)"')
+    expect(markup).toContain('stroke-opacity="0.4"')
+    expect(markup).toContain('stroke-width="3"')
     expect(markup).toContain('stroke-dasharray="2 4"')
+    expect(markup).toContain('stroke-linecap="round"')
     expect(markup).toContain('d="M2,4L20,30"')
     expect(markup).toContain('d="M0,20L20,0L40,20Z"')
     expect(markup).toContain('d="M0,0C10,20,20,20,30,0"')
@@ -392,6 +395,7 @@ function scene(): ChartScene {
         strokeOpacity: 0.4,
         strokeWidth: 3,
         strokeDasharray: '2 4',
+        lineCap: 'round',
       },
       children: [{ kind: 'rule', key: 'rule', x1: 0, y1: 0, x2: 30, y2: 30 }],
     },

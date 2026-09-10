@@ -1554,6 +1554,86 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('animates numeric guide styles and snaps discrete guide styles', () => {
+    const definition = (target: boolean) =>
+      defineChart({
+        motion: {
+          transition: { type: 'tween', duration: 100, easing: 'linear' },
+        },
+        marks: [lineY([0, 1])],
+        margin: 0,
+        scales: {
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            grid: {
+              strokeOpacity: target ? 0.8 : 0.2,
+              strokeWidth: target ? 4 : 2,
+              strokeDasharray: target ? '6 2' : '2 2',
+              lineCap: target ? 'round' : 'butt',
+            },
+            axis: {
+              line: {
+                strokeOpacity: target ? 0.7 : 0.3,
+                strokeWidth: target ? 5 : 1,
+                strokeDasharray: target ? '8 2' : '1 1',
+                lineCap: target ? 'square' : 'butt',
+              },
+              ticks: false,
+              tickLabels: false,
+            },
+          },
+          y: { scale: scaleLinear().domain([0, 1]), axis: false },
+        },
+      })
+    const first = createChartScene(definition(false), {
+      width: 300,
+      height: 200,
+    })
+    const next = createChartScene(definition(true), {
+      width: 300,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Guide style motion' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Guide style motion' })
+    const grid = container.querySelector<SVGLineElement>(
+      '[data-ts-key^="x-grid:"]',
+    )
+    const axis = container.querySelector<SVGLineElement>(
+      '[data-ts-key="x-axis"]',
+    )
+
+    expect(grid?.dataset.tsMotionRole).toBe('grid')
+    expect(axis?.dataset.tsMotionRole).toBe('axis')
+    expect(grid?.getAttribute('stroke-dasharray')).toBe('6 2')
+    expect(grid?.getAttribute('stroke-linecap')).toBe('round')
+    expect(axis?.getAttribute('stroke-dasharray')).toBe('8 2')
+    expect(axis?.getAttribute('stroke-linecap')).toBe('square')
+    expect(Number(grid?.getAttribute('stroke-opacity'))).toBeCloseTo(0.2)
+    expect(Number(grid?.getAttribute('stroke-width'))).toBeCloseTo(2)
+    expect(Number(axis?.getAttribute('stroke-opacity'))).toBeCloseTo(0.3)
+    expect(Number(axis?.getAttribute('stroke-width'))).toBeCloseTo(1)
+
+    frames.runAll(0)
+    frames.runAll(50)
+    expect(Number(grid?.getAttribute('stroke-opacity'))).toBeCloseTo(0.5)
+    expect(Number(grid?.getAttribute('stroke-width'))).toBeCloseTo(3)
+    expect(Number(axis?.getAttribute('stroke-opacity'))).toBeCloseTo(0.5)
+    expect(Number(axis?.getAttribute('stroke-width'))).toBeCloseTo(3)
+
+    frames.runAll(100)
+    expect(Number(grid?.getAttribute('stroke-opacity'))).toBeCloseTo(0.8)
+    expect(Number(grid?.getAttribute('stroke-width'))).toBeCloseTo(4)
+    expect(Number(axis?.getAttribute('stroke-opacity'))).toBeCloseTo(0.7)
+    expect(Number(axis?.getAttribute('stroke-width'))).toBeCloseTo(5)
+    expect(grid?.hasAttribute('data-ts-motion-role')).toBe(false)
+    expect(axis?.hasAttribute('data-ts-motion-role')).toBe(false)
+    surface.destroy()
+    frames.restore()
+  })
+
   it('scopes named-axis motion by scale ID while retaining its channel', () => {
     const contexts: ChartMotionContext[] = []
     const definition = defineChart({

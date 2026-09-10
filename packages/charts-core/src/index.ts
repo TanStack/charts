@@ -348,6 +348,7 @@ export type {
   ChartFocusStrategy,
   ChartFreeCursorBinding,
   ChartGradientStop,
+  ChartGuideLineStyle,
   ChartKey,
   ChartLayoutOptions,
   ChartMargin,

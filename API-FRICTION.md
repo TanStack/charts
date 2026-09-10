@@ -296,7 +296,7 @@ Each entry records:
 | F-257 | The release package graph leaked into application setup        | API/Docs/Tooling      | resolved   |
 | F-258 | Tooltip chrome required specificity overrides                  | API/Documentation     | resolved   |
 | F-259 | Chart resources cannot declare patterns                        | API                   | open       |
-| F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
+| F-260 | Static guides cannot express stroke treatment                  | API                   | resolved   |
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | resolved   |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
@@ -7918,7 +7918,7 @@ Each entry records:
 
 ### F-260 — Static guides cannot express stroke treatment
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: the themed area and active bar dashboard cases 120 and 121
@@ -7926,11 +7926,22 @@ Each entry records:
   theme can set one guide paint, but an author cannot set grid or axis stroke
   width, dash, or opacity. F-112 added dashes to rule marks, and F-191 added
   tick-label styling. Neither entry covers static axis and grid strokes.
-- Current decision: keep the catalog cases on native solid grids with
-  `theme.grid`. Use rule marks for styled annotations and `crosshair` for
-  styled focus guides. Do not synthesize repeated grid rules in an application
-  shell. Keep a guide-style object open for renderer, facet, export, and motion
-  evaluation.
+- Decision: add a renderer-neutral `ChartGuideLineStyle` object to `grid` and
+  `axis.line` while retaining their boolean forms. Keep shared grid defaults on
+  the existing group and apply only authored overrides to each scale's rules.
+  Axis-line styles affect the baseline without changing tick stubs. Use
+  semantic style comparison for shared facet axis lines so equal objects
+  created per cell remain compatible while differing baselines are rejected.
+  Keep each facet cell's grid independent. Include authored stroke extents in
+  unlocked guide margins, and treat zero-width Canvas strokes as unpainted.
+- Verification: focused scene tests preserve byte-equivalent boolean output,
+  empty-object defaults, per-scale overrides, zero width and opacity, and
+  baseline-only styling. Thick baseline and grid tests cover automatic surface
+  containment, including shared outer axes and independent facet grids. Facet
+  tests cover equal and different baseline values plus per-cell grid styles.
+  Motion tests cover numeric interpolation and discrete dash and cap updates.
+  SVG export, Canvas, React Native, and public type-barrel tests preserve the
+  renderer-neutral style fields, and Canvas skips zero-width strokes.
 
 ### F-261 — Cartesian bars cannot round only exposed corners
 

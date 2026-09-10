@@ -215,7 +215,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartAxisSide`                 | Cartesian axis side                                                   |
 | `CartesianScaleBindings`        | Optional mark bindings to named `xScale` and `yScale` entries         |
 | `ChartAxisViewportOptions`      | Continuous semantic window and transient pixel translation            |
-| `ChartAxisGuideOptions`         | Guide behavior without the scale field                                |
+| `ChartGuideLineStyle`           | Static guide stroke treatment                                         |
 | `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, and title presentation                 |
 | `ChartAxisTickOptions`          | Candidate values, density, formatting, size, and padding              |
 | `ChartAxisTickLabelOptions`     | Per-candidate typography, anchor, offset, rotation, and thinning      |

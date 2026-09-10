@@ -1492,7 +1492,7 @@ function strokePath(
   bounds: ChartBounds | null,
   path: Path2D,
 ): void {
-  const stroke = resolvePaint(painter, state.stroke, bounds)
+  const stroke = resolveStrokePaint(painter, state, bounds)
   if (!stroke) return
   configureStroke(painter.context, state, stroke)
   painter.context.stroke(path)
@@ -1517,7 +1517,7 @@ function strokeCurrentPath(
   state: PaintState,
   bounds: ChartBounds | null,
 ): void {
-  const stroke = resolvePaint(painter, state.stroke, bounds)
+  const stroke = resolveStrokePaint(painter, state, bounds)
   if (!stroke) return
   configureStroke(painter.context, state, stroke)
   painter.context.stroke()
@@ -1534,6 +1534,15 @@ function configureStroke(
   context.lineCap = state.lineCap
   context.lineJoin = state.lineJoin
   context.setLineDash(parseDasharray(state.strokeDasharray))
+}
+
+function resolveStrokePaint(
+  painter: ScenePainter,
+  state: PaintState,
+  bounds: ChartBounds | null,
+) {
+  if (!Number.isFinite(state.strokeWidth) || state.strokeWidth <= 0) return null
+  return resolvePaint(painter, state.stroke, bounds)
 }
 
 function paintLabel(
@@ -1577,7 +1586,7 @@ function paintLabel(
     context.fillStyle = fill
     context.fillText(node.text, 0, 0)
   }
-  const stroke = resolvePaint(painter, state.stroke, null)
+  const stroke = resolveStrokePaint(painter, state, null)
   if (stroke) {
     configureStroke(context, state, stroke)
     context.strokeText(node.text, 0, 0)

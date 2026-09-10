@@ -1,15 +1,18 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import packageJson from '../package.json'
 import type {
+  ChartGuideLineStyle as RootChartGuideLineStyle,
   CreateDotLayoutOptions as RootCreateDotLayoutOptions,
   DotLayout as RootDotLayout,
   DotLayoutResolveContext as RootDotLayoutResolveContext,
 } from '@tanstack/charts'
 import type {
+  ChartGuideLineStyle as UniversalChartGuideLineStyle,
   CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
   DotLayout as UniversalDotLayout,
   DotLayoutResolveContext as UniversalDotLayoutResolveContext,
 } from '@tanstack/charts/universal'
+import type { ChartGuideLineStyle as TypesChartGuideLineStyle } from '@tanstack/charts/types'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
 const specializedLoaderSpecifiers = new Set([
@@ -31,6 +34,11 @@ describe('public package exports', () => {
       RootDotLayout<'y', 'row'>
     >()
     expectTypeOf<UniversalDotLayoutResolveContext>().toEqualTypeOf<RootDotLayoutResolveContext>()
+  })
+
+  it('keeps guide line styles aligned across public type barrels', () => {
+    expectTypeOf<UniversalChartGuideLineStyle>().toEqualTypeOf<RootChartGuideLineStyle>()
+    expectTypeOf<TypesChartGuideLineStyle>().toEqualTypeOf<RootChartGuideLineStyle>()
   })
 
   it('resolves every manifest capability subpath supported by the generic loader', async () => {

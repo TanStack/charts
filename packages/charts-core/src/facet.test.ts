@@ -766,6 +766,151 @@ describe('facets', () => {
     ).toThrow(/guide options differ/)
   })
 
+  it('compares outer axis lines by value and retains cell grid styles', () => {
+    const data = [
+      { group: 'A', value: 1 },
+      { group: 'B', value: 2 },
+    ]
+    const definition = (difference?: 'line' | 'grid') =>
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group, { key }) => ({
+          marks: [lineY(group, { y: 'value' })],
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              grid: false,
+              axis: {
+                line: {
+                  stroke: '#0f172a',
+                  strokeOpacity: 0.6,
+                  strokeWidth: difference === 'line' && key === 'B' ? 3 : 2,
+                  strokeDasharray: '4 2',
+                  lineCap: 'round',
+                },
+              },
+            },
+            y: {
+              scale: scaleLinear().domain([0, 2]),
+              grid: {
+                stroke: '#cbd5e1',
+                strokeOpacity: 0.4,
+                strokeWidth: difference === 'grid' && key === 'B' ? 20 : 1,
+                strokeDasharray:
+                  difference === 'grid' && key === 'B' ? '2 2' : '1 3',
+                lineCap: 'butt',
+              },
+            },
+          },
+        }),
+      })
+
+    expect(() =>
+      createChartScene(definition(), { width: 640, height: 260 }),
+    ).not.toThrow()
+    expect(() =>
+      createChartScene(definition('line'), { width: 640, height: 260 }),
+    ).toThrow(/guide options differ/)
+    const independentGrids = createChartScene(definition('grid'), {
+      width: 640,
+      height: 260,
+    })
+    expect(
+      directFacetCells(independentGrids.nodes, 'facet-0').map(
+        (cell) =>
+          flatten(cell.children).find((node) => node.key.startsWith('y-grid:'))
+            ?.style?.strokeDasharray,
+      ),
+    ).toEqual(['1 3', '2 2'])
+    expect(
+      directFacetCells(independentGrids.nodes, 'facet-0').map(
+        (cell) =>
+          flatten(cell.children).find((node) => node.key.startsWith('y-grid:'))
+            ?.style?.strokeWidth,
+      ),
+    ).toEqual([1, 20])
+  })
+
+  it('keeps thick shared outer axis lines inside the surface', () => {
+    const data = [
+      { group: 'A', value: 1 },
+      { group: 'B', value: 2 },
+    ]
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group) => ({
+          marks: [lineY(group, { y: 'value' })],
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              axis: {
+                line: { strokeWidth: 20, lineCap: 'square' },
+                ticks: false,
+                tickLabels: false,
+              },
+            },
+            y: { scale: scaleLinear().domain([0, 2]), axis: false },
+          },
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const baselines = translatedRules(scene.nodes).filter(
+      ({ rule }) => rule.key === 'x-axis',
+    )
+
+    expect(baselines).toHaveLength(2)
+    for (const { x1, x2, y1, y2 } of baselines) {
+      expect(Math.min(x1, x2) - 10).toBeGreaterThanOrEqual(0)
+      expect(Math.max(x1, x2) + 10).toBeLessThanOrEqual(scene.width)
+      expect(Math.min(y1, y2) - 10).toBeGreaterThanOrEqual(0)
+      expect(Math.max(y1, y2) + 10).toBeLessThanOrEqual(scene.height)
+    }
+  })
+
+  it('keeps thick cell grids inside an outer-facet surface', () => {
+    const data = [
+      { group: 'A', value: 1 },
+      { group: 'B', value: 2 },
+    ]
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group) => ({
+          marks: [lineY(group, { y: 'value' })],
+          scales: {
+            x: {
+              scale: scaleLinear().domain([0, 1]),
+              grid: { strokeWidth: 20, lineCap: 'square' },
+              axis: false,
+            },
+            y: {
+              scale: scaleLinear().domain([0, 2]),
+              grid: { strokeWidth: 20, lineCap: 'square' },
+              axis: false,
+            },
+          },
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const gridRules = translatedRules(scene.nodes).filter(({ rule }) =>
+      rule.key.includes('-grid:'),
+    )
+
+    expect(gridRules.length).toBeGreaterThan(0)
+    for (const { x1, x2, y1, y2 } of gridRules) {
+      expect(Math.min(x1, x2) - 10).toBeGreaterThanOrEqual(0)
+      expect(Math.max(x1, x2) + 10).toBeLessThanOrEqual(scene.width)
+      expect(Math.min(y1, y2) - 10).toBeGreaterThanOrEqual(0)
+      expect(Math.max(y1, y2) + 10).toBeLessThanOrEqual(scene.height)
+    }
+  })
+
   it('does not render data marks during the outer-guide prepass', () => {
     const data = [
       { group: 'A', value: 1 },
@@ -866,6 +1011,38 @@ function translatedLabels(
     if (node.kind === 'label') return [{ label: node, x, y }]
     if (node.kind !== 'group') return []
     return translatedLabels(
+      node.children,
+      x + (node.translateX ?? 0),
+      y + (node.translateY ?? 0),
+    )
+  })
+}
+
+function translatedRules(
+  nodes: readonly SceneNode[],
+  x = 0,
+  y = 0,
+): {
+  rule: Extract<SceneNode, { kind: 'rule' }>
+  x1: number
+  x2: number
+  y1: number
+  y2: number
+}[] {
+  return nodes.flatMap((node) => {
+    if (node.kind === 'rule') {
+      return [
+        {
+          rule: node,
+          x1: node.x1 + x,
+          x2: node.x2 + x,
+          y1: node.y1 + y,
+          y2: node.y2 + y,
+        },
+      ]
+    }
+    if (node.kind !== 'group') return []
+    return translatedRules(
       node.children,
       x + (node.translateX ?? 0),
       y + (node.translateY ?? 0),

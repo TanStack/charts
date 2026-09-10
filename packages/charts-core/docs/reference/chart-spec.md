@@ -128,8 +128,10 @@ Guide visibility and geometry are separate:
 
 - `scales.x.axis: false` or `scales.y.axis: false` hides one axis.
 - `guides: false` hides all guides and removes their implicit margin.
-- Omitted `margin` sides are measured from ticks, rotation, titles, edge
-  overhang, color legends, and Cartesian `text` marks.
+- `grid` and `axis.line` accept a boolean or a `ChartGuideLineStyle` object
+  with stroke, opacity, width, dash, and line-cap overrides.
+- Omitted `margin` sides are measured from ticks, rotation, titles, guide
+  strokes, edge overhang, color legends, and Cartesian `text` marks.
 - `margin: 0` locks every side to zero.
 - `margin: { left: 80 }` locks only the left side.
 
