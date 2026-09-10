@@ -244,7 +244,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ResolvedColorScale`            | Resolved mapping and optional stepped legend boundaries               |
 | `ResolvedColorScaleKind`        | Categorical, continuous, quantile, quantize, or threshold             |
 | `ChartColorLegend`              | Legend layout and scene rendering                                     |
-| `ChartColorLegendContext`       | Resolved colors, chart bounds, theme, and width                       |
+| `ChartColorLegendContext`       | Resolved colors, chart bounds, theme, layout, and viewport size       |
 | `CrosshairOptions`              | Data-less x/y guides, marker, style, and motion options               |
 | `CrosshairRuleOptions`          | Stroke shared by both crosshair axes or overridden per axis           |
 | `CrosshairAxisOptions`          | Per-axis rule or categorical band with an optional label              |
@@ -450,8 +450,14 @@ their behavior:
 - `@tanstack/charts/interaction/signal`: `ControlledSignal` and
   `ControlledSignalChangeContext`. See
   [Controlled signals](../guides/interactions-and-selections.md#controlled-signals).
-- `@tanstack/charts/legend`: `InteractiveColorLegendItemContext` and legend
-  option/change types. See
+- `@tanstack/charts/legend`: `ColorLegendOptions`, `ColorLegendItems`,
+  `ColorLegendItemOptions`, `ColorLegendItemValue`, `ColorLegendItemContext`,
+  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorRenderContext`,
+  `ColorLegendIndicatorShape`, `ColorLegendLabelOptions`,
+  `ColorGradientLegendOptions`, `InteractiveColorLegendItemContext`, and
+  interactive legend option/change types. See
+  [Automatic color legend](./scales-guides-and-color.md#automatic-color-legend)
+  and
   [Interactive categorical legend](./scales-guides-and-color.md#interactive-categorical-legend).
 - `@tanstack/charts/interaction/brush`: `BrushRange`, `BrushXChange`,
   `BrushXSource`, `BrushXTarget`, `BrushXValuesOptions`, and
@@ -496,7 +502,11 @@ subpath. Cartesian, radial, and composite option types include the shared
 - `TextOptions`, `TextAnchor`
 - `FrameOptions`
 - `FacetOptions`, `FacetAxes`, `FacetChartContext`
-- `ColorLegendOptions`, `ColorGradientLegendOptions`
+- `ColorLegendOptions`, `ColorLegendItems`, `ColorLegendItemOptions`,
+  `ColorLegendItemValue`, `ColorLegendItemContext`,
+  `ColorLegendIndicatorOptions`, `ColorLegendIndicatorRenderContext`,
+  `ColorLegendIndicatorShape`, `ColorLegendLabelOptions`,
+  `ColorGradientLegendOptions`
 
 Their public fields and defaults are owned by the
 [mark reference](./index.md#mark-reference) and

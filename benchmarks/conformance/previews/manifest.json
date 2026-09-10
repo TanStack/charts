@@ -306,8 +306,8 @@
     },
     {
       "id": "70-composed-chart",
-      "sha256": "bde720b0d2cfd752e3a9600f469c2a1ec5a3fdc3232292ad5e4c6c45319994c6",
-      "bytes": 14495
+      "sha256": "3603f4028a6f4744d4fb0ad019180f8cd397ff432b62d46b8c6aa76d11d3c1c1",
+      "bytes": 15727
     },
     {
       "id": "71-recharts-population-pyramid",
@@ -796,8 +796,8 @@
     },
     {
       "id": "168-shadcn-pie-legend",
-      "sha256": "5db75dd923761942ff4327fe88db0f89359ae9146b98abe47ded6fd9ea87d8c7",
-      "bytes": 2702
+      "sha256": "b0d64bdd8f70cb8e2b65030dd3b73e4f1f0c85494220aa55ef45ddaa03210c64",
+      "bytes": 4596
     },
     {
       "id": "169-shadcn-pie-separator-none",

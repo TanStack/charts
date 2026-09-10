@@ -341,6 +341,7 @@ Each entry records:
 | F-302 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
 | F-303 | Focus mark groups ignored their mark motion                    | API                   | resolved   |
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
+| F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 
 ## Findings
 
@@ -8965,3 +8966,31 @@ Each entry records:
   radial fill and decreasing stops against rasterized SVG output, while keyed
   SVG reconciliation covers focal interpolation and linear-to-radial
   replacement without duplicate resource IDs.
+
+### F-305 - Categorical legend styling required a replacement renderer
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: replacing Rewardo's line, bar, mixed, and pie chart legends
+- Friction: changing label typography, series-colored labels, spacing, or
+  indicators required a complete `ChartColorLegend`. The application repeated
+  color-domain resolution, estimated text widths, wrapped rows, centered each
+  row, and reserved legend height itself.
+- Decision: let `colorLegend()` accept a `colorLegendItems()` presentation for
+  categorical labels and indicators while retaining chart-owned measurement
+  and wrapping. The separate factory keeps its machinery out of default legend
+  bundles. Keep the equal-column layout as the default. Compact start and center
+  layouts use the chart host's configured text measurer, including painted
+  glyph bearings. Treat the opaque presentation contravariantly so a callback
+  that accepts a broader domain is safe, while a narrower callback cannot be
+  attached to a broader legend. Indicator callbacks receive resolved
+  color-scale items and a measured bounds box. A line-dot center uses the
+  concrete chart background or the host's semantic `Canvas` color.
+- Verification: focused layout, measurement, renderer, type, and mixed-mark
+  tests cover compact wrapping, positive and negative LTR and RTL glyph
+  bearings, whole-record fallback for each invalid metric field, safe generic
+  variance, empty and quantitative domains, per-series symbols, light and dark
+  line-dot centers, resolved label paint, and single-node and multi-node custom
+  indicators. The composed and pie catalog examples use the built-in legend
+  instead of application-owned layout.

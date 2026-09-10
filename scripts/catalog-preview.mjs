@@ -106,7 +106,10 @@ export const catalogGuidePreviewCaseIds = [
   '80-echarts-axis-pointer',
   'bar-horizontal-ranking',
 ]
-export const catalogLegendPreviewCaseIds = ['81-recharts-interactive-legend']
+export const catalogLegendPreviewCaseIds = [
+  '70-composed-chart',
+  '81-recharts-interactive-legend',
+]
 export const catalogMarginPreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
@@ -484,6 +487,28 @@ export function validateCatalogPreviewPresentation(
         svg.includes('Manufacturing') &&
         svg.includes('Construction'),
       'catalog preview 81-recharts-interactive-legend must retain its real source legend',
+    )
+  }
+  if (caseId === '70-composed-chart') {
+    assert(
+      svg.includes('ts-chart__legend') &&
+        countOccurrences(svg, 'data-ts-key="legend-square:') === 2 &&
+        countOccurrences(svg, 'data-ts-key="legend-line-dot:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="legend-dot:') === 1 &&
+        ['High temperature', 'Precipitation', 'Low temperature', 'Wind'].every(
+          (label) => svg.includes(`>${label}</text>`),
+        ),
+      'catalog preview 70-composed-chart must retain all four mixed-mark legend items',
+    )
+  }
+  if (caseId === '168-shadcn-pie-legend') {
+    assert(
+      svg.includes('ts-chart__legend') &&
+        countOccurrences(svg, 'data-ts-key="legend-square:') === 5 &&
+        ['Chrome', 'Safari', 'Firefox', 'Edge', 'Other'].every((label) =>
+          svg.includes(`>${label}</text>`),
+        ),
+      'catalog preview 168-shadcn-pie-legend must retain all five native legend items',
     )
   }
   if (caseId === '87-echarts-synchronized-cursors') {
