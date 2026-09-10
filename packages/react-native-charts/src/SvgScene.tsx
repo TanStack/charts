@@ -8,6 +8,7 @@ import {
   Line,
   LinearGradient,
   Path,
+  RadialGradient,
   Rect,
   Stop,
   Svg,
@@ -135,25 +136,50 @@ export const NativeChartScene = React.memo(function NativeChartScene({
     >
       {scene.gradients.length ? (
         <Defs>
-          {scene.gradients.map((gradient) => (
-            <LinearGradient
-              key={gradient.id}
-              id={scopedId(idPrefix, gradient.id)}
-              x1={percent(gradient.x1 ?? 0)}
-              y1={percent(gradient.y1 ?? 1)}
-              x2={percent(gradient.x2 ?? 0)}
-              y2={percent(gradient.y2 ?? 0)}
-            >
-              {gradient.stops.map((stop, index) => (
+          {scene.gradients.map((gradient) => {
+            let minimumOffset = 0
+            const stops = gradient.stops.map((stop, index) => {
+              const offset = Math.max(minimumOffset, clampUnit(stop.offset))
+              minimumOffset = offset
+              return (
                 <Stop
                   key={`${gradient.id}:${index}`}
-                  offset={percent(stop.offset)}
+                  offset={percent(offset)}
                   stopColor={paint(stop.color)}
                   stopOpacity={stop.opacity}
                 />
-              ))}
-            </LinearGradient>
-          ))}
+              )
+            })
+            if (gradient.type === 'radial') {
+              const cx = gradient.cx ?? 0.5
+              const cy = gradient.cy ?? 0.5
+              return (
+                <RadialGradient
+                  key={gradient.id}
+                  id={scopedId(idPrefix, gradient.id)}
+                  cx={percent(cx)}
+                  cy={percent(cy)}
+                  r={percent(gradient.r ?? 0.5)}
+                  fx={percent(gradient.fx ?? cx)}
+                  fy={percent(gradient.fy ?? cy)}
+                >
+                  {stops}
+                </RadialGradient>
+              )
+            }
+            return (
+              <LinearGradient
+                key={gradient.id}
+                id={scopedId(idPrefix, gradient.id)}
+                x1={percent(gradient.x1 ?? 0)}
+                y1={percent(gradient.y1 ?? 1)}
+                x2={percent(gradient.x2 ?? 0)}
+                y2={percent(gradient.y2 ?? 0)}
+              >
+                {stops}
+              </LinearGradient>
+            )
+          })}
         </Defs>
       ) : null}
       {scene.theme.background === 'transparent' ? null : (
@@ -442,7 +468,11 @@ function stableId(value: string) {
 }
 
 function percent(value: number) {
-  return `${Math.max(0, Math.min(1, value)) * 100}%`
+  return `${clampUnit(value) * 100}%`
+}
+
+function clampUnit(value: number) {
+  return Number.isNaN(value) ? 0 : Math.max(0, Math.min(1, value))
 }
 
 function positiveFinite(value: number | undefined, fallback: number) {

@@ -28,6 +28,7 @@ vi.mock('react-native-svg', () => ({
   Line: 'line',
   LinearGradient: 'linearGradient',
   Path: 'path',
+  RadialGradient: 'radialGradient',
   Rect: 'rect',
   Stop: 'stop',
   Svg: 'svg',
@@ -66,6 +67,87 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).not.toContain('#fedcba')
     expect(markup).not.toContain('currentColor')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('renders radial gradients with inherited focal defaults', () => {
+    const radialScene = scene()
+    radialScene.gradients = [
+      {
+        type: 'radial',
+        id: 'spot',
+        cx: 0.25,
+        cy: 0.75,
+        r: 1.5,
+        fx: -1,
+        stops: [{ offset: 0.5, color: '#2563eb', opacity: 0.6 }],
+      },
+      {
+        type: 'radial',
+        id: 'non-finite',
+        cx: Number.NaN,
+        cy: Number.POSITIVE_INFINITY,
+        r: Number.NEGATIVE_INFINITY,
+        fy: Number.NaN,
+        stops: [{ offset: Number.POSITIVE_INFINITY, color: '#abcdef' }],
+      },
+    ]
+    radialScene.nodes = [
+      {
+        kind: 'rect',
+        key: 'radial-fill',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 60,
+        style: { fill: 'url(#spot)' },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={radialScene}
+        color="#111827"
+        idPrefix="native-one"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain(
+      '<radialGradient id="native-one-spot" cx="25%" cy="75%" r="100%" fx="0%" fy="75%">',
+    )
+    expect(markup).toContain('offset="50%"')
+    expect(markup).toContain('stop-opacity="0.6"')
+    expect(markup).toContain('fill="url(#native-one-spot)"')
+    expect(markup).toContain(
+      '<radialGradient id="native-one-non-finite" cx="0%" cy="100%" r="0%" fx="0%" fy="0%">',
+    )
+    expect(markup).toContain('offset="100%"')
+  })
+
+  it('clamps decreasing gradient stops forward without reordering colors', () => {
+    const radialScene = scene()
+    radialScene.gradients = [
+      {
+        type: 'radial',
+        id: 'authored-order',
+        stops: [
+          { offset: 1, color: '#ff0000' },
+          { offset: 0, color: '#0000ff' },
+        ],
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={radialScene}
+        color="#111827"
+        idPrefix="native-one"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup.match(/offset="100%"/g)).toHaveLength(2)
+    expect(markup.indexOf('#ff0000')).toBeLessThan(markup.indexOf('#0000ff'))
   })
 
   it('renders selective rectangle corners as a fixed native SVG path', () => {

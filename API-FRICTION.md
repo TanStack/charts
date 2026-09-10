@@ -340,6 +340,7 @@ Each entry records:
 | F-301 | Physical axis sides depended on logical text direction         | API                   | resolved   |
 | F-302 | Catalog formatting inherited the host locale                   | Tooling               | resolved   |
 | F-303 | Focus mark groups ignored their mark motion                    | API                   | resolved   |
+| F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 
 ## Findings
 
@@ -7945,10 +7946,10 @@ Each entry records:
 - Owner: API
 - Observed in: the theme-treatment audit for catalog cases 120–124 and the
   Bklit-derived card references
-- Friction: `ChartSpec.gradients` keeps CSS-variable linear gradients inside
-  the renderer-neutral definition. The same resource model cannot declare a
-  hatch, dot, or line pattern. An author must omit that treatment or leave the
-  native definition and renderer resource boundary.
+- Friction: `ChartSpec.gradients` keeps CSS-variable linear and radial
+  gradients inside the renderer-neutral definition. The same resource model
+  cannot declare a hatch, dot, or line pattern. An author must omit that
+  treatment or leave the native definition and renderer resource boundary.
 - Current decision: case 124 uses the same declared linear gradient across its
   palette treatments. Do not inject an application-owned SVG pattern as a
   catalog workaround. Keep a native pattern resource open until one contract
@@ -8921,3 +8922,35 @@ Each entry records:
   embedded owner namespacing, invalid slots that must not alias point zero, and
   point-key collisions that must remain point-free. The existing focus-guide
   context and spring tests pass.
+
+### F-304 - Gradient resources hid cross-renderer ownership
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: implementing radial gradient fills from GitHub issue #129 across
+  SVG, Canvas, and React Native
+- Friction: `ChartSpec.gradients` and `ChartScene.gradients` exposed only
+  `ChartLinearGradient`, while each renderer separately owned resource
+  conversion. Adding an SVG `radialGradient` alone would leave React Native and
+  Canvas behavior behind. Canvas also paints a native radial gradient as a
+  device-space circle, which does not match SVG `objectBoundingBox` behavior on
+  a non-square shape. Applying a nonuniform bounds transform to a stroke would
+  then distort its width.
+- Decision: replace the linear-only resource type with a discriminated
+  `ChartGradient` union backed by shared IDs and stops. Keep an omitted `type`
+  as the compatible linear form, and give the radial form normalized center,
+  radius, and focus coordinates. SVG and React Native emit and scope either
+  resource. Canvas clips radial fills and paints them in unit space under the
+  shape-bounds transform for exact `objectBoundingBox` geometry. Canvas rejects
+  radial strokes until it can preserve stroke geometry exactly.
+- Verification: public export type coverage checks the root, universal, and
+  type-only barrels and rejects coordinates from the other gradient kind. SVG
+  and React Native regressions cover coordinate clamping, decreasing stop
+  normalization without color reordering, inherited focal defaults, resource
+  scoping, and paint rewriting. Canvas unit coverage exercises rectangles,
+  polygon holes, paths, independent dot bounds, stop and zero-size edge cases,
+  and the radial-stroke error. The browser Canvas gate samples a non-square
+  radial fill and decreasing stops against rasterized SVG output, while keyed
+  SVG reconciliation covers focal interpolation and linear-to-radial
+  replacement without duplicate resource IDs.

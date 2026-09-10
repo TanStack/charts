@@ -256,6 +256,14 @@ Renderer-specific tradeoffs:
 - Structured `SceneArea.polygons` render directly and do not require `Path2D`.
 - Scene-node `className` values do not create styleable Canvas descendants.
 - Gradients require geometry with measurable bounds.
+- Radial gradients support Canvas fills only. A radial stroke throws rather
+  than changing stroke width under a nonuniform bounds transform.
+
+Linear gradients map their normalized endpoints directly into each node's
+bounds. Radial fills are clipped to the node, then painted in normalized unit
+space under the node's bounds transform. This preserves SVG
+`objectBoundingBox` behavior, including an elliptical gradient on a non-square
+node.
 
 ## SVG resources
 
@@ -267,14 +275,21 @@ import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 `renderChartSvg` and the compatible explicit
 `renderChartSvgWithResources(scene, options)` entry both:
 
-- emit declared linear gradients in `<defs>`
+- emit declared linear and radial gradients in `<defs>`
 - scope gradient IDs with sanitized `idPrefix`
 - rewrite matching `url(#gradient-id)` paints
 - emit clip paths for scene groups with `clip` bounds
 
 Default SVG hosts and framework adapters use this behavior without a custom
 `renderSvg`. Use a stable, document-unique `idPrefix`. Gradient coordinates and
-stop offsets are clamped to `0..1` and emitted as percentages.
+stop offsets are clamped to `0..1` and emitted as percentages. A radial
+gradient defaults to center `(0.5, 0.5)` and radius `0.5`; each omitted focal
+coordinate inherits the matching center coordinate.
+
+The React Native adapter emits matching `LinearGradient` and `RadialGradient`
+resources through `react-native-svg`. Its `Chart` generates an `idPrefix` with
+`useId()` unless the application supplies one, then scopes resource IDs and
+rewrites matching paints in the same way as the web adapters.
 
 ## `reconcileChartSvg`
 
@@ -410,9 +425,10 @@ unless `includeFocus` is true, and resolves dimensions from options, then the
 The serializer can inline computed `color`, fill, fill opacity, font family,
 font size, font weight, opacity, stroke, stroke opacity, stroke width, and
 stroke dash array when they depend on inherited font, `currentColor`, or CSS
-custom properties. Gradient stop color and opacity receive the same treatment.
-Keep other CSS-dependent resource styling explicit until it is part of that
-serialization contract.
+custom properties. Linear and radial resources remain in the cloned `<defs>`,
+and their stop color and opacity receive the same treatment. Keep other
+CSS-dependent resource styling explicit until it is part of that serialization
+contract.
 
 `downloadChartSvg(target, filename?, options?)` defaults to `chart.svg` and
 downloads an SVG blob through the target's document.
