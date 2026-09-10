@@ -46,7 +46,9 @@ of the default scene and host contracts. Default static SVG consumes scene
 clips and gradients. Their reviewed shared-path cost is recorded in the locked
 entries and the corresponding complete-consumer budgets. Rolling path planning
 remains confined to the opt-in motion renderer, whose complete SVG budget is
-22.20 KiB gzip.
+22.30 KiB gzip. The cumulative styling and focus-motion integration measures
+22.28 KiB for this optional renderer and 29.70 KiB for the composite SVG
+consumer, whose ceiling is 29.73 KiB.
 
 Every public transform family has an isolated budget and retained-input
 allowlist. Numeric and 2D bins may retain `d3-array`, and row stacks may retain

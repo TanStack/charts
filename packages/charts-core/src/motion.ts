@@ -3019,14 +3019,17 @@ function guideOrMarkTimingContext(
   const focusContext = focusLayer
     ? retargetFocusContext(element, focusLayer, scene)
     : undefined
-  const point = focusContext?.point ?? motionPointForKey(scene.points, key)
+  const point = focusContext
+    ? focusContext.point
+    : motionPointForKey(scene.points, key)
   let owner = element
   const ownerParent = focusLayer ?? marks
   while (owner.parentElement && owner.parentNode !== ownerParent) {
     owner = owner.parentElement
   }
   const ownerKey = owner.getAttribute('data-ts-key') ?? key
-  const markId = point?.markId ?? motionMarkId(scene, ownerKey)
+  const markId =
+    point?.markId ?? focusContext?.markId ?? motionMarkId(scene, ownerKey)
   const role = markMotionRole(owner, element)
   const markPoints = markId
     ? (focusContext?.layer.focus?.points ?? scene.points).filter(
@@ -3076,26 +3079,69 @@ function retargetFocusContext(
   element: Element,
   focusLayer: SVGGElement,
   scene: ChartScene,
-): { layer: SceneGroup; point: ChartPoint | undefined } | undefined {
+):
+  | {
+      layer: SceneGroup
+      markId: string | undefined
+      point: ChartPoint | undefined
+    }
+  | undefined {
   const layerKey = focusLayer.getAttribute('data-ts-key')
   if (!layerKey) return undefined
   const layer = findSceneGroup(scene.nodes, layerKey)
   if (!layer?.focus?.retarget) return undefined
+  const focusMarkId =
+    layer.focus.markId ??
+    motionMarkId(
+      scene,
+      layerKey.startsWith('focus:')
+        ? layerKey.slice('focus:'.length)
+        : layerKey,
+    )
   const prefix = `${layerKey}:selection:`
   let current: Element | null = element
   let slot: number | undefined
+  let selectionKeySeen = false
   while (current && current !== focusLayer) {
     const key = current.getAttribute('data-ts-key')
     if (key?.startsWith(prefix)) {
-      const value = Number(key.slice(prefix.length).split(':')[0])
-      if (Number.isInteger(value) && value >= 0) slot = value
+      selectionKeySeen = true
+      const encoded = key.slice(prefix.length).split(':')[0] ?? ''
+      const value = Number(encoded)
+      if (
+        Number.isSafeInteger(value) &&
+        value >= 0 &&
+        String(value) === encoded
+      ) {
+        slot = value
+      }
       break
     }
     current = current.parentElement
   }
+  const activePoints = layer.focus.activePoints
+  const onlyPoint = activePoints?.length === 1 ? activePoints[0] : undefined
+  let point = selectionKeySeen
+    ? slot === undefined
+      ? undefined
+      : activePoints?.[slot]
+    : focusMarkId
+      ? onlyPoint
+      : activePoints?.[0]
+  const usesStructuralOwnership = !selectionKeySeen || element.localName === 'g'
+  if (
+    point &&
+    usesStructuralOwnership &&
+    focusMarkId &&
+    point.markId !== focusMarkId &&
+    !point.markId.startsWith(`${focusMarkId}:`)
+  ) {
+    point = undefined
+  }
   return {
     layer,
-    point: layer.focus.activePoints?.[slot ?? 0],
+    markId: focusMarkId,
+    point,
   }
 }
 

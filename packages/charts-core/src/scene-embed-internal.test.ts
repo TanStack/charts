@@ -80,6 +80,7 @@ describe('embedded chart scenes', () => {
       expect(mappedDot.y).toBe(originalDot.y)
     }
     expect(stateLayer?.states?.points[0]).toBe(embedded.points[0])
+    expect(focusLayer?.focus?.markId).toBe('views:main:focused-dots')
     expect(focusLayer?.focus?.points[0]?.markId).toBe('views:main:focused-dots')
     expect(focusLayer?.focus?.candidates?.length).toBeGreaterThan(0)
     expect(
