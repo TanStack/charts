@@ -1,5 +1,12 @@
 # @tanstack/vue-charts
 
+## 0.18.0
+
+### Patch Changes
+
+- Updated dependencies [[`956d08e`](https://github.com/TanStack/charts/commit/956d08ec2533a410607e1b8f1b2335a463996203), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`98177d8`](https://github.com/TanStack/charts/commit/98177d8bd3fd75750dfdefaf12b83b2df8ef277b), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`7c263fb`](https://github.com/TanStack/charts/commit/7c263fb72e3023f12d8882183cac462114a7e583), [`ff287ae`](https://github.com/TanStack/charts/commit/ff287ae0212179aba2b20cd584b6d464a8ba45ef), [`a9f8591`](https://github.com/TanStack/charts/commit/a9f8591d88ed9cc7b8f9cd426363392ef070e8a5), [`aea93f4`](https://github.com/TanStack/charts/commit/aea93f479f198c274a6b131ae9cd617163785c26)]:
+  - @tanstack/charts@0.18.0
+
 ## 0.17.0
 
 ### Patch Changes
