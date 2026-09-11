@@ -9,6 +9,11 @@ on:
     - cron: '17 7 * * 1'
   workflow_dispatch:
     inputs:
+      diagnose_stats:
+        description: Run only the TanStack multi-series timing diagnostic, without retries or memory soak
+        required: false
+        type: boolean
+        default: false
       upload_bundle_baseline_candidate:
         description: Upload exact comparison bundle measurements
         required: false
@@ -25,12 +30,13 @@ permissions:
   actions: read
 
 concurrency:
-  group: chart-library-benchmarks-${{ github.event_name }}-${{ github.ref }}
+  group: chart-library-benchmarks-${{ github.event_name }}-${{ github.ref }}${{ inputs.diagnose_stats && '-stats-diagnostic' || '' }}
   cancel-in-progress: true
 
 jobs:
   changes:
     name: Select CI partitions
+    if: github.event_name != 'workflow_dispatch' || !inputs.diagnose_stats
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -67,6 +73,7 @@ jobs:
 
   static:
     name: Static checks
+    if: github.event_name != 'workflow_dispatch' || !inputs.diagnose_stats
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -187,7 +194,7 @@ jobs:
 
   bundle-baseline-candidate:
     name: Bundle baseline candidate
-    if: github.event_name == 'workflow_dispatch' && inputs.upload_bundle_baseline_candidate
+    if: github.event_name == 'workflow_dispatch' && inputs.upload_bundle_baseline_candidate && !inputs.diagnose_stats
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -274,7 +281,7 @@ jobs:
 
   compare-container-canary:
     name: Comparison container canary
-    if: github.event_name == 'workflow_dispatch' && inputs.playwright_container_canary
+    if: github.event_name == 'workflow_dispatch' && inputs.playwright_container_canary && !inputs.diagnose_stats
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     container:
@@ -303,9 +310,34 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  stats-diagnostic:
+    name: Stats stress diagnostic
+    if: github.event_name == 'workflow_dispatch' && inputs.diagnose_stats
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          playwright: 'true'
+      - name: Diagnose one timing cell
+        run: node scripts/stress-chart-libraries.mjs --profile=standard --library=tanstack --workload=stats-multi-series-line --diagnostics
+      - name: Upload phase diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: stats-stress-diagnostic-${{ github.run_id }}
+          path: .benchmark-output/stress/results
+          if-no-files-found: warn
+          retention-days: 7
+
   ci:
     name: CI
-    if: always()
+    if: always() && !inputs.diagnose_stats
     needs:
       - changes
       - static

@@ -34,6 +34,8 @@ const comparisonFiles = new Set([
 ])
 
 const stressFiles = new Set([
+  'scripts/benchmark/stress-diagnostics.mjs',
+  'scripts/benchmark/stress-pointer.mjs',
   'scripts/benchmark/filters.mjs',
   'scripts/benchmark/page-errors.mjs',
   'scripts/benchmark/result-validity.mjs',

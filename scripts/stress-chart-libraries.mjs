@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { appendFileSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { cpus } from 'node:os'
 import { resolve } from 'node:path'
@@ -8,6 +9,11 @@ import {
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
 import { CellTimeoutError } from './benchmark/cell-timeout.mjs'
+import { createStressDiagnostics } from './benchmark/stress-diagnostics.mjs'
+import {
+  installStressPointerTiming,
+  measureTrustedPointer,
+} from './benchmark/stress-pointer.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
 import {
   assertKnownFilterValues,
@@ -41,6 +47,7 @@ const config = JSON.parse(
 )
 
 const profileName = optionValue('--profile') ?? 'standard'
+const diagnosticMode = process.argv.includes('--diagnostics')
 const profile = config.profiles[profileName]
 if (!profile) {
   throw new Error(
@@ -107,6 +114,14 @@ const cases = selectedWorkloads.flatMap((workload) =>
     exportName: `mount${capitalize(workload.chartType)}`,
   })),
 )
+const cells = createCells(selectedWorkloads, selectedLibraries, profileName)
+if (diagnosticMode && cells.length !== 1) {
+  throw new Error(
+    'Diagnostics require exactly one library, workload, and source count.',
+  )
+}
+if (diagnosticMode)
+  await writeFile(resolve(resultDirectory, 'stress-diagnostics.jsonl'), '')
 await buildCases(cases)
 
 const browser = await launchBenchmarkBrowser()
@@ -115,7 +130,6 @@ const server = await startBenchmarkServer(outputDirectory, {
   width: 1_400,
   height: 900,
 })
-const cells = createCells(selectedWorkloads, selectedLibraries, profileName)
 const results = []
 
 try {
@@ -129,19 +143,21 @@ try {
     const timing = await runIsolatedWithRetry(
       browser,
       120_000,
-      (context) =>
+      (context, diagnostics) =>
         runTimingCell(
           context,
           server.url,
           benchmarkCase,
           cell.sourceCount,
           profile,
+          diagnostics,
         ),
       cell,
       'timing',
     )
     let memory
     if (
+      !diagnosticMode &&
       timing.status === 'ok' &&
       cell.sourceCount === cell.workload.sourceCounts[profileName].at(-1)
     ) {
@@ -212,10 +228,12 @@ const result = {
       'A fixed active window advances by five percent through one immutable feed. Stream revisions are frame-paced and individually awaited; burst revisions enqueue synchronously and must drain to one stable final output.',
     pointer:
       'Playwright measures trusted inactive-to-active tooltip activation and active-to-active state changes across adapter-reported data targets.',
-    memory:
-      'Fresh-page CDP JS heap and DOM counters after forced garbage collection; excludes GPU and native canvas allocations.',
-    retry:
-      'An outer timeout or browser-context infrastructure failure receives one immediate fresh-context retry. Renderer, page, protocol, and correctness failures are not retried; every attempted error remains explicit in the result and report.',
+    memory: diagnosticMode
+      ? 'Not measured in timing-only diagnostics.'
+      : 'Fresh-page CDP JS heap and DOM counters after forced garbage collection; excludes GPU and native canvas allocations.',
+    retry: diagnosticMode
+      ? 'No automatic retries in diagnostic mode.'
+      : 'An outer timeout or browser-context infrastructure failure receives one immediate fresh-context retry. Renderer, page, protocol, and correctness failures are not retried; every attempted error remains explicit in the result and report.',
     output:
       'Adapter probes gate rendered dimensions, data items or path vertices, numeric endpoint visibility, and multi-series path, identity, and per-series vertex accounting.',
     ranking:
@@ -226,7 +244,9 @@ const result = {
   failures,
 }
 const markdown = renderMarkdown(result)
-const artifactStem = stressArtifactStem(profileName, selectedFilters)
+const artifactStem =
+  stressArtifactStem(profileName, selectedFilters) +
+  (diagnosticMode ? '--diagnostic' : '')
 const jsonPath = resolve(resultDirectory, `${artifactStem}.json`)
 const markdownPath = resolve(resultDirectory, `${artifactStem}.md`)
 await writeFile(jsonPath, `${JSON.stringify(result, null, 2)}\n`)
@@ -304,6 +324,15 @@ async function runIsolated(
   let context
   let stage = 'context'
   let timeout
+  const diagnostics = createStressDiagnostics(diagnosticMode, (entry) => {
+    const record = { id, ...entry }
+    console.log(JSON.stringify(record))
+    appendFileSync(
+      resolve(resultDirectory, 'stress-diagnostics.jsonl'),
+      `${JSON.stringify(record)}\n`,
+    )
+  })
+  diagnostics.mark('context')
   try {
     context = await browserInstance.newContext({
       viewport: { width: 1_400, height: 900 },
@@ -312,7 +341,7 @@ async function runIsolated(
     stage = 'cell'
     const pageError = contextPageErrorFailure(context)
     const value = await Promise.race([
-      run(context),
+      run(context, diagnostics),
       pageError,
       new Promise((_, reject) => {
         timeout = setTimeout(
@@ -321,7 +350,9 @@ async function runIsolated(
         )
       }),
     ])
-    return value
+    return diagnosticMode
+      ? { ...value, diagnostics: diagnostics.snapshot() }
+      : value
   } catch (error) {
     return {
       id,
@@ -332,7 +363,10 @@ async function runIsolated(
       workloadLabel: workload.label,
       lane: workload.lane,
       sourceCount,
-      error: error instanceof Error ? error.message : String(error),
+      error:
+        (error instanceof Error ? error.message : String(error)) +
+        (diagnosticMode ? ` [phase: ${diagnostics.lastPhase()}]` : ''),
+      ...(diagnosticMode ? { diagnostics: diagnostics.snapshot() } : {}),
       retryable: isRetryableCellInfrastructureError(error, stage),
     }
   } finally {
@@ -359,6 +393,7 @@ async function runIsolatedWithRetry(
   cell,
   phase,
 ) {
+  if (diagnosticMode) return runIsolated(browserInstance, timeoutMs, run, cell)
   return retryFailedResult(
     () => runIsolated(browserInstance, timeoutMs, run, cell),
     phase,
@@ -371,9 +406,17 @@ async function runTimingCell(
   benchmarkCase,
   sourceCount,
   benchmarkProfile,
+  diagnostics,
 ) {
   const page = await context.newPage()
+  if (diagnosticMode)
+    page.on('console', (message) => {
+      const text = message.text()
+      if (text.startsWith('__chartsStressPhase__:'))
+        diagnostics.mark(text.slice('__chartsStressPhase__:'.length))
+    })
   const pageErrors = attachPageErrorCollector(page)
+  diagnostics.mark('navigation')
   await page.goto(serverUrl, { waitUntil: 'load' })
 
   const base = await page.evaluate(
@@ -385,7 +428,12 @@ async function runTimingCell(
       sourceCount: count,
       profile: currentProfile,
       profileName: selectedProfile,
+      diagnosticsEnabled,
     }) => {
+      const phase = diagnosticsEnabled
+        ? (name) => console.info(`__chartsStressPhase__:${name}`)
+        : () => {}
+      phase('module import')
       const {
         mount,
         createRollingFeed,
@@ -397,6 +445,7 @@ async function runTimingCell(
         prepareStressUpdate,
       } = await import(moduleUrl)
       await document.fonts?.ready
+      phase('source preparation')
 
       const width = workload.id === 'dashboard-lines' ? 320 : 800
       const height = workload.id === 'dashboard-lines' ? 180 : 400
@@ -460,6 +509,7 @@ async function runTimingCell(
       longTaskObserver?.observe({ type: 'longtask', buffered: false })
 
       const mountSamples = []
+      phase('mount')
       let output
       for (
         let sampleIndex = 0;
@@ -497,6 +547,7 @@ async function runTimingCell(
       const updates = []
       const pointerStateInputs = new Map([['initial', initial.input]])
       for (const kind of workload.updates) {
+        phase(`update:${kind}`)
         const target =
           kind === 'roll'
             ? rollingInputs?.[1]
@@ -645,6 +696,7 @@ async function runTimingCell(
       }
 
       let stream
+      phase('stream')
       if (workload.stream) {
         const ring = rollingInputs
           ? undefined
@@ -746,6 +798,7 @@ async function runTimingCell(
       }
 
       let burst
+      phase('burst')
       if (workload.burst) {
         const revisions = currentProfile.burstRevisions
         const inputs = rollingInputs?.slice(1, revisions + 1)
@@ -902,89 +955,8 @@ async function runTimingCell(
         }
         throw new Error('Pointer tooltip did not return to an inactive state.')
       }
-      globalThis.__stressPointerArm = () =>
-        new Promise((resolve, reject) => {
-          if (globalThis.__stressPointerActive()) {
-            reject(
-              new Error(
-                'Pointer activation timing must start from an inactive state.',
-              ),
-            )
-            return
-          }
-          document.addEventListener(
-            'pointermove',
-            (event) => {
-              const startedAt = performance.now()
-              const trusted = event.isTrusted
-              const poll = () => {
-                if (globalThis.__stressPointerActive()) {
-                  resolve({
-                    durationMs: performance.now() - startedAt,
-                    trusted,
-                  })
-                  return
-                }
-                if (performance.now() - startedAt >= 2_000) {
-                  reject(
-                    new Error(
-                      'Pointer tooltip did not activate within 2 seconds.',
-                    ),
-                  )
-                  return
-                }
-                requestAnimationFrame(poll)
-              }
-              requestAnimationFrame(poll)
-            },
-            { capture: true, once: true },
-          )
-        })
-      globalThis.__stressPointerArmChange = (previousSignature) =>
-        new Promise((resolve, reject) => {
-          if (!globalThis.__stressPointerActive()) {
-            reject(
-              new Error(
-                'Pointer sweep timing must start from an active tooltip.',
-              ),
-            )
-            return
-          }
-          document.addEventListener(
-            'pointermove',
-            (event) => {
-              const startedAt = performance.now()
-              const trusted = event.isTrusted
-              const poll = () => {
-                const signature = globalThis.__stressPointerSignature()
-                if (
-                  globalThis.__stressPointerActive() &&
-                  signature !== undefined &&
-                  signature !== previousSignature
-                ) {
-                  resolve({
-                    durationMs: performance.now() - startedAt,
-                    signature,
-                    trusted,
-                  })
-                  return
-                }
-                if (performance.now() - startedAt >= 2_000) {
-                  reject(
-                    new Error(
-                      'Pointer tooltip state did not change within 2 seconds.',
-                    ),
-                  )
-                  return
-                }
-                requestAnimationFrame(poll)
-              }
-              requestAnimationFrame(poll)
-            },
-            { capture: true, once: true },
-          )
-        })
       globalThis.__stressPointerCleanup = () => {
+        globalThis.__stressPointerCancel?.()
         const pointer = globalThis.__stressPointer
         pointer?.handle.destroy()
         pointer?.root.element.remove()
@@ -1851,11 +1823,13 @@ async function runTimingCell(
       sourceCount,
       profile: benchmarkProfile,
       profileName,
+      diagnosticsEnabled: diagnosticMode,
     },
   )
 
   let pointer
   if (benchmarkCase.workload.pointer) {
+    await page.evaluate(installStressPointerTiming)
     const initialPointer = await measurePointerState(
       'initial',
       benchmarkProfile.pointerSamples,
@@ -1899,6 +1873,7 @@ async function runTimingCell(
     }
 
     async function measurePointerState(state, activationSamples, sweepSamples) {
+      diagnostics.mark(`pointer:${state}:setup`)
       await page.evaluate(
         (pointerState) => globalThis.__stressPointerSetup(pointerState),
         state,
@@ -1914,11 +1889,10 @@ async function runTimingCell(
       }
       const samples = []
       for (let index = 0; index < activationSamples; index++) {
+        diagnostics.mark(`pointer:${state}:activate:${index}`)
         await page.mouse.move(1_200, 800)
         await page.evaluate(() => globalThis.__stressPointerWaitInactive())
-        const pending = page.evaluate(() => globalThis.__stressPointerArm())
-        await page.mouse.move(target.x, target.y)
-        const sample = await pending
+        const sample = await measureTrustedPointer(page, 'activate', target)
         const observed = await page.evaluate(() => ({
           active: globalThis.__stressPointerActive(),
           signature: globalThis.__stressPointerSignature(),
@@ -1955,6 +1929,7 @@ async function runTimingCell(
         }
         const rawSamples = []
         for (let index = 0; index < sweepSamples; index++) {
+          diagnostics.mark(`pointer:${state}:sweep:${index}`)
           const fraction = (index + 1) / (sweepSamples + 1)
           const nextTarget = await page.evaluate(
             (nextFraction) => globalThis.__stressPointerTarget(nextFraction),
@@ -1965,12 +1940,12 @@ async function runTimingCell(
               `${state} pointer sweep target ${index} is unavailable.`,
             )
           }
-          const pending = page.evaluate(
-            (signature) => globalThis.__stressPointerArmChange(signature),
+          const sample = await measureTrustedPointer(
+            page,
+            'change',
+            nextTarget,
             previousSignature,
           )
-          await page.mouse.move(nextTarget.x, nextTarget.y)
-          const sample = await pending
           const observed = await page.evaluate(() => ({
             active: globalThis.__stressPointerActive(),
             seriesIdentities: globalThis.__stressPointerSeriesIdentities(),
@@ -2027,6 +2002,7 @@ async function runTimingCell(
   }
 
   pageErrors.assertNone()
+  diagnostics.mark('complete')
   return { ...base, pointer }
 }
 
