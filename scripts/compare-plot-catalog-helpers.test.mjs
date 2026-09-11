@@ -15,6 +15,24 @@ describe('catalog comparison helpers', () => {
     assert.equal(conformanceCaseHeight({ height: 600 }), 600)
     assert.equal(conformanceCaseHeight({ height: 860 }), 860)
   })
+  test('rejects invalid authored heights instead of coercing or defaulting', () => {
+    for (const height of [
+      0,
+      -1,
+      NaN,
+      Infinity,
+      -Infinity,
+      '600',
+      null,
+      false,
+    ]) {
+      assert.throws(
+        () => conformanceCaseHeight({ height }),
+        /Invalid conformance height/,
+      )
+    }
+    assert.equal(conformanceCaseHeight({ height: 600.5 }), 600.5)
+  })
   const cases = [
     { id: 'alpha', weight: 2 },
     { id: 'beta', weight: 1 },

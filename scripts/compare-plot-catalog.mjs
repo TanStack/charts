@@ -345,6 +345,7 @@ function validateCase(value, path) {
     typeof value.ai?.create === 'string' &&
     typeof value.ai?.maintain === 'string'
   if (!valid) throw new TypeError(`Invalid conformance metadata: ${path}`)
+  conformanceCaseHeight(value)
 }
 
 function isGeometryCount(value) {

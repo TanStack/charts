@@ -1,7 +1,11 @@
 import { selectWeightedShard } from './benchmark/filters.mjs'
 
 export function conformanceCaseHeight(entry) {
-  return entry.height ?? 360
+  const height = entry.height === undefined ? 360 : entry.height
+  if (!Number.isFinite(height) || height <= 0) {
+    throw new TypeError(`Invalid conformance height for ${entry.id ?? 'case'}`)
+  }
+  return height
 }
 
 export function selectCatalogCases(cases, caseFilter, shard, weightFor) {
