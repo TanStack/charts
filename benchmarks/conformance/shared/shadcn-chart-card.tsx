@@ -182,6 +182,8 @@ function ensureShadcnChartStyles(document: Document) {
 }
 
 export const shadcnChartCardStyles = `
+  .sc-radial-value-grid.recharts-polar-grid-concentric-circle:first-child { fill: var(--muted); }
+  .sc-radial-value-grid.recharts-polar-grid-concentric-circle:last-child { fill: var(--background); }
   .sc-example {
     --background: oklch(1 0 0);
     --foreground: oklch(0 0 0);

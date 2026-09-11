@@ -92,7 +92,12 @@ function areaChart(spec: ShadcnCatalogSpec, width: number, height: number) {
         ? 'step'
         : 'natural'
   return (
-    <AreaChart width={width} height={height} data={shadcnMonths}>
+    <AreaChart
+      aria-label={spec.title}
+      width={width}
+      height={height}
+      data={shadcnMonths}
+    >
       {spec.variant === 'gradient' ? (
         <defs>
           <linearGradient
@@ -177,8 +182,17 @@ function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   }))
   const data = spec.variant === 'negative' ? negativeData : shadcnMonths
   if (horizontal) {
+    const customLabels = spec.variant === 'label-custom'
     return (
-      <BarChart width={width} height={height} data={data} layout="vertical">
+      <BarChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={data}
+        layout="vertical"
+        margin={customLabels ? { right: 36 } : undefined}
+      >
+        {customLabels ? <CartesianGrid horizontal={false} /> : null}
         <XAxis type="number" hide />
         <YAxis
           dataKey="month"
@@ -187,27 +201,39 @@ function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
           axisLine={false}
           width={68}
           tickFormatter={shortMonth}
+          hide={customLabels}
         />
         <Tooltip cursor={false} />
         <Bar
           dataKey="desktop"
-          fill={shadcnColors[0]}
+          fill={shadcnColors[customLabels ? 1 : 0]}
           radius={4}
           isAnimationActive={false}
         >
-          {spec.variant === 'label-custom' ? (
-            <LabelList
-              dataKey="desktop"
-              position="insideRight"
-              fill="var(--background)"
-            />
+          {customLabels ? (
+            <>
+              <LabelList
+                dataKey="month"
+                position="insideLeft"
+                offset={8}
+                fill="var(--background)"
+                fontSize={12}
+              />
+              <LabelList
+                dataKey="desktop"
+                position="right"
+                offset={8}
+                fill="var(--foreground)"
+                fontSize={12}
+              />
+            </>
           ) : null}
         </Bar>
       </BarChart>
     )
   }
   return (
-    <BarChart width={width} height={height} data={data}>
+    <BarChart aria-label={spec.title} width={width} height={height} data={data}>
       <CartesianGrid vertical={false} />
       <XAxis
         dataKey="month"
@@ -262,7 +288,12 @@ function lineChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   const labels = spec.variant.includes('label')
   const multiple = spec.variant === 'multiple' || spec.variant === 'interactive'
   return (
-    <LineChart width={width} height={height} data={shadcnMonths}>
+    <LineChart
+      aria-label={spec.title}
+      width={width}
+      height={height}
+      data={shadcnMonths}
+    >
       <CartesianGrid vertical={false} />
       <XAxis
         dataKey="month"
@@ -304,7 +335,7 @@ function pieChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   const donut = spec.variant.includes('donut') || spec.variant === 'stacked'
   const labels = spec.variant.includes('label')
   return (
-    <PieChart width={width} height={height}>
+    <PieChart aria-label={spec.title} width={width} height={height}>
       <Tooltip />
       <Pie
         data={shadcnBrowsers}
@@ -353,7 +384,12 @@ function pieChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   const multiple = spec.variant === 'multiple' || spec.variant === 'legend'
   return (
-    <RadarChart width={width} height={height} data={shadcnMonths}>
+    <RadarChart
+      aria-label={spec.title}
+      width={width}
+      height={height}
+      data={shadcnMonths}
+    >
       {spec.variant === 'grid-none' ? null : (
         <PolarGrid
           gridType={spec.variant.includes('circle') ? 'circle' : 'polygon'}
@@ -384,52 +420,70 @@ function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 }
 
 function radialChart(spec: ShadcnCatalogSpec, width: number, height: number) {
-  const data =
-    spec.variant === 'simple' || spec.variant === 'text'
+  const shape = spec.variant === 'shape'
+  const centeredValue = shape || spec.variant === 'text'
+  const data = centeredValue
+    ? [{ browser: 'safari', visitors: shape ? 1260 : 200 }]
+    : spec.variant === 'simple'
       ? shadcnBrowsers.slice(1, 2)
       : shadcnBrowsers
-  const startAngle = spec.variant === 'shape' ? 180 : 200
-  const endAngle = spec.variant === 'shape' ? 0 : -50
+  const startAngle = centeredValue ? 0 : 200
+  const endAngle = shape ? 100 : centeredValue ? 250 : -50
   return (
     <RadialBarChart
+      aria-label={spec.title}
       width={width}
       height={height}
       data={data}
-      innerRadius={30}
-      outerRadius={100}
+      innerRadius={shape ? 65 : centeredValue ? 80 : 30}
+      outerRadius={shape ? 95 : centeredValue ? 90 : 100}
       startAngle={startAngle}
       endAngle={endAngle}
     >
+      {centeredValue ? (
+        <PolarGrid
+          gridType="circle"
+          radialLines={false}
+          stroke="none"
+          polarRadius={shape ? [86, 74] : [90, 80]}
+          className="sc-radial-value-grid"
+        />
+      ) : null}
       <Tooltip />
       <RadialBar
         dataKey="visitors"
-        background={spec.variant === 'grid'}
+        background={
+          centeredValue ? { fill: 'var(--muted)' } : spec.variant === 'grid'
+        }
         cornerRadius={spec.variant === 'shape' ? 0 : 10}
         isAnimationActive={false}
       >
         {data.map((row, index) => (
-          <Cell key={row.browser} fill={shadcnColors[index]} />
+          <Cell
+            key={row.browser}
+            fill={shadcnColors[centeredValue ? 1 : index]}
+          />
         ))}
         {spec.variant === 'label' ? (
           <LabelList dataKey="visitors" position="insideStart" />
         ) : null}
       </RadialBar>
-      {spec.variant === 'text' ? (
+      {centeredValue ? (
         <>
           <text
             x={width / 2}
-            y={height / 2 - 5}
+            y={height / 2}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="var(--foreground)"
             fontSize={36}
             fontWeight={700}
           >
-            200
+            {shape ? '1,260' : '200'}
           </text>
           <text
             x={width / 2}
-            y={height / 2 + 19}
+            y={height / 2 + 24}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="var(--muted-foreground)"
@@ -446,7 +500,12 @@ function radialChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 function tooltipChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   return (
     <div className="sc-tooltip-demo" style={{ width, height }}>
-      <BarChart width={width} height={height} data={tooltipRows()}>
+      <BarChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={tooltipRows()}
+      >
         <XAxis
           dataKey="date"
           tickLine={false}

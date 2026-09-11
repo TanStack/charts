@@ -8307,6 +8307,16 @@ Each entry records:
 - Verification: the inventory test requires all 70 files, exact family counts,
   unique local mappings, and reports synthetic source changes, additions, and
   removals. The offline command verifies all five spike mappings.
+- Follow-up observed in nightly run 34598495700: the shared Recharts reference
+  omitted chart accessible names and reduced distinct radial and custom-label
+  examples to generic family defaults. The pinned radial-shape source has one
+  Safari datum, not the five required by generated case metadata. Restore the
+  pinned data, paint, label placement, and radial background configuration;
+  name each reference SVG through its chart props; and correct the generator's
+  single-datum expectation. DOM regressions cover the reference names through
+  updates, radial data counts and paints, and both custom bar label sets. The
+  complete standard shard 4/8 passes all 24 cases, including the nine former
+  failures, with the original geometry, paint, and accessibility gates intact.
 
 ### F-275 — Preview transparency validation rejected semantic IDs
 

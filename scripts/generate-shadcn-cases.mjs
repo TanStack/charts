@@ -329,7 +329,7 @@ function geometry(name, family) {
   if (family === 'radial') {
     return {
       role: 'bar',
-      count: variant === 'simple' || variant === 'text' ? 1 : 5,
+      count: ['simple', 'text', 'shape'].includes(variant) ? 1 : 5,
       rendererRoles: { recharts: 'arc', tanstack: 'arc' },
     }
   }
