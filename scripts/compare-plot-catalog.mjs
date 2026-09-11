@@ -19,6 +19,7 @@ import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
 import { estimateConformanceCaseWeight } from './benchmark/conformance-sharding.mjs'
 import { assertKnownFilterValues, parseShard } from './benchmark/filters.mjs'
 import {
+  conformanceCaseHeight,
   normalizeTypeDiagnosticPath,
   selectCatalogCases,
 } from './compare-plot-catalog-helpers.mjs'
@@ -224,6 +225,9 @@ const result = {
     isolatedBundles: true,
     width: 640,
     height: 360,
+    caseHeights: Object.fromEntries(
+      selectedCases.map((entry) => [entry.id, conformanceCaseHeight(entry)]),
+    ),
     variants: profile.widths.flatMap((width) =>
       profile.themes.map((theme) => ({ width, theme })),
     ),
@@ -1258,18 +1262,21 @@ async function measureImplementation(
   selectedProfile,
 ) {
   const page = await browser.newPage({
-    viewport: { width: 1_120, height: 620 },
+    viewport: {
+      width: 1_120,
+      height: Math.max(620, conformanceCaseHeight(entry) + 96),
+    },
     deviceScaleFactor: 1,
     reducedMotion: 'reduce',
   })
   try {
     await page.goto(serverUrl, { waitUntil: 'load' })
     return await page.evaluate(
-      async ({ moduleUrl, caseId, renderer, warmup, samples }) => {
+      async ({ moduleUrl, caseId, renderer, warmup, samples, height }) => {
         const { mount } = await import(moduleUrl)
         await document.fonts?.ready
-        const inputA = { width: 640, height: 360, revision: 0 }
-        const inputB = { width: 640, height: 360, revision: 1 }
+        const inputA = { width: 640, height, revision: 0 }
+        const inputB = { width: 640, height, revision: 1 }
         const mountSamples = []
         let output
 
@@ -1311,7 +1318,7 @@ async function measureImplementation(
         function createContainer(width) {
           const container = document.createElement('div')
           container.style.width = `${width}px`
-          container.style.height = '360px'
+          container.style.height = `${height}px`
           document.body.append(container)
           return container
         }
@@ -1375,6 +1382,7 @@ async function measureImplementation(
         moduleUrl: `${serverUrl}bundles/${implementation.id}.js`,
         caseId: entry.id,
         renderer: implementation.renderer,
+        height: conformanceCaseHeight(entry),
         warmup: selectedProfile.warmup,
         samples: selectedProfile.samples,
       },
@@ -1409,7 +1417,10 @@ async function compareVisuals(
   }
 
   const page = await browser.newPage({
-    viewport: { width: 2_080, height: 620 },
+    viewport: {
+      width: 2_080,
+      height: Math.max(620, conformanceCaseHeight(entry) + 96),
+    },
     deviceScaleFactor: 1,
     reducedMotion: 'reduce',
   })
@@ -1425,6 +1436,7 @@ async function compareVisuals(
         guideAssertions,
         widths,
         themes,
+        height,
       }) => {
         const [{ mount: mountReference }, { mount: mountTanstack }] =
           await Promise.all([import(referenceUrl), import(tanstackUrl)])
@@ -1445,10 +1457,10 @@ async function compareVisuals(
         for (const theme of themes) {
           applyTheme(theme)
           for (const width of widths) {
-            const input = { width, height: 360, revision: 0 }
+            const input = { width, height, revision: 0 }
             for (const container of [referenceContainer, tanstackContainer]) {
               container.style.width = `${width}px`
-              container.style.minHeight = '360px'
+              container.style.minHeight = `${height}px`
               container.style.color = theme === 'dark' ? '#edf2fb' : '#172033'
               container.style.background =
                 theme === 'dark' ? '#151a24' : '#ffffff'
@@ -2340,12 +2352,16 @@ async function compareVisuals(
         guideAssertions: entry.guideAssertions ?? [],
         widths: selectedProfile.widths,
         themes: selectedProfile.themes,
+        height: conformanceCaseHeight(entry),
       },
     )
 
-    await page.setViewportSize({ width: 1_360, height: 500 })
+    await page.setViewportSize({
+      width: 1_360,
+      height: Math.max(500, conformanceCaseHeight(entry) + 96),
+    })
     await page.evaluate(
-      async ({ referenceUrl, tanstackUrl }) => {
+      async ({ referenceUrl, tanstackUrl, height }) => {
         document.body.replaceChildren()
         document.body.style.margin = '0'
         document.body.style.padding = '20px'
@@ -2359,16 +2375,17 @@ async function compareVisuals(
         for (const mount of [mountReference, mountTanstack]) {
           const panel = document.createElement('div')
           panel.style.width = '640px'
-          panel.style.minHeight = '360px'
+          panel.style.minHeight = `${height}px`
           panel.style.background = '#ffffff'
           document.body.append(panel)
-          mount(panel, { width: 640, height: 360, revision: 0 })
+          mount(panel, { width: 640, height, revision: 0 })
         }
         await document.fonts?.ready
       },
       {
         referenceUrl: `${serverUrl}bundles/${reference.id}.js`,
         tanstackUrl: `${serverUrl}bundles/${tanstack.id}.js`,
+        height: conformanceCaseHeight(entry),
       },
     )
     await page.screenshot({
@@ -2444,14 +2461,14 @@ async function compareBehaviors(
             serverUrl,
             reference,
             entry.interactionScenarios,
-            { width, theme, revision },
+            { width, height: conformanceCaseHeight(entry), theme, revision },
           ),
           tanstack: await runBehaviorImplementation(
             browser,
             serverUrl,
             tanstack,
             entry.interactionScenarios,
-            { width, theme, revision },
+            { width, height: conformanceCaseHeight(entry), theme, revision },
           ),
         }
         variants.push(pair)
@@ -2481,7 +2498,7 @@ async function runBehaviorImplementation(
   const page = await browser.newPage({
     viewport: {
       width: Math.max(variant.width + 96, 480),
-      height: 560,
+      height: Math.max(560, variant.height + 96),
     },
     deviceScaleFactor: 1,
     hasTouch: scenarios.some((scenario) =>
@@ -2504,7 +2521,7 @@ async function runBehaviorImplementation(
       page.on('pageerror', handlePageError)
       try {
         const mountResult = await page.evaluate(
-          async ({ moduleUrl, width, revision, theme }) => {
+          async ({ moduleUrl, width, height, revision, theme }) => {
             document.body.replaceChildren()
             document.documentElement.scrollTop = 0
             document.body.style.margin = '0'
@@ -2528,7 +2545,7 @@ async function runBehaviorImplementation(
             const container = document.createElement('div')
             container.dataset.conformanceRoot = ''
             container.style.width = `${width}px`
-            container.style.minHeight = '360px'
+            container.style.minHeight = `${height}px`
             container.style.background =
               theme === 'dark' ? '#151a24' : '#ffffff'
             const scrollProbe = document.createElement('div')
@@ -2538,7 +2555,7 @@ async function runBehaviorImplementation(
             const { mount } = await import(moduleUrl)
             const handle = mount(container, {
               width,
-              height: 360,
+              height,
               revision,
               interactive: true,
               behavior: true,
@@ -2741,20 +2758,21 @@ async function performBehaviorStep(page, step, variant, context) {
     }
     case 'update': {
       await page.evaluate(
-        ({ width, revision }) => {
+        ({ width, height, revision }) => {
           const behavior = globalThis.__conformanceBehavior
           if (!behavior) {
             throw new Error('conformance behavior mount is unavailable')
           }
           behavior.handle.update({
             width,
-            height: 360,
+            height,
             revision,
           })
           behavior.revision = revision
         },
         {
           width: variant.width,
+          height: variant.height,
           revision: step.revision,
         },
       )

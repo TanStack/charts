@@ -1,5 +1,9 @@
 import { selectWeightedShard } from './benchmark/filters.mjs'
 
+export function conformanceCaseHeight(entry) {
+  return entry.height ?? 360
+}
+
 export function selectCatalogCases(cases, caseFilter, shard, weightFor) {
   const filteredCases = cases.filter(
     (entry) => !caseFilter || caseFilter.has(entry.id),

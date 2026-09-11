@@ -8282,6 +8282,15 @@ Each entry records:
 - Verification: metadata tests accept the dashboard's 860-pixel height, the
   conformance example build passes, and Chromium renders both comparison panels
   at 960 by 860 pixels without root overflow.
+- Follow-up observed in nightly run 34598495700: the standalone conformance
+  runner still forced 360 pixels despite the shadcn cases declaring 600. Carry
+  case height through timing mounts and updates, visual comparisons,
+  screenshots, and interaction revisions, and retain 360 only as the default.
+  A focused standard Chromium run now contains both renderers' area-linear
+  labels at all three widths in both themes, before and after updates. The
+  default-height pointer-tooltip case passes its visual and interaction checks.
+  The area case still correctly fails its separate Recharts accessible-name
+  check; no accessibility, paint, or geometry gate was relaxed.
 
 ### F-274 — Upstream example clones had no drift boundary
 
