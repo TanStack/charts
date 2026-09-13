@@ -6,7 +6,7 @@ import type {
   MarkInitialization,
   MarkInitializeContext,
 } from './types'
-import { applyMarkRenderer, normalizeMarkInitialization } from './mark'
+import { createMarkDefinition } from './mark'
 
 export type {
   ChartMarkPointX,
@@ -42,19 +42,5 @@ export function createMarkWithScaleValues<
   TXScaleId,
   TYScaleId
 > {
-  const normalizedInitialize = (context: MarkInitializeContext) => {
-    const initialized = normalizeMarkInitialization(initialize(context))
-    const withMotion =
-      motion === undefined || initialized.motion !== undefined
-        ? initialized
-        : { ...initialized, motion }
-    return renderer === undefined
-      ? withMotion
-      : applyMarkRenderer(withMotion, renderer)
-  }
-  return {
-    initialize: normalizedInitialize,
-    ...(motion === undefined ? {} : { motion }),
-    ...(renderer === undefined ? {} : { renderer }),
-  }
+  return createMarkDefinition(initialize, motion, renderer)
 }

@@ -1,3 +1,4 @@
+import { finiteNumber, finiteNonNegative } from './number-internal'
 import { resolveCrosshairGuide } from './crosshair-resolver'
 import { createMark } from './mark'
 import { valueKey } from './scales'
@@ -170,12 +171,12 @@ function resolveBand(
   if (!input) return undefined
   const options = typeof input === 'object' ? input : undefined
   return {
-    bandwidth: finiteNonnegative(scale?.bandwidth, 0),
-    inset: finite(options?.inset, 0),
+    bandwidth: finiteNonNegative(scale?.bandwidth, 0),
+    inset: finiteNumber(options?.inset, 0),
     radius:
       options?.radius === undefined
         ? undefined
-        : finiteNonnegative(options.radius, 0),
+        : finiteNonNegative(options.radius, 0),
     style: {
       fill: options?.fill ?? fallbackFill,
       fillOpacity: options?.fillOpacity ?? 0.12,
@@ -184,7 +185,7 @@ function resolveBand(
       strokeWidth:
         options?.strokeWidth === undefined
           ? undefined
-          : finiteNonnegative(options.strokeWidth, 0),
+          : finiteNonNegative(options.strokeWidth, 0),
       opacity: options?.opacity,
     },
   }
@@ -198,7 +199,7 @@ function resolveRuleStyle(
   return {
     stroke: axis?.stroke ?? shared.stroke ?? fallbackStroke,
     strokeOpacity: axis?.strokeOpacity ?? shared.strokeOpacity ?? 0.35,
-    strokeWidth: finiteNonnegative(axis?.strokeWidth ?? shared.strokeWidth, 1),
+    strokeWidth: finiteNonNegative(axis?.strokeWidth ?? shared.strokeWidth, 1),
     strokeDasharray: axis?.strokeDasharray ?? shared.strokeDasharray,
   }
 }
@@ -216,15 +217,15 @@ function resolveLabel<TValue extends ChartValue>(
       : scale
         ? (value) => formatScaleValue(scale, value)
         : undefined,
-    offset: finiteNonnegative(options?.offset, 8),
-    fontSize: finiteNonnegative(options?.fontSize, 11),
+    offset: finiteNonNegative(options?.offset, 8),
+    fontSize: finiteNonNegative(options?.fontSize, 11),
     fontWeight: options?.fontWeight,
     style: {
       fill: options?.fill ?? fallbackFill,
       fillOpacity: options?.fillOpacity,
       stroke: options?.stroke ?? 'var(--ts-chart-crosshair-label-halo, Canvas)',
       strokeOpacity: options?.strokeOpacity,
-      strokeWidth: finiteNonnegative(options?.strokeWidth, 3),
+      strokeWidth: finiteNonNegative(options?.strokeWidth, 3),
       opacity: options?.opacity,
     },
   }
@@ -254,24 +255,14 @@ function resolveMarker(
   if (!input) return undefined
   const options = typeof input === 'object' ? input : undefined
   return {
-    radius: finiteNonnegative(options?.radius, 4),
+    radius: finiteNonNegative(options?.radius, 4),
     style: {
       fill: options?.fill ?? 'var(--ts-chart-crosshair-marker-fill, Canvas)',
       fillOpacity: options?.fillOpacity,
       stroke: options?.stroke,
       strokeOpacity: options?.strokeOpacity,
-      strokeWidth: finiteNonnegative(options?.strokeWidth, 2),
+      strokeWidth: finiteNonNegative(options?.strokeWidth, 2),
       opacity: options?.opacity,
     },
   }
-}
-
-function finiteNonnegative(value: number | undefined, fallback: number) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0
-    ? value
-    : fallback
-}
-
-function finite(value: number | undefined, fallback: number) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }

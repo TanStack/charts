@@ -1,3 +1,4 @@
+import { finitePositive } from './number-internal'
 import { estimateSceneText, logicalTextAnchorOffset } from './guide-layout'
 import type {
   ChartTextMeasurer,
@@ -91,7 +92,7 @@ function configureContext(
   defaultWeight: string,
   options: ChartTextMeasureOptions,
 ): void {
-  const fontScale = positiveFinite(options.fontScale, 1)
+  const fontScale = finitePositive(options.fontScale, 1)
   const fontSize = options.fontSize * fontScale
   const weight = options.fontWeight ?? defaultWeight
   context.font = [
@@ -116,7 +117,7 @@ function paintedBounds(
   measured: TextMetrics,
   options: ChartTextMeasureOptions,
 ): ChartTextMetrics {
-  const fontSize = options.fontSize * positiveFinite(options.fontScale, 1)
+  const fontSize = options.fontSize * finitePositive(options.fontScale, 1)
   const left = measured.actualBoundingBoxLeft
   const right = measured.actualBoundingBoxRight
   const ascent = measured.actualBoundingBoxAscent
@@ -188,10 +189,4 @@ function normalizeFontStretch(value: string | undefined): CanvasFontStretch {
 function finiteCssPixels(value: string | undefined): number {
   const parsed = Number.parseFloat(value ?? '')
   return Number.isFinite(parsed) ? parsed : 0
-}
-
-function positiveFinite(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0
-    ? value
-    : fallback
 }

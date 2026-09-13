@@ -1,3 +1,4 @@
+import { sameChartValue } from './value-equality-internal'
 import type {
   ChartFocusState,
   ChartPoint,
@@ -30,10 +31,10 @@ export function orderChartTooltipPoints<
     const first = points[0]
     const sharedX =
       first !== undefined &&
-      points.every((point) => sameChartTooltipValue(point.xValue, first.xValue))
+      points.every((point) => sameChartValue(point.xValue, first.xValue))
     const sharedY =
       first !== undefined &&
-      points.every((point) => sameChartTooltipValue(point.yValue, first.yValue))
+      points.every((point) => sameChartValue(point.yValue, first.yValue))
     return [...points].sort((left, right) =>
       sharedY && !sharedX
         ? left.x - right.x || left.y - right.y
@@ -181,14 +182,10 @@ function defaultTooltipContent(
   const group = findTooltipChannelItem(options?.items, 'group')
   const sharedX =
     points.length > 1 &&
-    points.every((candidate) =>
-      sameChartTooltipValue(candidate.xValue, point.xValue),
-    )
+    points.every((candidate) => sameChartValue(candidate.xValue, point.xValue))
   const sharedY =
     points.length > 1 &&
-    points.every((candidate) =>
-      sameChartTooltipValue(candidate.yValue, point.yValue),
-    )
+    points.every((candidate) => sameChartValue(candidate.yValue, point.yValue))
 
   if (sharedX || sharedY) {
     const axis = sharedX ? 'x' : 'y'
@@ -359,7 +356,7 @@ function formatPointAxis(
     interval === 'range' &&
     start !== undefined &&
     end !== undefined &&
-    !sameChartTooltipValue(start, end)
+    !sameChartValue(start, end)
   ) {
     return `${formatChartTooltipValue(start)}–${formatChartTooltipValue(end)}`
   }
@@ -420,10 +417,4 @@ function resolveTooltipCoordinate(
 function colorOrder(scene: ChartScene, group: ChartPoint['group']) {
   const index = group == null ? -1 : scene.colors.domain.indexOf(group)
   return index < 0 ? Number.MAX_SAFE_INTEGER : index
-}
-
-function sameChartTooltipValue(left: ChartValue, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
 }

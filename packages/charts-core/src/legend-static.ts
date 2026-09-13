@@ -1,3 +1,4 @@
+import { clampNonnegativeNumber } from './number-internal'
 import {
   estimateSceneText,
   physicalTextAnchor,
@@ -382,14 +383,14 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
 ): CategoricalLegendPresentation<TValue> {
   const labelOptions = options.label
   const indicatorOptions = options.indicator
-  const fontSize = finiteNonnegative(labelOptions?.fontSize, 11)
+  const fontSize = clampNonnegativeNumber(labelOptions?.fontSize, 11)
   const fontWeight = Number.isFinite(labelOptions?.fontWeight)
     ? labelOptions?.fontWeight
     : undefined
-  const indicatorWidth = finiteNonnegative(indicatorOptions?.width, 8)
-  const indicatorHeight = finiteNonnegative(indicatorOptions?.height, 8)
-  const indicatorGap = finiteNonnegative(indicatorOptions?.gap, 5)
-  const rowGap = finiteNonnegative(options.rowGap, 8)
+  const indicatorWidth = clampNonnegativeNumber(indicatorOptions?.width, 8)
+  const indicatorHeight = clampNonnegativeNumber(indicatorOptions?.height, 8)
+  const indicatorGap = clampNonnegativeNumber(indicatorOptions?.gap, 5)
+  const rowGap = clampNonnegativeNumber(options.rowGap, 8)
   const resolvedItems = resolveCategoricalLegendItems<TValue>(
     context.colors,
     labelOptions?.format,
@@ -457,7 +458,7 @@ function resolveCategoricalLegendPresentation<TValue extends ChartKey>(
   const layout = layoutCategoricalLegendFlow(
     items.map((item) => item.width),
     context.bounds.width,
-    finiteNonnegative(options.gap, 16),
+    clampNonnegativeNumber(options.gap, 16),
     justify,
   )
   return {
@@ -557,12 +558,6 @@ function resolveItemValue<TValue extends ChartKey, TResult extends string>(
   return typeof input === 'function'
     ? input(value, context)
     : (input ?? fallback)
-}
-
-function finiteNonnegative(value: number | undefined, fallback: number) {
-  return typeof value === 'number' && Number.isFinite(value)
-    ? Math.max(0, value)
-    : fallback
 }
 
 function validTextMetrics(metrics: ChartTextMetrics) {

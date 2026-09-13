@@ -2,13 +2,12 @@ import { stackOrderInsideOut } from 'd3-shape'
 import type { Series } from 'd3-shape'
 import { valueKey } from './scales'
 import type { StackOptions, StackOrder } from './stack'
+import { createStackInput, type StackInput } from './stack-internal'
+import { orderedSeries } from './stack-order-internal'
+import { isFiniteNumber } from './mark'
 import type { ChartKey, ChartValue } from './types'
 
-interface StackEndInput {
-  index: number
-  position: ChartValue
-  value: number
-  series: ChartKey
+interface StackEndInput extends StackInput {
   start: number
   end: number
 }
@@ -120,31 +119,17 @@ function stackEndInput(
   fallbackSeries: 'value' | 'index',
 ): StackEndInput[] {
   const input: StackEndInput[] = []
-  for (let index = 0; index < positions.length; index += 1) {
-    const position = positions[index]
-    const value = values[index]
-    const start = starts[index]
-    const end = ends[index]
-    if (
-      !isChartValue(position) ||
-      !isFiniteNumber(value) ||
-      !isFiniteNumber(start) ||
-      !isFiniteNumber(end)
-    )
-      continue
-    const seriesValue = series[index]
-    input.push({
-      index,
-      position,
-      value,
-      start,
-      end,
-      series: isChartKey(seriesValue)
-        ? seriesValue
-        : fallbackSeries === 'index'
-          ? index
-          : 'value',
-    })
+  for (const row of createStackInput(
+    positions,
+    values,
+    series,
+    fallbackSeries,
+  )) {
+    const start = starts[row.index]
+    const end = ends[row.index]
+    if (!isFiniteNumber(start) || !isFiniteNumber(end)) continue
+
+    input.push({ ...row, start, end })
   }
   return input
 }
@@ -160,14 +145,6 @@ function resolveSeriesOrder(
     if (seen.has(identity)) continue
     seen.add(identity)
     firstSeen.push(row.series)
-  }
-  if (Array.isArray(order)) {
-    const explicit = [...order]
-    const explicitKeys = new Set(explicit.map(valueKey))
-    return [
-      ...explicit,
-      ...firstSeen.filter((value) => !explicitKeys.has(valueKey(value))),
-    ]
   }
   if (order === 'inside-out') {
     const positions: ChartValue[] = []
@@ -191,31 +168,5 @@ function resolveSeriesOrder(
       seriesValues as unknown as Series<Record<string, number>, string>,
     ).map((index) => firstSeen[index]!)
   }
-  if (order !== 'ascending' && order !== 'descending') return firstSeen
-  const totals = new Map(firstSeen.map((value) => [valueKey(value), 0]))
-  for (const row of input) {
-    const key = valueKey(row.series)
-    totals.set(key, (totals.get(key) ?? 0) + Math.abs(row.value))
-  }
-  return firstSeen.sort((left, right) => {
-    const difference =
-      (totals.get(valueKey(left)) ?? 0) - (totals.get(valueKey(right)) ?? 0)
-    return order === 'ascending' ? difference : -difference
-  })
-}
-
-function isChartKey(value: unknown): value is ChartKey {
-  return typeof value === 'string' || typeof value === 'number'
-}
-
-function isChartValue(value: unknown): value is ChartValue {
-  return (
-    typeof value === 'string' ||
-    isFiniteNumber(value) ||
-    (value instanceof Date && Number.isFinite(value.getTime()))
-  )
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
+  return orderedSeries(input, firstSeen, order)
 }

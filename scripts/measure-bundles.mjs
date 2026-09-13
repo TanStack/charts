@@ -23,6 +23,7 @@ const rendererBoundaryModules = {
   ],
   svg: [
     'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/reconcile-internal.ts',
     'packages/charts-core/src/svg-focus-guide-layer.ts',
     'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-renderer.ts',
@@ -45,6 +46,7 @@ const rendererBoundaryModules = {
     'packages/charts-core/src/dom-text.ts',
     'packages/charts-core/src/export.ts',
     'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/reconcile-internal.ts',
     'packages/charts-core/src/renderer.ts',
     'packages/charts-core/src/svg-focus-guide-layer.ts',
     'packages/charts-core/src/svg-focus-guide-serializer.ts',
@@ -56,6 +58,7 @@ const rendererBoundaryModules = {
   ],
 }
 const retainedInputGroups = {
+  numericValues: [/(?:^|\/)packages\/charts-core\/src\/number-internal\.ts$/u],
   crosshairRuntime: [
     /(?:^|\/)packages\/charts-core\/src\/crosshair(?:-resolver)?\.ts$/u,
   ],
@@ -64,7 +67,7 @@ const retainedInputGroups = {
     /(?:^|\/)packages\/charts-core\/src\/focus-layer\.ts$/u,
   ],
   platformRendererRuntime: [
-    /(?:^|\/)packages\/charts-core\/src\/(?:adapter(?:-renderer)?|canvas|dom(?:-text)?|export|reconcile|renderer|svg(?:-focus-guide-(?:layer|serializer)|-renderer|-resources|-surface)?)\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/(?:adapter(?:-renderer)?|canvas|dom(?:-text)?|export|reconcile(?:-internal)?|renderer|svg(?:-focus-guide-(?:layer|serializer)|-renderer|-resources|-surface)?)\.ts$/u,
     /(?:^|\/)packages\/(?:react-charts|react-native-charts)\/src\//u,
   ],
   compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
@@ -220,7 +223,9 @@ const retainedInputGroups = {
   facetMark: [/(?:^|\/)packages\/charts-core\/src\/facet\.ts$/u],
   areaYMark: [/(?:^|\/)packages\/charts-core\/src\/area\.ts$/u],
   areaXMark: [/(?:^|\/)packages\/charts-core\/src\/area-x\.ts$/u],
-  stackInternal: [/(?:^|\/)packages\/charts-core\/src\/stack-internal\.ts$/u],
+  stackInternal: [
+    /(?:^|\/)packages\/charts-core\/src\/stack(?:-order)?-internal\.ts$/u,
+  ],
   transformStatistics: [
     /(?:^|\/)packages\/charts-core\/src\/transform-statistics-internal\.ts$/u,
   ],
@@ -265,7 +270,7 @@ const retainedInputGroups = {
   ],
   polarPie: [/(?:^|\/)packages\/charts-core\/src\/polar-pie\.ts$/u],
   markInfrastructure: [
-    /(?:^|\/)packages\/charts-core\/src\/(?:guide-layout|mark|mark-with-scale-values|materialized-channel-internal|scales)\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/(?:guide-layout|mark|mark-with-scale-values|materialized-channel-internal|number-internal|scales)\.ts$/u,
   ],
   rectMark: [/(?:^|\/)packages\/charts-core\/src\/rect\.ts$/u],
   rectRadiusState: [
@@ -459,7 +464,7 @@ const entries = [
   budgeted(
     'Transform: stack',
     'benchmarks/entries/charts-transform-stack.ts',
-    2.68,
+    2.69,
     {
       inputBoundary: granularTransformBoundary('transformStack', {
         allowD3Shape: true,
@@ -557,7 +562,7 @@ const entries = [
     'Hierarchy treemap mark',
     'benchmarks/entries/charts-hierarchy-treemap.ts',
     'D3 hierarchy treemap kernel',
-    3.86,
+    3.89,
     {
       inputBoundary: {
         require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
@@ -1076,7 +1081,7 @@ const entries = [
   budgeted(
     'Custom mark scale-value factory',
     'benchmarks/entries/charts-mark-scale-values.ts',
-    0.39,
+    0.4,
   ),
   measured(
     'Crosshair mark extension',
@@ -1431,7 +1436,7 @@ const entries = [
           'd3GeometryRuntime',
         ],
         addedFrom: 'Categorical legend',
-        allowAdded: [],
+        allowAdded: ['numericValues'],
       },
     },
   ),

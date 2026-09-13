@@ -1,3 +1,8 @@
+import {
+  reconcileSvgMarkup,
+  reconcileSvgFragment,
+  type SvgReconcileHooks,
+} from './reconcile-internal'
 import type { ChartAnimationOptions } from './types'
 
 interface AttributeTween {
@@ -38,23 +43,13 @@ export function reconcileChartSvg(
   markup: string,
   animation?: ChartAnimationOptions,
 ): () => void {
-  const template = container.ownerDocument.createElement('template')
-  template.innerHTML = markup
-  const nextRoot = template.content.firstElementChild
-  if (!nextRoot) return () => {}
-
-  const currentRoot = container.firstElementChild
-  if (
-    !currentRoot ||
-    currentRoot.namespaceURI !== nextRoot.namespaceURI ||
-    currentRoot.localName !== nextRoot.localName
-  ) {
-    container.replaceChildren(nextRoot)
-    return () => {}
-  }
-
   const tweens: AttributeTween[] = []
-  reconcileElement(currentRoot, nextRoot, animation ? tweens : undefined)
+  reconcileSvgMarkup(
+    container,
+    markup,
+    animation ? tweenHooks(tweens) : undefined,
+  )
+
   return animation ? runTweens(container, tweens, animation) : () => {}
 }
 
@@ -64,83 +59,21 @@ export function reconcileChartSvgFragment(
   markup: string,
   animation?: ChartAnimationOptions,
 ): () => void {
-  const template = currentRoot.ownerDocument.createElement('template')
-  template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
-  const wrapper = template.content.firstElementChild
-  const nextRoot = wrapper?.firstElementChild
-  if (!nextRoot) return () => {}
-
-  if (
-    currentRoot.namespaceURI !== nextRoot.namespaceURI ||
-    currentRoot.localName !== nextRoot.localName
-  ) {
-    currentRoot.replaceWith(nextRoot)
-    return () => {}
-  }
-
   const tweens: AttributeTween[] = []
-  reconcileElement(currentRoot, nextRoot, animation ? tweens : undefined)
+  reconcileSvgFragment(
+    currentRoot,
+    markup,
+    animation ? tweenHooks(tweens) : undefined,
+  )
+
   return animation ? runTweens(currentRoot, tweens, animation) : () => {}
 }
 
-function reconcileElement(
-  current: Element,
-  next: Element,
-  tweens: AttributeTween[] | undefined,
-) {
-  syncAttributes(current, next, tweens)
-
-  if (!next.firstElementChild) {
-    if (current.firstElementChild) {
-      for (const child of [...current.children]) {
-        if (tweens) addExitTween(child, tweens)
-        else child.remove()
-      }
-    } else if (current.textContent !== next.textContent) {
-      current.textContent = next.textContent
-    }
-    return
-  }
-
-  const currentChildren = [...current.children]
-  const nextChildren = [...next.children]
-  const currentByIdentity = indexChildren(currentChildren)
-  const nextIdentities = identities(nextChildren)
-  const retained = new Set<Element>()
-  let cursor = current.firstElementChild
-
-  nextChildren.forEach((nextChild, index) => {
-    const identity = nextIdentities[index]
-    const matched = currentByIdentity.get(identity)
-    let rendered: Element
-
-    if (
-      matched &&
-      matched.namespaceURI === nextChild.namespaceURI &&
-      matched.localName === nextChild.localName
-    ) {
-      rendered = matched
-      retained.add(matched)
-      if (rendered !== cursor) current.insertBefore(rendered, cursor)
-      reconcileElement(rendered, nextChild, tweens)
-    } else if (matched && current.localName === 'defs') {
-      rendered = nextChild.cloneNode(true) as Element
-      matched.replaceWith(rendered)
-      if (matched !== cursor) current.insertBefore(rendered, cursor)
-    } else {
-      rendered = nextChild.cloneNode(true) as Element
-      current.insertBefore(rendered, cursor)
-      addEnterTween(rendered, nextChild, tweens)
-    }
-
-    cursor = rendered.nextElementSibling
-  })
-
-  for (const child of currentChildren) {
-    if (!retained.has(child) && child.parentElement === current) {
-      if (tweens) addExitTween(child, tweens)
-      else child.remove()
-    }
+function tweenHooks(tweens: AttributeTween[]): SvgReconcileHooks {
+  return {
+    update: (current, next) => syncAttributes(current, next, tweens),
+    enter: (current, next) => addEnterTween(current, next, tweens),
+    exit: (current) => addExitTween(current, tweens),
   }
 }
 
@@ -316,25 +249,6 @@ function extractNumbers(value: string, path = false) {
   }
 
   return { skeleton, values }
-}
-
-function indexChildren(children: readonly Element[]) {
-  const result = new Map<string, Element>()
-  identities(children).forEach((identity, index) => {
-    result.set(identity, children[index])
-  })
-  return result
-}
-
-function identities(children: readonly Element[]) {
-  const counts = new Map<string, number>()
-  return children.map((child) => {
-    const explicit = child.getAttribute('data-ts-key')
-    if (explicit) return `key:${explicit}`
-    const count = counts.get(child.localName) ?? 0
-    counts.set(child.localName, count + 1)
-    return `tag:${child.localName}:${count}`
-  })
 }
 
 function easing(name: NonNullable<ChartAnimationOptions['easing']>) {

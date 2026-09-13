@@ -1,3 +1,4 @@
+import { isFiniteNumber } from './number-internal'
 import type {
   TransformLineage,
   TransformOrderOptions,
@@ -158,10 +159,6 @@ function assertPieGapCapacity(
   if (positiveCount > 0 && drawableSweep <= 0) {
     throw new TypeError('pie: positive values require drawable angular space')
   }
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
 }
 
 function assertFinite(value: number, name: string): void {

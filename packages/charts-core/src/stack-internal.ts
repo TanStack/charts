@@ -1,3 +1,5 @@
+import { isChartKey, isChartValue, isFiniteNumber } from './mark'
+import { orderedSeries } from './stack-order-internal'
 import {
   stack as d3Stack,
   stackOffsetExpand,
@@ -8,7 +10,7 @@ import {
 } from 'd3-shape'
 import type { Series } from 'd3-shape'
 import { valueKey } from './scales'
-import type { StackOptions, StackOrder } from './stack'
+import type { StackOptions } from './stack'
 import type { ChartKey, ChartValue } from './types'
 
 export interface StackInput {
@@ -224,6 +226,29 @@ export function stackValues(
   options: Readonly<StackOptions> = {},
   fallbackSeries: 'value' | 'index' = 'value',
 ) {
+  const input = createStackInput(positions, values, series, fallbackSeries)
+  const extents = stackExtents(input, options)
+  const starts: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  const ends: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  for (const [index, extent] of extents) {
+    starts[index] = extent.start
+    ends[index] = extent.end
+  }
+  return { starts, ends }
+}
+
+export function createStackInput(
+  positions: readonly unknown[],
+  values: readonly unknown[],
+  series: readonly unknown[],
+  fallbackSeries: 'value' | 'index',
+): StackInput[] {
   const input: StackInput[] = []
   for (let index = 0; index < positions.length; index += 1) {
     const position = positions[index]
@@ -241,60 +266,5 @@ export function stackValues(
           : 'value',
     })
   }
-  const extents = stackExtents(input, options)
-  const starts: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  const ends: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  for (const [index, extent] of extents) {
-    starts[index] = extent.start
-    ends[index] = extent.end
-  }
-  return { starts, ends }
-}
-
-function isChartKey(value: unknown): value is ChartKey {
-  return typeof value === 'string' || typeof value === 'number'
-}
-
-function isChartValue(value: unknown): value is ChartValue {
-  return (
-    typeof value === 'string' ||
-    isFiniteNumber(value) ||
-    (value instanceof Date && Number.isFinite(value.getTime()))
-  )
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
-}
-
-function orderedSeries(
-  rows: readonly StackInput[],
-  input: readonly ChartKey[],
-  order: StackOrder | undefined,
-): ChartKey[] {
-  if (Array.isArray(order)) {
-    const explicit = [...order]
-    const explicitKeys = new Set(explicit.map(valueKey))
-    return [
-      ...explicit,
-      ...input.filter((value) => !explicitKeys.has(valueKey(value))),
-    ]
-  }
-  if (order !== 'ascending' && order !== 'descending') return [...input]
-  const totals = new Map(input.map((value) => [valueKey(value), 0]))
-  for (const row of rows) {
-    const key = valueKey(row.series)
-    totals.set(key, (totals.get(key) ?? 0) + Math.abs(row.value))
-  }
-  return [...input].sort((left, right) => {
-    const difference =
-      (totals.get(valueKey(left)) ?? 0) - (totals.get(valueKey(right)) ?? 0)
-    return order === 'ascending' ? difference : -difference
-  })
+  return input
 }

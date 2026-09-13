@@ -352,11 +352,10 @@ function distanceToTarget(
     case 'dot': {
       const dx = localX - node.x
       const dy = localY - node.y
-      const amount = Math.max(
-        0,
-        Math.sqrt(dx * dx + dy * dy) - Math.max(0, node.radius),
+      distance = squaredDistanceOutsideRadius(
+        dx * dx + dy * dy,
+        Math.max(0, node.radius),
       )
-      distance = amount * amount
       break
     }
     case 'area':
@@ -367,8 +366,7 @@ function distanceToTarget(
       break
     case 'polyline': {
       const raw = squaredDistanceToPolyline(node.points, localX, localY, false)
-      const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
-      distance = amount * amount
+      distance = squaredDistanceOutsideRadius(raw, strokeRadius(node))
       break
     }
     case 'rule': {
@@ -380,8 +378,7 @@ function distanceToTarget(
         localX,
         localY,
       )
-      const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
-      distance = amount * amount
+      distance = squaredDistanceOutsideRadius(raw, strokeRadius(node))
       break
     }
   }
@@ -464,9 +461,11 @@ function squaredDistanceToRoundedRect(
   const radius = Math.max(0, Math.min(node.radius ?? 0, halfWidth, halfHeight))
   const offsetX = Math.abs(x - (bounds.x + halfWidth)) - (halfWidth - radius)
   const offsetY = Math.abs(y - (bounds.y + halfHeight)) - (halfHeight - radius)
-  const outside =
-    Math.sqrt(Math.max(0, offsetX) ** 2 + Math.max(0, offsetY) ** 2) - radius
-  return Math.max(0, outside) ** 2
+
+  return squaredDistanceOutsideRadius(
+    Math.max(0, offsetX) ** 2 + Math.max(0, offsetY) ** 2,
+    radius,
+  )
 }
 
 function containsPolygon(
@@ -531,7 +530,7 @@ function squaredDistanceToPolyline(
     return (point[0] - x) ** 2 + (point[1] - y) ** 2
   }
   let distance = Infinity
-  const segmentCount = closed ? points.length : Math.max(0, points.length - 1)
+  const segmentCount = closed ? points.length : points.length - 1
   for (let index = 0; index < segmentCount; index += 1) {
     const start = points[index]!
     const end = points[(index + 1) % points.length]!
@@ -639,7 +638,7 @@ function squaredAxisDistance(
   value: number,
   axis: 'x' | 'y',
 ) {
-  const start = axis === 'x' ? bounds.x : bounds.y
+  const start = bounds[axis]
   const size = axis === 'x' ? bounds.width : bounds.height
   const distance =
     value < start
@@ -652,19 +651,16 @@ function squaredAxisDistance(
 
 function squaredDistanceToBounds(bounds: ChartBounds, x: number, y: number) {
   const normalized = normalizeRect(bounds)
-  const dx =
-    x < normalized.x
-      ? normalized.x - x
-      : x > normalized.x + normalized.width
-        ? x - normalized.x - normalized.width
-        : 0
-  const dy =
-    y < normalized.y
-      ? normalized.y - y
-      : y > normalized.y + normalized.height
-        ? y - normalized.y - normalized.height
-        : 0
-  return dx * dx + dy * dy
+  return (
+    squaredAxisDistance(normalized, x, 'x') +
+    squaredAxisDistance(normalized, y, 'y')
+  )
+}
+
+function squaredDistanceOutsideRadius(distance: number, radius: number) {
+  const amount = Math.max(0, Math.sqrt(distance) - radius)
+
+  return amount * amount
 }
 
 function strokeRadius(node: GeometricSceneNode) {

@@ -1,3 +1,4 @@
+import { isFiniteNumber } from './number-internal'
 import { isChartKey, valueKey } from './scales'
 import type {
   Channel,
@@ -19,7 +20,7 @@ declare const process: { env: { NODE_ENV?: string } } | undefined
 
 const warnedKeyFallbacks = new WeakSet<object>()
 
-export { isChartKey }
+export { isChartKey, isFiniteNumber }
 
 export function isChartValue(value: unknown): value is ChartValue {
   return (
@@ -27,10 +28,6 @@ export function isChartValue(value: unknown): value is ChartValue {
     (value instanceof Date && Number.isFinite(value.getTime())) ||
     isFiniteNumber(value)
   )
-}
-
-export function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
 }
 
 export function isNonnegativeFiniteNumber(value: unknown): value is number {
@@ -50,6 +47,20 @@ export function createMark<
   motion?: ChartMotionDefinition<TDatum>,
   renderer?: ChartMarkRenderer,
 ): ChartMark<TDatum, TXValue, TYValue, TXValue, TYValue, TXScaleId, TYScaleId> {
+  return createMarkDefinition(initialize, motion, renderer)
+}
+
+export function createMarkDefinition<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  initialize: (
+    context: MarkInitializeContext,
+  ) => MarkInitialization<TDatum, TXValue, TYValue>,
+  motion?: ChartMotionDefinition<TDatum>,
+  renderer?: ChartMarkRenderer,
+) {
   const normalizedInitialize = (context: MarkInitializeContext) => {
     const initialized = normalizeMarkInitialization(initialize(context))
     const withMotion =

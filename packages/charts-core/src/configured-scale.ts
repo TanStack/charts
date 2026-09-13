@@ -1,3 +1,4 @@
+import { sameChartValue } from './value-equality-internal'
 import type {
   ChartContinuousValue,
   ChartContinuousDomain,
@@ -251,12 +252,6 @@ function sameContinuousType(
 
 function continuousNumber(value: ChartContinuousValue): number {
   return value instanceof Date ? value.getTime() : value
-}
-
-function sameChartValue(left: ChartValue | undefined, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
 }
 
 function invalidViewportDomain(id: string): never {

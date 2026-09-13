@@ -1,3 +1,4 @@
+import { finiteNonNegative, clampNonnegativeNumber } from './number-internal'
 import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import {
@@ -1269,12 +1270,13 @@ function resolveMarginLocks(
   margin: StaticChartDefinition['margin'],
 ): Partial<ChartMargin> {
   if (typeof margin === 'number') {
-    return uniformMargin(finiteMargin(margin))
+    return uniformMargin(clampNonnegativeNumber(margin))
   }
   if (!margin) return {}
   const locks: Partial<ChartMargin> = {}
   for (const side of marginSides) {
-    if (margin[side] !== undefined) locks[side] = finiteMargin(margin[side])
+    if (margin[side] !== undefined)
+      locks[side] = clampNonnegativeNumber(margin[side])
   }
   return locks
 }
@@ -1299,19 +1301,6 @@ function marginsEqual(left: ChartMargin, right: ChartMargin): boolean {
   return marginSides.every(
     (side) => Math.abs(left[side] - right[side]) <= layoutTolerance,
   )
-}
-
-function finiteMargin(value: number | undefined): number {
-  return value !== undefined && Number.isFinite(value) ? Math.max(0, value) : 0
-}
-
-function finiteNonNegative(
-  value: number | undefined,
-  fallback: number,
-): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0
-    ? value
-    : fallback
 }
 
 function uniformMargin(value: number): ChartMargin {
@@ -1354,27 +1343,16 @@ function createGrid(
     const style = guideLineStyle(guide.options.grid)
     for (const tick of guide.scale.ticks) {
       const key = `${guide.id}-grid:${valueKey(tick.value)}`
-      children.push(
-        guide.channel === 'x'
-          ? {
-              kind: 'rule',
-              key,
-              x1: tick.position,
-              x2: tick.position,
-              y1: chart.y,
-              y2: chart.y + chart.height,
-              ...(style ? { style } : {}),
-            }
-          : {
-              kind: 'rule',
-              key,
-              x1: chart.x,
-              x2: chart.x + chart.width,
-              y1: tick.position,
-              y2: tick.position,
-              ...(style ? { style } : {}),
-            },
-      )
+      const horizontal = guide.channel === 'x'
+      children.push({
+        kind: 'rule',
+        key,
+        x1: horizontal ? tick.position : chart.x,
+        x2: horizontal ? tick.position : chart.x + chart.width,
+        y1: horizontal ? chart.y : tick.position,
+        y2: horizontal ? chart.y + chart.height : tick.position,
+        style,
+      })
     }
   }
 
@@ -1453,11 +1431,7 @@ function createAxes(
       }
     }
 
-    if (guide.channel === 'x') {
-      renderXAxis(guide, axisPosition, includeOutward, includeCoordinate)
-    } else {
-      renderYAxis(guide, axisPosition, includeOutward, includeCoordinate)
-    }
+    renderAxis(guide, axisPosition, includeOutward, includeCoordinate)
 
     const distance =
       guide.side === 'top'
@@ -1481,34 +1455,45 @@ function createAxes(
   includeGuideStrokeMargins(margin, axes, chart)
   return { axes, margin }
 
-  function renderXAxis(
+  function renderAxis(
     guide: ResolvedPositionScale,
-    axisY: number,
+    axisPosition: number,
     includeOutward: (bounds: ChartBounds) => void,
     includeCoordinate: (coordinate: number) => void,
   ) {
     const presentation = axisPresentation(guide.options)
-    const bottom = guide.side === 'bottom'
-    const direction = bottom ? 1 : -1
+    const horizontal = guide.channel === 'x'
+    const positive = guide.side === 'bottom' || guide.side === 'right'
+    const direction = positive ? 1 : -1
+    const outerCoordinate = (bounds: ChartBounds) => {
+      const start = horizontal ? bounds.y : bounds.x
+      const size = horizontal ? bounds.height : bounds.width
+
+      return positive ? start + size : start
+    }
+    const farther = (left: number, right: number) =>
+      positive ? Math.max(left, right) : Math.min(left, right)
+
     if (presentation?.line !== false) {
       children.push({
         kind: 'rule',
         key: `${guide.id}-axis`,
-        x1: chart.x,
-        x2: chartRight,
-        y1: axisY,
-        y2: axisY,
+        x1: horizontal ? chart.x : axisPosition,
+        x2: horizontal ? chartRight : axisPosition,
+        y1: horizontal ? axisPosition : chart.y,
+        y2: horizontal ? axisPosition : chartBottom,
         style: axisStyle(presentation?.line),
       })
       includeCoordinate(
-        axisY + direction * guideLineHalfWidth(presentation?.line),
+        axisPosition + direction * guideLineHalfWidth(presentation?.line),
       )
     }
+
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
-    const tickSize = finiteMargin(
+    const tickSize = clampNonnegativeNumber(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
     )
-    const tickPadding = finiteMargin(
+    const tickPadding = clampNonnegativeNumber(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
     )
     const tickLabels = tickLabelPresentation(presentation)
@@ -1518,7 +1503,7 @@ function createAxes(
         : createTickLabelCandidates(
             guide,
             withKeptTicks(guide.scale, guide.options, tickLabels),
-            axisY,
+            axisPosition,
             tickSize,
             tickPadding,
             tickLabels,
@@ -1530,31 +1515,32 @@ function createAxes(
     const visibleLabels =
       tickLabels === false
         ? []
-        : thinTickLabels(candidates, tickLabels, guide.scale.type === 'band')
-    let tickOuter = axisY
+        : thinTickLabels(
+            candidates,
+            tickLabels,
+            horizontal && guide.scale.type === 'band',
+          )
+    let tickOuter = axisPosition
 
     for (const tick of ticks) {
       if (tickSize <= 0) continue
-      const tickEnd = axisY + direction * tickSize
+      const tickEnd = axisPosition + direction * tickSize
       includeCoordinate(tickEnd)
-      tickOuter = bottom
-        ? Math.max(tickOuter, tickEnd)
-        : Math.min(tickOuter, tickEnd)
+      tickOuter = farther(tickOuter, tickEnd)
       children.push({
         kind: 'rule',
         key: `${guide.id}-tick-rule:${valueKey(tick.value)}`,
-        x1: tick.position,
-        x2: tick.position,
-        y1: axisY,
-        y2: tickEnd,
+        x1: horizontal ? tick.position : axisPosition,
+        x2: horizontal ? tick.position : tickEnd,
+        y1: horizontal ? axisPosition : tick.position,
+        y2: horizontal ? tickEnd : tick.position,
         style: axisStyle(),
       })
     }
+
     for (const candidate of visibleLabels) {
       includeOutward(candidate.bounds)
-      tickOuter = bottom
-        ? Math.max(tickOuter, candidate.bounds.y + candidate.bounds.height)
-        : Math.min(tickOuter, candidate.bounds.y)
+      tickOuter = farther(tickOuter, outerCoordinate(candidate.bounds))
       children.push(candidate.label)
     }
 
@@ -1562,20 +1548,27 @@ function createAxes(
     const labelText =
       typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
     if (!labelText) return
+
     const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
     const labelOffset = labelOptions?.offset ?? 'auto'
     const explicitOffset = labelOffset !== 'auto'
     const label: SceneLabel = {
       kind: 'label',
       key: `${guide.id}-label`,
-      x: chart.x + chart.width / 2,
-      y: explicitOffset
-        ? axisY + direction * Math.max(0, finiteMargin(labelOffset))
-        : tickOuter + direction * 8,
+      x: horizontal ? chart.x + chart.width / 2 : axisPosition,
+      y: horizontal
+        ? explicitOffset
+          ? axisPosition + direction * clampNonnegativeNumber(labelOffset)
+          : tickOuter + direction * 8
+        : chart.y + chart.height / 2,
       text: labelText,
       anchor: 'middle',
-      baseline: bottom && !explicitOffset ? 'hanging' : 'auto',
-      fontSize: labelOptions?.fontSize ?? (width < 360 ? 10 : 11),
+      baseline: horizontal
+        ? positive && !explicitOffset
+          ? 'hanging'
+          : 'auto'
+        : 'middle',
+      fontSize: labelOptions?.fontSize ?? (horizontal && width < 360 ? 10 : 11),
       fontWeight: labelOptions?.fontWeight ?? 600,
       style: {
         fill: labelOptions?.fill ?? theme.foreground,
@@ -1584,120 +1577,22 @@ function createAxes(
           : { opacity: labelOptions.opacity }),
       },
     }
-    includeOutward(measureSceneLabelBounds(label, measureText))
-    children.push(label)
-  }
 
-  function renderYAxis(
-    guide: ResolvedPositionScale,
-    axisX: number,
-    includeOutward: (bounds: ChartBounds) => void,
-    includeCoordinate: (coordinate: number) => void,
-  ) {
-    const presentation = axisPresentation(guide.options)
-    const right = guide.side === 'right'
-    const direction = right ? 1 : -1
-    if (presentation?.line !== false) {
-      children.push({
-        kind: 'rule',
-        key: `${guide.id}-axis`,
-        x1: axisX,
-        x2: axisX,
-        y1: chart.y,
-        y2: chartBottom,
-        style: axisStyle(presentation?.line),
-      })
-      includeCoordinate(
-        axisX + direction * guideLineHalfWidth(presentation?.line),
-      )
-    }
-    const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
-    const tickSize = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
-    )
-    const tickPadding = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
-    )
-    const tickLabels = tickLabelPresentation(presentation)
-    const candidates =
-      tickLabels === false
-        ? []
-        : createTickLabelCandidates(
-            guide,
-            withKeptTicks(guide.scale, guide.options, tickLabels),
-            axisX,
-            tickSize,
-            tickPadding,
-            tickLabels,
-            width,
-            theme,
-            measureText,
-            rightToLeft,
-          )
-    const visibleLabels =
-      tickLabels === false ? [] : thinTickLabels(candidates, tickLabels, false)
-    let tickOuter = axisX
-
-    for (const tick of ticks) {
-      if (tickSize <= 0) continue
-      const tickEnd = axisX + direction * tickSize
-      includeCoordinate(tickEnd)
-      tickOuter = right
-        ? Math.max(tickOuter, tickEnd)
-        : Math.min(tickOuter, tickEnd)
-      children.push({
-        kind: 'rule',
-        key: `${guide.id}-tick-rule:${valueKey(tick.value)}`,
-        x1: axisX,
-        x2: tickEnd,
-        y1: tick.position,
-        y2: tick.position,
-        style: axisStyle(),
-      })
-    }
-    for (const candidate of visibleLabels) {
-      includeOutward(candidate.bounds)
-      tickOuter = right
-        ? Math.max(tickOuter, candidate.bounds.x + candidate.bounds.width)
-        : Math.min(tickOuter, candidate.bounds.x)
-      children.push(candidate.label)
+    if (!horizontal) {
+      label.rotate = positive ? 90 : -90
+      if (explicitOffset) {
+        label.x = axisPosition + direction * clampNonnegativeNumber(labelOffset)
+      } else {
+        const localBounds = measureSceneLabelBounds(
+          { ...label, x: 0, y: 0 },
+          measureText,
+        )
+        label.x = positive
+          ? tickOuter + 8 - localBounds.x
+          : tickOuter - 8 - (localBounds.x + localBounds.width)
+      }
     }
 
-    const axisLabel = presentation?.label
-    const labelText =
-      typeof axisLabel === 'string' ? axisLabel : axisLabel?.text
-    if (!labelText) return
-    const labelOptions = typeof axisLabel === 'object' ? axisLabel : undefined
-    const label: SceneLabel = {
-      kind: 'label',
-      key: `${guide.id}-label`,
-      x: axisX,
-      y: chart.y + chart.height / 2,
-      text: labelText,
-      anchor: 'middle',
-      baseline: 'middle',
-      rotate: right ? 90 : -90,
-      fontSize: labelOptions?.fontSize ?? 11,
-      fontWeight: labelOptions?.fontWeight ?? 600,
-      style: {
-        fill: labelOptions?.fill ?? theme.foreground,
-        ...(labelOptions?.opacity === undefined
-          ? { fillOpacity: 0.76 }
-          : { opacity: labelOptions.opacity }),
-      },
-    }
-    const labelOffset = labelOptions?.offset ?? 'auto'
-    if (labelOffset !== 'auto') {
-      label.x = axisX + direction * Math.max(0, finiteMargin(labelOffset))
-    } else {
-      const localBounds = measureSceneLabelBounds(
-        { ...label, x: 0, y: 0 },
-        measureText,
-      )
-      label.x = right
-        ? tickOuter + 8 - localBounds.x
-        : tickOuter - 8 - (localBounds.x + localBounds.width)
-    }
     includeOutward(measureSceneLabelBounds(label, measureText))
     children.push(label)
   }
@@ -1763,10 +1658,10 @@ function resolveTickCount(
   }
   if (configured.values) return Math.max(1, configured.values.length)
   if (configured.count !== undefined) {
-    return Math.max(1, Math.floor(finiteMargin(configured.count)))
+    return Math.max(1, Math.floor(clampNonnegativeNumber(configured.count)))
   }
   if (configured.spacing !== undefined) {
-    const spacing = Math.max(1, finiteMargin(configured.spacing))
+    const spacing = Math.max(1, clampNonnegativeNumber(configured.spacing))
     return Math.max(1, Math.floor(length / spacing))
   }
   return Math.max(2, Math.min(maximum, Math.floor(length / defaultSpacing)))
@@ -1854,52 +1749,45 @@ function createTickLabelCandidates(
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
     // Automatic anchors preserve a physical placement outside the plot.
     // Authored anchors remain logical SVG start/end values.
-    const automaticAnchor: NonNullable<SceneLabel['anchor']> =
+    const anchorSide =
       guide.channel === 'y'
         ? positiveSide
-          ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
-          : physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
+          ? 'left'
+          : 'right'
         : (rotate ?? 0) < 0
-          ? physicalTextAnchor('right', rightToLeft ? 'rtl' : 'ltr')
+          ? 'right'
           : (rotate ?? 0) > 0
-            ? physicalTextAnchor('left', rightToLeft ? 'rtl' : 'ltr')
+            ? 'left'
             : 'middle'
+    const automaticAnchor = physicalTextAnchor(
+      anchorSide,
+      rightToLeft ? 'rtl' : 'ltr',
+    )
     const anchor =
       resolveTickLabelValue(options.anchor, context) ?? automaticAnchor
-    const label: SceneLabel =
-      guide.channel === 'x'
-        ? {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: tick.position + dx,
-            y:
-              axisPosition + direction * (size + padding + fontSize * 0.8) + dy,
-            text: tick.label,
-            anchor,
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
-        : {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: axisPosition + direction * (size + padding) + dx,
-            y: tick.position + dy,
-            text: tick.label,
-            anchor,
-            baseline: 'middle',
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
+    const horizontal = guide.channel === 'x'
+    const label: SceneLabel = {
+      kind: 'label',
+      key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
+      x:
+        (horizontal
+          ? tick.position
+          : axisPosition + direction * (size + padding)) + dx,
+      y: horizontal
+        ? axisPosition + direction * (size + padding + fontSize * 0.8) + dy
+        : tick.position + dy,
+      text: tick.label,
+      anchor,
+      baseline: horizontal ? undefined : 'middle',
+      rotate,
+      fontSize,
+      fontWeight,
+      style: {
+        fill: theme.muted,
+        ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
+      },
+    }
+
     return {
       value: tick.value,
       label,
@@ -1929,7 +1817,7 @@ function thinTickLabels(
 ): TickLabelCandidate[] {
   if (options.thin === false || candidates.length < 2) return [...candidates]
   const thin = typeof options.thin === 'object' ? options.thin : {}
-  const minGap = Math.max(0, finiteMargin(thin.minGap ?? 4))
+  const minGap = clampNonnegativeNumber(thin.minGap ?? 4)
   const selected: TickLabelCandidate[] = candidates.filter(
     (candidate) => candidate.hard,
   )

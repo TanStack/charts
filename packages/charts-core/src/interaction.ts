@@ -1,3 +1,4 @@
+import { sameChartValue } from './value-equality-internal'
 import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import { findContainingScenePoint } from './nearest'
 import type {
@@ -249,10 +250,4 @@ function compareNavigationPoints<
   rightIndex: number,
 ) {
   return left.x - right.x || left.y - right.y || leftIndex - rightIndex
-}
-
-function sameChartValue(left: ChartValue, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
 }
