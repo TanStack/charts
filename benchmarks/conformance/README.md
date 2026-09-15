@@ -47,6 +47,12 @@ pnpm conformance:quick
 # Standard 320/640/960, light/dark matrix
 pnpm conformance
 
+# First-party browser correctness, no competitor builds or comparative audits
+pnpm conformance -- --first-party
+
+# Target an example while keeping its full browser matrix
+pnpm conformance -- --first-party --case=150-shadcn-bar-negative
+
 # Isolated bundle and type audit only
 pnpm conformance:size
 
@@ -83,6 +89,19 @@ and tooling compatibility even when a run includes Recharts references.
 `plot-catalog--cases-<selection>.{json,md}` filename so they cannot overwrite
 the complete catalog evidence. Long selections use a bounded digest; the JSON
 always records the resolved case filter.
+
+First-party reports add `--first-party` to the artifact name. They retain all
+case geometry counts, guide assertions, containment, accessible names, and
+native interaction scenarios, before and after updates at every profile size
+and theme. They do not measure type safety, bundle size, timing, competitor
+paint parity, or relative geometry similarity. The ordinary cached checks
+still validate types, examples, bundles, and generated assets.
+
+CI runs first-party correctness weekly and the paired comparison monthly.
+Ordinary PRs do not run this workflow. Use the `browser-correctness` label for
+first-party coverage or `full-conformance` for comparison coverage. Manual
+runs accept a suite, shard, or comma-separated case IDs; targeted case runs
+use one job rather than launching empty shards.
 
 The [interaction UX audit](./INTERACTION-UX-AUDIT.md) preserves the before-state
 review of cases 80–92 and records the implementation follow-through for

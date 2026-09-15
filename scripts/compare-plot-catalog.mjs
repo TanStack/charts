@@ -20,6 +20,7 @@ import { estimateConformanceCaseWeight } from './benchmark/conformance-sharding.
 import { assertKnownFilterValues, parseShard } from './benchmark/filters.mjs'
 import {
   conformanceCaseHeight,
+  conformanceInspectionPasses,
   normalizeTypeDiagnosticPath,
   selectCatalogCases,
 } from './compare-plot-catalog-helpers.mjs'
@@ -117,6 +118,9 @@ if (!profile) {
   )
 }
 const sizeOnly = process.argv.includes('--size-only')
+const firstParty = process.argv.includes('--first-party')
+if (firstParty && sizeOnly)
+  throw new Error('--first-party cannot use --size-only.')
 const caseFilter = csvOption('--case')
 const shard = parseShard(optionValue('--shard'))
 
@@ -138,9 +142,13 @@ const selectedCases = selectCatalogCases(allCases, caseFilter, shard, (entry) =>
   estimateConformanceCaseWeight(entry, profile),
 )
 
-const typeDiagnostics = await createTypeDiagnostics()
-const typeAudit = await auditTypes(selectedCases, typeDiagnostics.byFile)
-const typeProtection = auditTypeProtection(typeDiagnostics)
+const typeDiagnostics = firstParty ? undefined : await createTypeDiagnostics()
+const typeAudit = firstParty
+  ? new Map()
+  : await auditTypes(selectedCases, typeDiagnostics.byFile)
+const typeProtection = firstParty
+  ? undefined
+  : auditTypeProtection(typeDiagnostics)
 const bundles = await buildImplementations(selectedCases, typeAudit)
 let measurements = []
 let visualChecks = []
@@ -156,7 +164,7 @@ if (!sizeOnly) {
       const implementations = bundles.filter(
         (bundle) => bundle.caseId === entry.id,
       )
-      for (const implementation of implementations) {
+      for (const implementation of firstParty ? [] : implementations) {
         measurements.push(
           await measureImplementation(
             browser,
@@ -198,6 +206,7 @@ if (!sizeOnly) {
 
 const result = {
   schemaVersion: 1,
+  mode: firstParty ? 'first-party' : 'comparison',
   createdAt: new Date().toISOString(),
   profile: profileName,
   filters: {
@@ -220,8 +229,8 @@ const result = {
     typescript: ts.version,
   },
   protocol: {
-    sameTypedRows: true,
-    sameSemanticDomains: true,
+    sameTypedRows: !firstParty,
+    sameSemanticDomains: !firstParty,
     isolatedBundles: true,
     width: 640,
     height: 360,
@@ -231,8 +240,8 @@ const result = {
     variants: profile.widths.flatMap((width) =>
       profile.themes.map((theme) => ({ width, theme })),
     ),
-    warmup: profile.warmup,
-    samples: profile.samples,
+    warmup: firstParty ? 0 : profile.warmup,
+    samples: firstParty ? 0 : profile.samples,
     mount:
       'Synchronous mount plus forced layout after module loading; animations disabled.',
     update:
@@ -245,6 +254,17 @@ const result = {
       'Geometry, guide containment, and accessibility run before and after a data revision at every viewport/theme variant. A 640px light-mode side-by-side screenshot is retained per case.',
     interaction:
       'Ordered semantic scenarios run from fresh mounts with native Playwright mouse, keyboard, CDP touch, drag, pixel-wheel streams, bounded waits, and in-place revision updates; pointer cancellation and line/page delta modes use explicit DOM events. Driver-state assertions remain renderer-independent; rendered assertions inspect root-scoped DOM text, attributes, focus, visibility, scroll metrics, and bounds directly. Scenarios may retain named checkpoint screenshots. Uncaught page errors fail the active step.',
+    ...(firstParty
+      ? {
+          mount: 'Not measured.',
+          update: 'Not measured.',
+          typeSafety: 'Not audited; covered by separate cached validation.',
+          geometry:
+            'First-party logical geometry counts and guide assertions; no relative geometry or paint comparison.',
+          visual:
+            'First-party geometry, containment, and accessible naming before and after revision at every viewport/theme. One first-party screenshot per case.',
+        }
+      : {}),
   },
   cases: selectedCases,
   bundles,
@@ -252,28 +272,36 @@ const result = {
   measurements,
   visualChecks,
   behaviorChecks,
-  summaries: createSummaries(
-    selectedCases,
-    bundles,
-    measurements,
-    visualChecks,
-    behaviorChecks,
-    typeProtection,
-  ),
+  summaries: firstParty
+    ? undefined
+    : createSummaries(
+        selectedCases,
+        bundles,
+        measurements,
+        visualChecks,
+        behaviorChecks,
+        typeProtection,
+      ),
 }
 
 const json = `${JSON.stringify(result, null, 2)}\n`
-const markdown = renderMarkdown(result)
-const artifactStem = conformanceArtifactStem(result.filters.cases)
+const markdown = firstParty
+  ? `# First-party browser correctness\n\n${visualChecks.filter((check) => check.status === 'pass').length}/${visualChecks.length} layout cases passed; ${behaviorChecks.filter((check) => check.status === 'pass').length}/${behaviorChecks.length} interaction cases passed.\n\nNo comparative type, size, or timing measurements were run.\n`
+  : renderMarkdown(result)
+const artifactStem =
+  conformanceArtifactStem(result.filters.cases) +
+  (firstParty ? '--first-party' : '')
 await Promise.all([
   writeFile(resolve(resultDirectory, `${artifactStem}.json`), json),
   writeFile(resolve(resultDirectory, `${artifactStem}.md`), markdown),
 ])
 console.log(markdown)
 
-const failedVisuals = visualChecks.filter((check) => check.status === 'fail')
-const failedBehaviors = behaviorChecks.filter(
-  (check) => check.status === 'fail',
+const failedVisuals = visualChecks.filter((check) =>
+  firstParty ? check.status !== 'pass' : check.status === 'fail',
+)
+const failedBehaviors = behaviorChecks.filter((check) =>
+  firstParty ? check.status !== 'pass' : check.status === 'fail',
 )
 if (failedVisuals.length || failedBehaviors.length) {
   throw new Error(
@@ -1156,7 +1184,9 @@ function typeProtectionProbes() {
 
 async function buildImplementations(cases, typeAudit) {
   const candidates = cases.flatMap((entry) =>
-    pairedRenderers(entry).map((renderer) => ({ entry, renderer })),
+    (firstParty ? [targetRenderer] : pairedRenderers(entry)).map(
+      (renderer) => ({ entry, renderer }),
+    ),
   )
   const bundles = new Array(candidates.length)
 
@@ -1189,6 +1219,10 @@ async function buildImplementations(cases, typeAudit) {
         legalComments: 'none',
         logLevel: 'silent',
       })
+      if (firstParty) {
+        bundles[index] = { id, caseId: entry.id, renderer }
+        return
+      }
       const measurementResult = await build({
         entryPoints: [sourcePath],
         outfile: outputPath,
@@ -1408,7 +1442,7 @@ async function compareVisuals(
   const tanstack = implementations.find(
     (implementation) => implementation.renderer === targetRenderer,
   )
-  if (!reference || !tanstack) {
+  if ((!firstParty && !reference) || !tanstack) {
     return {
       caseId: entry.id,
       referenceRenderer,
@@ -1440,7 +1474,10 @@ async function compareVisuals(
         height,
       }) => {
         const [{ mount: mountReference }, { mount: mountTanstack }] =
-          await Promise.all([import(referenceUrl), import(tanstackUrl)])
+          await Promise.all([
+            referenceUrl ? import(referenceUrl) : {},
+            import(tanstackUrl),
+          ])
         await document.fonts?.ready
         const root = document.createElement('main')
         root.style.display = 'grid'
@@ -1450,7 +1487,8 @@ async function compareVisuals(
         document.body.append(root)
         const referenceContainer = document.createElement('div')
         const tanstackContainer = document.createElement('div')
-        root.append(referenceContainer, tanstackContainer)
+        if (mountReference) root.append(referenceContainer)
+        root.append(tanstackContainer)
         let referenceHandle
         let tanstackHandle
         const results = []
@@ -1467,29 +1505,31 @@ async function compareVisuals(
                 theme === 'dark' ? '#151a24' : '#ffffff'
             }
 
-            if (!referenceHandle) {
-              referenceHandle = mountReference(referenceContainer, input)
+            if (!tanstackHandle) {
+              referenceHandle = mountReference?.(referenceContainer, input)
               tanstackHandle = mountTanstack(tanstackContainer, input)
             } else {
-              referenceHandle.update(input)
+              referenceHandle?.update(input)
               tanstackHandle.update(input)
             }
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
             await Promise.all([
-              referenceHandle.driver?.settle?.(),
+              referenceHandle?.driver?.settle?.(),
               tanstackHandle.driver?.settle?.(),
             ])
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
 
-            const referenceInspection = inspect(
-              referenceContainer,
-              referenceHandle,
-              referenceRenderer,
-              geometry,
-              guideAssertions,
-            )
+            const referenceInspection = referenceHandle
+              ? inspect(
+                  referenceContainer,
+                  referenceHandle,
+                  referenceRenderer,
+                  geometry,
+                  guideAssertions,
+                )
+              : undefined
             const tanstackInspection = inspect(
               tanstackContainer,
               tanstackHandle,
@@ -1498,23 +1538,25 @@ async function compareVisuals(
               guideAssertions,
             )
             const updatedInput = { ...input, revision: 1 }
-            referenceHandle.update(updatedInput)
+            referenceHandle?.update(updatedInput)
             tanstackHandle.update(updatedInput)
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
             await Promise.all([
-              referenceHandle.driver?.settle?.(),
+              referenceHandle?.driver?.settle?.(),
               tanstackHandle.driver?.settle?.(),
             ])
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
-            const updatedReferenceInspection = inspect(
-              referenceContainer,
-              referenceHandle,
-              referenceRenderer,
-              geometry,
-              guideAssertions,
-            )
+            const updatedReferenceInspection = referenceHandle
+              ? inspect(
+                  referenceContainer,
+                  referenceHandle,
+                  referenceRenderer,
+                  geometry,
+                  guideAssertions,
+                )
+              : undefined
             const updatedTanstackInspection = inspect(
               tanstackContainer,
               tanstackHandle,
@@ -1528,26 +1570,34 @@ async function compareVisuals(
               referenceRenderer,
               [referenceResultKey]: referenceInspection,
               tanstack: tanstackInspection,
-              geometrySimilarity: compareGeometry(
-                referenceInspection.geometry,
-                tanstackInspection.geometry,
-              ),
-              paintParity: comparePaints(
-                referenceInspection.geometry,
-                tanstackInspection.geometry,
-              ),
+              geometrySimilarity:
+                referenceInspection &&
+                compareGeometry(
+                  referenceInspection.geometry,
+                  tanstackInspection.geometry,
+                ),
+              paintParity:
+                referenceInspection &&
+                comparePaints(
+                  referenceInspection.geometry,
+                  tanstackInspection.geometry,
+                ),
               updated: {
                 referenceRenderer,
                 [referenceResultKey]: updatedReferenceInspection,
                 tanstack: updatedTanstackInspection,
-                geometrySimilarity: compareGeometry(
-                  updatedReferenceInspection.geometry,
-                  updatedTanstackInspection.geometry,
-                ),
-                paintParity: comparePaints(
-                  updatedReferenceInspection.geometry,
-                  updatedTanstackInspection.geometry,
-                ),
+                geometrySimilarity:
+                  updatedReferenceInspection &&
+                  compareGeometry(
+                    updatedReferenceInspection.geometry,
+                    updatedTanstackInspection.geometry,
+                  ),
+                paintParity:
+                  updatedReferenceInspection &&
+                  comparePaints(
+                    updatedReferenceInspection.geometry,
+                    updatedTanstackInspection.geometry,
+                  ),
               },
             })
           }
@@ -2345,7 +2395,9 @@ async function compareVisuals(
         }
       },
       {
-        referenceUrl: `${serverUrl}bundles/${reference.id}.js`,
+        referenceUrl: reference
+          ? `${serverUrl}bundles/${reference.id}.js`
+          : null,
         referenceRenderer,
         referenceResultKey,
         tanstackUrl: `${serverUrl}bundles/${tanstack.id}.js`,
@@ -2372,8 +2424,11 @@ async function compareVisuals(
         document.body.style.color = '#172033'
         document.body.style.background = '#f4f6fa'
         const [{ mount: mountReference }, { mount: mountTanstack }] =
-          await Promise.all([import(referenceUrl), import(tanstackUrl)])
-        for (const mount of [mountReference, mountTanstack]) {
+          await Promise.all([
+            referenceUrl ? import(referenceUrl) : {},
+            import(tanstackUrl),
+          ])
+        for (const mount of [mountReference, mountTanstack].filter(Boolean)) {
           const panel = document.createElement('div')
           panel.style.width = '640px'
           panel.style.minHeight = `${height}px`
@@ -2384,7 +2439,9 @@ async function compareVisuals(
         await document.fonts?.ready
       },
       {
-        referenceUrl: `${serverUrl}bundles/${reference.id}.js`,
+        referenceUrl: reference
+          ? `${serverUrl}bundles/${reference.id}.js`
+          : null,
         tanstackUrl: `${serverUrl}bundles/${tanstack.id}.js`,
         height: conformanceCaseHeight(entry),
       },
@@ -2397,18 +2454,20 @@ async function compareVisuals(
     return {
       caseId: entry.id,
       referenceRenderer,
-      minimumGeometrySimilarity: entry.minimumGeometrySimilarity,
+      minimumGeometrySimilarity: firstParty
+        ? undefined
+        : entry.minimumGeometrySimilarity,
       status: variants.every(
         (variant) =>
           visualPairPasses(
             variant,
             referenceResultKey,
-            entry.minimumGeometrySimilarity,
+            firstParty ? undefined : entry.minimumGeometrySimilarity,
           ) &&
           visualPairPasses(
             variant.updated,
             referenceResultKey,
-            entry.minimumGeometrySimilarity,
+            firstParty ? undefined : entry.minimumGeometrySimilarity,
           ),
       )
         ? 'pass'
@@ -2439,7 +2498,7 @@ async function compareBehaviors(
   const tanstack = implementations.find(
     (implementation) => implementation.renderer === targetRenderer,
   )
-  if (!reference || !tanstack) {
+  if ((!firstParty && !reference) || !tanstack) {
     return {
       caseId: entry.id,
       referenceRenderer,
@@ -2457,13 +2516,15 @@ async function compareBehaviors(
           theme,
           revision,
           referenceRenderer,
-          [referenceResultKey]: await runBehaviorImplementation(
-            browser,
-            serverUrl,
-            reference,
-            entry.interactionScenarios,
-            { width, height: conformanceCaseHeight(entry), theme, revision },
-          ),
+          [referenceResultKey]:
+            reference &&
+            (await runBehaviorImplementation(
+              browser,
+              serverUrl,
+              reference,
+              entry.interactionScenarios,
+              { width, height: conformanceCaseHeight(entry), theme, revision },
+            )),
           tanstack: await runBehaviorImplementation(
             browser,
             serverUrl,
@@ -2481,7 +2542,9 @@ async function compareBehaviors(
     caseId: entry.id,
     referenceRenderer,
     status: variants.every(
-      (variant) => variant[referenceResultKey].pass && variant.tanstack.pass,
+      (variant) =>
+        (firstParty || variant[referenceResultKey].pass) &&
+        variant.tanstack.pass,
     )
       ? 'pass'
       : 'fail',
@@ -3354,19 +3417,14 @@ function jsonValuesEqual(left, right) {
 
 function visualPairPasses(pair, referenceResultKey, minimumGeometrySimilarity) {
   return (
-    pair.paintParity &&
+    (firstParty || pair.paintParity) &&
     (minimumGeometrySimilarity === undefined ||
       (pair.geometrySimilarity !== undefined &&
         pair.geometrySimilarity >= minimumGeometrySimilarity)) &&
-    [pair[referenceResultKey], pair.tanstack].every(
-      (inspection) =>
-        inspection.guidesContained &&
-        inspection.accessibleName &&
-        inspection.guideAssertions.every((assertion) => assertion.pass) &&
-        Object.values(inspection.geometry).every(
-          (geometry) => geometry.present && geometry.withinMaximum,
-        ),
-    )
+    (firstParty
+      ? [pair.tanstack]
+      : [pair[referenceResultKey], pair.tanstack]
+    ).every(conformanceInspectionPasses)
   )
 }
 

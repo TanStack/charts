@@ -156,7 +156,7 @@ export function ShadcnDashboard({ ChartRenderer, input }: DashboardProps) {
       <div className="sd-viewport">
         <DashboardSidebar />
         <main className="sd-main">
-          <div className="sd-main-scroll">
+          <div className="sd-main-scroll" data-conformance-scroll-viewport>
             <DashboardHeader />
             <div className="sd-content">
               <section className="sd-cards" aria-label="Key metrics">

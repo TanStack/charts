@@ -25,7 +25,7 @@ export function createExampleChart() {
       id: 'desktop',
       ring: 'visitors',
       start: 570,
-      end: 1260,
+      end: 1830,
       fill: shadcnColors[0],
     },
   ]
@@ -36,7 +36,7 @@ export function createExampleChart() {
           startAngle: rechartsPolarAngle(0),
           endAngle: rechartsPolarAngle(180),
           scales: {
-            angle: { scale: scaleLinear().domain([0, 1260]) },
+            angle: { scale: scaleLinear().domain([0, 1830]) },
             radius: {
               scale: scaleBand<string>().domain(['visitors']),
               range: [80, 110],

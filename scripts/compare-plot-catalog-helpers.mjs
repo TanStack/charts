@@ -1,5 +1,17 @@
 import { selectWeightedShard } from './benchmark/filters.mjs'
 
+export function conformanceInspectionPasses(inspection) {
+  return Boolean(
+    inspection &&
+    inspection.guidesContained &&
+    inspection.accessibleName &&
+    inspection.guideAssertions.every((assertion) => assertion.pass) &&
+    Object.values(inspection.geometry).every(
+      (geometry) => geometry.present && geometry.withinMaximum,
+    ),
+  )
+}
+
 export function conformanceCaseHeight(entry) {
   const height = entry.height === undefined ? 360 : entry.height
   if (!Number.isFinite(height) || height <= 0) {

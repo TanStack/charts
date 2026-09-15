@@ -21,6 +21,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import interactiveLineData from '@tanstack/charts-data/shadcn-area-interactive-data'
 import {
   getShadcnCatalogSpec,
   shadcnActivities,
@@ -172,6 +173,54 @@ function areaChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 }
 
 function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
+  if (spec.variant === 'active' || spec.variant === 'mixed') {
+    const active = spec.variant === 'active'
+    const data = shadcnBrowsers.map((row, index) => ({
+      ...row,
+      visitors:
+        active && row.browser === 'chrome'
+          ? 187
+          : active && row.browser === 'firefox'
+            ? 275
+            : row.visitors,
+      fill:
+        active && row.browser === 'firefox'
+          ? `color-mix(in srgb, ${shadcnColors[2]} 80%, transparent)`
+          : shadcnColors[index],
+    }))
+    return (
+      <BarChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={data}
+        layout={active ? 'horizontal' : 'vertical'}
+      >
+        {active ? <CartesianGrid vertical={false} /> : null}
+        <XAxis
+          type={active ? 'category' : 'number'}
+          dataKey={active ? 'browser' : undefined}
+          hide={!active}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          type={active ? 'number' : 'category'}
+          dataKey={active ? undefined : 'browser'}
+          hide={active}
+          width={68}
+          tickLine={false}
+          axisLine={false}
+        />
+        <Tooltip cursor={false} />
+        <Bar
+          dataKey="visitors"
+          radius={active ? 8 : 5}
+          isAnimationActive={false}
+        />
+      </BarChart>
+    )
+  }
   const horizontal =
     spec.variant === 'horizontal' ||
     spec.variant === 'label-custom' ||
@@ -286,20 +335,22 @@ function lineChart(spec: ShadcnCatalogSpec, width: number, height: number) {
         : 'natural'
   const dots = spec.variant.includes('dots')
   const labels = spec.variant.includes('label')
-  const multiple = spec.variant === 'multiple' || spec.variant === 'interactive'
+  const multiple = spec.variant === 'multiple'
   return (
-    <LineChart
+    <LineChart<
+      (typeof shadcnMonths)[number] | (typeof interactiveLineData)[number]
+    >
       aria-label={spec.title}
       width={width}
       height={height}
-      data={shadcnMonths}
+      data={spec.variant === 'interactive' ? interactiveLineData : shadcnMonths}
     >
       <CartesianGrid vertical={false} />
       <XAxis
-        dataKey="month"
+        dataKey={spec.variant === 'interactive' ? 'date' : 'month'}
         tickLine={false}
         axisLine={false}
-        tickFormatter={shortMonth}
+        tickFormatter={spec.variant === 'interactive' ? undefined : shortMonth}
       />
       <Tooltip cursor={false} />
       <Line
@@ -420,6 +471,53 @@ function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 }
 
 function radialChart(spec: ShadcnCatalogSpec, width: number, height: number) {
+  if (spec.variant === 'stacked') {
+    return (
+      <RadialBarChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={[{ month: 'january', mobile: 570, desktop: 1260 }]}
+        startAngle={0}
+        endAngle={180}
+        innerRadius={80}
+        outerRadius={110}
+      >
+        <RadialBar
+          dataKey="mobile"
+          stackId="a"
+          fill={shadcnColors[1]}
+          cornerRadius={5}
+          isAnimationActive={false}
+        />
+        <RadialBar
+          dataKey="desktop"
+          stackId="a"
+          fill={shadcnColors[0]}
+          cornerRadius={5}
+          isAnimationActive={false}
+        />
+        <text
+          x={width / 2}
+          y={height / 2 - 16}
+          textAnchor="middle"
+          fill="var(--foreground)"
+          fontSize={24}
+          fontWeight={700}
+        >
+          1,830
+        </text>
+        <text
+          x={width / 2}
+          y={height / 2 + 4}
+          textAnchor="middle"
+          fill="var(--muted-foreground)"
+        >
+          Visitors
+        </text>
+      </RadialBarChart>
+    )
+  }
   const shape = spec.variant === 'shape'
   const centeredValue = shape || spec.variant === 'text'
   const data = centeredValue

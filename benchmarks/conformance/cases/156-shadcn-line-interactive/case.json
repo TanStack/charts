@@ -13,7 +13,8 @@
   "geometry": [
     {
       "role": "line",
-      "count": 2
+      "count": 1,
+      "maxCount": 1
     }
   ],
   "source": {

@@ -41,10 +41,14 @@ export function createExampleChart() {
     }),
   ]
   return defineChart(
-    ({ height }) => ({
+    ({ width, height }) => ({
       marks: [
         polar({
-          radiusRatio: height < 220 ? 0.64 : 0.76,
+          // Reserve space for the two outside label rows at every chart size.
+          radiusRatio: Math.min(
+            0.76,
+            Math.max(0.1, 1 - 120 / Math.min(width, height)),
+          ),
           scales: {
             angle: { scale: scalePoint<string>().domain(months), wrap: true },
             radius: { scale: scaleLinear().domain([0, radiusMax]) },
