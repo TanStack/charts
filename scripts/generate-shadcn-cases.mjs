@@ -310,13 +310,20 @@ function geometry(name, family) {
   if (family === 'bar') {
     return {
       role: 'bar',
-      count: variant === 'multiple' || variant === 'stacked' ? 12 : 6,
+      ...(['active', 'mixed'].includes(variant) ? { maxCount: 5 } : {}),
+      count:
+        variant === 'multiple' || variant === 'stacked'
+          ? 12
+          : ['active', 'mixed'].includes(variant)
+            ? 5
+            : 6,
     }
   }
   if (family === 'line') {
     return {
       role: 'line',
-      count: variant === 'multiple' || variant === 'interactive' ? 2 : 1,
+      ...(variant === 'interactive' ? { maxCount: 1 } : {}),
+      count: variant === 'multiple' ? 2 : 1,
     }
   }
   if (family === 'pie') return { role: 'arc', count: 5 }
@@ -329,7 +336,12 @@ function geometry(name, family) {
   if (family === 'radial') {
     return {
       role: 'bar',
-      count: ['simple', 'text', 'shape'].includes(variant) ? 1 : 5,
+      ...(variant === 'stacked' ? { maxCount: 2 } : {}),
+      count: ['simple', 'text', 'shape'].includes(variant)
+        ? 1
+        : variant === 'stacked'
+          ? 2
+          : 5,
       rendererRoles: { recharts: 'arc', tanstack: 'arc' },
     }
   }

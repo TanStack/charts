@@ -1,5 +1,6 @@
 export const shadcnDashboardStyles = `
   .shadcn-dashboard {
+    container: dashboard / inline-size;
     --sd-background: oklch(1 0 0);
     --sd-foreground: oklch(0.145 0 0);
     --sd-card: oklch(1 0 0);
@@ -752,7 +753,7 @@ export const shadcnDashboardStyles = `
     }
   }
 
-  @media (max-width: 767px) {
+  @container dashboard (max-width: 767px) {
     .sd-sidebar {
       display: none;
     }
@@ -781,7 +782,7 @@ export const shadcnDashboardStyles = `
     }
   }
 
-  @media (max-width: 480px) {
+  @container dashboard (max-width: 480px) {
     .sd-chart-card {
       height: 414px;
     }

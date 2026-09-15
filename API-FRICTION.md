@@ -8318,6 +8318,19 @@ Each entry records:
   complete standard shard 4/8 passes all 24 cases, including the nine former
   failures, with the original geometry, paint, and accessibility gates intact.
 
+- Follow-up from scheduled run 34865024647: active and mixed bars render five
+  browser data rows, and stacked radial renders two series, but generated
+  expectations used generic family counts. The interactive line selects one
+  series at a time, not two simultaneous lines. Correct the source generator and
+  pinned reference data. The stacked radial example also used 1260 as the
+  cumulative end of a 570 + 1260 stack; its cumulative end and domain are 1830.
+  First-party browser checks exposed outside radar labels with no reserved
+  space, a negative-bar label below the viewport, and dashboard media queries
+  tied to the host window instead of the embedded panel. Reserve label space
+  and use dashboard container queries. Its actual scroll viewport is now
+  identified for the existing offscreen-label rule, not treated as a clipped
+  static chart. Retain these cases in routine first-party browser coverage.
+
 ### F-275 — Preview transparency validation rejected semantic IDs
 
 - Status: resolved

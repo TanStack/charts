@@ -50,7 +50,7 @@ export function createExampleChart() {
         y: { scale: scaleLinear, grid: true, axis: false },
       },
 
-      margin: { top: 24, right: 5, bottom: 24, left: 5 },
+      margin: { top: 24, right: 5, bottom: 36, left: 5 },
       theme: shadcnTheme(),
     },
     {

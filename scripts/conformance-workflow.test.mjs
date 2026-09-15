@@ -30,19 +30,20 @@ describe('conformance monitoring workflow contract', () => {
     )
   })
 
-  test('rotates one nightly shard and runs all shards weekly', () => {
+  test('runs first-party correctness weekly and comparisons monthly, with no nightly audit', () => {
     assert.deepEqual(
       [...workflow.matchAll(/^\s+- cron:\s*'([^']+)'\s*$/gm)].map(
         (match) => match[1],
       ),
-      ['43 7 * * *', '13 9 * * 1'],
+      ['13 9 * * 1', '43 7 1 * *'],
     )
 
     const select = job('select')
-    assert.match(select, /epoch_day=\$\(\( \$\(date -u \+%s\) \/ 86400 \)\)/)
-    assert.match(select, /shard=\$\(\( epoch_day % 8 \+ 1 \)\)/)
-    assert.match(select, /mode=nightly\s*\n\s+shards="\[\$shard\]"/)
-    assert.match(select, /mode=weekly\s*\n\s+shards='\[1,2,3,4,5,6,7,8\]'/)
+    assert.doesNotMatch(select, /epoch_day|mode=nightly/)
+    assert.match(select, /suite=first-party/)
+    assert.match(select, /EVENT_SCHEDULE" = '43 7 1 \* \*'/)
+    assert.match(select, /suite=comparison/)
+    assert.match(select, /mode=scheduled\s*\n\s+shards='\[1,2,3,4,5,6,7,8\]'/)
     assert.match(select, /mode:\s*\${{ steps\.selection\.outputs\.mode }}/)
     assert.match(select, /shards:\s*\${{ steps\.selection\.outputs\.shards }}/)
   })
@@ -82,10 +83,10 @@ describe('conformance monitoring workflow contract', () => {
       /shard:\s*\${{ fromJSON\(needs\.select\.outputs\.shards\) }}/,
     )
     assert.match(conformance, /playwright:\s*['"]true['"]/)
-    assert.match(
-      conformance,
-      /pnpm conformance -- --shard=\${{ matrix\.shard }}\/8/,
-    )
+    assert.match(conformance, /pnpm conformance -- "\$\{args\[@\]\}"/)
+    assert.match(conformance, /args\+=\(--first-party\)/)
+    assert.match(conformance, /args\+=\(--case="\$CASES"\)/)
+    assert.match(job('select'), /mode=targeted\s*\n\s+shards='\[1\]'/)
     assert.doesNotMatch(conformance, /conformance:quick|--profile=full/)
     assert.match(
       conformance,

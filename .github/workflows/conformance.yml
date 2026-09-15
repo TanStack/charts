@@ -9,8 +9,8 @@ on:
       - reopened
       - ready_for_review
   schedule:
-    - cron: '43 7 * * *'
     - cron: '13 9 * * 1'
+    - cron: '43 7 1 * *'
   workflow_dispatch:
     inputs:
       shard:
@@ -28,6 +28,17 @@ on:
           - '6'
           - '7'
           - '8'
+      suite:
+        description: First-party correctness or exhaustive competitor comparison
+        type: choice
+        default: first-party
+        options:
+          - first-party
+          - comparison
+      cases:
+        description: Optional comma-separated case IDs for a targeted run
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -39,13 +50,15 @@ jobs:
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
-       contains(github.event.pull_request.labels.*.name, 'full-conformance') &&
-       (github.event.action != 'labeled' || github.event.label.name == 'full-conformance'))
+       (contains(github.event.pull_request.labels.*.name, 'full-conformance') ||
+        contains(github.event.pull_request.labels.*.name, 'browser-correctness')) &&
+       (github.event.action != 'labeled' || github.event.label.name == 'full-conformance' || github.event.label.name == 'browser-correctness'))
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     outputs:
       mode: ${{ steps.selection.outputs.mode }}
       shards: ${{ steps.selection.outputs.shards }}
+      suite: ${{ steps.selection.outputs.suite }}
 
     steps:
       - id: selection
@@ -54,17 +67,22 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           REQUESTED_SHARD: ${{ inputs.shard }}
+          REQUESTED_SUITE: ${{ inputs.suite }}
+          REQUESTED_CASES: ${{ inputs.cases }}
+          FULL_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'full-conformance') }}
         run: |
-          if [ "$EVENT_NAME" = schedule ] && [ "$EVENT_SCHEDULE" = '43 7 * * *' ]; then
-            epoch_day=$(( $(date -u +%s) / 86400 ))
-            shard=$(( epoch_day % 8 + 1 ))
-            mode=nightly
-            shards="[$shard]"
+          suite=first-party
+          if [ "$EVENT_SCHEDULE" = '43 7 1 * *' ] || [ "$FULL_LABEL" = true ] || [ "$REQUESTED_SUITE" = comparison ]; then
+            suite=comparison
+          fi
+          if [ -n "$REQUESTED_CASES" ]; then
+            mode=targeted
+            shards='[1]'
           elif [ "$EVENT_NAME" = workflow_dispatch ] && [ "$REQUESTED_SHARD" != full ]; then
             mode=manual
             shards="[$REQUESTED_SHARD]"
           elif [ "$EVENT_NAME" = schedule ]; then
-            mode=weekly
+            mode=scheduled
             shards='[1,2,3,4,5,6,7,8]'
           elif [ "$EVENT_NAME" = pull_request ]; then
             mode=label
@@ -76,10 +94,11 @@ jobs:
 
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "shards=$shards" >> "$GITHUB_OUTPUT"
-          echo "Mode: $mode; shards: $shards; revision: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "suite=$suite" >> "$GITHUB_OUTPUT"
+          echo "Suite: $suite; mode: $mode; shards: $shards; revision: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
 
   conformance:
-    name: Conformance (${{ matrix.shard }}/8, ${{ needs.select.outputs.mode }})
+    name: Conformance (${{ matrix.shard }}/8, ${{ needs.select.outputs.suite }}, ${{ needs.select.outputs.mode }})
     needs: select
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -103,7 +122,16 @@ jobs:
           playwright: 'true'
 
       - name: Run standard conformance shard
-        run: pnpm conformance -- --shard=${{ matrix.shard }}/8
+        env:
+          SUITE: ${{ needs.select.outputs.suite }}
+          CASES: ${{ inputs.cases }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          args=()
+          if [ -z "$CASES" ]; then args+=(--shard="$SHARD/8"); fi
+          if [ "$SUITE" = first-party ]; then args+=(--first-party); fi
+          if [ -n "$CASES" ]; then args+=(--case="$CASES"); fi
+          pnpm conformance -- "${args[@]}"
 
       - name: Publish conformance summary
         if: success()

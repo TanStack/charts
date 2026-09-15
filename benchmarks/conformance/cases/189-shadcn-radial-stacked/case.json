@@ -13,7 +13,8 @@
   "geometry": [
     {
       "role": "bar",
-      "count": 5,
+      "count": 2,
+      "maxCount": 2,
       "rendererRoles": {
         "recharts": "arc",
         "tanstack": "arc"

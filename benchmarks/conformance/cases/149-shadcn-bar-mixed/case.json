@@ -13,7 +13,8 @@
   "geometry": [
     {
       "role": "bar",
-      "count": 6
+      "count": 5,
+      "maxCount": 5
     }
   ],
   "source": {

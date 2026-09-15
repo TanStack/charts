@@ -5,6 +5,39 @@ import { getShadcnCatalogSpec, shadcnColors } from './shadcn-catalog-data'
 
 describe('shadcn reference accessibility', () => {
   it.each([
+    ['chart-bar-active', '.recharts-bar-rectangle path', 5],
+    ['chart-bar-mixed', '.recharts-bar-rectangle path', 5],
+    ['chart-line-interactive', '.recharts-line-curve', 1],
+    [
+      'chart-radial-stacked',
+      'path.recharts-radial-bar-sector, .recharts-radial-bar-sector path',
+      2,
+    ],
+  ])(
+    'preserves the pinned datum count through resize and revision: %s',
+    async (name, selector, count) => {
+      const root = document.createElement('div')
+      document.body.append(root)
+      const handle = await act(async () =>
+        createShadcnRechartsExample(name).mount(root, {
+          width: 640,
+          height: 600,
+          revision: 0,
+        }),
+      )
+      try {
+        expect(root.querySelectorAll(selector)).toHaveLength(count)
+        await act(async () =>
+          handle.update({ width: 320, height: 600, revision: 1 }),
+        )
+        expect(root.querySelectorAll(selector)).toHaveLength(count)
+      } finally {
+        await act(async () => handle.destroy())
+        root.remove()
+      }
+    },
+  )
+  it.each([
     ['chart-radial-text', '200'],
     ['chart-radial-shape', '1,260'],
   ])(

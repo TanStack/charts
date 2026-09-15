@@ -9,6 +9,7 @@ import {
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
 import { CellTimeoutError } from './benchmark/cell-timeout.mjs'
+import { runStressTimingPhases } from './benchmark/stress-phases.mjs'
 import { createStressDiagnostics } from './benchmark/stress-diagnostics.mjs'
 import {
   installStressPointerTiming,
@@ -140,20 +141,26 @@ try {
     )
     if (!benchmarkCase) throw new Error(`Missing case for ${cell.id}.`)
 
-    const timing = await runIsolatedWithRetry(
-      browser,
-      120_000,
-      (context, diagnostics) =>
-        runTimingCell(
-          context,
-          server.url,
-          benchmarkCase,
-          cell.sourceCount,
-          profile,
-          diagnostics,
+    const timing = await runStressTimingPhases(
+      cell.workload,
+      (timingPhase) =>
+        runIsolatedWithRetry(
+          browser,
+          120_000,
+          (context, diagnostics) =>
+            runTimingCell(
+              context,
+              server.url,
+              benchmarkCase,
+              cell.sourceCount,
+              profile,
+              diagnostics,
+              timingPhase,
+            ),
+          cell,
+          timingPhase?.name ?? 'timing',
         ),
-      cell,
-      'timing',
+      profile.samples,
     )
     let memory
     if (
@@ -234,6 +241,8 @@ const result = {
     retry: diagnosticMode
       ? 'No automatic retries in diagnostic mode.'
       : 'An outer timeout or browser-context infrastructure failure receives one immediate fresh-context retry. Renderer, page, protocol, and correctness failures are not retried; every attempted error remains explicit in the result and report.',
+    timingIsolation:
+      'Raw scatter runs mount and each independent update trial in fresh contexts, each with the original 120-second deadline and unchanged samples. This applies to every renderer. Other workloads retain whole-cell isolation. Long-task entry timestamps are local to their recorded phase.',
     output:
       'Adapter probes gate rendered dimensions, data items or path vertices, numeric endpoint visibility, and multi-series path, identity, and per-series vertex accounting.',
     ranking:
@@ -407,6 +416,7 @@ async function runTimingCell(
   sourceCount,
   benchmarkProfile,
   diagnostics,
+  timingPhase,
 ) {
   const page = await context.newPage()
   if (diagnosticMode)
@@ -429,6 +439,7 @@ async function runTimingCell(
       profile: currentProfile,
       profileName: selectedProfile,
       diagnosticsEnabled,
+      timingPhase,
     }) => {
       const phase = diagnosticsEnabled
         ? (name) => console.info(`__chartsStressPhase__:${name}`)
@@ -513,7 +524,10 @@ async function runTimingCell(
       let output
       for (
         let sampleIndex = 0;
-        sampleIndex < currentProfile.warmup + currentProfile.samples;
+        sampleIndex <
+        (timingPhase && !timingPhase.mount
+          ? 0
+          : currentProfile.warmup + currentProfile.samples);
         sampleIndex++
       ) {
         const root = createRoot(initial.input, instances)
@@ -546,7 +560,7 @@ async function runTimingCell(
 
       const updates = []
       const pointerStateInputs = new Map([['initial', initial.input]])
-      for (const kind of workload.updates) {
+      for (const kind of timingPhase?.updates ?? workload.updates) {
         phase(`update:${kind}`)
         const target =
           kind === 'roll'
@@ -1824,6 +1838,7 @@ async function runTimingCell(
       profile: benchmarkProfile,
       profileName,
       diagnosticsEnabled: diagnosticMode,
+      timingPhase,
     },
   )
 
@@ -2549,6 +2564,7 @@ function renderMarkdown(result) {
     '- Grouped pointer probes gate exact focused x and per-series values before and after reorder, append, and visibility updates.',
     '- Rolling streams await every monotonic revision. Bursts enqueue synchronously, drain every returned operation, and reject stale final output.',
     '- Memory covers JavaScript heap and DOM counters only; GPU and native canvas allocations are outside this protocol.',
+    '- Raw scatter isolates mount and each independent update trial in fresh contexts for every renderer, retaining all samples and the 120-second deadline per phase. Other workloads keep whole-cell isolation.',
     '- Compare timing only within this run and browser build.',
     '',
   )

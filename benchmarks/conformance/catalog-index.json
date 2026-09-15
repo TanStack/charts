@@ -10694,7 +10694,8 @@
       "geometry": [
         {
           "role": "bar",
-          "count": 6
+          "count": 5,
+          "maxCount": 5
         }
       ],
       "source": {
@@ -10880,7 +10881,8 @@
       "geometry": [
         {
           "role": "bar",
-          "count": 6
+          "count": 5,
+          "maxCount": 5
         }
       ],
       "source": {
@@ -11097,7 +11099,8 @@
       "geometry": [
         {
           "role": "line",
-          "count": 2
+          "count": 1,
+          "maxCount": 1
         }
       ],
       "source": {
@@ -12136,7 +12139,8 @@
       "geometry": [
         {
           "role": "bar",
-          "count": 5,
+          "count": 2,
+          "maxCount": 2,
           "rendererRoles": {
             "recharts": "arc",
             "tanstack": "arc"

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {
   conformanceCaseHeight,
+  conformanceInspectionPasses,
   normalizeTypeDiagnosticPath,
   selectCatalogCases,
 } from './compare-plot-catalog-helpers.mjs'
@@ -10,6 +11,25 @@ const { describe, test } = process.env.VITEST
   : await import('node:test')
 
 describe('catalog comparison helpers', () => {
+  test('first-party inspection retains containment, names, guides, and both count bounds', () => {
+    const good = {
+      guidesContained: true,
+      accessibleName: true,
+      guideAssertions: [{ pass: true }],
+      geometry: { bar: { present: true, withinMaximum: true } },
+    }
+    assert.equal(conformanceInspectionPasses(good), true)
+    for (const bad of [
+      undefined,
+      { ...good, guidesContained: false },
+      { ...good, accessibleName: false },
+      { ...good, guideAssertions: [{ pass: false }] },
+      { ...good, geometry: { bar: { present: false, withinMaximum: true } } },
+      { ...good, geometry: { bar: { present: true, withinMaximum: false } } },
+    ]) {
+      assert.equal(conformanceInspectionPasses(bad), false)
+    }
+  })
   test('uses authored case heights without changing the legacy default', () => {
     assert.equal(conformanceCaseHeight({}), 360)
     assert.equal(conformanceCaseHeight({ height: 600 }), 600)
