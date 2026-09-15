@@ -653,6 +653,7 @@ async function runTimingCell(
         ) {
           const next =
             kind === 'noop' || sampleIndex % 2 === 0 ? target : initial
+          phase(`update:${kind}:sample:${sampleIndex}`)
           const startedAt = performance.now()
           const operations = handles.map((handle) => handle.update(next.input))
           forceLayout(root.element)
