@@ -325,7 +325,7 @@ jobs:
         with:
           playwright: 'true'
       - name: Diagnose one timing cell
-        run: node scripts/stress-chart-libraries.mjs --profile=standard --library=tanstack --workload=stats-multi-series-line --diagnostics
+        run: node scripts/stress-chart-libraries.mjs --profile=standard --library=recharts --workload=raw-scatter --diagnostics
       - name: Upload phase diagnostics
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

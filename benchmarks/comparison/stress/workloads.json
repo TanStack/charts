@@ -95,7 +95,7 @@
       },
       "sourceCounts": {
         "quick": [1000],
-        "standard": [1000, 10000],
+        "standard": [10000],
         "full": [1000, 10000, 25000]
       },
       "updates": ["noop", "same", "append", "replace", "reorder", "resize"]
