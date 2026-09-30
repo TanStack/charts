@@ -12,7 +12,7 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `8bab934` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `265b20e` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-09-10`.
+Baseline date: `2026-09-30`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
