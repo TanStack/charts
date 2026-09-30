@@ -948,7 +948,10 @@ async function verifyEsmRuntime() {
 
     const canonicalRoot = pathToFileURL(${JSON.stringify(`${root}${sep}`)}).href
     const installedRoot = realpathSync('./node_modules')
-    const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+    const typeOnlySpecifiers = new Set([
+      '@tanstack/charts/types',
+      '@tanstack/charts/types/core',
+    ])
     const publishedSpecifiers = ${JSON.stringify(publishedSubpaths)}
     for (const specifier of publishedSpecifiers) {
       const resolved = import.meta.resolve(specifier)
@@ -3641,6 +3644,56 @@ async function verifyDeclarations() {
   }
 
   await assertPackedDeclarationSources(program, 'DOM declaration contract')
+
+  const emitContractPath = resolve(fixtureDirectory, 'declaration-emit.ts')
+  await writeFile(
+    emitContractPath,
+    `
+      import { barY } from '@tanstack/charts/bar'
+      import { defineChart } from '@tanstack/charts/scene'
+      import { scaleBand, scaleLinear } from 'd3-scale'
+
+      interface Row { readonly day: Date; readonly count: number }
+      const rows: Row[] = [{ day: new Date(0), count: 1 }]
+      export const bars = barY(rows, { x: row => row.day, y: row => row.count })
+      export function makeChart(rows: readonly Row[]) {
+        return defineChart({
+          marks: [barY(rows, { x: row => row.day, y: row => row.count })],
+          scales: { x: { scale: scaleBand }, y: { scale: scaleLinear } },
+        })
+      }
+    `,
+  )
+  const emitProgram = ts.createProgram([emitContractPath], {
+    ...options,
+    noEmit: false,
+    declaration: true,
+    emitDeclarationOnly: true,
+    noEmitOnError: true,
+    outDir: resolve(fixtureDirectory, 'declarations'),
+  })
+  const emitted = emitProgram.emit()
+  const emitDiagnostics = [
+    ...ts.getPreEmitDiagnostics(emitProgram),
+    ...emitted.diagnostics,
+  ]
+  assert.equal(
+    emitDiagnostics.length,
+    0,
+    `Packed consumer declaration emit failed:\n${formatDiagnostics(emitDiagnostics)}`,
+  )
+  assert.equal(emitted.emitSkipped, false)
+  await assertPackedDeclarationSources(emitProgram, 'consumer declaration emit')
+  const downstreamProgram = ts.createProgram(
+    [resolve(fixtureDirectory, 'declarations/declaration-emit.d.ts')],
+    options,
+  )
+  const downstreamDiagnostics = ts.getPreEmitDiagnostics(downstreamProgram)
+  assert.equal(
+    downstreamDiagnostics.length,
+    0,
+    `Emitted consumer declarations are not portable:\n${formatDiagnostics(downstreamDiagnostics)}`,
+  )
 
   const universalSource = `
     import {
