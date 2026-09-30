@@ -3783,6 +3783,153 @@ describe('SVG motion', () => {
     else Reflect.deleteProperty(window, 'matchMedia')
   })
 
+  it('retains independent emphasis through interrupted data motion and restores it', async () => {
+    const makeScene = (offset: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            dot(
+              [
+                { id: 'a', x: 0, y: 4 + offset, series: 'a' },
+                { id: 'b', x: 1, y: 8 + offset, series: 'b' },
+              ],
+              {
+                id: 'series',
+                x: 'x',
+                y: 'y',
+                z: 'series',
+                key: 'id',
+                states: [
+                  {
+                    when: (context) => !context.matches('series'),
+                    style: { opacity: 0.2 },
+                    transition: { type: 'tween', duration: 100 },
+                  },
+                ],
+              },
+            ),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([-1, 2]) },
+            y: { scale: scaleLinear().domain([0, 20]) },
+          },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const first = makeScene(0),
+      next = makeScene(1),
+      third = makeScene(2)
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    const frames = installManagedFrames()
+    try {
+      surface.render(first, { ariaLabel: 'Interrupted emphasis' })
+      surface.render(next, { ariaLabel: 'Interrupted emphasis' })
+      frames.run(0)
+      frames.run(40)
+      const point = next.points[1]!
+      surface.paintFocus(null, null, null, {
+        stateFocus: {
+          primary: point,
+          group: [point],
+          source: 'legend',
+          pinned: false,
+        },
+      })
+      surface.render(third, { ariaLabel: 'Interrupted emphasis' })
+      frames.run(40)
+      frames.run(140)
+      await Promise.resolve()
+      const a = container.querySelector(
+        `circle[data-ts-key="${third.points[0]!.key}"]`,
+      )!
+      const b = container.querySelector(
+        `circle[data-ts-key="${third.points[1]!.key}"]`,
+      )!
+      if (frames.pending()) {
+        frames.run(140)
+        frames.run(240)
+      }
+      expect(Number(a.getAttribute('opacity'))).toBeCloseTo(0.2)
+      expect(b.getAttribute('opacity')).not.toBe('0.2')
+      surface.paintFocus(null)
+      for (const time of [240, 340]) if (frames.pending()) frames.run(time)
+      expect(a.getAttribute('opacity')).not.toBe('0.2')
+      surface.destroy()
+      expect(frames.pending()).toBe(0)
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
+  })
+
+  it('snaps independent emphasis and restoration under reduced motion', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: true }),
+    })
+    const request = vi.spyOn(window, 'requestAnimationFrame')
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(
+            [
+              { x: 0, y: 1, series: 'a' },
+              { x: 1, y: 2, series: 'b' },
+            ],
+            {
+              id: 'series',
+              x: 'x',
+              y: 'y',
+              z: 'series',
+              states: [
+                {
+                  when: (context) => !context.matches('series'),
+                  style: { opacity: 0.2 },
+                  transition: { type: 'tween', duration: 100 },
+                },
+              ],
+            },
+          ),
+        ],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    try {
+      surface.render(scene, { ariaLabel: 'Reduced emphasis' })
+      const point = scene.points[1]!
+      surface.paintFocus(null, null, null, {
+        stateFocus: {
+          primary: point,
+          group: [point],
+          source: 'legend',
+          pinned: false,
+        },
+      })
+      const a = container.querySelector(
+        `circle[data-ts-key="${scene.points[0]!.key}"]`,
+      )!
+      expect(a.getAttribute('opacity')).toBe('0.2')
+      surface.paintFocus(null)
+      expect(a.getAttribute('opacity')).not.toBe('0.2')
+      expect(request).not.toHaveBeenCalled()
+    } finally {
+      surface.destroy()
+      request.mockRestore()
+      if (descriptor) Object.defineProperty(window, 'matchMedia', descriptor)
+      else Reflect.deleteProperty(window, 'matchMedia')
+    }
+  })
+
   it('carries spring momentum through an interrupted target change', () => {
     const makeScene = (value: number) =>
       createChartScene(

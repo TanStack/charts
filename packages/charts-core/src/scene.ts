@@ -1870,40 +1870,27 @@ function createTickLabelCandidates(
             : 'middle'
     const anchor =
       resolveTickLabelValue(options.anchor, context) ?? automaticAnchor
-    const label: SceneLabel =
-      guide.channel === 'x'
-        ? {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: tick.position + dx,
-            y:
-              axisPosition + direction * (size + padding + fontSize * 0.8) + dy,
-            text: tick.label,
-            anchor,
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
-        : {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: axisPosition + direction * (size + padding) + dx,
-            y: tick.position + dy,
-            text: tick.label,
-            anchor,
-            baseline: 'middle',
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
+    const isX = guide.channel === 'x'
+    const label: SceneLabel = {
+      kind: 'label',
+      key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
+      x: isX
+        ? tick.position + dx
+        : axisPosition + direction * (size + padding) + dx,
+      y: isX
+        ? axisPosition + direction * (size + padding + fontSize * 0.8) + dy
+        : tick.position + dy,
+      text: tick.label,
+      anchor,
+      rotate,
+      fontSize,
+      fontWeight,
+      style: {
+        fill: theme.muted,
+        ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
+      },
+    }
+    if (!isX) label.baseline = 'middle'
     if (typeof opacityOption === 'function') {
       label.focusOpacity = (state) => opacityOption({ ...context, ...state })
     }

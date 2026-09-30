@@ -34,7 +34,7 @@ import { renderChartSvgWithResources } from './svg-resources'
 import { text } from './text'
 import { tooltip } from './tooltip'
 import { composeViews, fill, inset, layer } from './view'
-import type { ChartSurfaceRenderOptions } from './dom-types'
+import type { ChartSurface, ChartSurfaceRenderOptions } from './dom-types'
 import type { ChartScene, SceneNode } from './types'
 
 interface FakeCanvasContext {
@@ -523,6 +523,33 @@ describe('Canvas renderer', () => {
     expect(context.surface.layers).toHaveLength(3)
     expect(context.svg).toBe(container.querySelectorAll('svg').item(1))
     expect(context.svg.querySelector('[data-ts-key="svg-dots"]')).not.toBeNull()
+
+    const surface: ChartSurface<number, number, number> = context.surface
+    expect(surface.supportsStateFocus).toBe(true)
+    const layers = surface.layers!
+    const paintSpies = layers.map((layer) => vi.spyOn(layer, 'paintFocus'))
+    const point = host.getScene().points[0]!
+    const emphasis = {
+      primary: point,
+      group: [point],
+      source: 'legend' as const,
+      pinned: false,
+    }
+    const options = { stateFocus: emphasis }
+    surface.paintFocus(null, null, null, options)
+    for (const paint of paintSpies) {
+      expect(paint).toHaveBeenLastCalledWith(null, null, null, options)
+    }
+    const restoration = { stateFocus: null }
+    surface.paintFocus(null, null, null, restoration)
+    for (const paint of paintSpies) {
+      expect(paint).toHaveBeenLastCalledWith(null, null, null, restoration)
+    }
+    Object.defineProperty(layers[0]!, 'supportsStateFocus', {
+      configurable: true,
+      value: undefined,
+    })
+    expect(surface.supportsStateFocus).toBeUndefined()
 
     host.destroy()
   })

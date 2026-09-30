@@ -11,6 +11,7 @@ import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartHostControlExtension,
+  ChartHostControlExtensionContext,
   ChartRenderer,
   ChartRendererCapabilities,
   ChartSurface,
@@ -53,6 +54,74 @@ const definition = defineChart({
 })
 
 describe('renderer-neutral chart host', () => {
+  it.each([false, true])(
+    'requires explicit independent-state-focus support from a custom renderer (%s)',
+    (supported) => {
+      const fake = createFakeRenderer()
+      if (supported) {
+        Object.defineProperty(fake.surface, 'supportsStateFocus', {
+          value: true,
+        })
+      }
+      let setStateFocus!: ChartHostControlExtensionContext<
+        Datum,
+        number,
+        number
+      >['setStateFocus']
+      const extension: ChartHostControlExtension<Datum, number, number> = {
+        id: 'state-focus-test',
+        create(context) {
+          setStateFocus = context.setStateFocus
+          return { update() {}, destroy() {} }
+        },
+      }
+      const onFocusChange = vi.fn()
+      const host = mountChartRenderer(document.createElement('div'), {
+        definition: defineChart(definition, {
+          controls: [
+            {
+              id: 'state-focus-control',
+              resolve: () => ({
+                nodes: [],
+                controls: [{ key: 'state-focus', extension }],
+              }),
+            },
+          ],
+        }),
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Custom renderer emphasis',
+        onFocusChange,
+      })
+      const point = host.getScene().points[0]!
+      const focus = {
+        primary: point,
+        group: [point],
+        source: 'legend' as const,
+        pinned: false,
+      }
+      fake.paintFocus.mockClear()
+      onFocusChange.mockClear()
+      if (supported) {
+        setStateFocus(focus)
+        expect(fake.paintFocus).toHaveBeenLastCalledWith(null, null, null, {
+          stateFocus: focus,
+        })
+      } else {
+        expect(() => setStateFocus(focus)).toThrow(
+          'requires a renderer that supports independent state focus',
+        )
+        expect(fake.paintFocus).not.toHaveBeenCalled()
+      }
+      expect(onFocusChange).not.toHaveBeenCalled()
+      setStateFocus(null)
+      expect(fake.paintFocus).toHaveBeenLastCalledWith(null, null)
+      host.destroy()
+      expect(fake.destroy).toHaveBeenCalledOnce()
+    },
+  )
+
   it('rejects tooltip extensions owned by another host', () => {
     const nativeTooltip: ChartTooltipExtensionToken<'react-native'> = {
       id: 'native-tooltip',

@@ -4807,8 +4807,13 @@ Each entry records:
   Unit tests cover pointer and keyboard emphasis, pinned restoration, unchanged
   tooltip text, no focus callbacks, and labels seeing real focus. Chromium,
   Firefox, and WebKit verify the same lifecycle for SVG and motion with no page
-  errors. Canvas-specific emphasis, scene updates, reduced motion, final bundle
-  costs, and full release verification remain open.
+  errors. Scene-update tests now cover new datum ownership, disabling hover,
+  hiding a series, and removing the legend. Motion tests verify interrupted
+  data updates, restoration, teardown cleanup, and immediate reduced-motion
+  paint without animation frames. Custom-renderer tests verify capability
+  rejection and forwarding without real focus callbacks. Mixed SVG/Canvas
+  tests verify forwarding to every layer and require support from all layers.
+  Final bundle costs and full release verification remain open.
 - Canvas legend follow-up: the pixel fixture initially used color-only dots,
   whose point group is intentionally null. The documentation now distinguishes
   per-point paint from `z` series ownership, and explains that `z` supplies
