@@ -217,6 +217,20 @@ describe('CI workflow contract', () => {
       stress: false,
     })
     assert.deepEqual(
+      classifyCiChanges([
+        'packages/charts-core/src/adapter.test.ts',
+        'packages/react-charts/src/nested/hydration.spec.tsx',
+      ]),
+      { static: 'full', compare: false, stress: false },
+    )
+    assert.deepEqual(
+      classifyCiChanges([
+        'packages/charts-core/src/adapter.test.ts',
+        'packages/charts-core/src/adapter.ts',
+      ]),
+      { static: 'full', compare: true, stress: true },
+    )
+    assert.deepEqual(
       classifyCiChanges(['packages/charts-core/src/reconcile.ts']),
       {
         static: 'full',

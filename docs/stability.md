@@ -18,7 +18,8 @@ All public TanStack Charts packages move together as one fixed release group.
   APIs. A fix may correct rendering or interaction that was observably wrong.
 - Minor releases may add features and may contain breaking API changes while
   the package major remains `0`.
-- The project will publish a stable-release compatibility policy before `1.0`.
+- The [stable compatibility contract](./compatibility.md) takes effect with
+  `1.0`; published `0.x` releases continue to follow this Alpha policy.
 
 ## Public surface
 

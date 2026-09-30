@@ -1,5 +1,8 @@
 import { createDecorativeMark } from './mark-decorative-internal'
-import { stripMarkSceneInteraction } from './mark-scene-filter-internal'
+import {
+  collectMarkScenePoints,
+  stripMarkSceneInteraction,
+} from './mark-scene-filter-internal'
 import type { ChartMark, DecorativeChartMark } from './types'
 
 /** Keeps one mark's scale and painted geometry while removing interaction ownership. */
@@ -8,12 +11,27 @@ export function decorative<
 >(mark: TMark): DecorativeChartMark<TMark> {
   return createDecorativeMark(
     mark,
-    (scene) =>
-      stripMarkSceneInteraction(scene, {
-        conditional: 'reject',
-      }),
+    (scene, { id, states }) =>
+      stripMarkSceneInteraction(
+        states
+          ? {
+              ...scene,
+              nodes: [
+                {
+                  kind: 'group',
+                  key: `states:${id}`,
+                  children: scene.nodes,
+                  states: { ...states, points: collectMarkScenePoints(scene) },
+                },
+              ],
+            }
+          : scene,
+        {
+          conditional: 'preserve-states',
+        },
+      ),
     {
-      conditional: 'reject',
+      conditional: 'preserve-states',
       layoutLabels: 'preserve',
     },
   ) as unknown as DecorativeChartMark<TMark>

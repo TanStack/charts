@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
 import { readBundleConcurrency } from './measure-bundles-options.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
+import { assertNoPackageTestInputs } from './package-test-path.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const outputDirectory = resolve(root, '.bundle-output')
@@ -2218,6 +2219,7 @@ await runWithConcurrency(
       metafile: true,
     })
     const retainedInputs = collectRetainedInputs(result.metafile)
+    assertNoPackageTestInputs(Object.keys(result.metafile.inputs))
     const contents = await readFile(outfile)
     entryRows[index] = {
       label,

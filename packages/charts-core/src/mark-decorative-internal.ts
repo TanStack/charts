@@ -7,7 +7,7 @@ import type {
 } from './types'
 
 interface DecorativeMarkLifecycleOptions {
-  conditional: 'remove' | 'reject'
+  conditional: 'remove' | 'reject' | 'preserve-states'
   layoutLabels: 'preserve' | 'remove'
 }
 
@@ -32,6 +32,7 @@ export function createDecorativeMark<
   >,
   transform: (
     scene: MarkScene<TDatum, TXPointValue, TYPointValue>,
+    metadata: Pick<InitializedMark, 'id' | 'states'>,
   ) => MarkScene<TDatum, TXPointValue, TYPointValue>,
   options: DecorativeMarkLifecycleOptions,
 ): ChartMark<
@@ -64,7 +65,11 @@ export function createDecorativeMark<
           never,
           never
         >['render'],
-        postDomain: composePostDomain(initialized.postDomain, transform),
+        postDomain: composePostDomain(
+          initialized.postDomain,
+          transform,
+          initialized,
+        ),
         ...(resolveLayout
           ? {
               resolveLayout(layoutContext) {
@@ -85,6 +90,10 @@ export function createDecorativeMark<
                   postDomain: composePostDomain(
                     resolved.postDomain ?? initialized.postDomain,
                     transform,
+                    {
+                      id: initialized.id,
+                      states: resolved.states ?? initialized.states,
+                    },
                   ),
                 } satisfies ResolvedMarkLayout<TDatum, never, never>
               },
@@ -104,8 +113,9 @@ function assertConditionalMetadata(
   options: DecorativeMarkLifecycleOptions,
 ) {
   if (
-    options.conditional === 'reject' &&
-    (mark.focus !== undefined || mark.states !== undefined)
+    options.conditional !== 'remove' &&
+    (mark.focus !== undefined ||
+      (options.conditional === 'reject' && mark.states !== undefined))
   ) {
     throw new TypeError(
       `decorative() cannot wrap mark "${id}" with focus or state behavior`,
@@ -134,8 +144,10 @@ function composePostDomain<
     | undefined,
   transform: (
     scene: MarkScene<TDatum, TXValue, TYValue>,
+    metadata: Pick<InitializedMark, 'id' | 'states'>,
   ) => MarkScene<TDatum, TXValue, TYValue>,
+  metadata: Pick<InitializedMark, 'id' | 'states'>,
 ) {
   return (scene: MarkScene<TDatum, TXValue, TYValue>) =>
-    transform(existing ? existing(scene) : scene)
+    transform(existing ? existing(scene) : scene, metadata)
 }

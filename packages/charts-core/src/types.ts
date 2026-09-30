@@ -375,12 +375,23 @@ export type ChartAxisTickLabelValue<TValue extends ChartValue, TOutput> =
   | TOutput
   | ((context: ChartAxisTickLabelContext<TValue>) => TOutput | undefined)
 
+export interface ChartAxisTickLabelOpacityContext<
+  TValue extends ChartValue = ChartValue,
+> extends ChartAxisTickLabelContext<TValue> {
+  focus: ChartFocusState | null
+  pointer: ChartTooltipPosition | null
+}
+
 export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
   rotate?: number
   thin?: boolean | ChartAxisTickLabelThinOptions<TValue>
   fontSize?: ChartAxisTickLabelValue<TValue, number>
   fontWeight?: ChartAxisTickLabelValue<TValue, number>
-  opacity?: ChartAxisTickLabelValue<TValue, number>
+  opacity?:
+    | number
+    | ((
+        context: ChartAxisTickLabelOpacityContext<TValue>,
+      ) => number | undefined)
   anchor?: ChartAxisTickLabelValue<TValue, 'start' | 'middle' | 'end'>
   dx?: ChartAxisTickLabelValue<TValue, number>
   dy?: ChartAxisTickLabelValue<TValue, number>
@@ -1466,6 +1477,8 @@ interface SceneNodeBase {
   ariaHidden?: boolean
   /** Point ownership for decorative geometry; does not make the node interactive. */
   pointOwner?: ChartPoint
+  /** Semantic ownership for a decorative path spanning several observations. */
+  pointOwners?: readonly ChartPoint[]
 }
 
 interface InteractiveSceneNodeBase extends SceneNodeBase {
@@ -1504,6 +1517,8 @@ export interface SceneGroup extends SceneNodeBase {
     data: readonly unknown[]
     definitions: readonly ChartMarkState<any>[]
     points: readonly ChartPoint[]
+    /** Apply paint to this group once instead of inheriting it into its children. */
+    target?: 'group' | 'children'
   }
 }
 
@@ -1568,6 +1583,11 @@ export interface SceneLabel extends SceneNodeBase {
   rotate?: number
   fontSize?: number
   fontWeight?: number
+  /** Resolves presentation opacity without re-running tick layout or thinning. */
+  focusOpacity?: (context: {
+    focus: ChartFocusState | null
+    pointer: ChartTooltipPosition | null
+  }) => number | undefined
 }
 
 export type SceneNode =
@@ -1708,7 +1728,7 @@ export interface ChartTooltipPosition {
 }
 
 export type ChartFocusSource =
-  'pointer' | 'keyboard' | 'programmatic' | 'restored'
+  'pointer' | 'keyboard' | 'programmatic' | 'restored' | 'legend'
 
 export interface ChartFocusState<
   TDatum = unknown,

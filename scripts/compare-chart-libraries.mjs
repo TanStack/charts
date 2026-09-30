@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { execFileSync } from 'node:child_process'
 import { build } from 'esbuild'
+import { assertNoPackageTestInputs } from './package-test-path.mjs'
 import {
   launchBenchmarkBrowser,
   startBenchmarkServer,
@@ -316,6 +317,7 @@ async function buildCases(benchmarkCases) {
 async function buildCase(benchmarkCase) {
   const outfile = resolve(caseOutputDirectory, `${benchmarkCase.id}.js`)
   const buildResult = await bundleCase(benchmarkCase, outfile)
+  assertNoPackageTestInputs(Object.keys(buildResult.metafile.inputs))
   const contents = await readFile(outfile)
   const sharedExternals = benchmarkCase.library.sharedExternals ?? []
   let incrementalContents = contents

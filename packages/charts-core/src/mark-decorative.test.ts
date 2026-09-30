@@ -1,6 +1,8 @@
 import { scaleLinear } from 'd3-scale'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { dot } from './dot'
+import { areaY } from './area'
+import { resolveMarkStateScene } from './mark-state'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { compositeMark } from './mark-composite'
@@ -31,6 +33,70 @@ const rows: readonly Row[] = [
 ]
 
 describe('decorative mark', () => {
+  it.each([false, true])(
+    'styles decorative area series without adding interaction points (composite: %s)',
+    (composed) => {
+      const data = [
+        { x: 0, y: 2, series: 'a' },
+        { x: 1, y: 3, series: 'a' },
+        { x: 0, y: 4, series: 'b' },
+        { x: 1, y: 5, series: 'b' },
+      ]
+      const calls: unknown[] = []
+      const area = areaY(data, {
+        id: 'fills',
+        x: 'x',
+        y: 'y',
+        z: 'series',
+        states: [
+          {
+            when: (context) => !context.matches('series'),
+            style: {
+              opacity: (context) => {
+                expect(context.data[context.index]).toBe(context.datum)
+                calls.push(context.datum)
+                return 0.2
+              },
+            },
+          },
+        ],
+      })
+      const fill = decorative(
+        composed ? compositeMark([area], { id: 'composed-fill' }) : area,
+      )
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            fill,
+            dot(data, { id: 'observations', x: 'x', y: 'y', z: 'series' }),
+          ],
+          scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+          guides: false,
+        }),
+        { width: 320, height: 180 },
+      )
+      expect(scene.points).toHaveLength(data.length)
+      expect(
+        scene.points.every((point) => point.markId === 'observations'),
+      ).toBe(true)
+      const point = scene.points[0]!
+      const focused = resolveMarkStateScene(scene, {
+        primary: point,
+        group: [point],
+        source: 'pointer',
+        pinned: false,
+      }).scene
+      const areas = flatten(focused.nodes).filter(
+        (node) => node.kind === 'area',
+      )
+      expect(areas[0]!.style?.opacity).toBeUndefined()
+      expect(areas[1]!.style?.opacity).toBe(0.2)
+      expect(areas.every((node) => !('interaction' in node))).toBe(true)
+      expect(calls).toEqual([data[2]])
+      expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
+    },
+  )
+
   it('keeps line geometry and domains while a dot layer solely owns interaction', () => {
     const trend = decorative(
       lineY(rows, {

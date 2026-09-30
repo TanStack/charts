@@ -11,6 +11,7 @@ import type {
   ChartKey,
   ChartLegendPlacement,
   SceneNode,
+  ChartScene,
 } from './types'
 import type { ControlledSignal } from './interaction-signal'
 import type {
@@ -29,6 +30,8 @@ export interface InteractiveColorLegendItemContext {
 }
 
 export interface InteractiveColorLegendOptions<TValue extends ChartKey> {
+  /** Emphasizes a visible series on pointer hover or keyboard focus. */
+  hover?: 'series' | false
   visible: ControlledSignal<
     readonly TValue[],
     InteractiveColorLegendChange<TValue>
@@ -63,6 +66,7 @@ interface InteractiveLegendControl extends ChartHostControl {
   items: readonly InteractiveLegendControlItem[]
   emptyLabel: string
   toggle: (value: ChartKey) => void
+  hover: boolean
 }
 
 const defaultItemWidth = 110
@@ -133,6 +137,7 @@ export function interactiveColorLegend<TValue extends ChartKey>(
       )
       return {
         kind: 'interactive-color-legend',
+        hover: options.hover === 'series',
         key: 'interactive-color-legend',
         extension: interactiveLegendControlExtension,
         fallbackNodeKey: 'legend',
@@ -245,15 +250,38 @@ const interactiveLegendControlExtension: ChartHostControlExtension = {
 
 function createInteractiveLegendControl({
   container,
+  setStateFocus,
 }: Parameters<
   ChartHostControlExtension['create']
 >[0]): ChartHostControlInstance {
   let root: HTMLDivElement | undefined
   let status: HTMLSpanElement | undefined
   const buttons = new Map<string, HTMLButtonElement>()
+  let pointerValue: ChartKey | null = null
+  let keyboardValue: ChartKey | null = null
+  let paintedValue: ChartKey | null = null
+  let renderedScene: ChartScene | undefined
+
+  const paintEmphasis = (force = false) => {
+    const value = pointerValue ?? keyboardValue
+    if (force || !Object.is(value, paintedValue)) {
+      const group =
+        value === null
+          ? []
+          : (renderedScene?.points.filter((point) =>
+              Object.is(point.group, value),
+            ) ?? [])
+      setStateFocus(
+        group.length
+          ? { primary: group[0]!, group, source: 'legend', pinned: false }
+          : null,
+      )
+      paintedValue = value
+    }
+  }
 
   return {
-    update(nextControl) {
+    update(nextControl, scene) {
       const control = asInteractiveLegendControl(nextControl)
       const element = ensureRoot(container)
       if (!element.isConnected || element.parentElement !== container) {
@@ -274,6 +302,29 @@ function createInteractiveLegendControl({
         const button = buttons.get(item.key) ?? createButton(element, item.key)
         buttons.set(item.key, button)
         syncButton(button, item, control)
+        if (control.hover && item.visible) {
+          button.onpointerenter = () => {
+            pointerValue = item.value
+            paintEmphasis()
+          }
+          button.onpointerleave = () => {
+            pointerValue = null
+            paintEmphasis()
+          }
+          button.onfocus = () => {
+            keyboardValue = item.value
+            paintEmphasis()
+          }
+          button.onblur = () => {
+            keyboardValue = null
+            paintEmphasis()
+          }
+        } else {
+          button.onpointerenter = null
+          button.onpointerleave = null
+          button.onfocus = null
+          button.onblur = null
+        }
       }
       for (const [key, button] of buttons) {
         if (retained.has(key)) continue
@@ -291,11 +342,24 @@ function createInteractiveLegendControl({
       if (status && status !== element.lastElementChild) element.append(status)
       const empty = control.items.every((item) => !item.visible)
       if (status) status.textContent = empty ? control.emptyLabel : ''
+      const available = (value: ChartKey | null) =>
+        control.hover &&
+        control.items.some(
+          (item) => item.visible && Object.is(item.value, value),
+        )
+      if (!available(pointerValue)) pointerValue = null
+      if (!available(keyboardValue)) keyboardValue = null
+      const sceneChanged = renderedScene !== scene
+      renderedScene = scene
+      paintEmphasis(paintedValue !== null && sceneChanged)
     },
     contains(target) {
       return Boolean(target && root?.contains(target as Node))
     },
     destroy() {
+      pointerValue = null
+      keyboardValue = null
+      paintEmphasis()
       root?.remove()
       root = undefined
       status = undefined

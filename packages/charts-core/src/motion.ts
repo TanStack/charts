@@ -837,6 +837,7 @@ function createMotionSvgChartRenderer<
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
             cursor: ChartCursorPresentation<TXValue, TYValue> | null
+            stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null
           }
         | undefined
       let desiredStateFocus:
@@ -844,6 +845,7 @@ function createMotionSvgChartRenderer<
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
             cursor: ChartCursorPresentation<TXValue, TYValue> | null
+            stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null
           }
         | undefined
       const svgElement = () => {
@@ -869,7 +871,19 @@ function createMotionSvgChartRenderer<
           if (destroyed || dataMotionActive || !pendingStateFocus) return
           const pending = pendingStateFocus
           pendingStateFocus = undefined
-          applyStateFocus(pending.focus, pending.pointer, pending.cursor)
+          applyStateFocus(
+            pending.focus,
+            pending.pointer,
+            pending.cursor,
+            scene
+              ? resolveMarkStateScene(
+                  scene,
+                  pending.focus,
+                  pending.pointer,
+                  pending.stateFocus,
+                )
+              : undefined,
+          )
         })
       }
       const applyStateFocus = (
@@ -915,15 +929,16 @@ function createMotionSvgChartRenderer<
                 markTransitions,
               })
           restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
-          stateScene =
-            focus && presented.scene !== scene ? presented.scene : undefined
+          stateScene = presented.scene !== scene ? presented.scene : undefined
         }
-        stateTransition = focus
-          ? (resolved.transition ?? previousTransition)
-          : undefined
-        stateTransitions = focus
-          ? (resolved.transitions ?? previousTransitions)
-          : undefined
+        stateTransition =
+          resolved.scene !== scene
+            ? (resolved.transition ?? previousTransition)
+            : undefined
+        stateTransitions =
+          resolved.scene !== scene
+            ? (resolved.transitions ?? previousTransitions)
+            : undefined
         paintMotionSvgFocus(svgElement(), presented.scene, focus)
         cancelFocusAnimation = paintMotionSvgFocusGuides({
           container,
@@ -1055,14 +1070,22 @@ function createMotionSvgChartRenderer<
           presentationListeners.add(listener)
           return () => presentationListeners.delete(listener)
         },
-        paintFocus(focus, pointer, cursor) {
+        supportsStateFocus: true,
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || !renderOptions) return
           desiredStateFocus = {
             focus,
             pointer: pointer ?? null,
             cursor: cursor ?? null,
+            stateFocus:
+              options?.stateFocus === undefined ? focus : options.stateFocus,
           }
-          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const resolved = resolveMarkStateScene(
+            scene,
+            focus,
+            pointer,
+            options?.stateFocus,
+          )
           if (dataMotionActive) {
             pendingStateFocus = desiredStateFocus
             paintMotionSvgFocus(svgElement(), resolved.scene, focus)

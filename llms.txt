@@ -8,6 +8,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/comparison.md: Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 - docs/installation.md: Installation: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
 - docs/stability.md: Alpha Stability: Understand what TanStack Charts Alpha versions promise, what may change, and how releases communicate breaking changes.
+- docs/compatibility.md: Stable Compatibility: The compatibility contract intended for TanStack Charts 1.0 and later.
 - docs/quick-start.md: Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md: React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 - docs/framework/react/adapter.md: React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.

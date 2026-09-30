@@ -18,7 +18,10 @@ import {
 } from './interaction-cursor'
 import { handleX, type HandleXChange } from './interaction-handle'
 import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
-import { interactiveColorLegend } from './interactive-legend'
+import {
+  interactiveColorLegend,
+  type InteractiveColorLegendChange,
+} from './interactive-legend'
 import { dot } from './dot'
 import { facet } from './facet'
 import { lineX, lineY } from './line'
@@ -2722,6 +2725,77 @@ describe('Canvas renderer', () => {
     host.destroy()
     expect(container.childElementCount).toBe(0)
     container.remove()
+  })
+
+  it('paints and restores legend emphasis without interaction focus on Canvas', () => {
+    const data = [
+      { x: 0, y: 2, series: 'a' },
+      { x: 1, y: 4, series: 'a' },
+      { x: 0, y: 3, series: 'b' },
+      { x: 1, y: 1, series: 'b' },
+    ]
+    const onFocusChange = vi.fn()
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountCanvasChart(container, {
+      definition: defineChart({
+        marks: [
+          lineY(data, {
+            x: 'x',
+            y: 'y',
+            color: 'series',
+            states: [
+              {
+                when: (context) => !context.matches('series'),
+                style: { opacity: 0.2 },
+              },
+            ],
+          }),
+        ],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        color: {
+          legend: interactiveColorLegend({
+            hover: 'series',
+            visible: controlledSignal<
+              readonly string[],
+              InteractiveColorLegendChange<string>
+            >(['a', 'b'], () => {}),
+          }),
+        },
+        svgAnimation: false,
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas emphasis',
+      onFocusChange,
+    })
+    try {
+      const button = container.querySelector<HTMLButtonElement>(
+        'button[data-series-id="b"]',
+      )!
+      const canvas = container.querySelector<HTMLCanvasElement>(
+        '.ts-chart-canvas__scene',
+      )!
+      const painted = contexts.get(canvas)!
+      painted.globalAlphas.length = 0
+      button.dispatchEvent(new MouseEvent('pointerenter'))
+      expect(painted.globalAlphas).toContain(0.2)
+      expect(onFocusChange).not.toHaveBeenCalled()
+      painted.globalAlphas.length = 0
+      button.dispatchEvent(new MouseEvent('pointerleave'))
+      expect(painted.globalAlphas.length).toBeGreaterThan(0)
+      expect(painted.globalAlphas).not.toContain(0.2)
+      button.focus()
+      expect(painted.globalAlphas).toContain(0.2)
+      painted.globalAlphas.length = 0
+      button.blur()
+      expect(painted.globalAlphas.length).toBeGreaterThan(0)
+      expect(painted.globalAlphas).not.toContain(0.2)
+      expect(onFocusChange).not.toHaveBeenCalled()
+    } finally {
+      host.destroy()
+      container.remove()
+    }
   })
 
   it('hosts a continuous cursor over the Canvas surface', () => {

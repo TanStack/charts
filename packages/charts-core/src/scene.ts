@@ -20,7 +20,6 @@ import type {
   ChartAxisPresentationOptions,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
-  ChartAxisTickLabelValue,
   ChartBounds,
   ChartBuildContext,
   ChartHostControl,
@@ -1849,7 +1848,12 @@ function createTickLabelCandidates(
     const fontSize =
       resolveTickLabelValue(options.fontSize, context) ?? defaultFontSize
     const fontWeight = resolveTickLabelValue(options.fontWeight, context)
-    const opacity = resolveTickLabelValue(options.opacity, context)
+    const opacityOption = options.opacity
+    const opacity = resolveTickLabelValue(opacityOption, {
+      ...context,
+      focus: null,
+      pointer: null,
+    })
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
     // Automatic anchors preserve a physical placement outside the plot.
@@ -1900,6 +1904,9 @@ function createTickLabelCandidates(
               ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
             },
           }
+    if (typeof opacityOption === 'function') {
+      label.focusOpacity = (state) => opacityOption({ ...context, ...state })
+    }
     return {
       value: tick.value,
       label,
@@ -1909,16 +1916,12 @@ function createTickLabelCandidates(
   })
 }
 
-function resolveTickLabelValue<TValue extends ChartValue, TOutput>(
-  value: ChartAxisTickLabelValue<TValue, TOutput> | undefined,
-  context: ChartAxisTickLabelContext<TValue>,
+function resolveTickLabelValue<TContext, TOutput>(
+  value: TOutput | ((context: TContext) => TOutput | undefined) | undefined,
+  context: TContext,
 ): TOutput | undefined {
   return typeof value === 'function'
-    ? (
-        value as (
-          context: ChartAxisTickLabelContext<TValue>,
-        ) => TOutput | undefined
-      )(context)
+    ? (value as (context: TContext) => TOutput | undefined)(context)
     : value
 }
 

@@ -4785,6 +4785,40 @@ Each entry records:
   explicit child states, including an empty-array opt-out. `geoShape` uses the
   existing initialized-mark state path. Focused regressions verify paint,
   callback ownership, transitions, unchanged points, and guide isolation.
+- Group ownership follow-up: issue #135 showed that a composed datum resolved
+  states independently on each leaf. `SceneGroup.states.target: 'group'` now
+  applies paint once and stops inheritance while preserving independent nested
+  definitions. Tests fail on the old resolver and pass after the fix. Chromium,
+  Firefox, and WebKit verify tween completion, restoration, unchanged geometry,
+  and cancellation on teardown. Eleven interleaved 1,000-candle trials measured
+  median resolver cost at 0.864 ms for groups versus 1.138 ms for leaves, with
+  999 versus 2,997 style resolutions. Geometry callbacks now resolve only for
+  their supported node kinds. The locked consumers shrink in both size metrics;
+  the complete release audit remains pending.
+
+- Legend follow-up: issue #127 required series emphasis without making a
+  second owner of tooltips and pinned interaction focus. The opt-in interactive
+  legend now supplies an independent inline-state focus with source `legend`.
+  Generic host control context exposes `setStateFocus`, and series point lookup
+  stays in the optional legend module. SVG, Canvas, and motion accept independent
+  state focus while focus guides and tick-label callbacks retain real focus.
+  Unfocused emphasis revealed that renderer restoration flags depended on real
+  focus rather than painted state; those flags now track the painted scene.
+  Unit tests cover pointer and keyboard emphasis, pinned restoration, unchanged
+  tooltip text, no focus callbacks, and labels seeing real focus. Chromium,
+  Firefox, and WebKit verify the same lifecycle for SVG and motion with no page
+  errors. Canvas-specific emphasis, scene updates, reduced motion, final bundle
+  costs, and full release verification remain open.
+- Canvas legend follow-up: the pixel fixture initially used color-only dots,
+  whose point group is intentionally null. The documentation now distinguishes
+  per-point paint from `z` series ownership, and explains that `z` supplies
+  default color without duplicated setup. Testing that documented series form
+  exposed missing visibility ownership metadata: selecting one of two dot
+  series retained four points instead of two. Dot initialization now marks
+  default color as series-owned when it comes from `z`. The regression passes,
+  while a separate regression preserves independent color categories. Actual
+  Canvas pixels, keyboard emphasis, pinned restoration, unchanged tooltip,
+  and teardown pass in Chromium, Firefox, and WebKit with no page errors.
 
 ### F-163 — Cross-row transforms lacked a public ownership boundary
 
@@ -5985,6 +6019,16 @@ Each entry records:
   content drift, malformed metadata, and workspace version-only changes. The
   schema-4 baseline records both commit attribution and the input digest, and
   the full validation graph passes after the squash merge.
+- `1.0` readiness follow-up: PR #155 changed only `adapter.test.ts`, but the
+  broad source-directory digest invalidated production comparison provenance
+  and selected browser comparison and stress jobs. Package test/spec modules
+  now remain full-static validation inputs without being production digest or
+  benchmark-selection inputs. Mixed test/runtime changes still select both
+  benchmark partitions. Source bundle builders reject imports of those test
+  modules rather than allowing an excluded file to become a hidden runtime
+  dependency. All 24 focused provenance, classification, and boundary tests
+  pass. Honest comparison artifact regeneration remains required before landing
+  the updated provenance rule.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
@@ -6720,9 +6764,10 @@ Each entry records:
   measurement, motion, and visual geometry while exposing `never` point types.
 - Boundary: this is shared scene identity infrastructure, not a Waffle,
   selection, or composite-mark utility. Multi-point geometry such as regression
-  bands and difference fills cannot honestly use singular `pointOwner`; add a
-  point-set ownership form only when a real filtered or focused case requires
-  it. Duplicate authored top-level mark IDs remain invalid and should be
+  bands and difference fills cannot honestly use singular `pointOwner`.
+  Issue #134 supplied a concrete multi-series decorative area case, so
+  `pointOwners` now retains that point-set ownership without hit-test targets.
+  Duplicate authored top-level mark IDs remain invalid and should be
   rejected at definition validation rather than repaired during reconciliation.
 - Verification: the full charts-core suite passes 650 tests and the root
   TypeScript program passes. Focused regressions cover colon-containing text
@@ -6745,6 +6790,15 @@ Each entry records:
   the dots for grouped x focus, while the decorative lines still contribute
   Date/value domains and visible geometry. This is the first composed-view
   consumer and requires no new ownership utility.
+- Point-set follow-up: decorative multi-series areas retain inline states on
+  ordinary and outer composite marks without adding interaction targets.
+  Regression tests cover unrelated owner keys, copied owners, duplicate-key
+  reference identity, restricted scopes, and semantic adoption. Exact owners
+  use the existing identity index instead of scanning the full scope for each
+  owner. In nine interleaved trials, ownership resolution for 5,000 copied
+  exact owners had a median of 0.180 ms versus 81.675 ms with the initial
+  scanning implementation. This is an isolated resolver measurement, not
+  browser hover latency. Final bundle and renderer verification remain open.
 - Annotation follow-up: Case 58 now wraps both extrema text layers with the
   same decorator, leaving the minimum and maximum dots as the only annotation
   interaction points while preserving label geometry and automatic margins.

@@ -209,6 +209,44 @@ type MarkFocusGuide = Omit<SceneFocusGuide, 'placement'> & {
 }
 ```
 
+For a datum composed of several leaves, put state metadata on its `SceneGroup`
+and set `states.target: 'group'`. The resolver applies paint to that group once
+and leaves its children unchanged. This gives a candle's body and wicks one
+opacity transition instead of three. A child group with its own states still
+resolves independently. Omit `target`, or use `'children'`, for the existing
+state inheritance behavior.
+
+Group state metadata contains the original `data`, ordered `definitions`, and
+the `points` that identify its datum. Those state candidates alone do not add
+pointer or keyboard targets. Group states support paint; geometry properties
+such as dot radius and text rotation apply only to their corresponding leaves.
+
+`pointOwner` identifies one source point for decorative geometry. Use
+`pointOwners` for a fill or path owned by several points. These fields preserve
+semantic ownership for state and focus resolution, they do not add hit-test
+points. Scene adoption and composite namespacing transform them with the
+corresponding source points.
+
+A `SceneLabel` may supply `focusOpacity(context)` for presentation-only
+opacity. The context contains current `focus` and `pointer`. Built-in tick
+labels use this callback during focus painting, leaving their layout and
+collision thinning unchanged. Their base style stores the initial opacity,
+which is restored when focus clears. Custom renderers must honor this scene
+callback when implementing inline state painting.
+
+Browser control extensions receive `setStateFocus(focus)` from their host.
+It overrides only inline-state matching, not interaction focus, tooltip
+content, cursor state, or focus-filtered geometry. Pass `null` to restore
+matching against real interaction focus. Controls own refreshing that override
+when their scene changes and clearing it on removal. The context and lifecycle
+types are exported as `ChartHostControlExtensionContext`,
+`ChartHostControlExtension`, and `ChartHostControlInstance`.
+
+`decorative(mark)` from `@tanstack/charts/mark/decorative` retains inline states
+and source ownership while removing pointer and keyboard targets. For a
+composite mark, wrap the complete composite rather than its children. A
+decorative mark still cannot own a focus strategy.
+
 `focusAnchors` let `whenFocused` reveal decorative geometry without making it
 a pointer or keyboard target. `focusGuides` describe data-less presentation
 resolved from current focus or cursor state. `MarkFocusGuide` has the final

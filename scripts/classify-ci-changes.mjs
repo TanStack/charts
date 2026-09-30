@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { isPackageTestPath } from './package-test-path.mjs'
 
 const dependencyFiles = new Set([
   '.nvmrc',
@@ -16,6 +17,7 @@ const workflowFiles = new Set([
   '.github/workflows/chart-library-benchmarks.yml',
   'scripts/ci-workflow.test.mjs',
   'scripts/classify-ci-changes.mjs',
+  'scripts/package-test-path.mjs',
 ])
 
 const sharedBenchmarkFiles = new Set([
@@ -57,6 +59,7 @@ export function classifyCiChanges(paths) {
   for (const path of normalizedPaths) {
     if (!isDocumentationPath(path)) result.static = 'full'
     if (isDocumentationPath(path)) continue
+    if (isPackageTestPath(path)) continue
 
     if (
       dependencyFiles.has(path) ||
