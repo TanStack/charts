@@ -3,6 +3,8 @@ import type {
   ChartKey,
   ChartMarkRenderer,
   ChartMotionDefinition,
+  ChartMarkState,
+  InitializedMark,
   ChartTheme,
   ChartTextTypography,
   ChartValue,
@@ -43,6 +45,7 @@ export interface InitializedPolarMark<
   requiresAngleScale: boolean
   requiresRadiusScale: boolean
   motion?: ChartMotionDefinition<any>
+  states?: InitializedMark['states']
   render: (
     context: PolarMarkRenderContext,
   ) => MarkScene<TDatum, TAngle, TRadius>
@@ -51,6 +54,8 @@ export interface InitializedPolarMark<
 export interface PolarMarkInitializeContext {
   markIndex: number
   parentId: string
+  /** Default states supplied by the enclosing polar container. */
+  states?: readonly ChartMarkState<any>[]
 }
 
 export interface PolarMarkRenderContext {
