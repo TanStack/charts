@@ -68,6 +68,13 @@ Semantic `color` becomes fill for closed geometry, stroke for linework, and
 both for a mixed collection. Explicit `fill` or `stroke` channels override that
 mapped paint.
 
+`states` accepts `ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]` for
+focus-dependent fill, stroke, and opacity, with the same callback context and
+transitions as Cartesian area marks. The context retains the original GeoJSON
+datum, its source index, and the complete materialized data array. State paint
+does not change interaction points; only features that emit a finite
+interaction point can match a state.
+
 Each drawable feature becomes one SVG path. `geoPath(projection).centroid()`
 sets the point's screen position. `anchor`, or `geoCentroid()` when omitted,
 sets its semantic x/y values. Nonfinite centroids do not emit an interaction

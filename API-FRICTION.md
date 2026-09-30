@@ -4778,6 +4778,13 @@ Each entry records:
   dot mark with `{ focus: 'primary', pinned: true }`; pointer pin/unpin,
   same-point pointer tracking, SVG/Canvas null-focus restoration, Escape,
   close-button dismissal, and revision preservation are regression-covered.
+- Scope follow-up: issue #126 exposed the missing polar and geographic
+  authoring path. Radial marks now retain their original source data in the
+  same state metadata used by Cartesian marks, and the polar container wraps
+  each stateful child with its own points. Container defaults are replaced by
+  explicit child states, including an empty-array opt-out. `geoShape` uses the
+  existing initialized-mark state path. Focused regressions verify paint,
+  callback ownership, transitions, unchanged points, and guide isolation.
 
 ### F-163 — Cross-row transforms lacked a public ownership boundary
 

@@ -7,6 +7,7 @@ import type {
 } from 'd3-geo'
 import { scaleLinear, scaleOrdinal } from 'd3-scale'
 import { geoShape } from './geo'
+import { resolveMarkStateScene } from './mark-state'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 
@@ -89,6 +90,63 @@ const places: readonly Place[] = [
 ]
 
 describe('geoShape', () => {
+  it('applies state paint to the owned region without changing points or the base scene', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          geoShape(regions, {
+            projection: { type: geoIdentity, fit: 'data' },
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: {
+                  fill: ({ datum, index, data }) => {
+                    expect(data).toBe(regions)
+                    expect(datum).toBe(regions[index])
+                    return datum.properties.fill
+                  },
+                  opacity: 0.5,
+                },
+                transition: { type: 'tween', duration: 100 },
+              },
+            ],
+          }),
+        ],
+        scales: { x: null, y: null },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const primary = scene.points[1]!
+    const resolved = resolveMarkStateScene(scene, {
+      primary,
+      group: [primary],
+      source: 'pointer',
+      pinned: false,
+    })
+    const flatten = (
+      nodes: readonly import('./types').SceneNode[],
+    ): import('./types').SceneNode[] =>
+      nodes.flatMap((node) =>
+        node.kind === 'group' ? flatten(node.children) : [node],
+      )
+    const areas = flatten(resolved.scene.nodes).filter(
+      (node) => node.kind === 'area',
+    )
+    expect(areas.map((node) => node.style?.opacity)).toEqual([undefined, 0.5])
+    expect(areas[1]?.style?.fill).toBe(regions[1]!.properties.fill)
+    expect(resolved.transitions?.[primary.markId]).toMatchObject({
+      duration: 100,
+    })
+    expect(resolved.scene.points).toBe(scene.points)
+    expect(
+      flatten(scene.nodes).every((node) => node.style?.opacity === undefined),
+    ).toBe(true)
+    expect(renderChartSvg(resolved.scene, { ariaLabel: 'Regions' })).toContain(
+      'opacity="0.5"',
+    )
+  })
+
   it('fits a D3 projection to final bounds and emits keyed paths and points', () => {
     const definition = defineChart({
       marks: [

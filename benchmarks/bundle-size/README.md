@@ -74,6 +74,12 @@ and scatter composition, and projected GeoJSON. Atlas datasets remain
 application-owned inputs rather than chart-package dependencies. The locked
 Cartesian entries prove those D3 geometry modules remain opt-in.
 
+Polar and geographic focus states reuse the initialized-mark state resolver.
+The complete static SVG consumers add 35 gzip bytes for geographic shapes,
+75 for arcs, 170 for the gauge, 164 for radial labels, 57 for radial bars,
+and 78 for polar line/scatter composition. Their optional ceilings retain
+about 20 to 35 bytes of headroom. Locked Cartesian consumers stay byte-identical.
+
 The advanced custom-mark scale-value factory follows the same rule: its
 subpath has a dedicated budget, while ordinary chart entries must retain zero
 bytes from it.
