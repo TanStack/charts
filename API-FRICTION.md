@@ -4547,6 +4547,13 @@ Each entry records:
   directories and rejects any skill missing from the allowlist, then the normal
   reference test checks that every tracked skill matches the current package
   version.
+- 1.0 readiness follow-up: a temporary major-version rehearsal advanced every
+  package to 1.0.0, but release-facing prose still called that version the
+  official Alpha line. The README, installation guide, overview, marketing
+  policy, and historical Alpha policy now distinguish releases before 1.0
+  from the stable contract that takes effect at 1.0. The fixed Alpha badge is
+  removed. A regression advances the tracked references to 1.0.0 and rejects
+  current-Alpha claims while requiring both version-scoped policies.
 
 ### F-154 — Root barrels crossed the browser host boundary
 

@@ -3,7 +3,7 @@ title: Alpha Stability
 description: Understand what TanStack Charts Alpha versions promise, what may change, and how releases communicate breaking changes.
 ---
 
-TanStack Charts is in Alpha. Packages use regular `0.x` versions on the normal
+TanStack Charts releases before 1.0 follow this Alpha policy. Packages use regular `0.x` versions on the normal
 `latest` npm tag, without an `-alpha` suffix or separate release channel.
 
 Alpha is ready for evaluation and early application integration. It is not a

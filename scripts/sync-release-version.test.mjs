@@ -9,6 +9,49 @@ import {
 } from './sync-release-version.mjs'
 
 describe('release version synchronization', () => {
+  it('keeps the release policy correct when references advance to 1.0', async () => {
+    const repositoryRoot = resolve(import.meta.dirname, '..')
+    const manifest = JSON.parse(
+      await readFile(
+        resolve(repositoryRoot, 'packages/charts-core/package.json'),
+        'utf8',
+      ),
+    )
+    for (const path of [
+      'README.md',
+      'MARKETING.md',
+      'docs/overview.md',
+      'docs/installation.md',
+    ]) {
+      const source = await readFile(resolve(repositoryRoot, path), 'utf8')
+      const tracked = releaseVersionSources.find((entry) => entry.path === path)
+      expect(tracked).toBeDefined()
+      const versioned = syncReleaseVersionReference(
+        source,
+        manifest.version === '1.0.0'
+          ? '__previous_release__'
+          : manifest.version,
+        '1.0.0',
+        path,
+        tracked.references,
+      )
+      expect(versioned).toContain('`1.0.0`')
+      expect(versioned).toContain('Alpha policy')
+      expect(versioned).toContain('stable compatibility contract')
+      expect(versioned).not.toMatch(
+        /official Alpha line|is in (?:official )?Alpha|current\s+package line is Alpha|status-alpha-yellow/,
+      )
+    }
+    const alphaPolicy = await readFile(
+      resolve(repositoryRoot, 'docs/stability.md'),
+      'utf8',
+    )
+    expect(alphaPolicy).toContain(
+      'releases before 1.0 follow this Alpha policy',
+    )
+    expect(alphaPolicy).not.toContain('TanStack Charts is in Alpha')
+  })
+
   it('tracks every shipped skill version', async () => {
     const repositoryRoot = resolve(import.meta.dirname, '..')
     const skillsRoot = resolve(repositoryRoot, 'packages/charts-core/skills')
