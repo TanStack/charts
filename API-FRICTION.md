@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-09-09
+Last updated: 2026-09-30
 
 ## Triage rule
 
@@ -342,6 +342,7 @@ Each entry records:
 | F-303 | Focus mark groups ignored their mark motion                    | API                   | resolved   |
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
+| F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
 
 ## Findings
 
@@ -9026,3 +9027,21 @@ Each entry records:
   line-dot centers, resolved label paint, and single-node and multi-node custom
   indicators. The composed and pie catalog examples use the built-in legend
   instead of application-owned layout.
+
+### F-306 - Inferred consumer declarations could not name core types
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: the issue #156 reproduction against a freshly packed core package
+- Friction: exported `barY` results and inferred `defineChart` wrappers passed
+  ordinary typechecking but failed declaration emit. The declaring `types`
+  module was unreachable through package exports, and `StoredChartSpec` and
+  `ChartSpecBase` were not exported.
+- Decision: expose the declaring module at `@tanstack/charts/types/core` and
+  export the two spec interfaces. Preserve the existing platform-neutral
+  type barrel and inferred authoring APIs.
+- Verification: the packed-consumer gate emits declarations for both exports
+  with the pinned TypeScript compiler and typechecks the generated declarations
+  as a downstream consumer. Packed runtime, React Native, and seven framework
+  adapter gates pass. All 60 comparison bundle measurements are unchanged.
