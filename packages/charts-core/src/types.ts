@@ -773,7 +773,7 @@ type ChartYOptionsForMarks<TMarks extends AnyChartMarks> =
         >
       : never
 
-interface ChartSpecBase {
+export interface ChartSpecBase {
   /** Omit all Cartesian axes and grids. */
   guides?: boolean
   color?: ChartColorOptions
@@ -907,7 +907,7 @@ type ChartSpecForMarks<TMarks extends AnyChartMarks> = {
   scales: ChartScales<TMarks>
 } & ChartSpecBase
 
-interface StoredChartSpec extends ChartSpecBase {
+export interface StoredChartSpec extends ChartSpecBase {
   marks: AnyChartMarks
   scales: Readonly<Record<string, ChartPositionScaleOptions | null>>
 }

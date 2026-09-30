@@ -219,6 +219,7 @@
     "./tooltip/model": "./src/tooltip-model.ts",
     "./tooltip/portal": "./src/tooltip-portal.ts",
     "./types": "./src/universal-types.ts",
+    "./types/core": "./src/types.ts",
     "./vector": "./src/vector.ts",
     "./violin": "./src/violin.ts",
     "./view": "./src/view.ts",
@@ -676,6 +677,10 @@
       "./types": {
         "types": "./dist/universal-types.d.ts",
         "import": "./dist/universal-types.js"
+      },
+      "./types/core": {
+        "types": "./dist/types.d.ts",
+        "import": "./dist/types.js"
       },
       "./vector": {
         "types": "./dist/vector.d.ts",
