@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Decorative types accept marks the runtime rejects              | API                   | open       |
 
 ## Findings
 
@@ -9045,3 +9046,26 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Decorative types accept marks the runtime rejects
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: a consumer application that wrapped a mark carrying selection
+  `states` in `decorative()`. It typechecked, then threw at initialization
+  with "cannot wrap mark ... with focus or state behavior". The application
+  moved selection paint into the datum instead.
+- Friction: `decorative()` accepts any `ChartMark`, but the public path always
+  uses the rejecting mode. It throws when the initialized mark has `focus`
+  (from `whenFocused`) or `states` (from any mark's `states` option), and
+  when a composite child's scene group carries focus or states.
+- Finding: the `ChartMark` type carries no trace of either. Mark factories do
+  not capture `states` in their return type, and `whenFocused` returns the
+  same `ChartMark` it receives. Constraining the parameter with
+  `{ focus?: undefined; states?: undefined }` is therefore a no-op; a probe
+  compiled both a `states` dot and a `whenFocused` dot without error.
+- Follow-up: a type-level fix needs a phantom marker threaded through every
+  `states`-accepting factory, `whenFocused`, and composite marks, which
+  changes public return types and declaration emit. Decide whether that is
+  worth it or whether the runtime error plus documentation is the boundary.
