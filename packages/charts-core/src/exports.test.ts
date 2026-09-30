@@ -28,7 +28,10 @@ import type {
 } from '@tanstack/charts/types'
 import type { ChartGuideLineStyle as TypesChartGuideLineStyle } from '@tanstack/charts/types'
 
-const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+const typeOnlySpecifiers = new Set([
+  '@tanstack/charts/types',
+  '@tanstack/charts/types/core',
+])
 const specializedLoaderSpecifiers = new Set([
   '@tanstack/charts/angular',
   '@tanstack/charts/octane',
