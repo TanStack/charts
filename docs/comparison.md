@@ -19,7 +19,7 @@ turning untested behavior into a checkmark.
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `8bab934`.
+at page render time. The measured TanStack workspace revision is `265b20e`.
 
 ## Capability matrix
 
