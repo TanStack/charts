@@ -2490,7 +2490,10 @@ The third tranche pressures composition and performance:
 
 1. Multi-pane financial chart with synchronized crosshair, viewport, and
    logical-range navigation.
-2. Gantt/resource timeline with nested groups and dependencies.
+2. Gantt/resource timeline with nested groups and dependencies: recipe
+   implemented as conformance case 198 over existing marks; a reusable
+   connector primitive and dependency keyboard traversal remain pending
+   (F-307, F-308).
 3. General 100k/1m-row render, update, streaming, decimation, and lifecycle
    pressure is implemented; pan, zoom, and cursor-specific large-data pressure
    remains pending.

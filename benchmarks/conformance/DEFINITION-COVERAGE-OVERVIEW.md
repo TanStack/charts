@@ -2,19 +2,19 @@
 
 Date: 2026-08-10
 
-The catalog has 188 case directories. 185 visualizations now use
+The catalog has 189 case directories. 186 visualizations now use
 normal chart definitions. Cases 85 and 86 retain application shells, and Case
 116 retains one deliberately bespoke inline mark. No other case-owned layout
 or renderer is an accepted endpoint.
 
 | Disposition           |   Cases | Result                                            |
 | --------------------- | ------: | ------------------------------------------------- |
-| Definition now        |     135 | Normal definition                                 |
+| Definition now        |     136 | Normal definition                                 |
 | First-party primitive |      35 | Normal definition                                 |
 | Optional primitive    |      15 | Normal definition                                 |
 | Application boundary  |       2 | Accepted boundary                                 |
 | Inline custom mark    |       1 | Accepted boundary                                 |
-| **Total**             | **188** | **185 normal definitions; 3 accepted boundaries** |
+| **Total**             | **189** | **186 normal definitions; 3 accepted boundaries** |
 
 ## Shared decisions
 
@@ -63,7 +63,7 @@ presentation policy.
 
 ## Verification
 
-- The roadmap validator compares all 188 roadmap and audit IDs with the live
+- The roadmap validator compares all 189 roadmap and audit IDs with the live
   catalog directories, requires unique IDs, validates the capability DAG, and
   requires every verified or accepted case to cite evidence under its own
   directory.
@@ -260,6 +260,7 @@ presentation policy.
 | [195-shadcn-tooltip-label-custom — Tooltip - Custom label](./cases/195-shadcn-tooltip-label-custom/example.tsx)                           | Definition now        | `current-definition-api`                                                         | `example.tsx`, `case.json`                         |
 | [196-shadcn-tooltip-label-formatter — Tooltip - Label Formatter](./cases/196-shadcn-tooltip-label-formatter/example.tsx)                  | Definition now        | `current-definition-api`                                                         | `example.tsx`, `case.json`                         |
 | [197-shadcn-tooltip-label-none — Tooltip - No Label](./cases/197-shadcn-tooltip-label-none/example.tsx)                                   | Definition now        | `current-definition-api`                                                         | `example.tsx`, `case.json`                         |
+| [198-gantt-dependencies — Project Gantt with nested phases and dependencies](./cases/198-gantt-dependencies/example.tsx)                  | Definition now        | `current-definition-api`                                                         | `example.tsx`, `route.ts`, `tanstack.test.ts`      |
 | [bar-grouped — Grouped bars](./cases/bar-grouped/example.tsx)                                                                             | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |
 | [bar-horizontal-ranking — Horizontal ranking with long labels](./cases/bar-horizontal-ranking/example.tsx)                                | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |
 | [bar-stacked — Stacked bars](./cases/bar-stacked/example.tsx)                                                                             | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |

@@ -1059,6 +1059,10 @@
         {
           "label": "shadcn Tooltip - No Label",
           "to": "/charts/catalog/charts/197-shadcn-tooltip-label-none/"
+        },
+        {
+          "label": "Project Gantt with nested phases and dependencies",
+          "to": "/charts/catalog/charts/198-gantt-dependencies/"
         }
       ]
     },

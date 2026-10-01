@@ -2,7 +2,7 @@
 
 Date: 2026-08-10
 
-Scope: all 188 catalog directories. The 67 cases previously classified as
+Scope: all 189 catalog directories. The 67 cases previously classified as
 strict custom authoring, preparation review, or shell-only are reviewed beside
 the former 42-case definition-native control group from
 [the custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md). That audit remains
@@ -31,12 +31,12 @@ work:
 
 | Disposition           |   Cases | Meaning                                                                  |
 | --------------------- | ------: | ------------------------------------------------------------------------ |
-| Definition now        |     135 | Current marks and eager transforms are sufficient                        |
+| Definition now        |     136 | Current marks and eager transforms are sufficient                        |
 | First-party primitive |      35 | Add a reusable mark, transform, layout, guide, or controlled signal      |
 | Optional primitive    |      15 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
 | Application boundary  |       2 | The remaining work is product state, DOM layout, or data arrival         |
 | Inline custom mark    |       1 | The geometry is intentionally case-specific                              |
-| **Total**             | **188** |                                                                          |
+| **Total**             | **189** |                                                                          |
 
 A normal definition does not require every implementation algorithm to live
 in Charts core. D3 may implement an optional `sankeyDiagram`, `densityContour`,
@@ -322,6 +322,7 @@ ownership boundary.
 | [195 — shadcn tooltip-label-custom](./cases/195-shadcn-tooltip-label-custom/example.tsx)             | Definition now        | The self-contained native TanStack Charts tooltip example reproduces the pinned shadcn variant and card presentation.                                                                                                                                                                                                                                              |
 | [196 — shadcn tooltip-label-formatter](./cases/196-shadcn-tooltip-label-formatter/example.tsx)       | Definition now        | The self-contained native TanStack Charts tooltip example reproduces the pinned shadcn variant and card presentation.                                                                                                                                                                                                                                              |
 | [197 — shadcn tooltip-label-none](./cases/197-shadcn-tooltip-label-none/example.tsx)                 | Definition now        | The self-contained native TanStack Charts tooltip example reproduces the pinned shadcn variant and card presentation.                                                                                                                                                                                                                                              |
+| [198 — Gantt dependencies](./cases/198-gantt-dependencies/example.tsx)                               | Definition now        | Native rect, dot, rule, and decorative link marks compose phase lanes, progress, a milestone, and the status date; a case-local d3 curve routes each link as a right-angle dependency arrow.                                                                                                                                                                       |
 
 ## Reference evidence
 
@@ -353,8 +354,8 @@ bundle.
 
 ## Delivery result
 
-All 188 catalog directories now have one roadmap record and case-local
-evidence. All 185 normal-definition cases are verified against their current
+All 189 catalog directories now have one roadmap record and case-local
+evidence. All 186 normal-definition cases are verified against their current
 boundary; only cases 85, 86, and 116 retain accepted application or bespoke
 geometry work. The roadmap validator compares its IDs with the live catalog
 directories so a new case cannot silently remain outside this review.
