@@ -1097,7 +1097,7 @@ export function mountChartRenderer<
     if (destroyed) return
     if (focus !== null && !surface?.supportsStateFocus) {
       throw new TypeError(
-        'Legend emphasis requires a renderer that supports independent state focus',
+        'Renderer does not support independent state focus',
       )
     }
     emphasisFocus = focus ?? undefined

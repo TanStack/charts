@@ -110,7 +110,7 @@ describe('renderer-neutral chart host', () => {
         })
       } else {
         expect(() => setStateFocus(focus)).toThrow(
-          'requires a renderer that supports independent state focus',
+          'Renderer does not support independent state focus',
         )
         expect(fake.paintFocus).not.toHaveBeenCalled()
       }
