@@ -1,6 +1,11 @@
 export type { AreaYOptions } from './area'
 export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
+export type {
+  ChartPatternOptions,
+  DotPatternOptions,
+  LinePatternOptions,
+} from './pattern'
 export type { BarEndRadius, BarRadius, BarXOptions, BarYOptions } from './bar'
 export type { BandXOptions, BandYOptions } from './band'
 export type {
@@ -257,6 +262,7 @@ export type {
   ChartNumericScaleOptions,
   ChartLinearGradient,
   ChartRadialGradient,
+  ChartPattern,
   ChartSelectionController,
   ChartSelectionSource,
   ChartMark,

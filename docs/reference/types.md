@@ -277,6 +277,10 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartLinearGradient`           | Named linear-gradient resource                                        |
 | `ChartRadialGradient`           | Named radial-gradient resource                                        |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                          |
+| `ChartPattern`                  | Named repeating tile of scene nodes                                   |
+| `ChartPatternOptions`           | Shared `linePattern()` and `dotPattern()` options                     |
+| `LinePatternOptions`            | `linePattern()` options with line thickness                           |
+| `DotPatternOptions`             | `dotPattern()` options with dot radius                                |
 | `ChartCurve`                    | Line and y-area path generation                                       |
 
 See [Scales, guides, and color](./scales-guides-and-color.md).

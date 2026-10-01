@@ -117,6 +117,12 @@ export type {
 export { createMark } from './mark'
 export { compositeMark } from './mark-composite'
 export type { CompositeMarkOptions } from './mark-composite'
+export { dotPattern, linePattern } from './pattern'
+export type {
+  ChartPatternOptions,
+  DotPatternOptions,
+  LinePatternOptions,
+} from './pattern'
 export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
 export { createChartRuntime, isResponsiveChartDefinition } from './runtime'
@@ -371,6 +377,7 @@ export type {
   ChartNumericScaleOptions,
   ChartLinearGradient,
   ChartRadialGradient,
+  ChartPattern,
   ChartMark,
   ChartMarkOptions,
   ChartMarkRenderer,

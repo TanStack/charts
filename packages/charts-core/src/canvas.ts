@@ -19,6 +19,7 @@ import type {
   ChartAnimationOptions,
   ChartBounds,
   ChartMarkStateTransition,
+  ChartPattern,
   ChartPoint,
   ChartRadialGradient,
   ChartRuntime,
@@ -135,7 +136,11 @@ interface ScenePainter {
   scene: ChartScene
   Path: typeof Path2D | undefined
   font: FontState
+  document: Document
+  patterns: Map<string, CanvasPattern | null>
 }
+
+type CanvasPaint = string | CanvasGradient | CanvasPattern
 
 interface RadialFillPaint {
   gradient: ChartRadialGradient
@@ -1174,10 +1179,28 @@ function paintScene(
   resolver: CanvasPaintResolver,
   root: HTMLDivElement,
 ): void {
-  const Path = root.ownerDocument.defaultView?.Path2D
-  const font = readFont(root)
-  const painter: ScenePainter = { context, resolver, scene, Path, font }
-  paintNodes(painter, scene.nodes, defaultPaint)
+  paintNodes(
+    createPainter(context, resolver, scene, root),
+    scene.nodes,
+    defaultPaint,
+  )
+}
+
+function createPainter(
+  context: CanvasRenderingContext2D,
+  resolver: CanvasPaintResolver,
+  scene: ChartScene,
+  root: HTMLDivElement,
+): ScenePainter {
+  return {
+    context,
+    resolver,
+    scene,
+    Path: root.ownerDocument.defaultView?.Path2D,
+    font: readFont(root),
+    document: root.ownerDocument,
+    patterns: new Map(),
+  }
 }
 
 function paintFocusCanvas(
@@ -1192,9 +1215,7 @@ function paintFocusCanvas(
   resetContext(context, pixelRatio)
   context.clearRect(0, 0, scene.width, scene.height)
   if (!nodes.length) return
-  const Path = root.ownerDocument.defaultView?.Path2D
-  const font = readFont(root)
-  paintNodes({ context, resolver, scene, Path, font }, nodes, defaultPaint)
+  paintNodes(createPainter(context, resolver, scene, root), nodes, defaultPaint)
 }
 
 function paintNodes(
@@ -1551,7 +1572,7 @@ function strokeCurrentPath(
 function configureStroke(
   context: CanvasRenderingContext2D,
   state: PaintState,
-  stroke: string | CanvasGradient,
+  stroke: CanvasPaint,
 ): void {
   context.globalAlpha = state.opacity * state.strokeOpacity
   context.strokeStyle = stroke
@@ -1565,10 +1586,11 @@ function resolveStrokePaint(
   painter: ScenePainter,
   state: PaintState,
   bounds: ChartBounds | null,
+  origin?: readonly [number, number],
 ) {
   if (!Number.isFinite(state.strokeWidth) || state.strokeWidth <= 0) return null
   rejectRadialStroke(painter, state.stroke)
-  return resolvePaint(painter, state.stroke, bounds)
+  return resolvePaint(painter, state.stroke, bounds, origin)
 }
 
 function paintLabel(
@@ -1602,13 +1624,15 @@ function paintLabel(
       : node.baseline === 'hanging'
         ? 'hanging'
         : 'alphabetic'
-  const fill = resolvePaint(painter, state.fill, null)
+  // SVG text keeps its user-space origin at the scene origin.
+  const origin = [node.x, node.y] as const
+  const fill = resolvePaint(painter, state.fill, null, origin)
   if (fill) {
     context.globalAlpha = state.opacity * state.fillOpacity
     context.fillStyle = fill
     context.fillText(node.text, 0, 0)
   }
-  const stroke = resolveStrokePaint(painter, state, null)
+  const stroke = resolveStrokePaint(painter, state, null, origin)
   if (stroke) {
     configureStroke(context, state, stroke)
     context.strokeText(node.text, 0, 0)
@@ -1647,10 +1671,15 @@ function resolvePaint(
   painter: ScenePainter,
   value: string | null,
   bounds: ChartBounds | null,
-): string | CanvasGradient | null {
+  origin?: readonly [number, number],
+): CanvasPaint | null {
   if (!value) return null
   const match = /^url\(#([^)]+)\)$/.exec(value)
   if (!match) return painter.resolver.resolve(value)
+  const pattern = painter.scene.patterns?.find(
+    (candidate) => candidate.id === match[1],
+  )
+  if (pattern) return resolvePattern(painter, pattern, origin)
   const gradient = painter.scene.gradients.find(
     (candidate) => candidate.id === match[1],
   )
@@ -1680,6 +1709,67 @@ function resolvePaint(
     canvasGradient.addColorStop(stop.offset, stop.color)
   }
   return canvasGradient
+}
+
+/**
+ * Rasterize one unrotated tile at device resolution, then map it back into
+ * user space with the same rotation SVG applies through `patternTransform`.
+ */
+function resolvePattern(
+  painter: ScenePainter,
+  pattern: ChartPattern,
+  origin: readonly [number, number] = [0, 0],
+): CanvasPattern | null {
+  // SVG serializes tile geometry in hundredths; match it.
+  const width = hundredths(pattern.width)
+  const height = hundredths(pattern.height)
+  if (!(width > 0 && height > 0 && Number.isFinite(width * height))) {
+    return null
+  }
+  const { context } = painter
+  const { a, b } = context.getTransform()
+  const scale = Math.hypot(a, b) || 1
+  const pixelWidth = Math.ceil(width * scale)
+  const pixelHeight = Math.ceil(height * scale)
+  const key = `${pattern.id}:${pixelWidth}:${pixelHeight}`
+  let canvasPattern = painter.patterns.get(key)
+  if (canvasPattern === undefined) {
+    const canvas = painter.document.createElement('canvas')
+    canvas.width = pixelWidth
+    canvas.height = pixelHeight
+    const tileContext = requiredContext(canvas)
+    tileContext.scale(pixelWidth / width, pixelHeight / height)
+    // A tile that references itself paints nothing, as a circular SVG
+    // pattern reference does.
+    painter.patterns.set(key, null)
+    paintNodes(
+      { ...painter, context: tileContext },
+      pattern.nodes,
+      defaultPaint,
+    )
+    canvasPattern = context.createPattern(canvas, 'repeat')
+    painter.patterns.set(key, canvasPattern)
+  }
+  if (!canvasPattern) return null
+  const angle = hundredths(pattern.angle ?? 0)
+  const radians = Number.isFinite(angle) ? (-angle * Math.PI) / 180 : 0
+  const cos = Math.cos(radians)
+  const sin = Math.sin(radians)
+  const scaleX = width / pixelWidth
+  const scaleY = height / pixelHeight
+  canvasPattern.setTransform({
+    a: cos * scaleX,
+    b: sin * scaleX,
+    c: -sin * scaleY,
+    d: cos * scaleY,
+    e: -origin[0],
+    f: -origin[1],
+  })
+  return canvasPattern
+}
+
+function hundredths(value: number) {
+  return Math.round(value * 100) / 100
 }
 
 function resolveRadialFill(

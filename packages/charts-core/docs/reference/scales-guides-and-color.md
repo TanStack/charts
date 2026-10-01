@@ -1,6 +1,6 @@
 ---
 title: Scales, Guides, and Color
-description: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
+description: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, gradients, and patterns.
 ---
 
 Pass a compatible scale factory when its domain should come from mark channels.
@@ -933,3 +933,65 @@ support Canvas fills and strokes.
 `@tanstack/charts`, `@tanstack/charts/universal`, and
 `@tanstack/charts/types`. Use an `idPrefix` when charts share a document; see
 [Rendering and export](./rendering-and-export.md#svg-resources).
+
+## Patterns
+
+A chart pattern is a renderer-neutral repeating tile:
+
+```ts
+interface ChartPattern {
+  id: string
+  width: number
+  height: number
+  angle?: number
+  nodes: readonly SceneNode[]
+}
+```
+
+`width` and `height` are the tile size in pixels; a non-positive or
+non-finite size paints nothing. `angle` rotates the tile counterclockwise in
+degrees. `nodes` are ordinary scene nodes in tile coordinates, so a tile can
+hold rectangles, dots, paths, or any other primitive the renderers already
+draw. Tiles repeat from the origin of the coordinate space a node is drawn in,
+matching SVG `patternUnits="userSpaceOnUse"`, so adjacent shapes that share a
+pattern stay aligned.
+
+Most charts use the two factories from `@tanstack/charts/pattern`, which are
+also exported from `@tanstack/charts` and `@tanstack/charts/universal`:
+
+```ts
+import { dotPattern, linePattern } from '@tanstack/charts/pattern'
+
+linePattern({ id: 'hatch', color: 'currentColor', strokeWidth: 2 })
+dotPattern({ id: 'grain', color: 'var(--chart-muted)', radius: 1 })
+```
+
+| Option        | Factory         | Default                      | Meaning                                                       |
+| ------------- | --------------- | ---------------------------- | ------------------------------------------------------------- |
+| `id`          | Both            | Required                     | Resource ID referenced as `url(#id)`.                         |
+| `color`       | Both            | Required                     | Foreground paint. Any CSS color, including `var()`.           |
+| `background`  | Both            | Transparent                  | Paint behind the foreground.                                  |
+| `spacing`     | Both            | `6`                          | Tile width and height in pixels. Values below `1` become `1`. |
+| `angle`       | Both            | `45` for lines, `0` for dots | Tile rotation in degrees, counterclockwise.                   |
+| `strokeWidth` | `linePattern()` | `1`                          | Line thickness in pixels, clamped to `spacing`.               |
+| `radius`      | `dotPattern()`  | `1.5`                        | Dot radius in pixels, clamped to half of `spacing`.           |
+
+A missing, negative, or non-finite factory size uses its default. Factories
+round sizes and angles to hundredths, the precision SVG serialization uses, so
+SVG output and Canvas tiles agree.
+
+Gradient and pattern IDs share the `url(#id)` namespace and must be unique
+across both lists. Behavior on a collision is undefined. Tile nodes may paint with
+`url(#gradient-id)`, and SVG scopes that reference like any other.
+
+Reference a pattern from a mark's `fill` or `stroke` as `url(#pattern-id)`.
+SVG and React Native emit a native `<pattern>`. Canvas rasterizes one tile at
+the device pixel ratio and repeats it under the same rotation, including for
+text labels. Standalone SVG export resolves `var()` paint inside the tile like
+any other chart paint. Pattern tiles do not animate.
+
+`ChartPattern` is a type export from `@tanstack/charts`,
+`@tanstack/charts/universal`, and `@tanstack/charts/types`.
+`ChartPatternOptions`, `LinePatternOptions`, and `DotPatternOptions` are type
+exports from `@tanstack/charts`, `@tanstack/charts/universal`, and
+`@tanstack/charts/pattern`.

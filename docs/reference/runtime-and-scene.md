@@ -197,6 +197,7 @@ interface ChartScene<
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
   gradients: readonly ChartGradient[]
+  patterns?: readonly ChartPattern[]
   theme: ChartTheme
   focusGuides?: readonly SceneFocusGuide[]
 }
@@ -212,6 +213,7 @@ interface ChartScene<
 | `scales`          | Resolved positional scales, normally under `x` and `y`           |
 | `colors`          | Resolved chart color scale                                       |
 | `gradients`       | Declared linear and radial gradient resources                    |
+| `patterns`        | Declared pattern resources, when the definition has any          |
 | `theme`           | Fully resolved theme                                             |
 | `focusGuides`     | Optional data-less guide descriptors resolved from current focus |
 

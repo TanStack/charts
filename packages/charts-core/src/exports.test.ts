@@ -5,6 +5,9 @@ import type {
   ChartGradientBase as RootChartGradientBase,
   ChartLinearGradient as RootChartLinearGradient,
   ChartRadialGradient as RootChartRadialGradient,
+  ChartPattern as RootChartPattern,
+  LinePatternOptions as RootLinePatternOptions,
+  DotPatternOptions as RootDotPatternOptions,
   ChartGuideLineStyle as RootChartGuideLineStyle,
   CreateDotLayoutOptions as RootCreateDotLayoutOptions,
   DotLayout as RootDotLayout,
@@ -15,6 +18,9 @@ import type {
   ChartGradientBase as UniversalChartGradientBase,
   ChartLinearGradient as UniversalChartLinearGradient,
   ChartRadialGradient as UniversalChartRadialGradient,
+  ChartPattern as UniversalChartPattern,
+  LinePatternOptions as UniversalLinePatternOptions,
+  DotPatternOptions as UniversalDotPatternOptions,
   ChartGuideLineStyle as UniversalChartGuideLineStyle,
   CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
   DotLayout as UniversalDotLayout,
@@ -25,6 +31,7 @@ import type {
   ChartGradientBase as TypesChartGradientBase,
   ChartLinearGradient as TypesChartLinearGradient,
   ChartRadialGradient as TypesChartRadialGradient,
+  ChartPattern as TypesChartPattern,
 } from '@tanstack/charts/types'
 import type { ChartGuideLineStyle as TypesChartGuideLineStyle } from '@tanstack/charts/types'
 
@@ -120,6 +127,13 @@ describe('public package exports', () => {
       // @ts-expect-error Explicit linear gradients do not accept fy.
       explicitLinearGradient.fy = 0.5
     }
+  })
+
+  it('exports pattern resource types from every authoring barrel', () => {
+    expectTypeOf<UniversalChartPattern>().toEqualTypeOf<RootChartPattern>()
+    expectTypeOf<TypesChartPattern>().toEqualTypeOf<RootChartPattern>()
+    expectTypeOf<UniversalLinePatternOptions>().toEqualTypeOf<RootLinePatternOptions>()
+    expectTypeOf<UniversalDotPatternOptions>().toEqualTypeOf<RootDotPatternOptions>()
   })
 
   it('keeps guide line styles aligned across public type barrels', () => {
