@@ -470,6 +470,11 @@ Despite its historical name, `RenderChartImageOptions` supports PNG, JPEG, and
 WebP. `scale` defaults to `2` and is clamped to at least `0.1`. `type` defaults
 to `image/png`.
 
+Encoding support depends on the browser. If the requested encoder is
+unavailable, the browser can return PNG instead, including WebP requests in
+WebKit. Check the returned `blob.type` before choosing a filename or sending
+the image to a consumer that requires a specific format.
+
 Raster export requires:
 
 - a browser document and window
@@ -479,7 +484,8 @@ Raster export requires:
 
 The promise rejects when any requirement fails or Canvas encoding returns no
 blob. `downloadChartImage` defaults to `chart.png`; keep the filename extension
-consistent with the selected MIME type.
+consistent with the actual encoded MIME type. The download helper uses the
+filename you supply and does not rename it after an encoding fallback.
 
 The raster helpers accept a mounted SVG, Canvas, or mixed chart root, or an
 ancestor containing one. SVG is serialized, decoded, and drawn into the export

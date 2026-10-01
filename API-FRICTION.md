@@ -9181,3 +9181,20 @@ Each entry records:
   and WebKit verify initial focus, ArrowDown, ArrowUp, normal and reversed y
   domains, and empty-host teardown with no page errors. A paired minified
   benchmark rejects the dynamic-property comparator's measured overhead.
+
+### F-308 - Raster format documentation omitted browser encoder fallback
+
+- Status: resolved
+- Severity: low
+- Owner: Documentation
+- Observed in: current-source 1.0 export checks in Chromium, Firefox, and WebKit
+- Friction: the reference listed WebP as supported and told callers to match
+  filenames to the selected MIME type, but WebKit returned a PNG Blob for a
+  WebP request. The download helper keeps the caller's filename.
+- Decision: document browser encoding support, PNG fallback, checking
+  `blob.type`, and the unchanged download filename. Keep the native browser
+  encoding behavior rather than adding a runtime encoder or dependency.
+- Verification: JPEG decodes at scale two in all three engines; requested WebP
+  decodes as WebP in Chromium and Firefox and PNG in WebKit. Dimensions and
+  opaque red pixels pass with lossy-encoding tolerance, alongside ten existing
+  PNG checks per engine. No page errors or console warnings/errors occur.
