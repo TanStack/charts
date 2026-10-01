@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "baselineRevision": "327f488f46463408e91eef4828d54f45017f717d",
-  "candidateRevision": "5e00ebef46becf827334cb4badc87c71d10d8269",
-  "candidateNote": "Combined correctness fixes including element-only SVG child fast path; no policy or locked baseline changes",
+  "candidateRevision": "eccf20ee",
+  "candidateNote": "Combined correctness fixes including element-only SVG child fast path and implicit-opacity interpolation; measured before the newly approved motion ceiling update",
   "node": "v24.18.0",
   "esbuild": "0.27.7",
   "typescript": "6.0.3",
@@ -788,13 +788,13 @@
         "sha256": "7e9d706704e8138b301cdd08e804a69f69e2eb2994dcf7f6e8b1f7b481ef9f4b"
       },
       "candidate": {
-        "minified": 69314,
-        "gzip": 23220,
-        "sha256": "6149e2c83e30aefa5c0a2bc7443ae0c273bdc305a3ffc958fb3f729a29df222d"
+        "minified": 69366,
+        "gzip": 23240,
+        "sha256": "85429739a6d19ca7f478192ab73aa3d2334bf98017b5802a00859d96bcfee2f2"
       },
       "delta": {
-        "minified": 756,
-        "gzip": 261
+        "minified": 808,
+        "gzip": 281
       }
     },
     {
