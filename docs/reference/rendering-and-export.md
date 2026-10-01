@@ -48,6 +48,10 @@ module graph through that explicit import.
 
 ## React Native adapter
 
+The React Native adapter is experimental. See
+[Installation](../installation.md#react-native-and-expo) for supported versions,
+verified checks, and native-device validation limits.
+
 The React Native entry selects its native build through the package export
 conditions and renders the shared scene with `react-native-svg`.
 
