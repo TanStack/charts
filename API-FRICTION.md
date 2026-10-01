@@ -343,7 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
-| F-309 | Brush and zoom hid point focus on their own plot               | API                   | resolved   |
+| F-307 | Brush and zoom hid point focus on their own plot               | API                   | resolved   |
 
 ## Findings
 
@@ -9047,7 +9047,7 @@ Each entry records:
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
 
-### F-309 - Brush and zoom hid point focus on their own plot
+### F-307 - Brush and zoom hid point focus on their own plot
 
 - Status: resolved
 - Severity: medium
