@@ -27,7 +27,7 @@ export function whenFocused<
   TYScaleValue,
   TXScaleId,
   TYScaleId
-> {
+> & { readonly __focusFiltered?: true } {
   return {
     ...mark,
     initialize(context) {

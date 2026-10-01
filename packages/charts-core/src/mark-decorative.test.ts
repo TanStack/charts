@@ -265,16 +265,18 @@ describe('decorative mark', () => {
     ])
   })
 
-  it('rejects focus and state behavior instead of silently disabling it', () => {
+  it('rejects focus-filtered behavior instead of silently disabling it', () => {
     const focused = whenFocused(
       dot(rows, { id: 'focused', x: 'x', y: 'y', key: 'id' }),
       { match: 'primary' },
     )
+    // @ts-expect-error Verify the runtime guard for JavaScript consumers.
     expect(() => decorative(focused).initialize({ markIndex: 0 })).toThrow(
       'with focus or state behavior',
     )
 
     const nested = decorative(
+      // @ts-expect-error Verify nested runtime validation for JavaScript consumers.
       compositeMark(
         [
           whenFocused(

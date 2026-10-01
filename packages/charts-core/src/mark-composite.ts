@@ -48,7 +48,10 @@ export function compositeMark<const TMarks extends readonly AnyChartMark[]>(
   ChartMarkAnyScaleY<TMarks[number]>,
   ChartMarkScaleIdX<TMarks[number]>,
   ChartMarkScaleIdY<TMarks[number]>
->
+> &
+  (Extract<TMarks[number], { readonly __focusFiltered?: true }> extends never
+    ? {}
+    : { readonly __focusFiltered?: true })
 export function compositeMark(
   marks: readonly AnyChartMark[],
   options: CompositeMarkOptions = {},

@@ -245,7 +245,10 @@ types are exported as `ChartHostControlExtensionContext`,
 `decorative(mark)` from `@tanstack/charts/mark/decorative` retains inline states
 and source ownership while removing pointer and keyboard targets. For a
 composite mark, wrap the complete composite rather than its children. A
-decorative mark still cannot own a focus strategy.
+decorative mark still cannot contain `whenFocused()` geometry, directly or
+inside a composite. These combinations are rejected by TypeScript when the
+mark's inferred type is retained. JavaScript consumers and custom marks with
+widened types are checked at runtime during initialization or scene rendering.
 
 `focusAnchors` let `whenFocused` reveal decorative geometry without making it
 a pointer or keyboard target. `focusGuides` describe data-less presentation

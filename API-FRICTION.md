@@ -6845,6 +6845,18 @@ Each entry records:
   interaction points while preserving label geometry and automatic margins.
   Its focused test rejects label-owned points; quick browser conformance passes
   visual and strict-type gates at 98.5% diagnostic geometry similarity.
+- Focus-type follow-up: the 1.0 audit reproduced `decorative(whenFocused(mark))`
+  and nested focused composites compiling before their existing runtime guard
+  rejects them. `whenFocused` now retains type-only focus-filtered metadata,
+  and `compositeMark` carries that metadata through nested children.
+  `decorative` rejects known focus-filtered inputs, while ordinary and
+  inline-state marks remain accepted. Three type regressions fail with unused
+  expected-error directives before this change and pass afterward. Root
+  TypeScript passes. Runtime guards remain for JavaScript, custom marks, and
+  explicitly widened types. The twelve-package artifact build passes, and an
+  isolated installed-tarball consumer reproduces the three unused expected-error
+  failures on the prior package and passes after installing the correction,
+  with strict TypeScript 6.0.3 and `skipLibCheck: false`.
 - Bundle-audit follow-up: focus filtering and stable-key assignment reuse one
   ownership lookup and one structural-key index. This removes 563 minified and
   113–143 gzip bytes from every comparison case while preserving exact key,
