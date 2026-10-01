@@ -20,4 +20,18 @@ describe('Gantt dependency recipe', () => {
       expect(scene.scales.y.domain).toEqual(plan.lanes)
     },
   )
+
+  it('walks keyboard focus down the lane tree', () => {
+    const definition = createExampleChart({ revision: 0 })
+    const scene = createChartRuntime<PlanItem>().render(definition, {
+      width: 640,
+      height: 520,
+    })
+    const focus = definition.focus
+    if (!focus || typeof focus !== 'object') throw new Error('missing focus')
+
+    expect(
+      focus.navigation(scene.points).map((point) => point.datum.lane),
+    ).toEqual(planLayout(planForRevision(0)).lanes)
+  })
 })

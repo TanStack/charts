@@ -9081,16 +9081,22 @@ Each entry records:
 - Owner: API
 - Observed in: catalog case 198, a Gantt plan with finish-to-start
   dependencies
-- Friction: keyboard navigation steps through focusable points in scene order.
-  Decorative connectors correctly add no focus stops, but no key moves from a
-  task to its predecessor or successor. The recipe names each task's
-  predecessors in its tooltip text instead.
-- Decision: accept the text description for this recipe. Graph navigation
-  would add interaction state to the default host, which is outside the
-  current stop boundary. Revisit with a second dependency or network case.
-- Verification: the case 198 unit test confirms one focus stop per phase,
-  task, and milestone, and none for connectors or progress fills, before and
-  after the revision update.
+- Friction: default keyboard navigation steps through focusable points by x
+  center, then y, so phase summaries interleave with tasks instead of
+  following the lane tree. Changing only the order requires a complete focus
+  strategy. Its `resolve` receives points but not the scene, so the default
+  geometry-aware pointer hit test (`findNearestPoint` needs the scene) cannot
+  be reused; the recipe spreads `focusNearestY` and replaces `navigation` with
+  a y-then-x sort. Decorative connectors correctly add no focus stops, but no
+  key moves from a task to its predecessor or successor. The recipe names each
+  task's predecessors in its tooltip text instead.
+- Decision: accept the lane-order strategy and text description for this
+  recipe. Graph navigation would add interaction state to the default host,
+  which is outside the current stop boundary. Revisit with a second dependency
+  or network case.
+- Verification: the case 198 unit tests confirm one focus stop per phase,
+  task, and milestone, none for connectors or progress fills, and a
+  navigation order that matches the lane order.
 
 ### F-309 - Time-ranged bars cannot inset only their lane edges
 

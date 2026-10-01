@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "ea9ef3e393954c9cdb731a542dc06470c7f23c554bc0e59ce7c9ebfdff1b2f28",
+  "sourceHash": "47d2927da721936995b3d211e171d063d0166387802732a6d5cf8ee6ad325ec5",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -946,8 +946,8 @@
     },
     {
       "id": "198-gantt-dependencies",
-      "sha256": "c9cad49c2dfc65eba4ac22b293d13430b920ef148a1e1c981e972d80a6dfa651",
-      "bytes": 11284
+      "sha256": "44e6763558c1b1cda02e4b4ed8abb8f7eae83caf303aa78ce418854e3d3d2aaa",
+      "bytes": 11404
     }
   ]
 }

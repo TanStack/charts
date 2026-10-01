@@ -10,6 +10,7 @@ import {
   ruleX,
   type ChartPoint,
 } from '@tanstack/charts'
+import { focusNearestY } from '@tanstack/charts/focus'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand, scaleUtc } from 'd3-scale'
 import { planForRevision, planGroups, statusDateForRevision } from './data'
@@ -51,6 +52,15 @@ export function describePlanItem(item: PlanItem) {
     : `${item.label} · ${item.group} · ${dates} · ${done}${after}`
 }
 
+// Pointer focus snaps to the hovered lane. Arrow keys walk the lane tree from
+// top to bottom instead of the default left-to-right order.
+const laneFocus = {
+  ...focusNearestY,
+  navigation: <TPoint extends { x: number; y: number }>(
+    points: readonly TPoint[],
+  ) => [...points].sort((left, right) => left.y - right.y || left.x - right.x),
+}
+
 export const createExampleChart = (input: ChartOptions) => {
   const plan = planLayout(planForRevision(input.revision))
   const statusDate = statusDateForRevision(input.revision)
@@ -68,6 +78,7 @@ export const createExampleChart = (input: ChartOptions) => {
         .paddingInner(0.32)
         .paddingOuter(0.2)
       // Half of one lane step keeps backward connectors in the lane gutter.
+      // Assumes about 72 px of combined top and bottom margin for the x axis.
       const gutter = Math.max(6, ((height - 72) / plan.lanes.length) * 0.5)
       const connector = {
         x1: 'from',
@@ -117,6 +128,7 @@ export const createExampleChart = (input: ChartOptions) => {
               radius: 3,
             }),
           ),
+          // An outlined, lightly filled summary keeps crossing connectors visible.
           rect(groups, {
             id: 'group-summaries',
             key: 'id',
@@ -124,7 +136,9 @@ export const createExampleChart = (input: ChartOptions) => {
             x2: 'end',
             y: 'lane',
             fill: 'currentColor',
-            fillOpacity: 0.62,
+            fillOpacity: 0.2,
+            stroke: 'currentColor',
+            strokeWidth: 1.5,
             inset: 0,
             radius: 2,
           }),
@@ -207,6 +221,7 @@ export const createExampleChart = (input: ChartOptions) => {
     },
     {
       keyboard: true,
+      focus: laneFocus,
       tooltip: {
         use: exampleTooltip,
         format: ({ datum }: ChartPoint<PlanItem>) => describePlanItem(datum),

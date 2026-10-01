@@ -28,6 +28,7 @@ export const mount: ConformanceMount = (container, input) =>
     const statusDate = statusDateForRevision(nextInput.revision)
     const narrow = nextInput.width < 520
     const labelWidth = narrow ? 128 : 156
+    // Assumes about 72 px of combined top and bottom margin for the x axis.
     const gutter = Math.max(
       6,
       ((nextInput.height - 72) / plan.lanes.length) * 0.5,
@@ -117,7 +118,9 @@ export const mount: ConformanceMount = (container, input) =>
           x2: 'end',
           y: 'lane',
           fill: 'currentColor',
-          fillOpacity: 0.62,
+          fillOpacity: 0.2,
+          stroke: 'currentColor',
+          strokeWidth: 1.5,
           inset: 0,
         }),
         Plot.link(

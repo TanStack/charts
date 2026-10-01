@@ -58,9 +58,11 @@ the successor's left edge. When the successor starts too soon for a direct
 step, the connector runs back through the lane gutter first.
 
 Wrap connectors, progress fills, and the status rule in `decorative` so
-keyboard focus stops only on phases, tasks, and the milestone. Name each task's
-predecessors in its tooltip text, because the connectors themselves are not
-focusable.
+keyboard focus stops only on phases, tasks, and the milestone. Arrow keys
+step left to right by default; a `focus` strategy that spreads `focusNearestY`
+and sorts `navigation` by y, then x, walks the lane tree from top to bottom.
+Name each task's predecessors in its tooltip text, because the connectors
+themselves are not focusable.
 
 ## Preserve uncertainty bounds
 
