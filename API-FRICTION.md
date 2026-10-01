@@ -343,6 +343,9 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-310 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
+| F-313 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
+| F-314 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
 
 ## Findings
 
@@ -9045,3 +9048,64 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-310 - Orthogonal dependency connectors need a hand-built curve
+
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: `link` draws a straight segment and `arrow` draws a straight
+  arrow. A right-angle connector that leaves the predecessor's right edge,
+  steps, and enters the successor's left edge, plus its arrowhead, had to be
+  written as a d3 `CurveFactory` passed to the link's `curve` through
+  `d3Curve`. The curve sees only the two endpoint pixels. It cannot read the
+  resolved band step, so the definition estimates the lane gutter for backward
+  detours from the outer chart height. It cannot tell a bar from a milestone,
+  so dependencies into the milestone need a second link mark with a larger end
+  gap.
+- Decision: keep the recipe. The public curve hook is enough and adds no bytes
+  to other charts. Consider a connector primitive with resolved band geometry
+  and target-aware end gaps only if a second timeline or network case repeats
+  this routing.
+- Verification: case 198 passes the standard 320, 640, and 960 px light and
+  dark conformance matrix, before and after its revision update, with 13
+  right-angle connectors in both renderers. The same curve factory drives the
+  Observable Plot reference.
+
+### F-313 - Keyboard focus cannot follow a dependency
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: keyboard navigation steps through focusable points in scene order.
+  Decorative connectors correctly add no focus stops, but no key moves from a
+  task to its predecessor or successor. The recipe names each task's
+  predecessors in its tooltip text instead.
+- Decision: accept the text description for this recipe. Graph navigation
+  would add interaction state to the default host, which is outside the
+  current stop boundary. Revisit with a second dependency or network case.
+- Verification: the case 198 unit test confirms one focus stop per phase,
+  task, and milestone, and none for connectors or progress fills, before and
+  after the revision update.
+
+### F-314 - Time-ranged bars cannot inset only their lane edges
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with phase summary bars
+- Friction: `rect` `inset` removes pixels from all four edges, so a thinner
+  phase summary bar inside its band lane would also shorten its time extent.
+  `barX` `inset` trims only the categorical edges, but `barX` rejects `Date`
+  fields for `x1` and `x2` on a UTC axis (TS2322). The recipe uses
+  full-height bars and band padding instead of thinner summary bars.
+- Decision: keep full-height bars for now. Consider either `Date` endpoints
+  on `barX` or an axis-specific `rect` inset if another timeline case needs
+  bars thinner than their lane.
+- Verification: a strict compile probe of `barX(rows, { x1: 'start', x2:
+'end', y: 'lane' })` with `Date` fields fails with TS2322. Case 198 uses
+  `rect` with `inset: 0`.
