@@ -6,6 +6,7 @@ import {
   ElementRef,
   Injectable,
   Input,
+  Renderer2,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
@@ -15,12 +16,11 @@ import {
 } from '@angular/core'
 import type {
   EmbeddedViewRef,
+  AfterViewInit,
   OnChanges,
   OnDestroy,
   SimpleChanges,
 } from '@angular/core'
-import { DomSanitizer } from '@angular/platform-browser'
-import type { SafeHtml } from '@angular/platform-browser'
 import { resolveChartAdapterLayout } from '@tanstack/charts/adapter'
 import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import { renderChartSvg } from '@tanstack/charts/svg'
@@ -62,7 +62,6 @@ class ChartIdGenerator {
         #surface
         class="ts-chart-surface"
         style="width: 100%; height: 100%"
-        [innerHTML]="initialMarkup"
       ></div>
     </div>
     <ng-container #tooltipOutlet></ng-container>
@@ -144,7 +143,7 @@ export class Chart<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >
-  implements OnChanges, OnDestroy
+  implements AfterViewInit, OnChanges, OnDestroy
 {
   @Input({ required: true })
   declare options: ChartOptions<TDatum, TXValue, TYValue>
@@ -171,13 +170,13 @@ export class Chart<
     }
   }
 
-  initialMarkup: SafeHtml | string = ''
+  initialMarkup = ''
   hostClass = 'ts-chart-host'
   hostStyle = 'position:relative;width:100%;height:320px'
   protected defaultTooltipContent?: ChartTooltipContent
   protected defaultTooltipText?: string
 
-  private readonly sanitizer = inject(DomSanitizer)
+  private readonly domRenderer = inject(Renderer2)
   private readonly generatedId = inject(ChartIdGenerator).next()
   private adapter?: ChartAdapter<
     ChartRendererHostOptions<TDatum, TXValue, TYValue>,
@@ -221,6 +220,13 @@ export class Chart<
     this.updateAdapter()
   }
 
+  ngAfterViewInit() {
+    const surface = this.surface.nativeElement
+    if (!surface.childElementCount) {
+      this.domRenderer.setProperty(surface, 'innerHTML', this.initialMarkup)
+    }
+  }
+
   ngOnDestroy() {
     this.adapter?.destroy()
     this.destroyTooltipBodyView()
@@ -236,9 +242,7 @@ export class Chart<
     )
     if (!this.adapter) {
       this.adapter = createChartRendererAdapter(hostOptions)
-      this.initialMarkup = this.sanitizer.bypassSecurityTrustHtml(
-        this.adapter.prerender(),
-      )
+      this.initialMarkup = this.adapter.prerender()
     } else {
       this.adapter.update(hostOptions)
     }

@@ -3785,6 +3785,20 @@ Each entry records:
   partial compilation and Svelte package compilation pass. Packed React
   consumers retain their renderer boundary without pulling SVG modules.
 
+- 1.0 follow-up: a real Angular hydration test reports successful framework
+  hydration but catches the adapter replacing its SVG through `[innerHTML]`.
+  The local fix seeds prerendered markup once in `ngAfterViewInit` only when
+  the surface is empty, leaving existing server markup for renderer adoption.
+  An isolated Node server render and browser hydration reproduce the identity
+  failure before this fix and pass afterward, including actual browser host
+  mounting and immutable signal-driven updates. All four Angular tests and
+  fresh before/after partial builds pass. Minified module size falls 15 bytes
+  and gzip falls 3, while raw output adds 58. Installed candidate tarballs pass
+  hydration, reactive updates, identity, and cleanup in Chromium, Firefox,
+  and WebKit with Angular 22.0.8 and JIT compilation. AOT and minimum peer
+  coverage remain outside this evidence. Same-process server/client tests were invalid
+  because Angular retained its server document, so that evidence is replaced.
+
 ### F-124 — Name-only inventories masked undocumented contracts
 
 - Status: resolved
