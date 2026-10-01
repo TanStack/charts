@@ -69,9 +69,10 @@ compilation, path construction, or `ChartPoint` creation.
 
 A dot mark still produces one scene node and one interaction point per
 observation. Default nearest-point focus still scans those points linearly.
-Supply a measured `spatialIndex` when individual points are still the correct
-pointer target, and use a focus strategy with a bounded `navigation` order
-when every observation is not a useful keyboard stop.
+Supply a measured `spatialIndex`, such as
+[`gridSpatialIndex`](#indexed-nearest-point-lookup), when individual points
+are still the correct pointer target, and use a focus strategy with a bounded
+`navigation` order when every observation is not a useful keyboard stop.
 
 Do not treat Canvas as permission to promise a million independently
 interactive marks. Compare source, represented, prepared, and rendered counts;
@@ -131,6 +132,45 @@ target.
 
 An index can accelerate nearest-point lookup. It does not reduce scene size,
 DOM or draw count, path construction, paint cost, or visual overplotting.
+
+## Indexed nearest-point lookup
+
+`gridSpatialIndex` from `@tanstack/charts/spatial/grid-index` is an opt-in
+`spatialIndex` factory. Charts that do not import it do not ship it.
+
+```ts
+import { gridSpatialIndex } from '@tanstack/charts/spatial/grid-index'
+
+const chart = defineChart(spec, { spatialIndex: gridSpatialIndex })
+```
+
+It returns exactly what a linear scan of point anchors returns, including the
+earliest-point tie and the `maxDistance` limit. It finds the nearest point
+center. It does not test bars, areas, or lines for containment, so keep the
+default lookup for marks whose painted shape is the target.
+
+The host rebuilds the index after each scene change. With the default
+48-pixel radius, Node 24 on an Apple M5 Max measured these medians with
+`pnpm performance:pointer`. Anchors are uniform in a 960 × 540 plot and
+pointers sweep the plot.
+
+|  Points | Linear scan / query | Grid build | Grid / query | D3 quadtree build | D3 quadtree / query |
+| ------: | ------------------: | ---------: | -----------: | ----------------: | ------------------: |
+|   1,000 |              1.8 µs |    0.03 ms |       0.1 µs |           0.14 ms |              0.5 µs |
+|  10,000 |               17 µs |    0.11 ms |       0.3 µs |            1.0 ms |              1.2 µs |
+| 100,000 |             0.19 ms |     1.1 ms |       2.4 µs |             16 ms |              5.2 µs |
+
+Points on one vertical or horizontal line stay under 1 µs per query at
+100,000 points with the 48-pixel radius. The worst case is a dense cluster with the pointer inside it:
+the grid cannot split points that share a cell, so it scans the cluster. With
+98% of points within 2 pixels, it measured about 2× slower than the linear
+scan at 1,000 points, about 1.2× slower at 10,000, and about 2× faster at
+100,000. D3 quadtree handles that case better. The benchmark prints every
+layout, radius, and size.
+
+The grid keeps about 24 bytes per point, against about 90 for the quadtree.
+At a few hundred points the linear scan is already fast; measure before
+adding an index there.
 
 ## Streaming windows
 

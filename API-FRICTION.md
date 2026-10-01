@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Dense point charts had no shipped spatial index                | API                   | resolved   |
 
 ## Findings
 
@@ -9045,3 +9046,29 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Dense point charts had no shipped spatial index
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: measuring nearest-point lookup for 1k to 100k dot anchors
+- Friction: the large-data guide told dense charts to supply a measured
+  `spatialIndex`, but core shipped none. The only grid lived privately in
+  `charts-core-d3`, and it did not keep the linear scan's earliest-point tie
+  when equidistant points fell in different cells. Each application had to
+  write and verify its own index or bring D3 quadtree, which built 4 to 18
+  times slower than a grid on the same 1k to 100k points.
+- Decision: publish `gridSpatialIndex` at the exact
+  `@tanstack/charts/spatial/grid-index` subpath. It returns the linear anchor scan's
+  result, including ties, radius rules, and non-finite anchors, and documents
+  that it is nearest-center lookup, not shape hit testing.
+- Verification: seeded property tests compare it with `nearestPoint` across
+  uniform, lattice, clustered, collinear, vertical-strip, thin-strip,
+  single-point, and non-finite layouts, with half-step queries that force
+  cross-cell ties. A cell-visit counter bounds strip queries; the first
+  version averaged 878 to 6,973 cells per query there because its ring sweep
+  and distance bound ignored the grid's shape. `pnpm performance:pointer`
+  checks identical results before timing four layouts at three sizes.
+  `pnpm bundle:check` budgets the subpath at 1.2 KiB gzip and forbids it from
+  the default DOM host.

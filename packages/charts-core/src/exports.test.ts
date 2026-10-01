@@ -403,6 +403,18 @@ describe('public package exports', () => {
     expect(spatial).toHaveProperty('hexbin')
   })
 
+  it('keeps the optional grid index on its exact spatial subpath', async () => {
+    const [root, universal, spatial] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/spatial/grid-index'),
+    ])
+
+    expect(root).not.toHaveProperty('gridSpatialIndex')
+    expect(universal).not.toHaveProperty('gridSpatialIndex')
+    expect(spatial).toHaveProperty('gridSpatialIndex')
+  })
+
   it('keeps the optional Delaunay algorithm on its exact spatial subpath', async () => {
     const [root, universal, spatial] = await Promise.all([
       import('@tanstack/charts'),
