@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
 
 ## Findings
 
@@ -9141,6 +9142,22 @@ Each entry records:
   line-dot centers, resolved label paint, and single-node and multi-node custom
   indicators. The composed and pie catalog examples use the built-in legend
   instead of application-owned layout.
+
+### F-307 - Grouped-y keyboard navigation followed x order
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: PR #160 reproduction and real keyboard verification for 1.0
+- Friction: grouped-y rows were visited by the x position of their first
+  point, forcing consumers to supply corrected navigation ordering.
+- Decision: select a direct grouped-axis-first comparator before sorting.
+  Keep nearest modes and grouped-x ordering unchanged, with no second sort.
+- Verification: the focused regression fails before and passes after. All
+  59 focus and interaction tests and root TypeScript pass. Chromium, Firefox,
+  and WebKit verify initial focus, ArrowDown, ArrowUp, normal and reversed y
+  domains, and empty-host teardown with no page errors. A paired minified
+  benchmark rejects the dynamic-property comparator's measured overhead.
 
 ### F-306 - Inferred consumer declarations could not name core types
 
