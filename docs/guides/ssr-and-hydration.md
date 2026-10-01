@@ -4,7 +4,7 @@ description: Render deterministic chart markup on the server, preserve runtime w
 ---
 
 TanStack Charts builds a platform-neutral scene before the selected renderer
-produces output. React, Preact, Vue, Solid, Svelte, and Octane use the same
+produces output. React, Preact, Vue, Solid, Svelte, Angular, and Octane use the same
 runtime and renderer on the server and in the browser.
 
 ## Adapter support
@@ -17,14 +17,15 @@ runtime and renderer on the server and in the browser.
 | [Solid](../framework/solid/adapter.md)     | SVG or mixed shell                  | Hydrates before the shared host mounts              |
 | [Svelte](../framework/svelte/adapter.md)   | SVG or mixed shell                  | Hydrates before the shared host mounts              |
 | [Octane](../framework/octane/adapter.md)   | SVG, Canvas, or mixed shell         | Hydrates and adopts the existing surface            |
-| [Angular](../framework/angular/adapter.md) | Not yet a verified adapter contract | Browser mount, immutable update, and teardown       |
+| [Angular](../framework/angular/adapter.md) | SVG                                 | Hydrates and adopts the existing surface            |
 | [Lit](../framework/lit/adapter.md)         | Not yet a verified adapter contract | Browser registration, update, disconnect, reconnect |
 | [Alpine](../framework/alpine/adapter.md)   | None                                | Browser-only directive                              |
 
 For adapters with server output, the browser must render the same definition,
-dimensions, formatters, and component tree. Angular and Lit may run
-inside applications with their own server infrastructure, but this library
-does not yet promise or test adapter hydration for them.
+dimensions, formatters, and component tree. Angular uses
+`provideClientHydration`; see its adapter page for the verified version scope.
+Lit may run inside applications with their own server infrastructure, but this
+library does not yet promise or test adapter hydration for Lit.
 
 ## Give the server a real size
 

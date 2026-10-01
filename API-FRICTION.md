@@ -3808,6 +3808,11 @@ Each entry records:
   tarball also passes the Angular 22 AOT audit in all three engines. These checks
   do not cover every Angular peer version. Same-process server/client tests were invalid
   because Angular retained its server document, so that evidence is replaced.
+  The 1.0 lifecycle audit also found the canonical SSR guide and Angular adapter
+  page still described hydration as unverified. Both now describe SVG adoption
+  with `provideClientHydration` and the verified Angular 19/22 AOT browser scope.
+  A direct Preact SSR-to-hydration regression additionally checks SVG and path
+  identity, immutable label updates, a single surface, and empty-host teardown.
 
 ### F-124 — Name-only inventories masked undocumented contracts
 
