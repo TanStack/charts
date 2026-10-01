@@ -4,6 +4,7 @@ import { crosshair } from './crosshair'
 import { dot } from './dot'
 import { renderChartImage, serializeChartSvg } from './export'
 import { lineY } from './line'
+import { linePattern } from './pattern'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import { renderChartSvgWithResources } from './svg-resources'
@@ -153,6 +154,57 @@ describe('optional export', () => {
     )
     expect(result).toContain('stop-color="rgb(37, 99, 235)"')
     expect(result).toContain('stop-opacity="0.35"')
+    readStyle.mockRestore()
+  })
+
+  it('inlines computed pattern tile paint', () => {
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvgWithResources(
+      createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2], { stroke: 'url(#hatch)' })],
+          ...linearAxes([0, 2], [0, 3]),
+          patterns: [
+            linePattern({
+              id: 'hatch',
+              color: 'var(--hatch)',
+              background: 'var(--hatch-ground)',
+            }),
+          ],
+        }),
+        { width: 480, height: 260 },
+      ),
+      { ariaLabel: 'Pattern export', idPrefix: 'export' },
+    )
+    const readStyle = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element) => {
+        const key = element.getAttribute('data-ts-key')
+        const fill =
+          key === 'pattern:hatch:line'
+            ? 'rgb(37, 99, 235)'
+            : key === 'pattern:hatch:background'
+              ? 'rgb(248, 250, 252)'
+              : ''
+        return {
+          getPropertyValue: (property: string) =>
+            property === 'fill' ? fill : '',
+        } as CSSStyleDeclaration
+      })
+
+    const result = serializeChartSvg(container)
+
+    expect(result).toContain(
+      '<pattern data-ts-key="pattern:hatch" id="export-hatch"',
+    )
+    expect(result).toContain(
+      '<rect data-ts-key="pattern:hatch:background" fill="rgb(248, 250, 252)" x="0" y="0" width="6" height="6"/>',
+    )
+    expect(result).toContain(
+      '<rect data-ts-key="pattern:hatch:line" fill="rgb(37, 99, 235)"',
+    )
+    expect(result).toContain('stroke="url(#export-hatch)"')
+    expect(result).not.toContain('var(--hatch')
     readStyle.mockRestore()
   })
 

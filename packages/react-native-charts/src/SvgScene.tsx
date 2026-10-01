@@ -8,6 +8,7 @@ import {
   Line,
   LinearGradient,
   Path,
+  Pattern,
   RadialGradient,
   Rect,
   Stop,
@@ -55,21 +56,21 @@ export function NativeChartSceneNodes({
   idPrefix,
   resolvePaint,
 }: NativeChartSceneNodesProps) {
-  const gradientIds = React.useMemo(
-    () => new Set(scene.gradients.map((gradient) => gradient.id)),
-    [scene.gradients],
+  const resourceIds = React.useMemo(
+    () => sceneResourceIds(scene),
+    [scene.gradients, scene.patterns],
   )
   const paint = React.useCallback(
     (value: string) =>
       resolveScenePaint(
         value,
-        gradientIds,
+        resourceIds,
         idPrefix,
         resolvePaint,
         color,
         focusFill,
       ),
-    [color, focusFill, gradientIds, idPrefix, resolvePaint],
+    [color, focusFill, resourceIds, idPrefix, resolvePaint],
   )
   return (
     <>
@@ -100,21 +101,21 @@ export const NativeChartScene = React.memo(function NativeChartScene({
   focusFill,
   focusPresentation,
 }: NativeChartSceneProps) {
-  const gradientIds = React.useMemo(
-    () => new Set(scene.gradients.map((gradient) => gradient.id)),
-    [scene.gradients],
+  const resourceIds = React.useMemo(
+    () => sceneResourceIds(scene),
+    [scene.gradients, scene.patterns],
   )
   const paint = React.useCallback(
     (value: string) =>
       resolveScenePaint(
         value,
-        gradientIds,
+        resourceIds,
         idPrefix,
         resolvePaint,
         color,
         focusFill,
       ),
-    [color, focusFill, gradientIds, idPrefix, resolvePaint],
+    [color, focusFill, resourceIds, idPrefix, resolvePaint],
   )
 
   return (
@@ -180,6 +181,32 @@ export const NativeChartScene = React.memo(function NativeChartScene({
               </LinearGradient>
             )
           })}
+        </Defs>
+      ) : null}
+      {scene.patterns?.length ? (
+        <Defs>
+          {scene.patterns.map((pattern) => (
+            <Pattern
+              key={pattern.id}
+              id={scopedId(idPrefix, pattern.id)}
+              width={pattern.width}
+              height={pattern.height}
+              patternUnits="userSpaceOnUse"
+              patternTransform={
+                pattern.angle ? `rotate(${-pattern.angle})` : undefined
+              }
+            >
+              {pattern.nodes.map((node) =>
+                renderSceneNode(
+                  node,
+                  idPrefix,
+                  paint,
+                  positiveFinite(fontScale, 1),
+                  direction,
+                ),
+              )}
+            </Pattern>
+          ))}
         </Defs>
       ) : null}
       {scene.theme.background === 'transparent' ? null : (
@@ -412,7 +439,7 @@ function webTextDirection(direction: ChartTextTypography['direction']) {
 
 function resolveScenePaint(
   value: string,
-  gradientIds: ReadonlySet<string>,
+  resourceIds: ReadonlySet<string>,
   idPrefix: string,
   resolvePaint: NativePaintResolver,
   color: ColorValue,
@@ -420,10 +447,18 @@ function resolveScenePaint(
 ) {
   const match = /^url\(#([\s\S]*)\)$/.exec(value)
   const id = match?.[1]
-  if (id !== undefined && gradientIds.has(id)) {
+  if (id !== undefined && resourceIds.has(id)) {
     return `url(#${scopedId(idPrefix, id)})`
   }
   return resolvePaint(value, { color, canvas })
+}
+
+function sceneResourceIds(scene: ChartScene) {
+  return new Set(
+    [...scene.gradients, ...(scene.patterns ?? [])].map(
+      (resource) => resource.id,
+    ),
+  )
 }
 
 function pointsPath(

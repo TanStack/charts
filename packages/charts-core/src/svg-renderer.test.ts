@@ -1,6 +1,7 @@
 import { scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { lineY } from './line'
+import { dotPattern, linePattern } from './pattern'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import { withSvgRenderChildren } from './svg-render-context-internal'
@@ -277,6 +278,60 @@ describe('SVG scene renderer', () => {
     expect(svg).toContain(
       '<stop data-ts-key="gradient:authored-order:stop:0" offset="100%" stop-color="#ff0000"/><stop data-ts-key="gradient:authored-order:stop:1" offset="100%" stop-color="#0000ff"/>',
     )
+  })
+
+  it('scopes pattern tiles and rewrites fill and stroke references', () => {
+    const svg = renderChartSvg(
+      {
+        ...testScene(),
+        nodes: [
+          {
+            kind: 'rect',
+            key: 'hatched',
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 20,
+            style: { fill: 'url(#hatch)', stroke: 'url(#grain)' },
+          },
+          {
+            kind: 'rect',
+            key: 'foreign',
+            x: 50,
+            y: 0,
+            width: 40,
+            height: 20,
+            style: { fill: 'url(#app-owned)' },
+          },
+        ],
+        patterns: [
+          linePattern({
+            id: 'hatch',
+            color: 'var(--hatch)',
+            background: '#ffffff',
+            spacing: 8,
+            strokeWidth: 20,
+          }),
+          dotPattern({
+            id: 'grain',
+            color: '#123456',
+            spacing: Number.NaN,
+            radius: 9,
+            angle: 30,
+          }),
+          { id: 'flat', width: 4, height: 4, nodes: [] },
+        ],
+      },
+      { ariaLabel: 'Patterns', idPrefix: 'chart.one' },
+    )
+
+    expect(svg).toContain(
+      '<defs data-ts-key="patterns"><pattern data-ts-key="pattern:hatch" id="chartone-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect data-ts-key="pattern:hatch:background" fill="#ffffff" x="0" y="0" width="8" height="8"/><rect data-ts-key="pattern:hatch:line" fill="var(--hatch)" x="0" y="0" width="8" height="8"/></pattern><pattern data-ts-key="pattern:grain" id="chartone-grain" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)"><circle data-ts-key="pattern:grain:dot" fill="#123456" cx="3" cy="3" r="3"/></pattern><pattern data-ts-key="pattern:flat" id="chartone-flat" width="4" height="4" patternUnits="userSpaceOnUse"></pattern></defs>',
+    )
+    expect(svg).toContain(
+      'fill="url(#chartone-hatch)" stroke="url(#chartone-grain)"',
+    )
+    expect(svg).toContain('fill="url(#app-owned)"')
   })
 })
 

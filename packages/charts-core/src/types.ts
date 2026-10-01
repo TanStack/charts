@@ -657,6 +657,22 @@ export interface ChartRadialGradient extends ChartGradientBase {
 
 export type ChartGradient = ChartLinearGradient | ChartRadialGradient
 
+/**
+ * A repeating tile referenced from paint as `url(#id)`. Sizes are user-space
+ * pixels. Tiles repeat from the user-space origin the node is drawn in.
+ */
+export interface ChartPattern {
+  id: string
+  /** Tile width in pixels. A non-positive width paints nothing. */
+  width: number
+  /** Tile height in pixels. A non-positive height paints nothing. */
+  height: number
+  /** Tile rotation in degrees, counterclockwise. Defaults to `0`. */
+  angle?: number
+  /** Tile content in tile coordinates, painted in order. */
+  nodes: readonly SceneNode[]
+}
+
 /** A scale-contributing mark that does not own interactive chart points. */
 export type DecorativeChartMark<
   TMark extends ChartMark<any, any, any, any, any, any, any>,
@@ -778,6 +794,7 @@ export interface ChartSpecBase {
   guides?: boolean
   color?: ChartColorOptions
   gradients?: readonly ChartGradient[]
+  patterns?: readonly ChartPattern[]
   clip?: boolean
   margin?: number | Partial<ChartMargin>
   theme?: Partial<ChartTheme>
@@ -1591,6 +1608,8 @@ export interface ChartScene<
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
   gradients: readonly ChartGradient[]
+  /** Declared pattern resources. Hand-built scenes may omit this field. */
+  patterns?: readonly ChartPattern[]
   theme: ChartTheme
   direction?: ChartTextTypography['direction']
   controls?: readonly ChartHostControl[]
