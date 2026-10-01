@@ -145,6 +145,7 @@ describe('geoShape', () => {
     expect(renderChartSvg(resolved.scene, { ariaLabel: 'Regions' })).toContain(
       'opacity="0.5"',
     )
+    expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
   })
 
   it('fits a D3 projection to final bounds and emits keyed paths and points', () => {
