@@ -31,6 +31,61 @@ const rows = [
   { id: 'b', category: 'B', value: 80 },
 ]
 
+describe('structured SVG text motion', () => {
+  it.each([
+    '<tspan data-ts-key="child">old</tspan>',
+    'before<tspan data-ts-key="child">old</tspan>after',
+  ])('preserves replacement text after an exiting child in %s', (markup) => {
+    const base = createChartScene(
+      defineChart({
+        marks: [],
+        guides: false,
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
+      }),
+      { width: 300, height: 200 },
+    )
+    const scene = (text: string): ChartScene => ({
+      ...base,
+      nodes: [
+        {
+          kind: 'group',
+          key: 'marks',
+          className: 'ts-chart__marks',
+          children: [{ kind: 'label', key: 'label', x: 10, y: 20, text }],
+        },
+      ],
+    })
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    const frames = installFrames()
+    try {
+      surface.render(scene('old'), { ariaLabel: 'Text transition' })
+      const text = container.querySelector('text')!
+      text.innerHTML = markup
+      const child = text.firstElementChild!
+      surface.render(scene('new'), { ariaLabel: 'Text transition' })
+      expect(container.querySelector('text')).toBe(text)
+      expect(text.firstElementChild).toBe(child)
+      frames.run(0)
+      frames.run(50)
+      expect(text.firstElementChild).toBe(child)
+      expect(Number(child.getAttribute('opacity'))).toBeCloseTo(0.5)
+      frames.run(100)
+      expect(text.firstElementChild).toBeNull()
+      expect(text.textContent).toBe('new')
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
+  })
+})
+
 const groupedFocusRows = [
   { id: 'a', series: 'series-a', x: 0, y: 4 },
   { id: 'b', series: 'series-a', x: 1, y: 6 },
