@@ -69,9 +69,10 @@ compilation, path construction, or `ChartPoint` creation.
 
 A dot mark still produces one scene node and one interaction point per
 observation. Default nearest-point focus still scans those points linearly.
-Supply a measured `spatialIndex` when individual points are still the correct
-pointer target, and use a focus strategy with a bounded `navigation` order
-when every observation is not a useful keyboard stop.
+Supply a measured `spatialIndex`, such as
+[`gridSpatialIndex`](#indexed-nearest-point-lookup), when individual points
+are still the correct pointer target, and use a focus strategy with a bounded
+`navigation` order when every observation is not a useful keyboard stop.
 
 Do not treat Canvas as permission to promise a million independently
 interactive marks. Compare source, represented, prepared, and rendered counts;
@@ -131,6 +132,35 @@ target.
 
 An index can accelerate nearest-point lookup. It does not reduce scene size,
 DOM or draw count, path construction, paint cost, or visual overplotting.
+
+## Indexed nearest-point lookup
+
+`gridSpatialIndex` from `@tanstack/charts/spatial/grid` is an opt-in
+`spatialIndex` factory. Charts that do not import it do not ship it.
+
+```ts
+import { gridSpatialIndex } from '@tanstack/charts/spatial/grid'
+
+const chart = defineChart(spec, { spatialIndex: gridSpatialIndex })
+```
+
+It returns exactly what a linear scan of point anchors returns, including the
+earliest-point tie and the `maxDistance` limit. It finds the nearest point
+center. It does not test bars, areas, or lines for containment, so keep the
+default lookup for marks whose painted shape is the target.
+
+The host rebuilds the index after each scene change. On uniform random
+anchors in a 960 × 540 plot, with the default 48-pixel radius, Node 24 on an
+Apple M5 Max measured these medians with `pnpm performance:pointer`:
+
+|  Points | Linear scan / query | Grid build | Grid / query | D3 quadtree build | D3 quadtree / query |
+| ------: | ------------------: | ---------: | -----------: | ----------------: | ------------------: |
+|   1,000 |              2.0 µs |    0.04 ms |       0.1 µs |           0.15 ms |              0.5 µs |
+|  10,000 |               18 µs |    0.15 ms |       0.1 µs |            1.2 ms |              1.3 µs |
+| 100,000 |             0.21 ms |     1.2 ms |       0.8 µs |             21 ms |              5.5 µs |
+
+The grid keeps about 24 bytes per point, against about 90 for the quadtree. At a few hundred points the linear
+scan is already fast; measure before adding an index there.
 
 ## Streaming windows
 

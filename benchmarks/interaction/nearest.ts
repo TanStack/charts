@@ -1,7 +1,11 @@
 import { performance } from 'node:perf_hooks'
 import { Delaunay } from 'd3-delaunay'
 import { quadtree } from 'd3-quadtree'
-import { nearestScenePoint } from '../../packages/charts-core/src/nearest'
+import {
+  nearestPoint,
+  nearestScenePoint,
+} from '../../packages/charts-core/src/nearest'
+import { gridSpatialIndex } from '../../packages/charts-core/src/spatial-grid'
 import type {
   ChartFocusAffinity,
   ChartPoint as CoreChartPoint,
@@ -232,6 +236,7 @@ const rectangleComparisonImplementations: readonly Implementation[] = [
   ['Vega 5.2.1 · bounds-only lower bound', vegaBoundsNearestPoint],
 ] as const
 const collectGarbage = (globalThis as { gc?: () => void }).gc
+let retainedIndexes: unknown[] = []
 
 verifyEquivalentResults()
 verifyComparisonResults()
@@ -276,6 +281,7 @@ for (const [label] of comparisonImplementations) {
 printAsciiDurations(comparisonMeasurements, comparisonImplementations)
 printIndexBuildTimes()
 printIndexStorage()
+printPointIndexScaling()
 
 console.log(
   '\nRectangle containment comparison · identical targets on this fixture',
@@ -883,6 +889,135 @@ function printIndexStorage() {
   console.log(
     'Object headers, accessors, internal fields, and the original points are excluded.',
   )
+}
+
+function printPointIndexScaling() {
+  console.log(
+    '\nPoint-anchor index scaling · uniform random anchors in 960 × 540',
+  )
+  console.log(
+    'Every row returns the linear scan result; lookup is the per-query mean of one round, reported as the median and p95 across 18 rounds.',
+  )
+  console.log(
+    '| Points | Radius | Resolver | Median build | p95 build | Median / query | p95 / query | Retained |',
+  )
+  console.log('| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |')
+  for (const size of [1_000, 10_000, 100_000]) {
+    const random = seededRandom(size)
+    const points = Array.from({ length: size }, (_, index) =>
+      point(index, random() * 960, random() * 540),
+    )
+    const builders = [
+      ['linear anchor scan (default)', undefined],
+      ['TanStack grid index', () => gridSpatialIndex(points)],
+      [
+        'D3 quadtree 3.0.1',
+        () => {
+          const tree = quadtree<ChartPoint<Datum, number, number>>()
+            .x((candidate) => candidate.x)
+            .y((candidate) => candidate.y)
+            .addAll([...points])
+          return {
+            findNearest: (x: number, y: number, maxDistance = Infinity) =>
+              tree.find(x, y, Math.max(0, maxDistance)) ?? null,
+          }
+        },
+      ],
+    ] as const
+    for (const maxDistance of [48, Infinity]) {
+      const scalingCase: PointerCase = {
+        label: `${size} points`,
+        points,
+        queries: queries(256, () => ({
+          x: random() * 1_000 - 20,
+          y: random() * 580 - 20,
+          maxDistance,
+        })),
+        repetitions: Math.max(1, Math.round(100_000 / size)),
+      }
+      const resolvers: Implementation[] = []
+      const builds = new Map<string, number[]>()
+      const retained = new Map<string, number>()
+      for (const [label, build] of builders) {
+        if (!build) {
+          resolvers.push([label, nearestPoint])
+          continue
+        }
+        builds.set(label, measureBuild(build))
+        retained.set(label, measureRetained(build))
+        const index = build()
+        resolvers.push([
+          label,
+          (_points, x, y, distance) => index.findNearest(x, y, distance),
+        ])
+      }
+      for (const query of scalingCase.queries) {
+        const reference = nearestPoint(points, query.x, query.y, maxDistance)
+        for (const [label, resolver] of resolvers) {
+          const candidate = resolver(points, query.x, query.y, maxDistance)
+          if (candidate !== reference) {
+            throw new Error(
+              `Point index scaling changed ${label}: ${String(reference?.key)} !== ${String(candidate?.key)}`,
+            )
+          }
+        }
+      }
+      const measurements = measure(scalingCase, resolvers)
+      for (const [label] of resolvers) {
+        const samples = measurements.get(label)!
+        const buildSamples = builds.get(label)
+        const bytes = retained.get(label)
+        console.log(
+          `| ${size.toLocaleString()} | ${maxDistance} | ${label} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.5)) : '—'} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.95)) : '—'} | ${formatDuration(percentile(samples, 0.5))} | ${formatDuration(percentile(samples, 0.95))} | ${bytes === undefined ? '—' : bytes < 0 ? 'n/a' : formatStorage(bytes)} |`,
+        )
+      }
+    }
+  }
+  console.log(
+    'Retained is the median heap plus ArrayBuffer growth while one index is alive; n/a means --expose-gc was absent.',
+  )
+}
+
+function measureBuild(build: () => unknown) {
+  for (let index = 0; index < 3; index += 1) build()
+  const samples: number[] = []
+  for (let index = 0; index < 18; index += 1) {
+    collectGarbage?.()
+    const startedAt = performance.now()
+    checksum += build() ? 1 : 0
+    samples.push(performance.now() - startedAt)
+  }
+  return samples.sort((left, right) => left - right)
+}
+
+function measureRetained(build: () => unknown) {
+  if (!collectGarbage) return -1
+  const samples: number[] = []
+  for (let round = 0; round < 5; round += 1) {
+    collectGarbage()
+    const before = allocatedBytes()
+    retainedIndexes = Array.from({ length: 4 }, build)
+    collectGarbage()
+    samples.push((allocatedBytes() - before) / retainedIndexes.length)
+    retainedIndexes = []
+  }
+  return percentile(
+    samples.sort((left, right) => left - right),
+    0.5,
+  )
+}
+
+function allocatedBytes() {
+  const usage = process.memoryUsage()
+  return usage.heapUsed + usage.arrayBuffers
+}
+
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0
+  return () => {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0
+    return state / 0x1_0000_0000
+  }
 }
 
 function point(
