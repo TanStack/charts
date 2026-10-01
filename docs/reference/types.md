@@ -140,7 +140,8 @@ the datum, index, data, point, focus, pointer, and matching helper. A
 can return any `ChartMarkStateValue`. `ChartMarkStateStyle` is the complete
 style vocabulary; `ChartDotStateStyle`, `ChartBarStateStyle`,
 `ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, and
-`ChartTextStateStyle` narrow it to properties each mark can render.
+`ChartTextStateStyle` narrow it to properties each mark can render. All six
+accept `strokeDasharray` for a state-driven dash pattern.
 
 ## Definitions
 

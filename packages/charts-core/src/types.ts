@@ -198,6 +198,7 @@ export type ChartDotStateStyle<TDatum = unknown> = Pick<
   | 'stroke'
   | 'strokeOpacity'
   | 'strokeWidth'
+  | 'strokeDasharray'
   | 'opacity'
   | 'r'
 >
@@ -208,6 +209,7 @@ export type ChartBarStateStyle<TDatum = unknown> = Pick<
   | 'fillOpacity'
   | 'stroke'
   | 'strokeWidth'
+  | 'strokeDasharray'
   | 'opacity'
   | 'radius'
   | 'inset'
@@ -227,6 +229,7 @@ export type ChartAreaStateStyle<TDatum = unknown> = Pick<
   | 'stroke'
   | 'strokeOpacity'
   | 'strokeWidth'
+  | 'strokeDasharray'
   | 'opacity'
 >
 
@@ -236,6 +239,7 @@ export type ChartTextStateStyle<TDatum = unknown> = Pick<
   | 'fillOpacity'
   | 'stroke'
   | 'strokeWidth'
+  | 'strokeDasharray'
   | 'opacity'
   | 'fontSize'
   | 'fontWeight'

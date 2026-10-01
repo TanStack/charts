@@ -705,7 +705,7 @@ describe('SVG surface coordinates', () => {
             states: [
               {
                 when: { focus: 'primary', pinned: true },
-                style: { r: 9, fill: '#f97316' },
+                style: { r: 9, fill: '#f97316', strokeDasharray: '3 2' },
               },
             ],
           }),
@@ -737,9 +737,11 @@ describe('SVG surface coordinates', () => {
     })
     expect(circle.getAttribute('r')).toBe('9')
     expect(circle.getAttribute('fill')).toBe('#f97316')
+    expect(circle.getAttribute('stroke-dasharray')).toBe('3 2')
 
     surface.paintFocus(null)
     expect(circle.getAttribute('r')).toBe('5')
+    expect(circle.hasAttribute('stroke-dasharray')).toBe(false)
     surface.destroy()
   })
 })
