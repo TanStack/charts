@@ -195,9 +195,12 @@ scene-pixel x coordinate, so band-scale cells line up without configuration.
 Missing cells are skipped in the direction of travel, and focus stays on the
 edge cell when there is nothing further. Moves follow the painted layout, so
 Right always moves toward the right of the plot, including in right-to-left
-documents. A label drawn over a cell shares that cell's position and does not
-add a second stop. Pointer focus picks the cell whose center is nearest, and
-any pointer inside a cell's grid pitch targets that cell.
+documents. A label centered on a cell shares that cell's position and does not
+add a second stop. A label moved with `dx` or `dy` has its own coordinates, so
+it forms a separate row or column; keep offset labels out of the focusable
+marks or center them. Pointer focus picks the cell whose center is nearest.
+Any pointer within half the row and column spacing of that center targets the
+cell, and a grid with one row or one column applies only the spacing it has.
 
 The focused point still carries its `xValue` and `yValue`, so the built-in
 tooltip, which is a polite status region, announces the column and row labels

@@ -54,14 +54,18 @@ export const focusGrid: UniversalGridFocusStrategy = {
     const lastRow = grid.rows[grid.rows.length - 1]
     const last = lastRow?.cells[lastRow.cells.length - 1]
     const position = point && locate(grid, point)
-    if (!point || !position) return isGridKey(key) ? first : undefined
-    const { row, column } = position
+    // Without a focused cell, or when that cell is gone, start from the edge
+    // that linear navigation would use.
+    if (!point || !position) {
+      return key === 'End' ? last : isGridKey(key) ? first : undefined
+    }
+    const { row, column, index } = position
     const cells = grid.rows[row]?.cells ?? []
     switch (key) {
       case 'ArrowRight':
-        return cells[cellIndex(grid, row, column) + 1] ?? point
+        return cells[index + 1] ?? point
       case 'ArrowLeft':
-        return cells[cellIndex(grid, row, column) - 1] ?? point
+        return cells[index - 1] ?? point
       case 'ArrowDown':
         return verticalNeighbor(grid, row, column, 1) ?? point
       case 'ArrowUp':
@@ -156,7 +160,8 @@ function pitch(coordinates: Map<string, number>) {
       (sorted[index] ?? 0) - (sorted[index - 1] ?? 0),
     )
   }
-  return Number.isFinite(smallest) ? smallest : 0
+  // One row or column has no pitch, so that axis never rules a pointer out.
+  return smallest
 }
 
 function locate<TPoint extends ChartPoint>(grid: Grid<TPoint>, point: TPoint) {
@@ -164,11 +169,9 @@ function locate<TPoint extends ChartPoint>(grid: Grid<TPoint>, point: TPoint) {
   const column = grid.columnKeys.get(
     valueKey(mappedFocusCoordinate(point, 'x')),
   )
-  return row === undefined || column === undefined ? undefined : { row, column }
-}
-
-function cellIndex<TPoint>(grid: Grid<TPoint>, row: number, column: number) {
-  return grid.rows[row]?.columns.indexOf(column) ?? -1
+  if (row === undefined || column === undefined) return undefined
+  const index = grid.rows[row]?.columns.indexOf(column) ?? -1
+  return index < 0 ? undefined : { row, column, index }
 }
 
 function verticalNeighbor<TPoint>(

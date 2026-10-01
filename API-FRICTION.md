@@ -9065,7 +9065,14 @@ Each entry records:
   `ChartFocusStrategy` for directional keys, with `navigation` as the fallback
   and the default for existing strategies. Ship `focusGrid` from the separate
   `@tanstack/charts/focus/grid` entry point so charts that do not import it do
-  not grow. The final contract shape is left to maintainer review.
+  not grow. The rejected alternative was letting `navigation` return rows,
+  which changes a return type every host consumes. Two choices stay open for
+  maintainer review: (a) `key` is the raw `KeyboardEvent.key`, so only the DOM
+  host dispatches `step`; the D3 companion host and React Native call
+  `navigation` only and fall back to row-major linear order. A host-neutral
+  direction vocabulary (`right`, `left`, `up`, `down`, `rowStart`, `rowEnd`,
+  `first`, `last`) would let every host dispatch it. (b) `modifier` is one
+  boolean for Control or Command instead of explicit `ctrlKey` and `metaKey`.
 - Verification: unit tests cover row and column moves, sparse skips, row and
   grid extremes, the row-major fallback order, and a mounted heatmap whose
   tooltip names both the row and column after keyboard moves. The built-in

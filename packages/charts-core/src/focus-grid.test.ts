@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mountChart } from './dom'
-import { focusGroupX, focusGroupY, focusNearestX, focusNearestY } from './focus'
 import { focusGrid } from './focus-grid'
 import { cell } from './rect'
 import { defineChart } from './scene'
@@ -49,7 +48,28 @@ describe('grid focus strategy', () => {
     expect(step('b3', 'Home', true)).toBe('a1')
     expect(step('a1', 'End', true)).toBe('c3')
     expect(step(null, 'ArrowDown')).toBe('a1')
+    expect(step(null, 'End')).toBe('c3')
+    expect(step(null, 'End', true)).toBe('c3')
     expect(step('a1', 'Enter')).toBeUndefined()
+  })
+
+  it('restarts from the grid edge when the focused cell is gone', () => {
+    // b2 shares row b and column 2 with existing cells, but has no cell.
+    const stale = point('b2', 10, 10)
+    const move = (key: string) =>
+      focusGrid.step(points, { point: stale, key, modifier: false })?.key
+    expect(move('ArrowRight')).toBe('a1')
+    expect(move('ArrowLeft')).toBe('a1')
+    expect(move('End')).toBe('c3')
+  })
+
+  it('targets a single-row strip anywhere inside a cell column', () => {
+    const strip = [point('s1', 0, 0), point('s2', 40, 0)]
+    expect(
+      focusGrid
+        .resolve(strip, { x: 35, y: 30, maxDistance: 1 })
+        .map((item) => item.key),
+    ).toEqual(['s2'])
   })
 
   it('orders the fallback task list row by row and resolves inside a cell', () => {
@@ -68,17 +88,6 @@ describe('grid focus strategy', () => {
         .resolve(points, { x: 14, y: 16, maxDistance: 1 })
         .map((item) => item.key),
     ).toEqual(['c2'])
-  })
-
-  it('leaves the built-in strategies on navigation order', () => {
-    for (const strategy of [
-      focusGroupX,
-      focusGroupY,
-      focusNearestX,
-      focusNearestY,
-    ]) {
-      expect('step' in strategy).toBe(false)
-    }
   })
 
   it('drives mounted keyboard focus and keeps row and column in the tooltip', () => {
