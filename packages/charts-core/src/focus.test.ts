@@ -78,6 +78,18 @@ describe('axis focus strategies', () => {
     ).toEqual(['primary', 'different-pixel'])
   })
 
+  it('orders grouped y navigation by y before x', () => {
+    const rows = [
+      point('lower-left', 10, 80, 'A', 1),
+      point('upper-far', 90, 20, 'B', 3),
+      point('upper-near', 60, 20, 'C', 2),
+    ]
+
+    expect(
+      focusGroupY.navigation(rows).map((candidate) => candidate.key),
+    ).toEqual(['upper-near', 'lower-left'])
+  })
+
   it('can disable native datum focus without a case-local strategy', () => {
     expect(
       focusDisabled.resolve(points, { x: 10, y: 20, maxDistance: 100 }),
