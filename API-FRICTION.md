@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Grouped-Y keyboard navigation followed x order                 | API                   | resolved   |
 
 ## Findings
 
@@ -9045,3 +9046,19 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Grouped-Y keyboard navigation followed x order
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: a consumer application's horizontal chart using `group-y` focus
+- Friction: `focusGroupY.navigation` sorted candidates by x, then y, like
+  `focusGroupX`. Arrow keys visited y groups in left-to-right order of their
+  first point, not row order, so the application re-sorted grouped-Y keyboard
+  candidates by screen y itself.
+- Decision: grouped presets sort by their grouped axis first and break ties on
+  the other axis. `group-y` now visits rows top to bottom in presentation
+  pixels. `group-x` and the nearest presets keep their existing order.
+- Verification: a focused core test fails with the x-first sort and passes
+  with the fix; the full unit, typecheck, and documentation gates pass.
