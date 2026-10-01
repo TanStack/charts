@@ -12,6 +12,8 @@ import {
 } from './interactive-legend'
 import { lineY } from './line'
 import { dot } from './dot'
+import { crosshair } from './crosshair'
+import { whenFocused } from './focus-mark'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import { tooltip } from './tooltip'
@@ -195,6 +197,16 @@ describe('interactiveColorLegend', () => {
             },
           ],
         }),
+        crosshair(),
+        whenFocused(
+          dot(rows, {
+            id: 'focus-overlay',
+            x: 'x',
+            y: 'y',
+            z: 'series',
+          }),
+          { match: 'group' },
+        ),
       ],
       scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
       color: {
@@ -228,6 +240,22 @@ describe('interactiveColorLegend', () => {
       const tooltipElement =
         container.querySelector<HTMLElement>('.ts-chart-tooltip')!
       const pinnedText = tooltipElement.textContent
+      const focusGeometry = () =>
+        Array.from(
+          container.querySelectorAll(
+            '[data-ts-focus-guide-layer], circle[data-ts-key*="focus-overlay"]',
+          ),
+          (node) => node.outerHTML,
+        )
+      const pinnedGeometry = focusGeometry()
+      expect(
+        container.querySelectorAll(
+          'circle[data-ts-key*="focus-overlay"][visibility="visible"]',
+        ),
+      ).toHaveLength(1)
+      expect(
+        container.querySelector('[data-ts-focus-guide-layer]'),
+      ).not.toBeNull()
       onFocusChange.mockClear()
       stateSources.length = 0
       const construction = legendButton(container, 'Construction')
@@ -242,6 +270,7 @@ describe('interactiveColorLegend', () => {
       expect(onFocusChange).not.toHaveBeenCalled()
       expect(tooltipElement.hidden).toBe(false)
       expect(tooltipElement.textContent).toBe(pinnedText)
+      expect(focusGeometry()).toEqual(pinnedGeometry)
       construction.dispatchEvent(new MouseEvent('pointerleave'))
       expect(
         container.querySelector('[stroke="#f97316"][opacity="0.2"]'),
@@ -259,13 +288,17 @@ describe('interactiveColorLegend', () => {
       ).not.toBeNull()
       expect(onFocusChange).not.toHaveBeenCalled()
       expect(tooltipElement.textContent).toBe(pinnedText)
+      expect(focusGeometry()).toEqual(pinnedGeometry)
       host.interaction.setControlledFocus(null)
+      const unfocusedGeometry = focusGeometry()
+      expect(unfocusedGeometry).not.toEqual(pinnedGeometry)
       onFocusChange.mockClear()
       construction.dispatchEvent(new MouseEvent('pointerenter'))
       expect(
         container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
       ).not.toBeNull()
       expect(tooltipElement.hidden).toBe(true)
+      expect(focusGeometry()).toEqual(unfocusedGeometry)
       expect(onFocusChange).not.toHaveBeenCalled()
       construction.dispatchEvent(new MouseEvent('pointerleave'))
       expect(container.querySelector('[opacity="0.2"]')).toBeNull()
