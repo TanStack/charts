@@ -492,20 +492,16 @@ function createChartSceneWithScaleResolver<
   if (scaleGuides.length) {
     nodes.push(axisNodes)
   }
-  const resourceIds = new Set<string>()
-  for (const { id } of [
-    ...(definition.gradients ?? []),
-    ...(definition.patterns ?? []),
-  ]) {
-    addUniqueId(resourceIds, id, 'resource')
-  }
   const controls: ChartHostControl[] = []
   const controlIds = new Set<string>()
   for (const control of definition.controls ?? []) {
     if (!control.id.trim()) {
       throw new TypeError('Chart control ids must be nonempty')
     }
-    addUniqueId(controlIds, control.id, 'control')
+    if (controlIds.has(control.id)) {
+      throw new TypeError(`Duplicate chart control id "${control.id}"`)
+    }
+    controlIds.add(control.id)
     const resolved = control.resolve({
       chart,
       scales,
@@ -588,7 +584,7 @@ function createChartSceneWithScaleResolver<
     scales,
     colors,
     gradients: definition.gradients ?? [],
-    patterns: definition.patterns ?? [],
+    patterns: definition.patterns,
     theme,
     ...(layoutOptions.typography?.direction === undefined
       ? {}
@@ -2002,9 +1998,4 @@ function formatAxisValue(value: ChartValue): string {
 
 function finiteSize(value: number): number {
   return Number.isFinite(value) ? Math.max(1, value) : 1
-}
-
-function addUniqueId(ids: Set<string>, id: string, kind: string): void {
-  if (ids.has(id)) throw new TypeError(`Duplicate chart ${kind} id "${id}"`)
-  ids.add(id)
 }

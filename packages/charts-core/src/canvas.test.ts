@@ -3286,7 +3286,6 @@ function scene(
       range: [],
       map: () => '#2563eb',
     },
-    patterns: [],
     gradients,
     theme: {
       foreground: '#111111',
