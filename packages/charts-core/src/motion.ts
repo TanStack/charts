@@ -2133,7 +2133,9 @@ function reconcileMotionElement(
   let index = 0
 
   const nextNodes =
-    next.childNodes.length === nextChildren.length ? nextChildren : next.childNodes
+    next.childNodes.length === nextChildren.length
+      ? nextChildren
+      : next.childNodes
   for (const nextNode of nextNodes) {
     if (nextNode.nodeType !== 1) {
       current.insertBefore(nextNode.cloneNode(true), cursor)
@@ -2205,7 +2207,8 @@ function addUpdateTrack(
       !((barPath || semanticPath) && name === 'data-ts-motion-role') &&
       !(rollingTransform !== undefined && name === 'transform')
     ) {
-      current.removeAttribute(name)
+      if (name === 'opacity') nextNames.add(name)
+      else current.removeAttribute(name)
     }
   }
 
@@ -2232,8 +2235,9 @@ function addUpdateTrack(
       continue
     }
     const parsed =
-      previous !== null && target !== null && motionAttributes.has(name)
-        ? parseMotionAttribute(previous, target)
+      motionAttributes.has(name) &&
+      (name === 'opacity' || (previous !== null && target !== null))
+        ? parseMotionAttribute(previous ?? '1', target ?? '1')
         : undefined
     if (parsed) attributes.push({ name, ...parsed, target })
     else if (target !== null) current.setAttribute(name, target)

@@ -2093,6 +2093,9 @@ describe('SVG motion', () => {
     expect(interruptedRadius).toBeLessThan(12)
     expect(Number(circle(grouped)?.getAttribute('r'))).toBeGreaterThan(4)
     expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeLessThan(1)
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeGreaterThan(
+      0.15,
+    )
 
     surface.paintFocus({
       primary: grouped,
@@ -2120,7 +2123,12 @@ describe('SVG motion', () => {
 
     surface.paintFocus(null)
     frames.run(4_000)
-    for (let time = 4_016; time <= 8_000; time += 16) {
+    frames.run(4_080)
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeGreaterThan(
+      0.15,
+    )
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeLessThan(1)
+    for (let time = 4_096; time <= 8_000; time += 16) {
       if (container.querySelector('svg')?.dataset.tsMotionState === 'finished')
         break
       frames.run(time)
