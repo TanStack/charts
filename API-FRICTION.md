@@ -295,7 +295,7 @@ Each entry records:
 | F-256 | Shared host policy retained browser-only modules               | API/Tooling           | resolved   |
 | F-257 | The release package graph leaked into application setup        | API/Docs/Tooling      | resolved   |
 | F-258 | Tooltip chrome required specificity overrides                  | API/Documentation     | resolved   |
-| F-259 | Chart resources cannot declare patterns                        | API                   | open       |
+| F-259 | Chart resources cannot declare patterns                        | API                   | resolved   |
 | F-260 | Static guides cannot express stroke treatment                  | API                   | resolved   |
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | resolved   |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | resolved   |
@@ -7943,19 +7943,53 @@ Each entry records:
 
 ### F-259 — Chart resources cannot declare patterns
 
-- Status: open
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: the theme-treatment audit for catalog cases 120–124 and the
-  Bklit-derived card references
+  Bklit-derived card references; restated by GitHub issue #128 for funnel,
+  Sankey, candlestick, gauge, and heatmap hatching
 - Friction: `ChartSpec.gradients` keeps CSS-variable linear and radial
   gradients inside the renderer-neutral definition. The same resource model
-  cannot declare a hatch, dot, or line pattern. An author must omit that
-  treatment or leave the native definition and renderer resource boundary.
-- Current decision: case 124 uses the same declared linear gradient across its
-  palette treatments. Do not inject an application-owned SVG pattern as a
-  catalog workaround. Keep a native pattern resource open until one contract
-  covers SVG, Canvas, export, CSS-variable paint, and `idPrefix` scoping.
+  could not declare a hatch, dot, or line pattern. An author had to omit that
+  treatment or render an application-owned `<pattern>` beside the chart and
+  reference it by ID, which broke `serializeChartSvg`, `renderChartImage`,
+  Canvas, React Native, and `idPrefix` scoping.
+- Decision: add a sibling `patterns` spec and scene key that mirrors
+  `gradients` and is referenced from `fill` or `stroke` as `url(#id)`. A
+  `ChartPattern` is plain data: an ID, a tile `width` and `height` in pixels,
+  an optional counterclockwise `angle`, and ordinary `SceneNode` tile content.
+  Renderers reuse their existing node serializers and painters for the tile,
+  which keeps the shared path small. The small vocabulary lives in
+  tree-shakeable `linePattern()` and `dotPattern()` factories at
+  `@tanstack/charts/pattern`; they own defaults, clamping, and hundredth
+  rounding, and their `color` and `background` accept CSS variables. SVG emits
+  a scoped `userSpaceOnUse` `<pattern>` and rewrites matching paints. Canvas
+  rasterizes the tile at device resolution and maps it back through
+  `CanvasPattern.setTransform` with the same rotation. Text labels get an
+  origin correction because SVG text keeps the scene origin while Canvas
+  translates to the label. React Native emits `react-native-svg` `Pattern`,
+  which version 15 supports. Embedded views reject child patterns, as they do
+  child gradients. Animated patterns stay out of scope; a pattern is static
+  until the definition changes.
+- Follow-up: gradients and patterns are now two sibling resource lists with
+  one paint reference syntax. A later unified paint-resource model could merge
+  them, but this entry keeps the existing gradient contract unchanged.
+- Verification: SVG unit coverage checks scoped IDs, rotation, factory
+  clamping, empty tiles, fill and stroke rewriting, and untouched foreign
+  references. Canvas unit coverage checks the device-resolution tile, CSS
+  variable resolution through the paint resolver, background-then-foreground
+  order, cached reuse across fill, stroke, and label paint, the rotation
+  matrix, and the label origin. Export coverage proves computed tile paint
+  replaces `var()` in standalone SVG. React Native coverage checks scoped
+  `Pattern` resources and resolved native paint. The browser Canvas gate
+  rasterizes exported SVG and compares rotated hatch and dot fills with
+  Canvas output: the mean channel delta is about 1 of 255 with no divergent
+  pixels, and reversing the Canvas rotation fails the gate. Declaring no
+  patterns costs 8 gzip bytes in scene-only consumers and 114 to 125 bytes in
+  static SVG and DOM consumers, comparable to radial gradients. The Canvas
+  renderer entry grows by 322 gzip bytes for tile rasterization. The
+  factories add about 0.27 KiB under an isolated 0.3 KiB budget.
 
 ### F-260 — Static guides cannot express stroke treatment
 

@@ -1,6 +1,6 @@
 ---
 title: Chart Spec
-description: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
+description: Reference for marks, axes, color, gradients, patterns, clipping, margins, guides, and themes in a TanStack Charts spec.
 ---
 
 Every static definition and responsive chart builder resolves to a `ChartSpec`.
@@ -14,6 +14,7 @@ type ChartSpec<TMarks extends readonly ChartMark[]> = {
   guides?: boolean
   color?: ChartColorOptions
   gradients?: readonly ChartGradient[]
+  patterns?: readonly ChartPattern[]
   clip?: boolean
   margin?: number | Partial<ChartMargin>
   theme?: Partial<ChartTheme>
@@ -36,6 +37,7 @@ type ChartScales<TMarks extends readonly ChartMark[]> = Readonly<
 | `guides`    | No       | Set to `false` to suppress both axes, grid lines, titles, and their implicit margins.                              |
 | `color`     | No       | Shared categorical or quantitative color scale and optional legend.                                                |
 | `gradients` | No       | Linear and radial gradient resources consumed by SVG, Canvas, and React Native renderers.                          |
+| `patterns`  | No       | Repeating tile resources consumed by SVG, Canvas, and React Native renderers.                                      |
 | `clip`      | No       | Clips the marks group to the resolved inner chart bounds in the default SVG and Canvas renderers.                  |
 | `margin`    | No       | Locks all margins with a number or selected sides with a partial object. Omitted sides are measured automatically. |
 | `theme`     | No       | Overrides default foreground, muted, grid, background, or palette tokens.                                          |
@@ -182,6 +184,28 @@ generated SVG and React Native resource IDs when multiple charts share a
 document or native SVG tree. Stops keep their authored order. A stop before the
 previous offset is clamped forward to that offset. See
 [Rendering and export](./rendering-and-export.md).
+
+## Pattern resources
+
+`patterns` declares repeating tiles that marks reference the same way:
+
+```ts
+import { dotPattern, linePattern } from '@tanstack/charts/pattern'
+
+const definition = defineChart({
+  marks,
+  scales: { x, y },
+  patterns: [
+    linePattern({ id: 'forecast', color: '#2563eb', strokeWidth: 2 }),
+    dotPattern({ id: 'sampled', color: 'var(--chart-muted)', radius: 1 }),
+  ],
+})
+```
+
+Use `url(#forecast)` as a `fill` or `stroke`. Pattern sizes are pixels rather
+than normalized bounds, so a hatch keeps its density on every shape. The
+[pattern reference](./scales-guides-and-color.md#patterns) lists the resource
+shape and every factory option.
 
 ## Theme
 

@@ -258,6 +258,8 @@ Renderer-specific tradeoffs:
 - Gradients require geometry with measurable bounds.
 - Radial gradients support Canvas fills only. A radial stroke throws rather
   than changing stroke width under a nonuniform bounds transform.
+- Patterns rasterize one tile at the device pixel ratio and repeat it under
+  the same rotation as SVG. Fills, strokes, and labels are supported.
 
 Linear gradients map their normalized endpoints directly into each node's
 bounds. Radial fills are clipped to the node, then painted in normalized unit
@@ -275,9 +277,9 @@ import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 `renderChartSvg` and the compatible explicit
 `renderChartSvgWithResources(scene, options)` entry both:
 
-- emit declared linear and radial gradients in `<defs>`
-- scope gradient IDs with sanitized `idPrefix`
-- rewrite matching `url(#gradient-id)` paints
+- emit declared linear and radial gradients and patterns in `<defs>`
+- scope gradient and pattern IDs with sanitized `idPrefix`
+- rewrite matching `url(#resource-id)` paints
 - emit clip paths for scene groups with `clip` bounds
 
 Default SVG hosts and framework adapters use this behavior without a custom
@@ -286,8 +288,13 @@ stop offsets are clamped to `0..1` and emitted as percentages. A radial
 gradient defaults to center `(0.5, 0.5)` and radius `0.5`; each omitted focal
 coordinate inherits the matching center coordinate.
 
-The React Native adapter emits matching `LinearGradient` and `RadialGradient`
-resources through `react-native-svg`. Its `Chart` generates an `idPrefix` with
+A pattern becomes a `userSpaceOnUse` `<pattern>` with the tile's `width` and
+`height`. A nonzero `angle` adds `patternTransform="rotate(-angle)"`. The tile
+nodes serialize like any other scene nodes. Tile paint keeps authored `var()`
+values, and standalone export inlines their computed values.
+
+The React Native adapter emits matching `LinearGradient`, `RadialGradient`,
+and `Pattern` resources through `react-native-svg`. Its `Chart` generates an `idPrefix` with
 `useId()` unless the application supplies one, then scopes resource IDs and
 rewrites matching paints in the same way as the web adapters.
 

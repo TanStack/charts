@@ -212,6 +212,76 @@ A Canvas gradient needs measurable node bounds; path-only geometry with no
 point bounds should use an explicit paint instead. Canvas rejects radial
 strokes because the required nonuniform transform would distort stroke width.
 
+## Patterns
+
+Patterns are opt-in resources for hatch and dot fills. They help when a series
+must stay distinct in print, in grayscale, or for readers who cannot rely on
+hue alone. Declare them next to gradients and reference them the same way:
+
+```ts group=pattern-bars env=charts file=/src/chart.ts entry
+import { barY, defineChart } from '@tanstack/charts'
+import { linePattern } from '@tanstack/charts/pattern'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { actual, projected } from './data'
+
+export default defineChart({
+  marks: [
+    barY(actual, {
+      x: 'quarter',
+      y: 'revenue',
+      fill: 'var(--chart-actual, #2563eb)',
+    }),
+    barY(projected, {
+      x: 'quarter',
+      y: 'revenue',
+      fill: 'url(#projected)',
+      stroke: 'var(--chart-actual, #2563eb)',
+    }),
+  ],
+  scales: {
+    x: { scale: () => scaleBand<string>().padding(0.2) },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { label: 'Revenue (USD)' },
+    },
+  },
+  patterns: [
+    linePattern({
+      id: 'projected',
+      color: 'var(--chart-actual, #2563eb)',
+      background: 'var(--chart-surface, #ffffff)',
+      spacing: 6,
+      strokeWidth: 2,
+    }),
+  ],
+})
+```
+
+```ts group=pattern-bars file=/src/data.ts collapsed
+export const actual = [
+  { quarter: 'Q1', revenue: 42_000 },
+  { quarter: 'Q2', revenue: 51_000 },
+]
+
+export const projected = [
+  { quarter: 'Q3', revenue: 58_000 },
+  { quarter: 'Q4', revenue: 64_000 },
+]
+```
+
+`linePattern()` draws parallel lines. Its `angle` is measured counterclockwise
+from horizontal and defaults to `45`, which draws `/` hatching. `dotPattern()`
+draws a square grid of dots and accepts the same `angle`, which defaults to
+`0`. Sizes are pixels. Tiles repeat from the origin of the coordinate space the
+shape is drawn in, not from each shape's corner, so neighboring shapes that
+share a pattern line up.
+
+`color` and `background` accept any CSS color, including `var()` with a
+fallback. SVG, Canvas, standalone export, and React Native draw the same tile.
+Patterns do not animate; declare a new definition to change one.
+
 ## HTML tooltip styling
 
 The built-in DOM tooltip is an HTML element inside the chart container by default.

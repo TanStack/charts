@@ -412,7 +412,8 @@ adapter. Preserve:
 - scoped IDs through `idPrefix`;
 - deterministic server output.
 
-The default `renderChartSvg` already emits declared gradients and group clips.
+The default `renderChartSvg` already emits declared gradients, patterns, and
+group clips.
 The compatible `renderChartSvgWithResources` export remains available when an
 explicit resource serializer name is useful.
 
