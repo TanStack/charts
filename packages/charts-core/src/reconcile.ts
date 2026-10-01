@@ -90,13 +90,8 @@ function reconcileElement(
 ) {
   syncAttributes(current, next, tweens)
 
-  if (!next.firstElementChild) {
-    if (current.firstElementChild) {
-      for (const child of [...current.children]) {
-        if (tweens) addExitTween(child, tweens)
-        else child.remove()
-      }
-    } else if (current.textContent !== next.textContent) {
+  if (!next.firstElementChild && !current.firstElementChild) {
+    if (current.textContent !== next.textContent) {
       current.textContent = next.textContent
     }
     return
@@ -107,10 +102,21 @@ function reconcileElement(
   const currentByIdentity = indexChildren(currentChildren)
   const nextIdentities = identities(nextChildren)
   const unmatched = new Set(currentChildren)
-  let cursor = current.firstElementChild
+  for (let child = current.firstChild; child;) {
+    const following = child.nextSibling
+    if (child.nodeType !== 1) child.remove()
+    child = following
+  }
+  let cursor: ChildNode | null = current.firstChild
+  let index = 0
 
-  nextChildren.forEach((nextChild, index) => {
-    const identity = nextIdentities[index]
+  for (const nextNode of next.childNodes) {
+    if (nextNode.nodeType !== 1) {
+      current.insertBefore(nextNode.cloneNode(true), cursor)
+      continue
+    }
+    const nextChild = nextNode as Element
+    const identity = nextIdentities[index++]
     const matched = currentByIdentity.get(identity)
     let rendered: Element
 
@@ -133,8 +139,8 @@ function reconcileElement(
       addEnterTween(rendered, nextChild, tweens)
     }
 
-    cursor = rendered.nextElementSibling
-  })
+    cursor = rendered.nextSibling
+  }
 
   for (const child of unmatched) {
     if (child.parentElement === current) {
