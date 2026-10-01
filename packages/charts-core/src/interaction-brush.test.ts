@@ -313,6 +313,16 @@ describe('brushX', () => {
       beginMouseBrush(container)
       root.dispatchEvent(pointerMove(first!.x, first!.y))
       expect(focused()).toBeNull()
+      const mouseup = new MouseEvent('mouseup', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 100,
+      })
+      Object.defineProperty(mouseup, 'view', { value: window })
+      window.dispatchEvent(mouseup)
+
+      overlay.dispatchEvent(pointerMove(first!.x, first!.y))
+      expect(focused()).toBe(forwards ? first!.key : null)
 
       host.destroy()
       container.remove()

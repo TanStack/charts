@@ -878,7 +878,7 @@ export function mountChartRenderer<
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
-    if (controlContains(event.target)) {
+    if (controlContains(event.target, true)) {
       if (!pinnedKey) {
         pointerPosition = null
         updateFocus([])

@@ -764,6 +764,68 @@ describe('zoomX', () => {
     },
   )
 
+  it('keeps passthrough hover focus through surface focus and re-resolves it after wheel zoom', () => {
+    const rows = [
+      { x: 2, y: 5 },
+      { x: 8, y: 5 },
+    ]
+    let accepted: ZoomXWindow<number> = { start: 0, end: 10 }
+    const focusChanges: Array<string | null> = []
+    const container = document.createElement('div')
+    document.body.append(container)
+    let host: ChartHost<(typeof rows)[number], number, number>
+    const options = (): ChartHostOptions<
+      (typeof rows)[number],
+      number,
+      number
+    > => ({
+      definition: defineChart({
+        marks: [dot(rows, { x: 'x', y: 'y' })],
+        scales: {
+          x: { scale: scaleLinear().domain([accepted.start, accepted.end]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
+        controls: [
+          zoomX({
+            id: 'window',
+            window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+              accepted,
+              (next) => {
+                accepted = copyWindow(next)
+                host.update(options())
+              },
+            ),
+            extent: [0, 10],
+            hover: 'passthrough',
+          }),
+        ],
+      }),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Wheel zoom with tooltips',
+      onFocusChange: (point) => focusChanges.push(point?.key ?? null),
+    })
+    host = mountChart(container, options())
+    const target = zoomTarget(container)
+    mockBounds(container.querySelector('svg.ts-chart')!, 480, 240)
+    const [point] = host.getScene().points
+    target.dispatchEvent(mouse('pointermove', point!.x, point!.y))
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    target.dispatchEvent(mouse('pointerdown', point!.x, point!.y))
+    expect(document.activeElement).toBe(target)
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    focusChanges.length = 0
+    target.dispatchEvent(wheel(point!.x, point!.y, { deltaY: -240 }))
+    expect(accepted.end - accepted.start).toBeLessThan(10)
+    expect(focusChanges.length).toBeGreaterThan(0)
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    host.destroy()
+    container.remove()
+  })
+
   it('previews and commits mouse pan, then rolls a later pan back on Escape', () => {
     const initial = { start: 2.5, end: 7.5 }
     const calls: Array<{

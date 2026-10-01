@@ -282,6 +282,7 @@ function createBrushXControl({
   let activeInput: 'mouse' | 'touch' | undefined
   let activeView: (Window & typeof globalThis) | undefined
   let cancelledTouchRange: BrushRange<ChartValue> | undefined
+  let overlay: Element | null = null
   const brush = createD3BrushX<unknown>()
     .touchable(true)
     .on('start.chart-brush-x', handleStart)
@@ -317,6 +318,7 @@ function createBrushXControl({
         ])
         .handleSize(next.handleSize)
       select(group).call(brush)
+      overlay = group.querySelector('.overlay')
 
       if (
         active &&
@@ -344,8 +346,7 @@ function createBrushXControl({
       return (
         control?.hover === 'passthrough' &&
         !active &&
-        (eventTarget === root ||
-          eventTarget === group.querySelector('.overlay'))
+        (eventTarget === root || eventTarget === overlay)
       )
     },
     destroy() {
