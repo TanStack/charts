@@ -343,9 +343,9 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
-| F-310 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
-| F-313 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
-| F-314 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
+| F-307 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
+| F-308 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
+| F-309 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
 
 ## Findings
 
@@ -9049,7 +9049,7 @@ Each entry records:
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
 
-### F-310 - Orthogonal dependency connectors need a hand-built curve
+### F-307 - Orthogonal dependency connectors need a hand-built curve
 
 - Status: monitoring
 - Severity: medium
@@ -9074,7 +9074,7 @@ Each entry records:
   right-angle connectors in both renderers. The same curve factory drives the
   Observable Plot reference.
 
-### F-313 - Keyboard focus cannot follow a dependency
+### F-308 - Keyboard focus cannot follow a dependency
 
 - Status: monitoring
 - Severity: low
@@ -9092,7 +9092,7 @@ Each entry records:
   task, and milestone, and none for connectors or progress fills, before and
   after the revision update.
 
-### F-314 - Time-ranged bars cannot inset only their lane edges
+### F-309 - Time-ranged bars cannot inset only their lane edges
 
 - Status: monitoring
 - Severity: low
