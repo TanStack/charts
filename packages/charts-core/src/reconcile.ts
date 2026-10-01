@@ -106,7 +106,7 @@ function reconcileElement(
   const nextChildren = [...next.children]
   const currentByIdentity = indexChildren(currentChildren)
   const nextIdentities = identities(nextChildren)
-  const retained = new Set<Element>()
+  const unmatched = new Set(currentChildren)
   let cursor = current.firstElementChild
 
   nextChildren.forEach((nextChild, index) => {
@@ -120,7 +120,7 @@ function reconcileElement(
       matched.localName === nextChild.localName
     ) {
       rendered = matched
-      retained.add(matched)
+      unmatched.delete(matched)
       if (rendered !== cursor) current.insertBefore(rendered, cursor)
       reconcileElement(rendered, nextChild, tweens)
     } else if (matched && current.localName === 'defs') {
@@ -136,8 +136,8 @@ function reconcileElement(
     cursor = rendered.nextElementSibling
   })
 
-  for (const child of currentChildren) {
-    if (!retained.has(child) && child.parentElement === current) {
+  for (const child of unmatched) {
+    if (child.parentElement === current) {
       if (tweens) addExitTween(child, tweens)
       else child.remove()
     }
