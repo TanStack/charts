@@ -41,7 +41,9 @@ export function tanstackComparisonInputDigest(
 
   for (const file of files) {
     const path = relative(repositoryRoot, file).split(sep).join('/')
-    const contents = readFileSync(file)
+    const contents = Buffer.from(
+      readFileSync(file, 'utf8').replaceAll('\r\n', '\n'),
+    )
     hash.update(path)
     hash.update('\0')
     hash.update(String(contents.byteLength))

@@ -75,6 +75,27 @@ describe('TanStack comparison source provenance', () => {
     )
   })
 
+  it('normalizes platform checkout line endings in the input digest', async () => {
+    const repository = await mkdtemp(
+      resolve(tmpdir(), 'charts-comparison-line-endings-'),
+    )
+    temporaryRepositories.push(repository)
+    const inputPath = tanstackComparisonInputPaths[1]
+    const coreInput = resolve(repository, inputPath, 'index.ts')
+    await mkdir(dirname(coreInput), { recursive: true })
+    await writeFile(coreInput, 'export const first = 1\nexport const second = 2\n')
+
+    const inputDigest = tanstackComparisonInputDigest(repository, [inputPath])
+    await writeFile(
+      coreInput,
+      'export const first = 1\r\nexport const second = 2\r\n',
+    )
+
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+      inputDigest,
+    )
+  })
+
   it('rejects a well-formed digest from different inputs', () => {
     const expectedRevision = 'a'.repeat(40)
     const recordedRevision = 'b'.repeat(40)

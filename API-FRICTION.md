@@ -5978,6 +5978,19 @@ Each entry records:
   content drift, malformed metadata, and workspace version-only changes. The
   schema-4 baseline records both commit attribution and the input digest, and
   the full validation graph passes after the squash merge.
+- Windows follow-up evidence: refreshing pull request 155 after merging
+  upstream produced a different digest locally from Linux CI for the same
+  final tree. The Windows checkout used `core.autocrlf=true`, so raw CRLF bytes
+  were treated as source drift even though all 284 measured inputs were the
+  same tracked TypeScript files.
+- Windows follow-up decision: normalize CRLF to LF while hashing these
+  text-only inputs. Preserve the existing path, byte-length, and content
+  boundaries after normalization so semantic changes still stale the
+  baseline.
+- Windows follow-up verification: a focused regression hashes equivalent LF
+  and CRLF inputs identically. The Windows checkout now reproduces Linux CI's
+  `sha256:a9d8ed497ea90501b0fe906bb6d567fe71049a62a40bd5a475e9449afbac019c`
+  digest for merge commit `49ee874`.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
