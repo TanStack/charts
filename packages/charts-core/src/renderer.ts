@@ -684,7 +684,7 @@ export function mountChartRenderer<
   }
 
   const handlePointerMove = (event: PointerEvent) => {
-    if (controlContains(event.target)) {
+    if (controlContains(event.target, true)) {
       if (!interactionIsPinned()) {
         pointerPosition = null
         updateFocus([])
@@ -878,7 +878,7 @@ export function mountChartRenderer<
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
-    if (controlContains(event.target)) {
+    if (controlContains(event.target, true)) {
       if (!pinnedKey) {
         pointerPosition = null
         updateFocus([])
@@ -1083,9 +1083,14 @@ export function mountChartRenderer<
     controlInstances.clear()
   }
 
-  function controlContains(target: EventTarget | null) {
-    for (const current of controlInstances.values()) {
-      if (current.instance.contains?.(target)) return true
+  function controlContains(target: EventTarget | null, hover?: boolean) {
+    for (const { instance } of controlInstances.values()) {
+      if (
+        instance.contains?.(target) &&
+        !(hover && instance.passesHover?.(target))
+      ) {
+        return true
+      }
     }
     return false
   }

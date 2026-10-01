@@ -51,6 +51,15 @@ describe('zoomX', () => {
         'zoomX wheelActivation must be "focus", "modifier", or "always"',
       ),
     )
+    expect(() =>
+      zoomX({
+        window: controlledSignal({ start: 0, end: 1 }, () => {}),
+        extent: [0, 1],
+        hover: 'always' as never,
+      }),
+    ).toThrowError(
+      new TypeError('zoomX hover must be "capture" or "passthrough"'),
+    )
   })
 
   it('owns focus, keyboard navigation, reset, controlled updates, and teardown', () => {
@@ -695,6 +704,126 @@ describe('zoomX', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it.each([
+    [undefined, false],
+    ['capture', false],
+    ['passthrough', true],
+  ] as const)(
+    'with hover %s, forwards idle plot hover to point focus: %s',
+    (hover, forwards) => {
+      const focusChanges: Array<unknown> = []
+      const container = document.createElement('div')
+      document.body.append(container)
+      const host = mountChart(container, {
+        definition: defineChart({
+          marks: [dot(numericRows, { x: 'x', y: 'y' })],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
+          controls: [
+            zoomX({
+              id: 'window',
+              window: controlledSignal<
+                ZoomXWindow<number>,
+                ZoomXChange<number>
+              >({ start: 0, end: 10 }, () => {}),
+              extent: [0, 10],
+              hover,
+            }),
+          ],
+        }),
+        width: 480,
+        height: 240,
+        ariaLabel: 'Hover zoom',
+        onFocusChange: (point) => focusChanges.push(point?.key ?? null),
+      })
+      const target = zoomTarget(container)
+      mockBounds(container.querySelector('svg.ts-chart')!, 480, 240)
+      mockBounds(target, 480, 240)
+      const [point] = host.getScene().points
+      const hoverPoint = () =>
+        target.dispatchEvent(mouse('pointermove', point!.x, point!.y))
+
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBe(forwards ? point!.key : null)
+
+      target.focus()
+      target.dispatchEvent(mouse('mousedown', point!.x, point!.y))
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBeNull()
+      window.dispatchEvent(mouse('mouseup', point!.x, point!.y))
+
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBe(forwards ? point!.key : null)
+
+      host.destroy()
+      container.remove()
+    },
+  )
+
+  it('keeps passthrough hover focus through surface focus and re-resolves it after wheel zoom', () => {
+    const rows = [
+      { x: 2, y: 5 },
+      { x: 8, y: 5 },
+    ]
+    let accepted: ZoomXWindow<number> = { start: 0, end: 10 }
+    const focusChanges: Array<string | null> = []
+    const container = document.createElement('div')
+    document.body.append(container)
+    let host: ChartHost<(typeof rows)[number], number, number>
+    const options = (): ChartHostOptions<
+      (typeof rows)[number],
+      number,
+      number
+    > => ({
+      definition: defineChart({
+        marks: [dot(rows, { x: 'x', y: 'y' })],
+        scales: {
+          x: { scale: scaleLinear().domain([accepted.start, accepted.end]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        },
+        controls: [
+          zoomX({
+            id: 'window',
+            window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+              accepted,
+              (next) => {
+                accepted = copyWindow(next)
+                host.update(options())
+              },
+            ),
+            extent: [0, 10],
+            hover: 'passthrough',
+          }),
+        ],
+      }),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Wheel zoom with tooltips',
+      onFocusChange: (point) => focusChanges.push(point?.key ?? null),
+    })
+    host = mountChart(container, options())
+    const target = zoomTarget(container)
+    mockBounds(container.querySelector('svg.ts-chart')!, 480, 240)
+    const [point] = host.getScene().points
+    target.dispatchEvent(mouse('pointermove', point!.x, point!.y))
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    target.dispatchEvent(mouse('pointerdown', point!.x, point!.y))
+    expect(document.activeElement).toBe(target)
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    focusChanges.length = 0
+    target.dispatchEvent(wheel(point!.x, point!.y, { deltaY: -240 }))
+    expect(accepted.end - accepted.start).toBeLessThan(10)
+    expect(focusChanges.length).toBeGreaterThan(0)
+    expect(focusChanges.at(-1)).toBe(point!.key)
+
+    host.destroy()
+    container.remove()
   })
 
   it('previews and commits mouse pan, then rolls a later pan back on Escape', () => {

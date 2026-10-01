@@ -2,7 +2,12 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { dot } from './dot'
 import { mountChart } from './dom'
-import { brushX, type BrushRange, type BrushXChange } from './interaction-brush'
+import {
+  brushX,
+  type BrushRange,
+  type BrushXChange,
+  type ChartControlHover,
+} from './interaction-brush'
 import {
   controlledSignal,
   type ControlledSignalChangeContext,
@@ -268,6 +273,62 @@ describe('brushX', () => {
     container.remove()
   })
 
+  it.each([
+    [undefined, false],
+    ['capture', false],
+    ['passthrough', true],
+  ] as const)(
+    'with hover %s, forwards idle blank-plot hover to point focus: %s',
+    (hover, forwards) => {
+      const focusChanges: Array<unknown> = []
+      const container = document.createElement('div')
+      document.body.append(container)
+      const host = mountChart(container, {
+        definition: definition(
+          range(dates[1], dates[2]),
+          () => {},
+          dates,
+          false,
+          hover,
+        ),
+        width: 480,
+        height: 240,
+        ariaLabel: 'Hover date range',
+        onFocusChange: (point) => focusChanges.push(point?.key ?? null),
+      })
+      mockBounds(container.querySelector('svg.ts-chart')!, 480, 240)
+      const root = container.querySelector('[data-chart-brush="window"]')!
+      const overlay = root.querySelector('.overlay')!
+      const selection = root.querySelector('.selection')!
+      const [first, , last] = host.getScene().points
+      const focused = () => focusChanges.at(-1) ?? null
+
+      overlay.dispatchEvent(pointerMove(first!.x, first!.y))
+      expect(focused()).toBe(forwards ? first!.key : null)
+
+      selection.dispatchEvent(pointerMove(last!.x, last!.y))
+      expect(focused()).toBeNull()
+
+      overlay.dispatchEvent(pointerMove(first!.x, first!.y))
+      beginMouseBrush(container)
+      root.dispatchEvent(pointerMove(first!.x, first!.y))
+      expect(focused()).toBeNull()
+      const mouseup = new MouseEvent('mouseup', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 100,
+      })
+      Object.defineProperty(mouseup, 'view', { value: window })
+      window.dispatchEvent(mouseup)
+
+      overlay.dispatchEvent(pointerMove(first!.x, first!.y))
+      expect(focused()).toBe(forwards ? first!.key : null)
+
+      host.destroy()
+      container.remove()
+    },
+  )
+
   it('rejects duplicate and nonmonotone authored values at scene resolution', () => {
     const value = range(dates[0], dates[2])
     expect(() =>
@@ -313,6 +374,7 @@ function definition(
   onChange: (value: BrushRange<Date>, reason: BrushXChange<Date>) => void,
   values: readonly Date[] = dates,
   reverse = false,
+  hover?: ChartControlHover,
 ) {
   return defineChart({
     marks: [dot(rows, { x: 'date', y: 'value' })],
@@ -328,6 +390,7 @@ function definition(
           (next, { reason }) => onChange(next, reason),
         ),
         values,
+        hover,
         ariaLabel: 'Visible date range',
         format: (date) =>
           date.toLocaleDateString('en-US', {
@@ -386,6 +449,24 @@ function dispatchTouch(
     view: { value: window },
   })
   target.dispatchEvent(event)
+}
+
+function pointerMove(clientX: number, clientY: number) {
+  return new MouseEvent('pointermove', { bubbles: true, clientX, clientY })
+}
+
+function mockBounds(element: Element, width: number, height: number) {
+  vi.spyOn(element, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    top: 0,
+    right: width,
+    bottom: height,
+    left: 0,
+    width,
+    height,
+    toJSON: () => ({}),
+  })
 }
 
 function rectGeometry(element: SVGRectElement) {

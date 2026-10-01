@@ -5,8 +5,10 @@ import type { InteractionAxis } from './interaction-axis-internal'
 import {
   cloneInteractionRange,
   normalizeInteractionRange,
+  resolveControlHover,
   sameInteractionRange,
 } from './interaction-range-internal'
+import type { ChartControlHover } from './interaction-range-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
   ChartControl,
@@ -19,6 +21,8 @@ import type {
   ChartHostControlInstance,
 } from './dom-types'
 import type { D3ZoomEvent, ZoomTransform } from 'd3-zoom'
+
+export type { ChartControlHover } from './interaction-range-internal'
 
 export type ZoomXValue = number | Date
 
@@ -63,6 +67,12 @@ export interface ZoomXOptions<TValue extends ZoomXValue> {
   scaleExtent?: readonly [number, number]
   /** When wheel input may zoom or pan. Defaults to `focus`. */
   wheelActivation?: ZoomXWheelActivation
+  /**
+   * `passthrough` lets idle hover over the plot focus points and show the
+   * tooltip. Drag, wheel, click, and keyboard input stay with zoom. Defaults
+   * to `capture`.
+   */
+  hover?: ChartControlHover
   keyboard?: boolean
   ariaLabel?: string
   ariaDescription?: string
@@ -81,6 +91,7 @@ interface ZoomXControl<TValue extends ZoomXValue> extends ChartHostControl {
   readonly extent: ZoomXWindow<TValue>
   readonly scaleExtent: readonly [number, number]
   readonly wheelActivation: ZoomXWheelActivation
+  readonly hover: ChartControlHover
   readonly keyboard: boolean
   readonly ariaLabel: string
   readonly ariaDescription?: string
@@ -110,6 +121,7 @@ export function zoomX<TValue extends ZoomXValue>(
   }
   const scaleExtent = resolveScaleExtent(options.scaleExtent)
   const wheelActivation = resolveWheelActivation(options.wheelActivation)
+  const hover = resolveControlHover(options.hover, 'zoomX')
 
   return {
     id,
@@ -146,6 +158,7 @@ export function zoomX<TValue extends ZoomXValue>(
         extent,
         scaleExtent,
         wheelActivation,
+        hover,
         keyboard: options.keyboard !== false,
         ariaLabel: options.ariaLabel ?? defaultAriaLabel,
         ariaDescription: options.ariaDescription,
@@ -300,6 +313,9 @@ function createZoomXControl({
     },
     contains(target) {
       return Boolean(target && root.contains(target as Node))
+    },
+    passesHover() {
+      return control?.hover === 'passthrough' && !gestureActive
     },
     destroy() {
       destroying = true

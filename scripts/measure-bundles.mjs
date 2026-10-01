@@ -1555,7 +1555,7 @@ const entries = [
     'Horizontal zoom + DOM host',
     'benchmarks/entries/charts-zoom-x.ts',
     'TanStack DOM host',
-    20.55,
+    20.57,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1630,7 +1630,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    44.98,
+    44.99,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',

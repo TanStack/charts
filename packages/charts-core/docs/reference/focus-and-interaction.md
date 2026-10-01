@@ -620,7 +620,14 @@ drawn region.
 The behavior resolves against the final x scale and plot bounds. SVG and
 Canvas DOM hosts mount the same D3-backed overlay and contain its events before
 normal chart focus or selection. Static SVG and React Native paint the
-renderer-neutral range and handles without interactive host controls. The
+renderer-neutral range and handles without interactive host controls.
+
+`hover` is a `ChartControlHover`: `capture` (the default) or `passthrough`.
+With `passthrough`, idle hover over the blank plot area resolves chart point
+focus and the tooltip. The selection and handles keep capturing hover, and an
+active pointer or touch drag clears point focus until the next idle hover.
+Presses, clicks, and keyboard input stay with the brush, so a click never
+also selects a point. `zoomX` accepts the same option. The
 application still owns fixed-window expansion, validation, linked-view layout,
 status text, persistence, and any native semantic control.
 
@@ -706,6 +713,14 @@ controls. `ariaLabel` names the plot control, `ariaDescription` can replace its
 generated instructions, `format` formats values in those instructions, and
 `onActiveChange` observes focus without moving accepted state into Charts.
 
+`hover` is the same `ChartControlHover` option that `brushX` accepts. The
+default `capture` keeps all pointer input on the zoom surface, so the plot
+shows no point focus underneath. `passthrough` lets idle hover resolve chart
+point focus and the tooltip. An active pan or touch gesture clears point focus
+until the next idle hover. Presses, clicks, wheel, and keyboard input stay
+with zoom; after an accepted wheel zoom, the host re-resolves focus at the
+last pointer position.
+
 Charts does not mutate the controlled snapshot. Keep visible-row filtering or
 clipping, y-domain policy, status, reset and recovery controls, follow-latest
 behavior, and persistence in the application. Static SVG and React Native
@@ -721,7 +736,8 @@ The public zoom types are:
 | `ZoomXAction`          | Zoom, pan, or reset action                                               |
 | `ZoomXWheelActivation` | Focus, modifier-gated, or unconditional wheel capture                    |
 | `ZoomXChange<TValue>`  | Preview, commit, and cancel reason union                                 |
-| `ZoomXOptions<TValue>` | Controlled window, extent, limits, wheel, accessibility, and key options |
+| `ZoomXOptions<TValue>` | Controlled window, extent, limits, wheel, hover, accessibility, and keys |
+| `ChartControlHover`    | `capture` or `passthrough` idle hover; shared with `brushX`              |
 
 ## Disabling chart-owned focus
 

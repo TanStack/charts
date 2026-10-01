@@ -5,8 +5,10 @@ import type { InteractionAxis } from './interaction-axis-internal'
 import {
   cloneInteractionRange as cloneRange,
   normalizeInteractionRange as normalizeRange,
+  resolveControlHover,
   sameInteractionRange as sameRange,
 } from './interaction-range-internal'
+import type { ChartControlHover } from './interaction-range-internal'
 import type { ControlledSignal } from './interaction-signal'
 import type {
   ChartControl,
@@ -22,6 +24,8 @@ import type {
   ChartHostControlInstance,
 } from './dom-types'
 import type { BrushSelection, D3BrushEvent } from 'd3-brush'
+
+export type { ChartControlHover } from './interaction-range-internal'
 
 export interface BrushRange<TValue extends ChartValue> {
   readonly start: TValue
@@ -56,6 +60,12 @@ interface BrushXBaseOptions<TValue extends ChartValue> {
   endAriaLabel?: string
   format?: (value: TValue) => string
   handleSize?: number
+  /**
+   * `passthrough` lets idle hover over the blank plot focus points and show
+   * the tooltip. The selection, handles, drags, clicks, and keyboard input
+   * stay with the brush. Defaults to `capture`.
+   */
+  hover?: ChartControlHover
   selectionStyle?: SceneStyle
   handleStyle?: SceneStyle
 }
@@ -88,6 +98,7 @@ interface BrushXControl<TValue extends ChartValue> extends ChartHostControl {
   readonly endAriaLabel: string
   readonly format: (value: TValue) => string
   readonly handleSize: number
+  readonly hover: ChartControlHover
   readonly selectionStyle: SceneStyle
   readonly handleStyle: SceneStyle
   readonly change: (
@@ -112,6 +123,7 @@ export function brushX<TValue extends ChartValue>(
 ): ChartControl<TValue, any> {
   const id = options.id ?? defaultId
   const handleSize = finitePositive(options.handleSize ?? 24, 'handleSize')
+  const hover = resolveControlHover(options.hover, 'brushX')
   const keyboard =
     'values' in options && options.values !== undefined
       ? options.keyboard !== false
@@ -163,6 +175,7 @@ export function brushX<TValue extends ChartValue>(
         endAriaLabel: options.endAriaLabel ?? 'Range end',
         format,
         handleSize,
+        hover,
         selectionStyle,
         handleStyle,
         change(value, reason) {
@@ -269,6 +282,7 @@ function createBrushXControl({
   let activeInput: 'mouse' | 'touch' | undefined
   let activeView: (Window & typeof globalThis) | undefined
   let cancelledTouchRange: BrushRange<ChartValue> | undefined
+  let overlay: Element | null = null
   const brush = createD3BrushX<unknown>()
     .touchable(true)
     .on('start.chart-brush-x', handleStart)
@@ -304,6 +318,7 @@ function createBrushXControl({
         ])
         .handleSize(next.handleSize)
       select(group).call(brush)
+      overlay = group.querySelector('.overlay')
 
       if (
         active &&
@@ -326,6 +341,13 @@ function createBrushXControl({
     },
     contains(eventTarget) {
       return Boolean(eventTarget && root.contains(eventTarget as Node))
+    },
+    passesHover(eventTarget) {
+      return (
+        control?.hover === 'passthrough' &&
+        !active &&
+        (eventTarget === root || eventTarget === overlay)
+      )
     },
     destroy() {
       if (active) {
