@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Heatmap keyboard focus moved through one flat list             | API                   | open       |
 
 ## Findings
 
@@ -9045,3 +9046,27 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Heatmap keyboard focus moved through one flat list
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: PMDB, a consumer application, which renders its person-by-week
+  capacity heatmap as an HTML table with one button per cell instead of a
+  chart. Chart keyboard focus was one reason: every strategy exposes one
+  ordered `navigation` list, and the DOM host maps ArrowDown to ArrowRight and
+  ArrowUp to ArrowLeft over it.
+- Friction: in a matrix, a keyboard reader could not move to the same week for
+  the next person, or to the start of a row, without stepping through every
+  cell between. Reproducing grid movement meant leaving chart focus and
+  building an application-owned widget.
+- Decision (draft): add an optional `step(points, context)` method to
+  `ChartFocusStrategy` for directional keys, with `navigation` as the fallback
+  and the default for existing strategies. Ship `focusGrid` from the separate
+  `@tanstack/charts/focus/grid` entry point so charts that do not import it do
+  not grow. The final contract shape is left to maintainer review.
+- Verification: unit tests cover row and column moves, sparse skips, row and
+  grid extremes, the row-major fallback order, and a mounted heatmap whose
+  tooltip names both the row and column after keyboard moves. The built-in
+  axis strategies have no `step` and keep their existing tests.

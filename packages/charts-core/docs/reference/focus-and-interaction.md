@@ -177,6 +177,93 @@ or direct strategy use. The exact exported objects receive the same host-level
 containment behavior as their presets. A strategy that wraps or copies one of
 them is custom and owns its complete pointer resolution.
 
+### Grid focus
+
+Heatmaps, calendars, and other matrices read by row and column. Import
+`focusGrid` from `@tanstack/charts/focus/grid` to move keyboard focus in two
+dimensions:
+
+| Key                                  | Moves to                                     |
+| ------------------------------------ | -------------------------------------------- |
+| Left and Right arrows                | The previous or next cell in the same row    |
+| Up and Down arrows                   | The previous or next cell in the same column |
+| `Home` and `End`                     | The first or last cell in the current row    |
+| Control or Command with `Home`/`End` | The first or last cell in the grid           |
+
+Rows are points that share a scene-pixel y coordinate and columns share a
+scene-pixel x coordinate, so band-scale cells line up without configuration.
+Missing cells are skipped in the direction of travel, and focus stays on the
+edge cell when there is nothing further. Moves follow the painted layout, so
+Right always moves toward the right of the plot, including in right-to-left
+documents. A label drawn over a cell shares that cell's position and does not
+add a second stop. Pointer focus picks the cell whose center is nearest, and
+any pointer inside a cell's grid pitch targets that cell.
+
+The focused point still carries its `xValue` and `yValue`, so the built-in
+tooltip, which is a polite status region, announces the column and row labels
+for each move.
+
+```ts group=grid-focus env=charts file=/src/chart.ts entry
+import { cell, defineChart } from '@tanstack/charts'
+import { focusGrid } from '@tanstack/charts/focus/grid'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { scaleLinear } from 'd3-scale'
+import { capacity, people, weeks } from './data'
+
+export default defineChart({
+  marks: [
+    cell(capacity, {
+      x: 'week',
+      y: 'person',
+      color: 'percent',
+      key: (row) => `${row.person}-${row.week}`,
+      inset: 1,
+    }),
+  ],
+  scales: {
+    x: {
+      scale: () => scaleBand<string>().domain(weeks).padding(0.04),
+      axis: { label: 'Week' },
+    },
+    y: {
+      scale: () => scaleBand<string>().domain(people).padding(0.04),
+      axis: { label: 'Person' },
+    },
+  },
+  color: {
+    scale: () =>
+      scaleLinear<string>().domain([0, 125]).range(['#f8fafc', '#2563eb']),
+  },
+  focus: focusGrid,
+  tooltip,
+})
+```
+
+```ts group=grid-focus file=/src/data.ts collapsed
+export const weeks = ['Sep 1', 'Sep 8', 'Sep 15', 'Sep 22']
+export const people = ['Avery', 'Blake', 'Casey']
+
+// Blake has no allocation in the week of Sep 8, so that cell is skipped.
+export const capacity = [
+  { person: 'Avery', week: 'Sep 1', percent: 80 },
+  { person: 'Avery', week: 'Sep 8', percent: 100 },
+  { person: 'Avery', week: 'Sep 15', percent: 110 },
+  { person: 'Avery', week: 'Sep 22', percent: 90 },
+  { person: 'Blake', week: 'Sep 1', percent: 40 },
+  { person: 'Blake', week: 'Sep 15', percent: 60 },
+  { person: 'Blake', week: 'Sep 22', percent: 75 },
+  { person: 'Casey', week: 'Sep 1', percent: 120 },
+  { person: 'Casey', week: 'Sep 8', percent: 95 },
+  { person: 'Casey', week: 'Sep 15', percent: 100 },
+  { person: 'Casey', week: 'Sep 22', percent: 70 },
+]
+```
+
+The DOM host and framework adapters use the directional moves. The D3
+companion host and React Native `Chart` use `navigation` only, which
+`focusGrid` returns row by row.
+
 `focusGroupAngle` is available from `@tanstack/charts/polar`. It resolves the
 nearest radial ray, groups points with the same semantic angle value, and
 orders keyboard tasks by angle. Use it for grouped radar, polar-line, and
@@ -761,6 +848,11 @@ interface ChartFocusStrategy<
   navigation(
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[]
+
+  step?(
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartFocusStepContext<TDatum, TXValue, TYValue>,
+  ): ChartPoint<TDatum, TXValue, TYValue> | undefined
 }
 ```
 
@@ -768,6 +860,12 @@ interface ChartFocusStrategy<
 `resolve` returns the primary point first. `ChartFocusGroupContext` contains
 the point restored or reached through keyboard navigation. `navigation`
 returns the ordered keyboard task set.
+
+The optional `step` handles directional keys. `ChartFocusStepContext`
+contains the focused `point` (or `null`), the DOM `key`, and `modifier`, which
+is true when Control or Command is held. Return the next point, or
+`undefined` to use `navigation` order for that key. A strategy
+without `step` keeps linear navigation.
 
 `ChartFocusMode` accepts a `ChartFocusPreset` string or a
 `ChartFocusStrategy`.

@@ -1630,7 +1630,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    44.98,
+    45.02,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',
@@ -1729,7 +1729,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    31.03,
+    31.05,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1897,7 +1897,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    56.77,
+    56.79,
   ),
   locked(
     'Custom-scale line scene',
@@ -1948,12 +1948,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    39.31,
+    39.33,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    44.61,
+    44.63,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -2157,7 +2157,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    57.81,
+    57.84,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

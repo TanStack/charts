@@ -244,6 +244,7 @@ export type {
   ChartFocusResolveContext,
   ChartFocusSource,
   ChartFocusState,
+  ChartFocusStepContext,
   ChartFocusStrategy,
   ChartFreeCursorBinding,
   ChartGradient,

@@ -863,13 +863,19 @@ export function mountChartRenderer<
       return
     }
     const focus = resolveRendererFocusStrategy(options.definition.focus)
-    const point = focus
-      ? chartPointFromNavigationOrder(
-          focus.navigation(points),
-          focusedPoint,
-          event.key,
-        )
-      : chartPointFromSceneOrder(points, focusedPoint, event.key)
+    const point =
+      focus?.step?.(points, {
+        point: focusedPoint,
+        key: event.key,
+        modifier: event.ctrlKey || event.metaKey,
+      }) ??
+      (focus
+        ? chartPointFromNavigationOrder(
+            focus.navigation(points),
+            focusedPoint,
+            event.key,
+          )
+        : chartPointFromSceneOrder(points, focusedPoint, event.key))
     if (point === undefined) return
     event.preventDefault()
     pointerPosition = null
