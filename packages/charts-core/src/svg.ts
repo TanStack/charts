@@ -16,10 +16,10 @@ export function renderChartSvg(
       (resource) => resource.id,
     ),
   )
-  return renderChartSvgWithHooks(scene, options, {
+  const hooks: ChartSvgRenderHooks = {
     renderDefinitions: (currentScene, idPrefix) =>
       renderGradients(currentScene, sanitizeId(idPrefix)) +
-      renderPatterns(currentScene, sanitizeId(idPrefix)),
+      renderPatterns(currentScene, sanitizeId(idPrefix), hooks),
     renderGroup: renderSvgClip,
     resolvePaint: resourceIds.size
       ? (value, idPrefix) => {
@@ -30,7 +30,8 @@ export function renderChartSvg(
             : value
         }
       : undefined,
-  } satisfies ChartSvgRenderHooks)
+  }
+  return renderChartSvgWithHooks(scene, options, hooks)
 }
 
 function renderGradients(scene: ChartScene, idPrefix: string) {
@@ -55,12 +56,16 @@ function renderGradients(scene: ChartScene, idPrefix: string) {
     .join('')}</defs>`
 }
 
-function renderPatterns(scene: ChartScene, idPrefix: string) {
+function renderPatterns(
+  scene: ChartScene,
+  idPrefix: string,
+  hooks: ChartSvgRenderHooks,
+) {
   if (!scene.patterns?.length) return ''
   return `<defs data-ts-key="patterns">${scene.patterns
     .map(
       (pattern) =>
-        `<pattern data-ts-key="pattern:${escapeAttribute(pattern.id)}" id="${escapeAttribute(scopedId(idPrefix, pattern.id))}" width="${number(pattern.width)}" height="${number(pattern.height)}" patternUnits="userSpaceOnUse"${pattern.angle ? ` patternTransform="rotate(${number(-pattern.angle)})"` : ''}>${renderSceneNodes(pattern.nodes, idPrefix)}</pattern>`,
+        `<pattern data-ts-key="pattern:${escapeAttribute(pattern.id)}" id="${escapeAttribute(scopedId(idPrefix, pattern.id))}" width="${number(pattern.width)}" height="${number(pattern.height)}" patternUnits="userSpaceOnUse"${pattern.angle ? ` patternTransform="rotate(${number(-pattern.angle)})"` : ''}>${renderSceneNodes(pattern.nodes, idPrefix, hooks)}</pattern>`,
     )
     .join('')}</defs>`
 }

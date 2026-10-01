@@ -7,6 +7,7 @@ import type {
   ChartRadialGradient as RootChartRadialGradient,
   ChartPattern as RootChartPattern,
   LinePatternOptions as RootLinePatternOptions,
+  DotPatternOptions as RootDotPatternOptions,
   ChartGuideLineStyle as RootChartGuideLineStyle,
   CreateDotLayoutOptions as RootCreateDotLayoutOptions,
   DotLayout as RootDotLayout,
@@ -19,6 +20,7 @@ import type {
   ChartRadialGradient as UniversalChartRadialGradient,
   ChartPattern as UniversalChartPattern,
   LinePatternOptions as UniversalLinePatternOptions,
+  DotPatternOptions as UniversalDotPatternOptions,
   ChartGuideLineStyle as UniversalChartGuideLineStyle,
   CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
   DotLayout as UniversalDotLayout,
@@ -131,6 +133,7 @@ describe('public package exports', () => {
     expectTypeOf<UniversalChartPattern>().toEqualTypeOf<RootChartPattern>()
     expectTypeOf<TypesChartPattern>().toEqualTypeOf<RootChartPattern>()
     expectTypeOf<UniversalLinePatternOptions>().toEqualTypeOf<RootLinePatternOptions>()
+    expectTypeOf<UniversalDotPatternOptions>().toEqualTypeOf<RootDotPatternOptions>()
   })
 
   it('keeps guide line styles aligned across public type barrels', () => {

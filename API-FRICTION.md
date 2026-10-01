@@ -7970,14 +7970,18 @@ Each entry records:
   origin correction because SVG text keeps the scene origin while Canvas
   translates to the label. React Native emits `react-native-svg` `Pattern`,
   which version 15 supports. Embedded views reject child patterns, as they do
-  child gradients. Animated patterns stay out of scope; a pattern is static
+  child gradients. Scene compilation rejects an ID shared by two resources,
+  since SVG would emit both while Canvas would pick one. `ChartScene.patterns`
+  is required, like `gradients`. SVG rewrites resource paints inside tiles,
+  so a tile may reference a gradient under `idPrefix`. Animated patterns stay out of scope; a pattern is static
   until the definition changes.
 - Follow-up: gradients and patterns are now two sibling resource lists with
   one paint reference syntax. A later unified paint-resource model could merge
   them, but this entry keeps the existing gradient contract unchanged.
 - Verification: SVG unit coverage checks scoped IDs, rotation, factory
-  clamping, empty tiles, fill and stroke rewriting, and untouched foreign
-  references. Canvas unit coverage checks the device-resolution tile, CSS
+  clamping, empty tiles, fill and stroke rewriting, a tile that references a
+  gradient, and untouched foreign references. Scene coverage rejects duplicate
+  gradient IDs and a gradient and pattern that share an ID. Canvas unit coverage checks the device-resolution tile, CSS
   variable resolution through the paint resolver, background-then-foreground
   order, cached reuse across fill, stroke, and label paint, the rotation
   matrix, and the label origin. Export coverage proves computed tile paint
@@ -7986,9 +7990,11 @@ Each entry records:
   rasterizes exported SVG and compares rotated hatch and dot fills with
   Canvas output: the mean channel delta is about 1 of 255 with no divergent
   pixels, and reversing the Canvas rotation fails the gate. Declaring no
-  patterns costs 8 gzip bytes in scene-only consumers and 114 to 125 bytes in
-  static SVG and DOM consumers, comparable to radial gradients. The Canvas
-  renderer entry grows by 322 gzip bytes for tile rasterization. The
+  patterns costs about 60 to 70 gzip bytes in scene-only consumers, mostly the
+  duplicate resource ID check, and 170 to 210 bytes in static SVG, DOM, and
+  React consumers. Pattern emission alone accounts for 114 to 125 bytes,
+  comparable to radial gradients. The Canvas renderer entry grows by about
+  320 gzip bytes for tile rasterization. The
   factories add about 0.27 KiB under an isolated 0.3 KiB budget.
 
 ### F-260 — Static guides cannot express stroke treatment

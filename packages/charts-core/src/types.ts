@@ -1608,8 +1608,8 @@ export interface ChartScene<
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
   gradients: readonly ChartGradient[]
-  /** Declared pattern resources. Hand-built scenes may omit this field. */
-  patterns?: readonly ChartPattern[]
+  /** Renderers treat a missing list in an untyped scene as empty. */
+  patterns: readonly ChartPattern[]
   theme: ChartTheme
   direction?: ChartTextTypography['direction']
   controls?: readonly ChartHostControl[]

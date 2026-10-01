@@ -980,6 +980,10 @@ A missing, negative, or non-finite factory size uses its default. Factories
 round sizes and angles to hundredths, the precision SVG serialization uses, so
 SVG output and Canvas tiles agree.
 
+Gradient and pattern IDs share one namespace; scene compilation throws a
+`TypeError` when two resources use the same ID. Tile nodes may paint with
+`url(#gradient-id)`, and SVG scopes that reference like any other.
+
 Reference a pattern from a mark's `fill` or `stroke` as `url(#pattern-id)`.
 SVG and React Native emit a native `<pattern>`. Canvas rasterizes one tile at
 the device pixel ratio and repeats it under the same rotation, including for

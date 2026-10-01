@@ -320,16 +320,36 @@ describe('SVG scene renderer', () => {
             angle: 30,
           }),
           { id: 'flat', width: 4, height: 4, nodes: [] },
+          {
+            id: 'shaded',
+            width: 4,
+            height: 4,
+            nodes: [
+              {
+                kind: 'rect',
+                key: 'shaded-cell',
+                x: 0,
+                y: 0,
+                width: 4,
+                height: 4,
+                style: { fill: 'url(#ramp)' },
+              },
+            ],
+          },
         ],
+        gradients: [{ id: 'ramp', stops: [{ offset: 0, color: '#000' }] }],
       },
       { ariaLabel: 'Patterns', idPrefix: 'chart.one' },
     )
 
     expect(svg).toContain(
-      '<defs data-ts-key="patterns"><pattern data-ts-key="pattern:hatch" id="chartone-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect data-ts-key="pattern:hatch:background" fill="#ffffff" x="0" y="0" width="8" height="8"/><rect data-ts-key="pattern:hatch:line" fill="var(--hatch)" x="0" y="0" width="8" height="8"/></pattern><pattern data-ts-key="pattern:grain" id="chartone-grain" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)"><circle data-ts-key="pattern:grain:dot" fill="#123456" cx="3" cy="3" r="3"/></pattern><pattern data-ts-key="pattern:flat" id="chartone-flat" width="4" height="4" patternUnits="userSpaceOnUse"></pattern></defs>',
+      '<defs data-ts-key="patterns"><pattern data-ts-key="pattern:hatch" id="chartone-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect data-ts-key="pattern:hatch:background" fill="#ffffff" x="0" y="0" width="8" height="8"/><rect data-ts-key="pattern:hatch:line" fill="var(--hatch)" x="0" y="0" width="8" height="8"/></pattern><pattern data-ts-key="pattern:grain" id="chartone-grain" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)"><circle data-ts-key="pattern:grain:dot" fill="#123456" cx="3" cy="3" r="3"/></pattern><pattern data-ts-key="pattern:flat" id="chartone-flat" width="4" height="4" patternUnits="userSpaceOnUse"></pattern>',
     )
     expect(svg).toContain(
       'fill="url(#chartone-hatch)" stroke="url(#chartone-grain)"',
+    )
+    expect(svg).toContain(
+      '<rect data-ts-key="shaded-cell" fill="url(#chartone-ramp)"',
     )
     expect(svg).toContain('fill="url(#app-owned)"')
   })
@@ -382,6 +402,7 @@ function testScene(): ChartScene {
       range: [],
       map: () => '#2563eb',
     },
+    patterns: [],
     gradients: [],
     theme: {
       foreground: '#111111',

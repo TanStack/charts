@@ -207,6 +207,7 @@ function chartScene(
       range: ['#2563eb', '#f97316'],
       map: (value) => (value === 'beta' ? '#f97316' : '#2563eb'),
     },
+    patterns: [],
     gradients: [],
     theme: {
       foreground: '#111827',

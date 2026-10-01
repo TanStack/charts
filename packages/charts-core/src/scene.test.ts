@@ -3,6 +3,7 @@ import { bandX, bandY } from './band'
 import { mountChart } from './dom'
 import { frame } from './frame'
 import { lineY } from './line'
+import { linePattern } from './pattern'
 import { colorLegend } from './legend'
 import { createMark } from './mark'
 import {
@@ -517,6 +518,28 @@ describe('native mark and channel scene', () => {
       ),
     ).toThrow('Duplicate chart control id "duplicate"')
   })
+
+  it.each([
+    ['gradients', [{ id: 'fill', stops: [] }], []],
+    ['a gradient and a pattern', [{ id: 'fill', stops: [] }], ['fill']],
+  ] as const)(
+    'rejects duplicate resource ids across %s',
+    (_, gradients, patterns) => {
+      expect(() =>
+        createChartScene(
+          defineChart({
+            marks: [lineY([1, 3, 2])],
+            gradients: patterns.length
+              ? gradients
+              : [...gradients, ...gradients],
+            patterns: patterns.map((id) => linePattern({ id, color: 'red' })),
+            ...linearAxes([0, 2], [0, 3]),
+          }),
+          { width: 480, height: 260 },
+        ),
+      ).toThrow('Duplicate chart resource id "fill"')
+    },
+  )
 
   it('rejects duplicate host-control identities from behavior output', () => {
     const extension = { id: 'duplicate-control', create: () => ({}) }

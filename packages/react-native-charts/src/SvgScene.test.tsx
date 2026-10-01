@@ -820,6 +820,7 @@ function scene(): ChartScene {
       range: [],
       map: () => '#2563eb',
     },
+    patterns: [],
     gradients: [
       {
         id: 'fill',

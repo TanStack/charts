@@ -25,8 +25,8 @@ may add only its transport module over the tooltip consumer. Ordinary line,
 compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has a 12.46 KiB gzip ceiling. The React compact-scale line consumer has a
-31.14 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
+scene has a 12.52 KiB gzip ceiling. The React compact-scale line consumer has a
+31.21 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
 allowed only in the compact linear path; categorical compact-scale kernels
 reject every D3 runtime input. All compact fixtures reject `d3-scale`,
 `d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
@@ -61,9 +61,10 @@ gzip bytes to the static SVG consumer and 124 bytes to the DOM host. Scene-only
 consumers remain unchanged apart from one byte of compression variation.
 
 Pattern resources are part of the default scene and SVG contracts. Copying the
-declared list adds 8 gzip bytes to scene-only consumers, and emitting scoped
-tiles through the existing node serializer adds 114 to 125 bytes to static SVG
-and DOM consumers. Canvas tile rasterization adds 322 bytes to the Canvas
+declared list and rejecting duplicate gradient or pattern IDs adds about 60 to
+70 gzip bytes to scene-only consumers. With scoped tile emission through the
+existing node serializer, static SVG, DOM, and React consumers grow by 170 to
+210 bytes. Canvas tile rasterization adds about 320 bytes to the Canvas
 renderer. The `linePattern()` and `dotPattern()` vocabulary stays in its own
 subpath: its static SVG fixture adds about 0.27 KiB under a 0.3 KiB incremental
 cap, and the ordinary line consumer forbids it.
