@@ -2082,6 +2082,27 @@ export interface ChartFocusStrategy<
   navigation: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  /**
+   * Optional directional keyboard step. Return the next point for the key,
+   * or `undefined` to fall back to `navigation` order.
+   */
+  step?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartFocusStepContext<TDatum, TXValue, TYValue>,
+  ) => ChartPoint<TDatum, TXValue, TYValue> | undefined
+}
+
+export interface ChartFocusStepContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  /** The focused point, or `null` before keyboard focus lands. */
+  point: ChartPoint<TDatum, TXValue, TYValue> | null
+  /** The DOM `KeyboardEvent.key` value. */
+  key: string
+  /** True when Control or Command is held. */
+  modifier: boolean
 }
 
 export interface ChartFocusResolveContext {

@@ -137,6 +137,7 @@
     "./focus/guide": "./src/focus-guide.ts",
     "./focus/mark": "./src/focus-mark.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
+    "./focus/grid": "./src/focus-grid.ts",
     "./frame": "./src/frame.ts",
     "./group": "./src/group.ts",
     "./geo": "./src/geo.ts",
@@ -338,6 +339,10 @@
       "./focus/disabled": {
         "types": "./dist/focus-disabled.d.ts",
         "import": "./dist/focus-disabled.js"
+      },
+      "./focus/grid": {
+        "types": "./dist/focus-grid.d.ts",
+        "import": "./dist/focus-grid.js"
       },
       "./frame": {
         "types": "./dist/frame.d.ts",
