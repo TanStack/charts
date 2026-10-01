@@ -2,6 +2,34 @@ import { describe, expect, it, vi } from 'vitest'
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 
 describe('keyed SVG reconciliation', () => {
+  it.each([undefined, { duration: 0 }])(
+    'removes obsolete duplicate keyed children with animation %s',
+    (animation) => {
+      const container = document.createElement('div')
+      reconcileChartSvg(
+        container,
+        '<svg><g><rect data-ts-key="a" x="1"/><rect data-ts-key="a" x="2"/><circle data-ts-key="b" r="3"/></g></svg>',
+      )
+      const previous = [...container.querySelectorAll('rect')]
+      const circle = container.querySelector('circle')
+      reconcileChartSvg(
+        container,
+        '<svg><g><circle data-ts-key="b" r="4"/><rect data-ts-key="a" x="5"/></g></svg>',
+        animation,
+      )
+      expect(container.querySelectorAll('rect')).toHaveLength(1)
+      expect(container.querySelector('rect')?.getAttribute('x')).toBe('5')
+      expect(previous.filter((node) => node.parentElement)).toHaveLength(1)
+      expect(container.querySelector('circle')).toBe(circle)
+      expect(circle?.getAttribute('r')).toBe('4')
+      expect(
+        [...container.querySelector('g')!.children].map(
+          (node) => node.localName,
+        ),
+      ).toEqual(['circle', 'rect'])
+    },
+  )
+
   it('removes stale attributes and retains empty and qualified attributes', () => {
     const container = document.createElement('div')
     reconcileChartSvg(
