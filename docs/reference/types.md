@@ -141,7 +141,7 @@ can return any `ChartMarkStateValue`. `ChartMarkStateStyle` is the complete
 style vocabulary; `ChartDotStateStyle`, `ChartBarStateStyle`,
 `ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, and
 `ChartTextStateStyle` narrow it to properties each mark can render. All six
-accept `strokeDasharray` for a focus-driven dash pattern.
+accept `strokeDasharray` for a state-driven dash pattern.
 
 ## Definitions
 

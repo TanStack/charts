@@ -9052,10 +9052,12 @@ Each entry records:
 - Status: open
 - Severity: medium
 - Owner: API
-- Observed in: a consumer application that wrapped a mark carrying selection
-  `states` in `decorative()`. It typechecked, then threw at initialization
-  with "cannot wrap mark ... with focus or state behavior". The application
-  moved selection paint into the datum instead.
+- Observed in: a production project-planning dashboard migrating from
+  Recharts to TanStack Charts 0.18.0 (insight band stacked bars). It wrapped a
+  mark carrying selection `states` in `decorative()`, which typechecked, then
+  threw at initialization with "cannot wrap mark ... with focus or state
+  behavior". It had to move selection paint into the datum and add an
+  invisible interactive mark per row.
 - Friction: `decorative()` accepts any `ChartMark`, but the public path always
   uses the rejecting mode. It throws when the initialized mark has `focus`
   (from `whenFocused`) or `states` (from any mark's `states` option), and
