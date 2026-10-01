@@ -46,7 +46,7 @@ const slices: readonly Slice[] = [
 ]
 
 describe('polar marks', () => {
-  it.each(['arc', 'area', 'dot'] as const)(
+  it.each(['arc', 'area', 'dot', 'line', 'text'] as const)(
     'resolves %s states with original datum ownership and transitions',
     (kind) => {
       const rows = [
@@ -95,11 +95,24 @@ describe('polar marks', () => {
                       angle: 'angle',
                       radius: 'radius',
                     })
-                  : radialDot(rows, {
-                      ...options,
-                      angle: 'angle',
-                      radius: 'radius',
-                    }),
+                  : kind === 'line'
+                    ? radialLine(rows, {
+                        ...options,
+                        angle: 'angle',
+                        radius: 'radius',
+                      })
+                    : kind === 'text'
+                      ? radialText(rows, {
+                          ...options,
+                          angle: 'angle',
+                          radius: 'radius',
+                          text: 'id',
+                        })
+                      : radialDot(rows, {
+                          ...options,
+                          angle: 'angle',
+                          radius: 'radius',
+                        }),
               ],
               scales: {
                 angle: { scale: scaleLinear },
@@ -122,7 +135,15 @@ describe('polar marks', () => {
         pinned: false,
       })
       const leaves = flatten(resolved.scene.nodes).filter(
-        (node) => node.kind === (kind === 'dot' ? 'dot' : 'area'),
+        (node) =>
+          node.kind ===
+          (kind === 'dot'
+            ? 'dot'
+            : kind === 'text'
+              ? 'label'
+              : kind === 'line'
+                ? 'polyline'
+                : 'area'),
       )
       expect(leaves.map((node) => node.style?.opacity)).toEqual([
         undefined,
