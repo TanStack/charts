@@ -161,7 +161,7 @@ pointers sweep the plot.
 | 100,000 |             0.19 ms |     1.1 ms |       2.4 µs |             16 ms |              5.2 µs |
 
 Points on one vertical or horizontal line stay under 1 µs per query at
-100,000 points. The worst case is a dense cluster with the pointer inside it:
+100,000 points with the 48-pixel radius. The worst case is a dense cluster with the pointer inside it:
 the grid cannot split points that share a cell, so it scans the cluster. With
 98% of points within 2 pixels, it measured about 2× slower than the linear
 scan at 1,000 points, about 1.2× slower at 10,000, and about 2× faster at
