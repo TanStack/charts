@@ -4808,6 +4808,12 @@ Each entry records:
   dot mark with `{ focus: 'primary', pinned: true }`; pointer pin/unpin,
   same-point pointer tracking, SVG/Canvas null-focus restoration, Escape,
   close-button dismissal, and revision preservation are regression-covered.
+- Type follow-up: PR #161 exposed state dash patterns rejected by dot, bar,
+  rect, area, and text types despite existing renderer support. A pinned-dot
+  regression reproduces TS2353 before the type correction while its runtime
+  paint/restoration test passes. The corrected types pass root TypeScript;
+  all 151 measured consumer JavaScript outputs have identical SHA-256 hashes
+  before and after the correction. No renderer runtime changed.
 - Scope follow-up: issue #126 exposed the missing polar and geographic
   authoring path. Radial marks now retain their original source data in the
   same state metadata used by Cartesian marks, and the polar container wraps
