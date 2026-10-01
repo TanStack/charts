@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "baselineRevision": "327f488f46463408e91eef4828d54f45017f717d",
-  "candidateRevision": "cfed30a9dbdabcf4c818c467f165c269d28c6d8b",
-  "candidateNote": "Combined structured-text and direct-comparator grouped-y fixes, user-approved correctness size tradeoffs; no policy or baseline changes",
+  "candidateRevision": "5e00ebef46becf827334cb4badc87c71d10d8269",
+  "candidateNote": "Combined correctness fixes including element-only SVG child fast path; no policy or locked baseline changes",
   "node": "v24.18.0",
   "esbuild": "0.27.7",
   "typescript": "6.0.3",
@@ -91,13 +91,13 @@
         "sha256": "73b06e9c1f90f97bff2507fef5ff4af7244442625abb6a8d29ad23b0f27ddf19"
       },
       "candidate": {
-        "minified": 142798,
-        "gzip": 49123,
-        "sha256": "e1927e63cf70442d160d17a0521bb25fca3ea338570445d4c249445cafeaf56f"
+        "minified": 142869,
+        "gzip": 49163,
+        "sha256": "5d427654c7818f8502244f9128e48e7884e8385074908ee53e4aeffb14d73b82"
       },
       "delta": {
-        "minified": 605,
-        "gzip": 303
+        "minified": 676,
+        "gzip": 343
       }
     },
     {
@@ -193,13 +193,13 @@
         "sha256": "7c769f242bd315338821d54a8930cd442b779b4e92c257ae176c83311b6f42db"
       },
       "candidate": {
-        "minified": 94980,
-        "gzip": 32745,
-        "sha256": "1a32973e0cf6e56f880a6d6a190e576ad63b693f2bbbc0fcc20f0c52b1093e1d"
+        "minified": 95051,
+        "gzip": 32784,
+        "sha256": "27704b5a1d36fce45f736f32a8e7e2761aab4489ab1f841b2f7176ceda163440"
       },
       "delta": {
-        "minified": 601,
-        "gzip": 310
+        "minified": 672,
+        "gzip": 349
       }
     },
     {
@@ -329,13 +329,13 @@
         "sha256": "ae81ff18d70d61559d051c9b83d18530394b2c99cfc92e07281d984a2c977bbe"
       },
       "candidate": {
-        "minified": 127159,
-        "gzip": 45962,
-        "sha256": "2e500fc4ad92b44919b972e4cc045fa2b67a3eff062e2bffdf60ec12660de514"
+        "minified": 127230,
+        "gzip": 46004,
+        "sha256": "22f657ba19f257e532ee4cf9ab84586aa7e4b4f71b0f7f9bf100695697bfe35b"
       },
       "delta": {
-        "minified": 646,
-        "gzip": 307
+        "minified": 717,
+        "gzip": 349
       }
     },
     {
@@ -363,13 +363,13 @@
         "sha256": "61c9fe52837487141de6bc5cedd21271cbbc38504d621d55c9edb278242139f7"
       },
       "candidate": {
-        "minified": 112388,
-        "gzip": 40554,
-        "sha256": "873ddbb86b93ba65500bc31458437b846b10b114eee8ce4155da1604d5c930f8"
+        "minified": 112459,
+        "gzip": 40590,
+        "sha256": "5ae881b2a75f703ed2f1e41d27037d9225ebbf213be47fb3cf9374aaab87d3ca"
       },
       "delta": {
-        "minified": 648,
-        "gzip": 331
+        "minified": 719,
+        "gzip": 367
       }
     },
     {
@@ -482,13 +482,13 @@
         "sha256": "148501a883fa9a957c7b22e5b91e9529dd812d047c8d67cdc393d49bd33edb86"
       },
       "candidate": {
-        "minified": 82470,
-        "gzip": 28865,
-        "sha256": "00551aec3bd54216957989b10bc770aa0963f8f89782925a5b30257c49b044ac"
+        "minified": 82541,
+        "gzip": 28902,
+        "sha256": "dcc4d1c0ca9f1ecff7c861b99faf8419cd9a15265a30990a5cee575a64821070"
       },
       "delta": {
-        "minified": 600,
-        "gzip": 291
+        "minified": 671,
+        "gzip": 328
       }
     },
     {
@@ -686,13 +686,13 @@
         "sha256": "16d85423ef732ac6bb74f93c89a2b224b2f13388ed3cde8ec95c7adf38baed78"
       },
       "candidate": {
-        "minified": 90968,
-        "gzip": 31788,
-        "sha256": "335364cfb39eeb1536f6f03ba9ce1d22835bcfa00f66380926b38778f55ffa6f"
+        "minified": 91035,
+        "gzip": 31831,
+        "sha256": "0d10c67970eb8d3af62d66b6b0ad4f32f913048921c6a474f932c7c234f0453a"
       },
       "delta": {
-        "minified": 1581,
-        "gzip": 626
+        "minified": 1648,
+        "gzip": 669
       }
     },
     {
@@ -788,13 +788,13 @@
         "sha256": "7e9d706704e8138b301cdd08e804a69f69e2eb2994dcf7f6e8b1f7b481ef9f4b"
       },
       "candidate": {
-        "minified": 69172,
-        "gzip": 23178,
-        "sha256": "2a6f9283ca9a86420cd686b4fa8db398fa43d53ef4b6e72a5278f4c8ecd7bdae"
+        "minified": 69314,
+        "gzip": 23220,
+        "sha256": "6149e2c83e30aefa5c0a2bc7443ae0c273bdc305a3ffc958fb3f729a29df222d"
       },
       "delta": {
-        "minified": 614,
-        "gzip": 219
+        "minified": 756,
+        "gzip": 261
       }
     },
     {
@@ -992,13 +992,13 @@
         "sha256": "4f091eb278c454afc03525fd39e097d9c05c8287734e4140287e7aa3c6481272"
       },
       "candidate": {
-        "minified": 105200,
-        "gzip": 37070,
-        "sha256": "41e36c97c41402ebc9da972ac64314d08b4827b7ec2c09a01e4c345e2a054ab1"
+        "minified": 105271,
+        "gzip": 37100,
+        "sha256": "36f9de7252ec1f7a514463f86b515ddecab0a1886e66770da3aeda629a59c5ce"
       },
       "delta": {
-        "minified": 599,
-        "gzip": 333
+        "minified": 670,
+        "gzip": 363
       }
     },
     {
@@ -1009,13 +1009,13 @@
         "sha256": "95430c3af9c2571e63a284f5494b73d0ce40a21622343ed8c515e190be75344f"
       },
       "candidate": {
-        "minified": 102669,
-        "gzip": 36227,
-        "sha256": "d2414d416eca0b88a4323db886b449344ccfdb5d43a2ba313d14cd040d3637b6"
+        "minified": 102740,
+        "gzip": 36265,
+        "sha256": "670816ff24772ed2e86f0b4b5e82bd42b7f4cb28279636544b48e414322cc68b"
       },
       "delta": {
-        "minified": 601,
-        "gzip": 316
+        "minified": 672,
+        "gzip": 354
       }
     },
     {
@@ -1026,13 +1026,13 @@
         "sha256": "ccd187e480234337ce7029a20e20c78e449eb4039c0c0ed80e244bf33244b2a3"
       },
       "candidate": {
-        "minified": 90953,
-        "gzip": 32054,
-        "sha256": "9ddfca06d4fd5823ddcd925bc3fdfbc6dea68b84d3644f44e2b126cabfa8ae35"
+        "minified": 91024,
+        "gzip": 32091,
+        "sha256": "0b7430889f2a7f68e3b7357549d8a816ac7eb498b8075816e047ae58f517004f"
       },
       "delta": {
-        "minified": 599,
-        "gzip": 308
+        "minified": 670,
+        "gzip": 345
       }
     },
     {
@@ -1060,13 +1060,13 @@
         "sha256": "0f7475609e124dd4ea81591f1a6dcea9933f7cc0c6fe3cd57004c25cb45e15d5"
       },
       "candidate": {
-        "minified": 131384,
-        "gzip": 46399,
-        "sha256": "def6ed40b8f6e278850d96c0fedca8bf904fd3c5acc851b72151b5773e24a9df"
+        "minified": 131455,
+        "gzip": 46427,
+        "sha256": "abb78b92cfc17bc0698331f75808ff29a2690a3fcbe2625b6ccecd2ab34fd950"
       },
       "delta": {
-        "minified": 730,
-        "gzip": 364
+        "minified": 801,
+        "gzip": 392
       }
     },
     {
@@ -1077,13 +1077,13 @@
         "sha256": "8579deb78238b7e7dba4c09d659468b6944a776bcc194697b0ed1ae0738da09e"
       },
       "candidate": {
-        "minified": 108455,
-        "gzip": 39184,
-        "sha256": "6748d51b34598bcc07613ad2905d775aaa8d0209a6ca52a338c4f93fbc8fd398"
+        "minified": 108526,
+        "gzip": 39215,
+        "sha256": "10a0bbe377b748368fbaa03a5789e6de7d19d06988d2fc81e617f024f460f54a"
       },
       "delta": {
-        "minified": 601,
-        "gzip": 335
+        "minified": 672,
+        "gzip": 366
       }
     },
     {
@@ -1162,13 +1162,13 @@
         "sha256": "994a9827e99e0622d532489221fc8df0b73b02a9dc6251523bb3ec49e64db911"
       },
       "candidate": {
-        "minified": 169343,
-        "gzip": 59480,
-        "sha256": "d535049a785bc2fb8f5fcc73fe489ed3f646aa0b3e641f8d52f74c3a632f4658"
+        "minified": 169414,
+        "gzip": 59511,
+        "sha256": "cbaf46bfde391f659b3d8f0f8a68dd149dab511d5833894a6e2f04408d58cdda"
       },
       "delta": {
-        "minified": 608,
-        "gzip": 305
+        "minified": 679,
+        "gzip": 336
       }
     },
     {
@@ -1179,13 +1179,13 @@
         "sha256": "68fafbaca9eb6db657b5527f339bd59d2702af2a8a39c9935dbd7b267d83bb22"
       },
       "candidate": {
-        "minified": 84796,
-        "gzip": 29826,
-        "sha256": "83e0d6577cbde2478a95c422be3136c32e9ec362ff0a26d9c91871be5af69c17"
+        "minified": 84867,
+        "gzip": 29851,
+        "sha256": "57e4690f6b9571b95c6966db2267dadff259ea266aad7bda220e662c9ad4a46b"
       },
       "delta": {
-        "minified": 601,
-        "gzip": 308
+        "minified": 672,
+        "gzip": 333
       }
     },
     {
@@ -1315,13 +1315,13 @@
         "sha256": "105bbf6df47bffe970a94121a38bc08865e2ac13f0027cfe714e5b1fba58c5a5"
       },
       "candidate": {
-        "minified": 94707,
-        "gzip": 32637,
-        "sha256": "7370c1309b5043bc4ebb747ff73c8029c86405fc3605d5bd85d20d96a3243b99"
+        "minified": 94778,
+        "gzip": 32674,
+        "sha256": "4c4ae16dfc0e3f9bf2592e63337f8ee8e47dff50133453c2a4871d955a4d9ac6"
       },
       "delta": {
-        "minified": 599,
-        "gzip": 307
+        "minified": 670,
+        "gzip": 344
       }
     },
     {
@@ -1502,13 +1502,13 @@
         "sha256": "ad080d8c5fefb44660f92e5ecb6eeee842171d38235c918b02834a61808f49c0"
       },
       "candidate": {
-        "minified": 166905,
-        "gzip": 58428,
-        "sha256": "f70a830bddcf4b37cc2bdd6da9e1087b3b21fa93f41d5805308cd5cbbf3a53ab"
+        "minified": 166976,
+        "gzip": 58472,
+        "sha256": "4e6c59db6f1858bf07a8d91f6fd87ee2bb03614e7377ef2b467028638bd1db1e"
       },
       "delta": {
-        "minified": 608,
-        "gzip": 323
+        "minified": 679,
+        "gzip": 367
       }
     },
     {
@@ -1944,13 +1944,13 @@
         "sha256": "c8eadf13be9c2391c561700087ff8482a575af5d3ec3122a181eb0880f8e5107"
       },
       "candidate": {
-        "minified": 145267,
-        "gzip": 49839,
-        "sha256": "1aef530568d94bbfbc1d36311b8845bb9d564e358960a63dfc3058d50a01c919"
+        "minified": 145338,
+        "gzip": 49878,
+        "sha256": "b6c748863a7dddf6cbe44e1629a32b5252c6fcbb23bc9a358d81c121357b7171"
       },
       "delta": {
-        "minified": 599,
-        "gzip": 291
+        "minified": 670,
+        "gzip": 330
       }
     },
     {
