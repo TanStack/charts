@@ -85,9 +85,13 @@ describe('axis focus strategies', () => {
       point('upper-near', 60, 20, 'C', 2),
     ]
     const original = [...rows]
-    expect(focusGroupY.navigation(rows).map(candidate => candidate.key)).toEqual(['upper-near', 'lower-left'])
+    expect(
+      focusGroupY.navigation(rows).map((candidate) => candidate.key),
+    ).toEqual(['upper-near', 'lower-left'])
     expect(rows).toEqual(original)
-    expect(focusNearestY.navigation(rows).map(candidate => candidate.key)).toEqual(['lower-left', 'upper-near', 'upper-far'])
+    expect(
+      focusNearestY.navigation(rows).map((candidate) => candidate.key),
+    ).toEqual(['lower-left', 'upper-near', 'upper-far'])
     expect(focusGroupY.navigation([])).toEqual([])
   })
 

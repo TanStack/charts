@@ -9143,22 +9143,6 @@ Each entry records:
   indicators. The composed and pie catalog examples use the built-in legend
   instead of application-owned layout.
 
-### F-307 - Grouped-y keyboard navigation followed x order
-
-- Status: resolved
-- Severity: medium
-- Owner: API
-- Observed in: PR #160 reproduction and real keyboard verification for 1.0
-- Friction: grouped-y rows were visited by the x position of their first
-  point, forcing consumers to supply corrected navigation ordering.
-- Decision: select a direct grouped-axis-first comparator before sorting.
-  Keep nearest modes and grouped-x ordering unchanged, with no second sort.
-- Verification: the focused regression fails before and passes after. All
-  59 focus and interaction tests and root TypeScript pass. Chromium, Firefox,
-  and WebKit verify initial focus, ArrowDown, ArrowUp, normal and reversed y
-  domains, and empty-host teardown with no page errors. A paired minified
-  benchmark rejects the dynamic-property comparator's measured overhead.
-
 ### F-306 - Inferred consumer declarations could not name core types
 
 - Status: resolved
@@ -9176,3 +9160,19 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Grouped-y keyboard navigation followed x order
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: PR #160 reproduction and real keyboard verification for 1.0
+- Friction: grouped-y rows were visited by the x position of their first
+  point, forcing consumers to supply corrected navigation ordering.
+- Decision: select a direct grouped-axis-first comparator before sorting.
+  Keep nearest modes and grouped-x ordering unchanged, with no second sort.
+- Verification: the focused regression fails before and passes after. All
+  59 focus and interaction tests and root TypeScript pass. Chromium, Firefox,
+  and WebKit verify initial focus, ArrowDown, ArrowUp, normal and reversed y
+  domains, and empty-host teardown with no page errors. A paired minified
+  benchmark rejects the dynamic-property comparator's measured overhead.

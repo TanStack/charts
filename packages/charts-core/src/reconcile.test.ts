@@ -5,7 +5,10 @@ describe('keyed SVG reconciliation', () => {
   it.each([
     ['<tspan data-ts-key="a">old</tspan>', 'new'],
     ['old', '<tspan data-ts-key="a">new</tspan>'],
-    ['before<tspan data-ts-key="a">old</tspan>after', 'start<tspan data-ts-key="a">new</tspan>end'],
+    [
+      'before<tspan data-ts-key="a">old</tspan>after',
+      'start<tspan data-ts-key="a">new</tspan>end',
+    ],
   ])('updates structured text from %s to %s', (previous, next) => {
     const container = document.createElement('div')
     reconcileChartSvg(container, `<svg><text>${previous}</text></svg>`)
@@ -14,22 +17,30 @@ describe('keyed SVG reconciliation', () => {
     reconcileChartSvg(container, `<svg><text>${next}</text></svg>`)
     expect(container.querySelector('text')).toBe(text)
     expect(text.innerHTML).toBe(next)
-    if (child && next.includes('<tspan')) expect(text.querySelector('tspan')).toBe(child)
+    if (child && next.includes('<tspan'))
+      expect(text.querySelector('tspan')).toBe(child)
   })
 
   it('preserves replacement text after an old child finishes exiting', () => {
     const frames: FrameRequestCallback[] = []
-    const request = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
-      frames.push(callback)
-      return frames.length
-    })
-    const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+    const request = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancel = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
     try {
       const container = document.createElement('div')
       reconcileChartSvg(container, '<svg><text><tspan>old</tspan></text></svg>')
       const text = container.querySelector('text')!
       const child = text.firstElementChild
-      reconcileChartSvg(container, '<svg><text>new</text></svg>', {duration: 100, easing: 'linear'})
+      reconcileChartSvg(container, '<svg><text>new</text></svg>', {
+        duration: 100,
+        easing: 'linear',
+      })
       expect(text.firstElementChild).toBe(child)
       frames.shift()?.(0)
       frames.shift()?.(100)
