@@ -17,6 +17,8 @@ import {
   polar,
   radialArc,
   radialArea,
+  radialBarAngle,
+  radialBarRadius,
   radialDot,
   radialGrid,
   radialLine,
@@ -46,6 +48,81 @@ const slices: readonly Slice[] = [
 ]
 
 describe('polar marks', () => {
+  it.each(['angle', 'radius'] as const)(
+    'resolves radial bar %s states without changing ownership or base paint',
+    (kind) => {
+      const rows = [
+        { id: 'a', angle: 1, radius: 1 },
+        { id: 'b', angle: 2, radius: 2 },
+      ]
+      const options = {
+        key: 'id' as const,
+        angle: 'angle' as const,
+        radius: 'radius' as const,
+        states: [
+          {
+            when: { focus: 'unmatched' as const },
+            style: {
+              opacity: ({
+                datum,
+                index,
+                data,
+              }: {
+                datum: (typeof rows)[number]
+                index: number
+                data: readonly (typeof rows)[number][]
+              }) => {
+                expect(data).toBe(rows)
+                expect(datum).toBe(rows[index])
+                return 0.25
+              },
+            },
+            transition: { type: 'tween' as const, duration: 120 },
+          },
+        ],
+      }
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            polar({
+              marks: [
+                kind === 'angle'
+                  ? radialBarAngle(rows, options)
+                  : radialBarRadius(rows, options),
+              ],
+              scales: {
+                angle: { scale: kind === 'radius' ? scaleBand : scaleLinear },
+                radius: { scale: kind === 'angle' ? scaleBand : scaleLinear },
+              },
+            }),
+          ],
+          scales: { x: null, y: null },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+      const primary = scene.points[0]!
+      const resolved = resolveMarkStateScene(scene, {
+        primary,
+        group: [primary],
+        source: 'pointer',
+        pinned: false,
+      })
+      expect(
+        flatten(resolved.scene.nodes)
+          .filter((node) => node.kind === 'area')
+          .map((node) => node.style?.opacity),
+      ).toEqual([undefined, 0.25])
+      expect(resolved.transitions?.[scene.points[1]!.markId]).toMatchObject({
+        duration: 120,
+      })
+      expect(resolved.scene.points).toBe(scene.points)
+      expect(
+        flatten(scene.nodes).every((node) => node.style?.opacity === undefined),
+      ).toBe(true)
+      expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
+    },
+  )
   it.each(['arc', 'area', 'dot', 'line', 'text'] as const)(
     'resolves %s states with original datum ownership and transitions',
     (kind) => {
