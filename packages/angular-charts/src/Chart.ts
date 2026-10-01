@@ -67,9 +67,7 @@ class ChartIdGenerator {
     <ng-container #tooltipOutlet></ng-container>
     <ng-content select="ng-template[tanstackChartTooltipBody]" />
     <ng-template #defaultTooltipBody>
-      @if (defaultTooltipText !== undefined) {
-        {{ defaultTooltipText }}
-      } @else if (defaultTooltipContent; as content) {
+      @if (defaultTooltipContent; as content) {
         @if (content.title) {
           <div
             class="ts-chart-tooltip__title"
@@ -134,6 +132,8 @@ class ChartIdGenerator {
             }
           </div>
         }
+      } @else if (defaultTooltipText !== undefined) {
+        {{ defaultTooltipText }}
       }
     </ng-template>
   `,

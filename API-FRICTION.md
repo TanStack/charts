@@ -3795,8 +3795,17 @@ Each entry records:
   fresh before/after partial builds pass. Minified module size falls 15 bytes
   and gzip falls 3, while raw output adds 58. Installed candidate tarballs pass
   hydration, reactive updates, identity, and cleanup in Chromium, Firefox,
-  and WebKit with Angular 22.0.8 and JIT compilation. AOT and minimum peer
-  coverage remain outside this evidence. Same-process server/client tests were invalid
+  and WebKit with Angular 22.0.8 in both JIT and AOT/linker builds. The AOT
+  browser bundle excludes the JIT compiler. Minimum-peer Angular 19.0.0 AOT
+  linking exposed an unsupported alias on an `@else if` block. Moving the
+  structured-content alias to the primary `@if` preserves the mutually
+  exclusive content branches and passes installed-package hydration, updates,
+  identity, and teardown in Chromium, Firefox, and WebKit with TypeScript
+  5.6.3 and normal Zone.js bootstrap. This template change leaves minified
+  module bytes unchanged and reduces gzip by one byte. Reactive tooltip tests
+  cover structured/text transitions and retain the custom body. The corrected
+  tarball also passes the Angular 22 AOT audit in all three engines. These checks
+  do not cover every Angular peer version. Same-process server/client tests were invalid
   because Angular retained its server document, so that evidence is replaced.
 
 ### F-124 — Name-only inventories masked undocumented contracts

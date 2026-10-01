@@ -5,6 +5,7 @@ import {
   Input,
   ViewContainerRef,
   inject,
+  signal,
 } from '@angular/core'
 import type { TemplateRef } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -16,7 +17,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { portal } from '@tanstack/charts/tooltip/portal'
+import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart, ChartTooltipBodyDirective } from './index'
 import type {
@@ -41,7 +42,7 @@ const tooltipDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
   tooltip: {
     use: tooltip,
-    portal,
+    portal: tooltipPortal,
     content: () => ({
       title: 'First',
       color: '#2563eb',
@@ -118,8 +119,11 @@ class TestNestedTooltipLifecycle {
     TestTemplateOutlet,
   ],
   template: `
-    <tanstack-chart [options]="options">
-      <ng-template [tanstackChartTooltipBody]="options.definition" let-tooltip>
+    <tanstack-chart [options]="options()">
+      <ng-template
+        [tanstackChartTooltipBody]="options().definition"
+        let-tooltip
+      >
         <div data-testid="rich-tooltip">
           <ng-container
             [testTemplateOutlet]="tooltip.defaultBody"
@@ -137,12 +141,12 @@ class TestNestedTooltipLifecycle {
   `,
 })
 class TooltipHost {
-  options: ChartOptions<(typeof rows)[number]> = {
+  options = signal<ChartOptions<(typeof rows)[number]>>({
     definition: tooltipDefinition,
     width: 480,
     height: 260,
     ariaLabel: 'Revenue',
-  }
+  })
   nestedOptions: ChartOptions<(typeof rows)[number]> = {
     definition,
     width: 120,
@@ -251,12 +255,38 @@ describe('Angular adapter', () => {
     expect(portal?.getAttribute('role')).toBe('status')
 
     const customBody = body?.querySelector('[data-testid="rich-tooltip"]')
-    const nestedChart = body?.querySelector('tanstack-chart')
-    fixture.componentInstance.options = {
-      ...fixture.componentInstance.options,
-      ariaLabel: 'Updated revenue',
-    }
+    fixture.componentInstance.options.set({
+      ...fixture.componentInstance.options(),
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: {
+          use: tooltip,
+          portal: tooltipPortal,
+          formatGroup: () => 'Plain revenue',
+        },
+      }),
+    })
     fixture.detectChanges()
+    expect(body?.textContent).toContain('Plain revenue')
+    expect(body?.querySelector('.ts-chart-tooltip__title')).toBeNull()
+    expect(body?.querySelector('.ts-chart-tooltip__row')).toBeNull()
+    fixture.componentInstance.options.set({
+      ...fixture.componentInstance.options(),
+      definition: tooltipDefinition,
+    })
+    fixture.detectChanges()
+    expect(
+      body?.querySelector('.ts-chart-tooltip__title')?.textContent?.trim(),
+    ).toBe('First')
+    expect(body?.textContent).not.toContain('Plain revenue')
+    expect(body?.querySelector('[data-testid="rich-tooltip"]')).toBe(customBody)
+    const nestedChart = body?.querySelector('tanstack-chart')
+    fixture.componentInstance.options.set({
+      ...fixture.componentInstance.options(),
+      ariaLabel: 'Updated revenue',
+    })
+    fixture.detectChanges()
+    expect(svg.getAttribute('aria-label')).toBe('Updated revenue')
     expect(body?.querySelector('[data-testid="rich-tooltip"]')).toBe(customBody)
     expect(body?.querySelector('tanstack-chart')).toBe(nestedChart)
 
