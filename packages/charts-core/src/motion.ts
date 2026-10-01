@@ -2125,7 +2125,7 @@ function reconcileMotionElement(
   const nextChildren = [...next.children]
   const currentByIdentity = indexMotionChildren(currentChildren)
   const nextIdentities = motionIdentities(nextChildren)
-  const retained = new Set<Element>()
+  const unmatched = new Set(currentChildren)
   let cursor = current.firstElementChild
 
   nextChildren.forEach((nextChild, index) => {
@@ -2137,7 +2137,7 @@ function reconcileMotionElement(
       matched.localName === nextChild.localName
     ) {
       rendered = matched
-      retained.add(matched)
+      unmatched.delete(matched)
       if (rendered !== cursor) current.insertBefore(rendered, cursor)
       reconcileMotionElement(rendered, nextChild, tracks, context)
     } else {
@@ -2148,8 +2148,8 @@ function reconcileMotionElement(
     cursor = rendered.nextElementSibling
   })
 
-  for (const child of currentChildren) {
-    if (!retained.has(child) && child.parentElement === current) {
+  for (const child of unmatched) {
+    if (child.parentElement === current) {
       addExitMotionTrack(child, tracks, context)
     }
   }
