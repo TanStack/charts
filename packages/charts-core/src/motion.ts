@@ -2122,15 +2122,19 @@ function reconcileMotionElement(
   const currentByIdentity = indexMotionChildren(currentChildren)
   const nextIdentities = motionIdentities(nextChildren)
   const unmatched = new Set(currentChildren)
-  for (let child = current.firstChild; child;) {
-    const following = child.nextSibling
-    if (child.nodeType !== 1) child.remove()
-    child = following
+  if (current.childNodes.length !== currentChildren.length) {
+    for (let child = current.firstChild; child;) {
+      const following = child.nextSibling
+      if (child.nodeType !== 1) child.remove()
+      child = following
+    }
   }
   let cursor: ChildNode | null = current.firstChild
   let index = 0
 
-  for (const nextNode of next.childNodes) {
+  const nextNodes =
+    next.childNodes.length === nextChildren.length ? nextChildren : next.childNodes
+  for (const nextNode of nextNodes) {
     if (nextNode.nodeType !== 1) {
       current.insertBefore(nextNode.cloneNode(true), cursor)
       continue
