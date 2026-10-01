@@ -343,6 +343,7 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-309 | Brush and zoom hid point focus on their own plot               | API                   | resolved   |
 
 ## Findings
 
@@ -9045,3 +9046,31 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-309 - Brush and zoom hid point focus on their own plot
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: a consumer dashboard on 0.18.0 that combined `brushX` or
+  `zoomX` with point tooltips on one time-series plot
+- Friction: with either control on the main plot, hovering the plot showed no
+  point focus or tooltip. The zoom hit rectangle and the brush overlay sit
+  above the plot and capture every pointer event, and the DOM host clears
+  point focus whenever the pointer target is inside a control. The
+  application moved brush and zoom into a separate overview chart to keep
+  tooltips working.
+- Decision: add one shared `hover: 'capture' | 'passthrough'` option to both
+  controls, typed `ChartControlHover`. The default `capture` keeps the old
+  behavior. `passthrough` lets idle hover over the zoom surface, or over the
+  blank brush overlay, resolve point focus and the tooltip through the host's
+  control-containment check. Brush selections and handles, active drags and
+  touch gestures, clicks, wheel input, and keyboard input stay with the
+  control. Hover is the only forwarded input, so one click never both selects
+  a point and starts a brush.
+- Verification: table-driven zoom and brush tests cover the default, explicit
+  `capture`, and `passthrough`: idle hover focuses the nearest point only with
+  `passthrough`, a brush selection keeps capturing, and focus clears during
+  an active pan or brush drag and returns on the next idle hover. The
+  interaction guide has a runnable one-plot `zoomX` and `brushX` example with
+  point tooltips.

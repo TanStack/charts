@@ -37,6 +37,12 @@ export interface ChartHostControlExtensionContext {
 export interface ChartHostControlInstance {
   update: (control: ChartHostControl, scene: ChartScene) => void
   contains?: (target: EventTarget | null) => boolean
+  /**
+   * Returns true when an idle pointer move over a contained `target` should
+   * still resolve chart point focus. Presses, clicks, wheel, and keyboard
+   * input stay with the control.
+   */
+  passesHover?: (target: EventTarget | null) => boolean
   destroy: () => void
 }
 

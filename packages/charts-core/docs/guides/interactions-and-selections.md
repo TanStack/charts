@@ -442,7 +442,9 @@ mountChart(element, {
 
 This prevents an application-owned gesture from competing with the host's
 point marker and tooltip. First-party host controls such as `brushX` and
-`zoomX` isolate their own events.
+`zoomX` isolate their own events by default. Set `hover: 'passthrough'` on
+either control to keep point focus and tooltips on the same plot; see
+[Tooltips with brush or zoom](#tooltips-with-brush-or-zoom).
 
 Use `pointer: false` plus the interaction controller when the application owns
 the gesture but the chart should still own datum focus. `focusDisabled` does
@@ -683,6 +685,109 @@ Keep visible-row filtering or clipping, y-domain policy, status, reset and
 recovery controls, follow-latest behavior, and persistence in the application.
 A reset updates the same controlled window. Import `d3-zoom` directly only
 when the application needs a different gesture policy.
+
+## Tooltips with brush or zoom
+
+`brushX` and `zoomX` share one `hover` option. The default, `capture`, keeps
+every pointer event over the control, so the plot shows no point focus or
+tooltip while the pointer is over it. Set `hover: 'passthrough'` when the same
+plot should also show point tooltips:
+
+- Idle hover over the zoom surface, or over the blank brush area, focuses the
+  nearest point and shows the tooltip.
+- The brush selection and its handles keep capturing hover.
+- During a pan, brush drag, or touch gesture, point focus clears. It returns on
+  the next idle hover.
+- Presses, clicks, wheel input, and keyboard input still belong to the
+  control. A click on the plot pans or brushes; it never also selects a point.
+  After an accepted wheel zoom, the host re-resolves focus at the last pointer
+  position.
+
+```tsx group=zoom-with-tooltips env=charts-react file=/src/App.tsx entry
+import { useMemo, useState } from 'react'
+import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import {
+  zoomX,
+  type ZoomXChange,
+  type ZoomXWindow,
+} from '@tanstack/charts/interaction/zoom'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { Chart } from '@tanstack/charts/react'
+import { rows } from './data'
+
+const extent = [1, 12] as const
+
+export default function App() {
+  const [visible, setVisible] = useState<ZoomXWindow<number>>({
+    start: 3,
+    end: 9,
+  })
+  const definition = useMemo(
+    () =>
+      defineChart({
+        marks: [
+          lineY(rows, {
+            x: 'week',
+            y: 'signups',
+            points: true,
+            stroke: '#2563eb',
+            strokeWidth: 2.5,
+          }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([visible.start, visible.end]) },
+          y: { scale: scaleLinear, grid: true, axis: { label: 'Signups' } },
+        },
+        controls: [
+          zoomX({
+            window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+              visible,
+              (next) => setVisible(next),
+            ),
+            extent,
+            scaleExtent: [1, 4],
+            hover: 'passthrough',
+            ariaLabel: 'Zoomable signup weeks',
+            format: (week) => `Week ${Math.round(week)}`,
+          }),
+        ],
+        tooltip,
+      }),
+    [visible],
+  )
+
+  return (
+    <Chart
+      definition={definition}
+      height={280}
+      ariaLabel="Weekly signups with zoom and point tooltips"
+    />
+  )
+}
+```
+
+```ts group=zoom-with-tooltips file=/src/data.ts collapsed
+export const rows = [
+  { week: 1, signups: 18 },
+  { week: 2, signups: 24 },
+  { week: 3, signups: 31 },
+  { week: 4, signups: 29 },
+  { week: 5, signups: 42 },
+  { week: 6, signups: 48 },
+  { week: 7, signups: 46 },
+  { week: 8, signups: 57 },
+  { week: 9, signups: 61 },
+  { week: 10, signups: 58 },
+  { week: 11, signups: 66 },
+  { week: 12, signups: 72 },
+]
+```
+
+`brushX({ range, values, hover: 'passthrough' })` works the same way. Put
+only one of the two controls on a plot. Both cover the plot, so the one
+mounted last takes every press over it.
 
 ## Linked views
 

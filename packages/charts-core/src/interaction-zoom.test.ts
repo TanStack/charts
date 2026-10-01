@@ -51,6 +51,15 @@ describe('zoomX', () => {
         'zoomX wheelActivation must be "focus", "modifier", or "always"',
       ),
     )
+    expect(() =>
+      zoomX({
+        window: controlledSignal({ start: 0, end: 1 }, () => {}),
+        extent: [0, 1],
+        hover: 'always' as never,
+      }),
+    ).toThrowError(
+      new TypeError('zoomX hover must be "capture" or "passthrough"'),
+    )
   })
 
   it('owns focus, keyboard navigation, reset, controlled updates, and teardown', () => {
@@ -696,6 +705,64 @@ describe('zoomX', () => {
       vi.useRealTimers()
     }
   })
+
+  it.each([
+    [undefined, false],
+    ['capture', false],
+    ['passthrough', true],
+  ] as const)(
+    'with hover %s, forwards idle plot hover to point focus: %s',
+    (hover, forwards) => {
+      const focusChanges: Array<unknown> = []
+      const container = document.createElement('div')
+      document.body.append(container)
+      const host = mountChart(container, {
+        definition: defineChart({
+          marks: [dot(numericRows, { x: 'x', y: 'y' })],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 10]) },
+            y: { scale: scaleLinear().domain([0, 10]) },
+          },
+          controls: [
+            zoomX({
+              id: 'window',
+              window: controlledSignal<
+                ZoomXWindow<number>,
+                ZoomXChange<number>
+              >({ start: 0, end: 10 }, () => {}),
+              extent: [0, 10],
+              hover,
+            }),
+          ],
+        }),
+        width: 480,
+        height: 240,
+        ariaLabel: 'Hover zoom',
+        onFocusChange: (point) => focusChanges.push(point?.key ?? null),
+      })
+      const target = zoomTarget(container)
+      mockBounds(container.querySelector('svg.ts-chart')!, 480, 240)
+      mockBounds(target, 480, 240)
+      const [point] = host.getScene().points
+      const hoverPoint = () =>
+        target.dispatchEvent(mouse('pointermove', point!.x, point!.y))
+
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBe(forwards ? point!.key : null)
+
+      target.focus()
+      target.dispatchEvent(mouse('mousedown', point!.x, point!.y))
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBeNull()
+      window.dispatchEvent(mouse('mouseup', point!.x, point!.y))
+
+      hoverPoint()
+      expect(focusChanges.at(-1) ?? null).toBe(forwards ? point!.key : null)
+
+      host.destroy()
+      container.remove()
+    },
+  )
 
   it('previews and commits mouse pan, then rolls a later pan back on Escape', () => {
     const initial = { start: 2.5, end: 7.5 }
