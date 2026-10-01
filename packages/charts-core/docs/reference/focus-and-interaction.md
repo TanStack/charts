@@ -1007,11 +1007,11 @@ resolution.
 
 ### Grid index
 
-`@tanstack/charts/spatial/grid` exports `gridSpatialIndex`, a ready-made
+`@tanstack/charts/spatial/grid-index` exports `gridSpatialIndex`, a ready-made
 point-only factory:
 
 ```ts
-import { gridSpatialIndex } from '@tanstack/charts/spatial/grid'
+import { gridSpatialIndex } from '@tanstack/charts/spatial/grid-index'
 
 const chart = defineChart(spec, { spatialIndex: gridSpatialIndex })
 ```
@@ -1026,7 +1026,9 @@ anchors, and points with non-finite anchors stay searchable.
 It is nearest-center lookup, not shape hit testing. Like any index, it
 replaces primitive containment and affinity ranking, so a pointer inside a
 wide bar can resolve to a neighboring bar whose anchor is closer. Use it for
-dots and other marks whose anchor is the useful target. See
+dots and other marks whose anchor is the useful target. Points packed into
+one cell are scanned in order, so a pointer inside a dense cluster costs about
+as much as the linear scan. See
 [Large Data](../guides/large-data.md#indexed-nearest-point-lookup) for
 measured costs.
 

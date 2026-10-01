@@ -79,6 +79,15 @@ The comparison follows the primary implementations and contracts documented by
 [reverse visitor](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/visit.js)
 and [Canvas picker](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/canvas/pick.js).
 
+The point-anchor scaling table measures the opt-in grid index from
+`@tanstack/charts/spatial/grid-index` against the linear anchor scan and D3
+quadtree 3.0.1 at 1,000, 10,000, and 100,000 points, with a 48-pixel and an
+unbounded radius. It covers uniform anchors, a vertical strip, a horizontal
+strip, and a dense cluster with outliers, once with pointers across the plot
+and once with pointers inside the cluster, which is the grid's worst case. It
+reports build time, query median and p95, and retained memory, and it checks
+that every index returns the linear result before timing.
+
 `pnpm bundle:check` reports isolated anchor-only and geometry resolver entries
 beside the existing D3 quadtree and Delaunay kernels. The geometry resolver has
 a 2 KiB gzip ceiling; the historical anchor-only entry stays unbudgeted so the

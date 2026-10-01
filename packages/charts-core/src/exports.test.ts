@@ -407,7 +407,7 @@ describe('public package exports', () => {
     const [root, universal, spatial] = await Promise.all([
       import('@tanstack/charts'),
       import('@tanstack/charts/universal'),
-      import('@tanstack/charts/spatial/grid'),
+      import('@tanstack/charts/spatial/grid-index'),
     ])
 
     expect(root).not.toHaveProperty('gridSpatialIndex')

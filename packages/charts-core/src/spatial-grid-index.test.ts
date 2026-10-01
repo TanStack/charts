@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nearestPoint } from './nearest'
-import { gridSpatialIndex } from './spatial-grid'
+import { gridSpatialIndex } from './spatial-grid-index'
+import { createGridIndex } from './spatial-grid-index-internal'
 import type { ChartPoint, ChartSpatialIndexFactory } from './types'
 
 type Layout = (random: () => number, index: number) => readonly [number, number]
@@ -17,6 +18,8 @@ const layouts: Record<string, Layout> = {
       : [300 + random() * 2, 200 + random() * 2],
   horizontal: (random) => [random() * 1_000, 42],
   vertical: (random) => [7, Math.floor(random() * 30)],
+  verticalStrip: (random) => [480, random() * 540],
+  thinStrip: (random) => [480 + random() * 2, random() * 540],
   single: () => [5, 5],
   nonFinite: (random, index) =>
     index % 7 === 0
@@ -28,6 +31,36 @@ const layouts: Record<string, Layout> = {
 gridSpatialIndex satisfies ChartSpatialIndexFactory<number>
 
 describe('grid spatial index', () => {
+  it.each([
+    ['one column', (random: () => number) => [480, random() * 540] as const],
+    ['one row', (random: () => number) => [random() * 960, 270] as const],
+    [
+      'a thin strip',
+      (random: () => number) => [480 + random() * 2, random() * 540] as const,
+    ],
+  ])('keeps queries cheap on %s', (_name, layout) => {
+    const random = seededRandom(31)
+    const points = Array.from({ length: 10_000 }, (_, index) =>
+      point(index, ...layout(random)),
+    )
+    const probe = { cells: 0 }
+    const index = createGridIndex(points, probe)
+    let queries = 0
+    for (const maxDistance of [48, Infinity]) {
+      for (let query = 0; query < 100; query += 1) {
+        const x = random() * 1_000 - 20
+        const y = random() * 580 - 20
+        expect(index.findNearest(x, y, maxDistance)).toBe(
+          nearestPoint(points, x, y, maxDistance),
+        )
+        queries += 1
+      }
+    }
+    // A strip has thousands of cells. Before ring sweeps were clamped to the
+    // grid and bounded by distance, these layouts averaged 878-6,973 cells.
+    expect(probe.cells / queries).toBeLessThan(250)
+  })
+
   it.each(Object.entries(layouts))(
     'matches the linear anchor scan for %s points',
     (_name, layout) => {

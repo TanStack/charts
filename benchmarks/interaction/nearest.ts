@@ -5,7 +5,7 @@ import {
   nearestPoint,
   nearestScenePoint,
 } from '../../packages/charts-core/src/nearest'
-import { gridSpatialIndex } from '../../packages/charts-core/src/spatial-grid'
+import { gridSpatialIndex } from '../../packages/charts-core/src/spatial-grid-index'
 import type {
   ChartFocusAffinity,
   ChartPoint as CoreChartPoint,
@@ -892,90 +892,119 @@ function printIndexStorage() {
 }
 
 function printPointIndexScaling() {
-  console.log(
-    '\nPoint-anchor index scaling · uniform random anchors in 960 × 540',
-  )
+  console.log('\nPoint-anchor index scaling · anchors in a 960 × 540 plot')
   console.log(
     'Every row returns the linear scan result; lookup is the per-query mean of one round, reported as the median and p95 across 18 rounds.',
   )
   console.log(
-    '| Points | Radius | Resolver | Median build | p95 build | Median / query | p95 / query | Retained |',
+    'Layouts: uniform; vertical strip (one x); horizontal strip (one y); clustered (98% within 2 px of the center, 2% uniform outliers). Pointers sweep the plot except in the last layout, where they stay inside the cluster.',
   )
-  console.log('| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |')
-  for (const size of [1_000, 10_000, 100_000]) {
-    const random = seededRandom(size)
-    const points = Array.from({ length: size }, (_, index) =>
-      point(index, random() * 960, random() * 540),
-    )
-    const builders = [
-      ['linear anchor scan (default)', undefined],
-      ['TanStack grid index', () => gridSpatialIndex(points)],
-      [
-        'D3 quadtree 3.0.1',
-        () => {
-          const tree = quadtree<ChartPoint<Datum, number, number>>()
-            .x((candidate) => candidate.x)
-            .y((candidate) => candidate.y)
-            .addAll([...points])
-          return {
-            findNearest: (x: number, y: number, maxDistance = Infinity) =>
-              tree.find(x, y, Math.max(0, maxDistance)) ?? null,
-          }
-        },
-      ],
-    ] as const
-    for (const maxDistance of [48, Infinity]) {
-      const scalingCase: PointerCase = {
-        label: `${size} points`,
-        points,
-        queries: queries(256, () => ({
-          x: random() * 1_000 - 20,
-          y: random() * 580 - 20,
-          maxDistance,
-        })),
-        repetitions: Math.max(1, Math.round(100_000 / size)),
-      }
-      const resolvers: Implementation[] = []
-      const builds = new Map<string, number[]>()
-      const retained = new Map<string, number>()
-      for (const [label, build] of builders) {
-        if (!build) {
-          resolvers.push([label, nearestPoint])
-          continue
-        }
-        builds.set(label, measureBuild(build))
-        retained.set(label, measureRetained(build))
-        const index = build()
-        resolvers.push([
-          label,
-          (_points, x, y, distance) => index.findNearest(x, y, distance),
-        ])
-      }
-      for (const query of scalingCase.queries) {
-        const reference = nearestPoint(points, query.x, query.y, maxDistance)
-        for (const [label, resolver] of resolvers) {
-          const candidate = resolver(points, query.x, query.y, maxDistance)
-          if (candidate !== reference) {
-            throw new Error(
-              `Point index scaling changed ${label}: ${String(reference?.key)} !== ${String(candidate?.key)}`,
-            )
-          }
-        }
-      }
-      const measurements = measure(scalingCase, resolvers)
-      for (const [label] of resolvers) {
-        const samples = measurements.get(label)!
-        const buildSamples = builds.get(label)
-        const bytes = retained.get(label)
-        console.log(
-          `| ${size.toLocaleString()} | ${maxDistance} | ${label} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.5)) : '—'} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.95)) : '—'} | ${formatDuration(percentile(samples, 0.5))} | ${formatDuration(percentile(samples, 0.95))} | ${bytes === undefined ? '—' : bytes < 0 ? 'n/a' : formatStorage(bytes)} |`,
-        )
-      }
+  console.log(
+    '| Layout | Points | Radius | Resolver | Median build | p95 build | Median / query | p95 / query | Retained |',
+  )
+  console.log('| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |')
+  const clustered = (random: () => number, index: number) =>
+    index % 50 === 0
+      ? ([random() * 960, random() * 540] as const)
+      : ([479 + random() * 2, 269 + random() * 2] as const)
+  const layouts: readonly (readonly [
+    string,
+    (random: () => number, index: number) => readonly [number, number],
+    pointerArea?: readonly [number, number, number, number],
+  ])[] = [
+    ['uniform', (random) => [random() * 960, random() * 540]],
+    ['vertical strip', (random) => [480, random() * 540]],
+    ['horizontal strip', (random) => [random() * 960, 270]],
+    ['clustered', clustered],
+    ['clustered · pointer in cluster', clustered, [479, 269, 2, 2]],
+  ]
+  for (const [layout, place, pointerArea] of layouts) {
+    for (const size of [1_000, 10_000, 100_000]) {
+      printPointIndexScalingCase(layout, size, place, pointerArea)
     }
   }
   console.log(
     'Retained is the median heap plus ArrayBuffer growth while one index is alive; n/a means --expose-gc was absent.',
   )
+}
+
+function printPointIndexScalingCase(
+  layout: string,
+  size: number,
+  place: (random: () => number, index: number) => readonly [number, number],
+  [left, top, width, height]: readonly [number, number, number, number] = [
+    -20, -20, 1_000, 580,
+  ],
+) {
+  const random = seededRandom(size)
+  const points = Array.from({ length: size }, (_, index) =>
+    point(index, ...place(random, index)),
+  )
+  const builders = [
+    ['linear anchor scan (default)', undefined],
+    ['TanStack grid index', () => gridSpatialIndex(points)],
+    [
+      'D3 quadtree 3.0.1',
+      () => {
+        const tree = quadtree<ChartPoint<Datum, number, number>>()
+          .x((candidate) => candidate.x)
+          .y((candidate) => candidate.y)
+          .addAll([...points])
+        return {
+          findNearest: (x: number, y: number, maxDistance = Infinity) =>
+            tree.find(x, y, Math.max(0, maxDistance)) ?? null,
+        }
+      },
+    ],
+  ] as const
+  for (const maxDistance of [48, Infinity]) {
+    const scalingCase: PointerCase = {
+      label: `${layout} ${size} points`,
+      points,
+      queries: queries(256, () => ({
+        x: left + random() * width,
+        y: top + random() * height,
+        maxDistance,
+      })),
+      repetitions: Math.max(1, Math.round(100_000 / size)),
+    }
+    const resolvers: Implementation[] = []
+    const builds = new Map<string, number[]>()
+    const retained = new Map<string, number>()
+    for (const [label, build] of builders) {
+      if (!build) {
+        resolvers.push([label, nearestPoint])
+        continue
+      }
+      builds.set(label, measureBuild(build))
+      retained.set(label, measureRetained(build))
+      const index = build()
+      resolvers.push([
+        label,
+        (_points, x, y, distance) => index.findNearest(x, y, distance),
+      ])
+    }
+    for (const query of scalingCase.queries) {
+      const reference = nearestPoint(points, query.x, query.y, maxDistance)
+      for (const [label, resolver] of resolvers) {
+        const candidate = resolver(points, query.x, query.y, maxDistance)
+        if (candidate !== reference) {
+          throw new Error(
+            `Point index scaling changed ${label}: ${String(reference?.key)} !== ${String(candidate?.key)}`,
+          )
+        }
+      }
+    }
+    const measurements = measure(scalingCase, resolvers)
+    for (const [label] of resolvers) {
+      const samples = measurements.get(label)!
+      const buildSamples = builds.get(label)
+      const bytes = retained.get(label)
+      console.log(
+        `| ${layout} | ${size.toLocaleString()} | ${maxDistance} | ${label} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.5)) : '—'} | ${buildSamples ? formatDuration(percentile(buildSamples, 0.95)) : '—'} | ${formatDuration(percentile(samples, 0.5))} | ${formatDuration(percentile(samples, 0.95))} | ${bytes === undefined ? '—' : bytes < 0 ? 'n/a' : formatStorage(bytes)} |`,
+      )
+    }
+  }
 }
 
 function measureBuild(build: () => unknown) {

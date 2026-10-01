@@ -1,25 +1,17 @@
-import type {
-  ChartPoint,
-  ChartSpatialIndex,
-  ChartSpatialIndexFactoryContext,
-  ChartValue,
-} from './types'
+import type { ChartPoint, ChartSpatialIndex, ChartValue } from './types'
 
-/**
- * Builds a uniform-grid nearest-point index for the `spatialIndex` option.
- *
- * It returns exactly the point a linear anchor scan returns: the smallest
- * squared distance from each point's `x`/`y` anchor, the earliest point on a
- * tie, and `null` beyond `maxDistance`. It does not test scene shapes, so
- * rectangles, areas, and lines are matched by their anchor points only.
- */
-export function gridSpatialIndex<
+/** Counts grid cells examined by queries; tests use it to bound work. */
+export interface GridIndexProbe {
+  cells: number
+}
+
+export function createGridIndex<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  _context?: ChartSpatialIndexFactoryContext<TDatum, TXValue, TYValue>,
+  probe?: GridIndexProbe,
 ): ChartSpatialIndex<TDatum, TXValue, TYValue> {
   const count = points.length
   const xs = new Float64Array(count)
@@ -47,7 +39,8 @@ export function gridSpatialIndex<
   const inside = count - outside.length
   const width = inside ? maxX - minX : 0
   const height = inside ? maxY - minY : 0
-  // Aim for about one point per cell; a degenerate axis gets one column/row.
+  // Aim for about one point per cell. Each axis is capped at the point count,
+  // so the table and the number of rings stay linear in the point count.
   const cellSize =
     width > 0 && height > 0
       ? Math.sqrt((width * height) / Math.max(1, inside))
@@ -63,8 +56,9 @@ export function gridSpatialIndex<
   const slackY = cellHeight * 1e-6
 
   // Counting sort into a compact cell table keeps each cell in point order.
+  const cellCount = columns * rows
   const cellOf = new Int32Array(count)
-  const starts = new Int32Array(columns * rows + 1)
+  const starts = new Int32Array(cellCount + 1)
   for (let index = 0; index < count; index += 1) {
     const x = xs[index]!
     const y = ys[index]!
@@ -78,10 +72,10 @@ export function gridSpatialIndex<
     cellOf[index] = cell
     starts[cell + 1]! += 1
   }
-  for (let cell = 0; cell < columns * rows; cell += 1) {
+  for (let cell = 0; cell < cellCount; cell += 1) {
     starts[cell + 1]! += starts[cell]!
   }
-  const fill = starts.slice(0, columns * rows)
+  const fill = starts.slice(0, cellCount)
   const members = new Int32Array(inside)
   for (let index = 0; index < count; index += 1) {
     const cell = cellOf[index]!
@@ -106,6 +100,24 @@ export function gridSpatialIndex<
           bestDistance = distance
         }
       }
+      const visitCell = (column: number, row: number) => {
+        if (probe) probe.cells += 1
+        const cell = row * columns + column
+        for (let slot = starts[cell]!; slot < starts[cell + 1]!; slot += 1) {
+          visit(members[slot]!)
+        }
+      }
+      // Squared distance from the query to an axis-aligned rectangle.
+      const rectDistance = (
+        left: number,
+        top: number,
+        right: number,
+        bottom: number,
+      ) => {
+        const dx = x < left ? left - x : x > right ? x - right : 0
+        const dy = y < top ? top - y : y > bottom ? y - bottom : 0
+        return dx * dx + dy * dy
+      }
 
       if (!Number.isFinite(x) || !Number.isFinite(y)) {
         for (let index = 0; index < count; index += 1) visit(index)
@@ -117,46 +129,55 @@ export function gridSpatialIndex<
           const right = column + ring
           const top = row - ring
           const bottom = row + ring
-          const firstRow = Math.max(0, top)
-          const lastRow = Math.min(rows - 1, bottom)
           const firstColumn = Math.max(0, left)
           const lastColumn = Math.min(columns - 1, right)
-          for (let cellRow = firstRow; cellRow <= lastRow; cellRow += 1) {
-            const edgeRow = cellRow === top || cellRow === bottom
-            const step = edgeRow ? 1 : Math.max(1, right - left)
-            for (
-              let cellColumn = edgeRow ? firstColumn : left;
-              cellColumn <= lastColumn;
-              cellColumn += step
-            ) {
-              if (cellColumn < 0) continue
-              const cell = cellRow * columns + cellColumn
-              for (let slot = starts[cell]!; slot < starts[cell + 1]!; slot++) {
-                visit(members[slot]!)
-              }
+          // Visit only the ring's cells that exist: its top and bottom rows,
+          // then its left and right columns between them.
+          if (top >= 0) {
+            for (let cell = firstColumn; cell <= lastColumn; cell += 1) {
+              visitCell(cell, top)
+            }
+          }
+          if (ring > 0 && bottom < rows) {
+            for (let cell = firstColumn; cell <= lastColumn; cell += 1) {
+              visitCell(cell, bottom)
+            }
+          }
+          const firstRow = Math.max(0, top + 1)
+          const lastRow = Math.min(rows - 1, bottom - 1)
+          if (left >= 0) {
+            for (let cell = firstRow; cell <= lastRow; cell += 1) {
+              visitCell(left, cell)
+            }
+          }
+          if (ring > 0 && right < columns) {
+            for (let cell = firstRow; cell <= lastRow; cell += 1) {
+              visitCell(right, cell)
             }
           }
 
-          // Lower bound on the distance to any cell outside this square.
-          let reach = Infinity
+          // Lower bound on the distance to any unvisited cell: the nearest of
+          // the grid strips beyond each side of the visited square.
+          let bound = Infinity
           if (left > 0) {
-            reach = Math.min(reach, x - (minX + left * cellWidth) - slackX)
+            const edge = minX + left * cellWidth + slackX
+            bound = Math.min(bound, rectDistance(minX, minY, edge, maxY))
           }
           if (right < columns - 1) {
-            reach = Math.min(reach, minX + (right + 1) * cellWidth - x - slackX)
+            const edge = minX + (right + 1) * cellWidth - slackX
+            bound = Math.min(bound, rectDistance(edge, minY, maxX, maxY))
           }
           if (top > 0) {
-            reach = Math.min(reach, y - (minY + top * cellHeight) - slackY)
+            const edge = minY + top * cellHeight + slackY
+            bound = Math.min(bound, rectDistance(minX, minY, maxX, edge))
           }
           if (bottom < rows - 1) {
-            reach = Math.min(
-              reach,
-              minY + (bottom + 1) * cellHeight - y - slackY,
-            )
+            const edge = minY + (bottom + 1) * cellHeight - slackY
+            bound = Math.min(bound, rectDistance(minX, edge, maxX, maxY))
           }
-          if (reach === Infinity) break
-          const bound = Math.max(0, reach) ** 2
-          if (bound > bestDistance || bound > limit) break
+          if (bound === Infinity || bound > bestDistance || bound > limit) {
+            break
+          }
         }
       }
       for (const index of outside) visit(index)

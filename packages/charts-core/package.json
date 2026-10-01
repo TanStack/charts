@@ -195,7 +195,7 @@
     "./spatial/contour": "./src/spatial-contour.ts",
     "./spatial/delaunay": "./src/spatial-delaunay.ts",
     "./spatial/density": "./src/spatial-density.ts",
-    "./spatial/grid": "./src/spatial-grid.ts",
+    "./spatial/grid-index": "./src/spatial-grid-index.ts",
     "./spatial/hexbin": "./src/spatial-hexbin.ts",
     "./spatial/voronoi": "./src/spatial-voronoi.ts",
     "./svelte": "./src/svelte.ts",
@@ -462,9 +462,9 @@
         "types": "./dist/spatial-density.d.ts",
         "import": "./dist/spatial-density.js"
       },
-      "./spatial/grid": {
-        "types": "./dist/spatial-grid.d.ts",
-        "import": "./dist/spatial-grid.js"
+      "./spatial/grid-index": {
+        "types": "./dist/spatial-grid-index.d.ts",
+        "import": "./dist/spatial-grid-index.js"
       },
       "./spatial/hexbin": {
         "types": "./dist/spatial-hexbin.d.ts",

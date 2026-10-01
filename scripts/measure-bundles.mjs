@@ -180,6 +180,9 @@ const retainedInputGroups = {
     /(?:^|\/)packages\/charts-core\/src\/proportional-interval-internal\.ts$/u,
   ],
   spatialHexbin: [/(?:^|\/)packages\/charts-core\/src\/spatial-hexbin\.ts$/u],
+  spatialGridIndex: [
+    /(?:^|\/)packages\/charts-core\/src\/spatial-grid-index(?:-internal)?\.ts$/u,
+  ],
   spatialDensity: [/(?:^|\/)packages\/charts-core\/src\/spatial-density\.ts$/u],
   spatialContour: [
     /(?:^|\/)packages\/charts-core\/src\/spatial-contour(?:-internal)?\.ts$/u,
@@ -1294,6 +1297,7 @@ const entries = [
         'tooltipPortal',
         'd3GeometryRuntime',
         'spatialVoronoi',
+        'spatialGridIndex',
       ],
     },
   }),
@@ -1944,6 +1948,15 @@ const entries = [
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
     26.24,
+  ),
+  budgeted(
+    'Grid spatial index subpath',
+    'benchmarks/entries/charts-spatial-grid-index.ts',
+    1.2,
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: { require: ['spatialGridIndex'], forbid: ['d3Runtime'] },
+    },
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',

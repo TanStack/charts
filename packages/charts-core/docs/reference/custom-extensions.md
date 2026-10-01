@@ -358,7 +358,7 @@ changing scene compilation. Build a point-only index from its first argument,
 or use `context.scene` from its second argument to index resolved primitive
 bounds. Return the nearest original point within the requested distance. The
 host recreates the index when the scene or factory changes.
-`gridSpatialIndex` from `@tanstack/charts/spatial/grid` is a built-in
+`gridSpatialIndex` from `@tanstack/charts/spatial/grid-index` is a built-in
 point-only factory with exact linear-scan results.
 
 See [Spatial indexes](./focus-and-interaction.md#spatial-indexes). The

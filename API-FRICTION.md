@@ -9060,11 +9060,15 @@ Each entry records:
   write and verify its own index or bring D3 quadtree, which built 4 to 18
   times slower than a grid on the same 1k to 100k points.
 - Decision: publish `gridSpatialIndex` at the exact
-  `@tanstack/charts/spatial/grid` subpath. It returns the linear anchor scan's
+  `@tanstack/charts/spatial/grid-index` subpath. It returns the linear anchor scan's
   result, including ties, radius rules, and non-finite anchors, and documents
   that it is nearest-center lookup, not shape hit testing.
 - Verification: seeded property tests compare it with `nearestPoint` across
-  uniform, lattice, clustered, collinear, single-point, and non-finite layouts,
-  with half-step queries that force cross-cell ties. `pnpm performance:pointer`
-  verifies identical results before timing. Default chart bundles are
-  unchanged.
+  uniform, lattice, clustered, collinear, vertical-strip, thin-strip,
+  single-point, and non-finite layouts, with half-step queries that force
+  cross-cell ties. A cell-visit counter bounds strip queries; the first
+  version averaged 878 to 6,973 cells per query there because its ring sweep
+  and distance bound ignored the grid's shape. `pnpm performance:pointer`
+  checks identical results before timing four layouts at three sizes.
+  `pnpm bundle:check` budgets the subpath at 1.2 KiB gzip and forbids it from
+  the default DOM host.
