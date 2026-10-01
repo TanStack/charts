@@ -1,0 +1,156 @@
+diff --git a/src/libraries/libraries.ts b/src/libraries/libraries.ts
+index 1c7982a3..379af441 100644
+--- a/src/libraries/libraries.ts
++++ b/src/libraries/libraries.ts
+@@ -341,7 +341,6 @@ export const charts: LibrarySlim = {
+   tagline: "A chart grammar you don't have to outgrow.",
+   description:
+     'A typed, tree-shakable chart grammar for SVG and Canvas. Compose marks, views, scales, transforms, interactions, and motion with compact primitives or D3-compatible inputs.',
+-  badge: 'alpha',
+   repo: 'tanstack/charts',
+   frameworks: [
+     'react',
+@@ -381,9 +380,9 @@ export const charts: LibrarySlim = {
+     octane: 'framework/octane/adapter',
+     vanilla: 'quick-start',
+   },
+-  latestVersion: 'v0',
++  latestVersion: 'v1',
+   latestBranch: 'main',
+-  availableVersions: ['v0'],
++  availableVersions: ['v1'],
+   statsAvailable: false,
+   sitemap: {
+     includeLandingPage: true,
+diff --git a/src/components/landing/ChartsLanding.tsx b/src/components/landing/ChartsLanding.tsx
+index 64a7bb54..e8c86918 100644
+--- a/src/components/landing/ChartsLanding.tsx
++++ b/src/components/landing/ChartsLanding.tsx
+@@ -39,6 +39,17 @@ export default function ChartsLanding({
+         tone="raised"
+         className="py-12 lg:py-14"
+       >
++        <p className="mb-8 max-w-4xl text-ds-body-sm text-text-secondary">
++          Charts 1.0 follows a{' '}
++          <a href="/charts/latest/docs/compatibility" className="underline">
++            stable compatibility contract
++          </a>
++          . Upgrading from an earlier version? Read the{' '}
++          <a href="/charts/latest/docs/guides/migrating" className="underline">
++            migration guide
++          </a>
++          . React Native remains experimental.
++        </p>
+         <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-end lg:gap-12">
+           <h2 className="max-w-4xl font-ds-display text-ds-heading-1 md:text-ds-display-sm">
+             Your next chart, already working.
+@@ -65,8 +76,8 @@ export default function ChartsLanding({
+             A lot of chart. Not a lot of bundle.
+           </h2>
+           <p className="max-w-2xl border-l-2 border-[var(--landing-accent)] pl-5 text-ds-body-sm text-text-secondary sm:text-ds-body-md">
+-            Basic React line, 29 kB minified + gzip. SVG, compact scales, axes
+-            included.
++            Basic React line, 32.1 kB gzip. SVG, compact scales, axes included.
++            The comparison below is an August 2026 snapshot.
+           </p>
+         </div>
+ 
+diff --git a/tests/charts-framework-support.test.ts b/tests/charts-framework-support.test.ts
+index 76cdc3df..06551b3a 100644
+--- a/tests/charts-framework-support.test.ts
++++ b/tests/charts-framework-support.test.ts
+@@ -27,6 +27,9 @@ const expectedDocsPaths: Partial<Record<Framework, string>> = {
+ 
+ assert.deepEqual(charts.frameworks, Object.keys(expectedDocsPaths))
+ assert.deepEqual(charts.npmPackageNames, ['@tanstack/charts'])
++assert.equal(charts.badge, undefined)
++assert.equal(charts.latestVersion, 'v1')
++assert.deepEqual(charts.availableVersions, ['v1'])
+ 
+ for (const framework of charts.frameworks) {
+   assert.equal(
+diff --git a/src/blog/tanstack-charts-1-0.md b/src/blog/tanstack-charts-1-0.md
+new file mode 100644
+index 00000000..0bc3ad26
+--- /dev/null
++++ b/src/blog/tanstack-charts-1-0.md
+@@ -0,0 +1,48 @@
++---
++published: 2026-10-01
++draft: true
++authors:
++  - Tanner Linsley
++title: 'TanStack Charts 1.0'
++excerpt: 'A stable chart grammar for typed applications, with SVG, optional Canvas, and a documented compatibility contract.'
++library: charts
++---
++
++TanStack Charts 1.0 is here, and the biggest change is the promise around the
++API. You can build on the documented marks, scales, interactions, renderers,
++and framework adapters without treating every minor release as another
++migration.
++
++Patch releases fix defects, minor releases add compatible capabilities, and
++breaking changes to the supported API require a major release. Deprecated
++APIs remain supported through their current major version, with a replacement
++and migration instructions. The [compatibility contract](/charts/latest/docs/compatibility)
++spells out the boundaries, including the difference between a documented
++extension contract and an implementation detail.
++
++The grammar still starts with your data and the marks you want to draw. Compose
++lines, bars, areas, dots, maps, and polar views, then add the interactions your
++application needs. SVG is the default, Canvas and motion stay behind explicit
++imports, and you can bring compact scales or D3-compatible inputs.
++
++For 1.0, we tightened portable inferred types, framework hydration and cleanup,
++group-owned focus styling, map and polar transitions, and legend emphasis that
++doesn't disturb pinned selections. Bundle checks cover individual entry points,
++and performance comparisons use equivalent production builds and concrete
++workloads. That doesn't mean every chart costs the same, the imports and
++geometry you choose still matter.
++
++React Native remains experimental. Its package, Metro, Expo, and component
++checks don't establish physical-device or screen-reader support, see the
++[installation guide](/charts/latest/docs/installation#react-native-and-expo)
++for the current limits.
++
++Install the package and choose the capabilities you need.
++
++```sh
++pnpm add @tanstack/charts
++```
++
++If you're upgrading an existing chart, use the
++[migration guide](/charts/latest/docs/guides/migrating). If you're starting
++fresh, pick an [example](/charts/catalog/) and make it yours.
+diff --git a/CHARTS-1.0-LAUNCH.md b/CHARTS-1.0-LAUNCH.md
+new file mode 100644
+index 00000000..8e1483f3
+--- /dev/null
++++ b/CHARTS-1.0-LAUNCH.md
+@@ -0,0 +1,25 @@
++# Charts 1.0 website handoff
++
++These changes are staged only, do not deploy before the 1.0 npm packages and
++release tag are verified. The announcement is a draft and its publication date
++must be set to the actual launch date before removing `draft: true`.
++
++- Remove the Charts alpha badge and select v1 in the library registry.
++- Link the stable compatibility contract and migration guide from the landing page.
++- Keep React Native explicitly experimental.
++- Correct the current compact-scale React line claim to 32.1 decimal gzip kB.
++  The measurement is 32.091 kB, esbuild 0.27.7, Node 24.18.0, production ESM
++  browser build, with React external. It is not an application's total size.
++- Keep the existing multi-library graphic labeled as an August 2026 snapshot,
++  do not present its 29 kB Charts value as a measurement of 1.0.
++- Update the website's locked Charts dependency from 0.16.1 to the published
++  1.0 release, regenerate landing SVGs through the existing generator, and
++  validate interactive demos against that dependency before deployment.
++- Verify latest/v1 docs routes, compatibility and migration links, framework
++  picker, readme image, page metadata, mobile layout, and keyboard interaction.
++- Decide how to preserve historical v0 docs before exposing v0 in the version
++  selector. The current site resolves non-latest versions directly as Git refs,
++  so adding v0 without an actual v0 ref would produce broken documentation.
++
++The source site checkout has unrelated uncommitted work, none of it was copied
++into this isolated HEAD snapshot or modified. No changes are deployed.
