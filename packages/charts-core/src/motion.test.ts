@@ -36,9 +36,10 @@ describe('structured SVG text motion', () => {
     '<tspan data-ts-key="child">old</tspan>',
     'before<tspan data-ts-key="child">old</tspan>after',
   ])('preserves replacement text after an exiting child in %s', (markup) => {
+    const emptyPoints: { x: number; y: number }[] = []
     const base = createChartScene(
       defineChart({
-        marks: [],
+        marks: [dot(emptyPoints, { x: 'x', y: 'y' })],
         guides: false,
         scales: {
           x: { scale: scaleLinear().domain([0, 1]) },
