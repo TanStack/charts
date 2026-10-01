@@ -21,7 +21,7 @@ export function tanstackComparisonRevision(repositoryRoot) {
       '--format=%H',
       '--',
       ...tanstackComparisonInputPaths,
-      ...['test', 'spec'].flatMap((kind) =>
+      ...['type-test', 'test', 'spec'].flatMap((kind) =>
         [
           'ts',
           'tsx',
@@ -35,6 +35,7 @@ export function tanstackComparisonRevision(repositoryRoot) {
           'ctsx',
           'mjsx',
           'cjsx',
+          'tsrx',
         ].map(
           (extension) =>
             `:(exclude,glob)packages/*/src/**/*.${kind}.${extension}`,
