@@ -2,6 +2,32 @@ import { describe, expect, it, vi } from 'vitest'
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 
 describe('keyed SVG reconciliation', () => {
+  it('removes stale attributes and retains empty and qualified attributes', () => {
+    const container = document.createElement('div')
+    reconcileChartSvg(
+      container,
+      '<svg><use data-ts-key="a" x="10" stroke="red" aria-label="old" xlink:href="#old"/></svg>',
+    )
+    const element = container.querySelector('use')!
+    reconcileChartSvg(
+      container,
+      '<svg><use data-ts-key="a" x="20" fill="" aria-label="" xlink:href="#new"/></svg>',
+    )
+    expect(container.querySelector('use')).toBe(element)
+    expect(element.hasAttribute('stroke')).toBe(false)
+    expect(element.getAttribute('x')).toBe('20')
+    expect(element.getAttribute('fill')).toBe('')
+    expect(element.getAttribute('aria-label')).toBe('')
+    expect(element.getAttribute('xlink:href')).toBe('#new')
+    expect(element.getAttributeNames().sort()).toEqual([
+      'aria-label',
+      'data-ts-key',
+      'fill',
+      'x',
+      'xlink:href',
+    ])
+  })
+
   it('retains keyed elements while updating geometry', () => {
     const container = document.createElement('div')
     reconcileChartSvg(

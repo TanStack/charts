@@ -149,9 +149,9 @@ function syncAttributes(
   next: Element,
   tweens: AttributeTween[] | undefined,
 ) {
-  const nextNames = new Set(next.getAttributeNames())
+  const nextNames = next.getAttributeNames()
   for (const name of current.getAttributeNames()) {
-    if (!nextNames.has(name)) current.removeAttribute(name)
+    if (!next.hasAttribute(name)) current.removeAttribute(name)
   }
 
   for (const name of nextNames) {
