@@ -1096,9 +1096,7 @@ export function mountChartRenderer<
   ) {
     if (destroyed) return
     if (focus !== null && !surface?.supportsStateFocus) {
-      throw new TypeError(
-        'Renderer does not support independent state focus',
-      )
+      throw new TypeError('Renderer does not support independent state focus')
     }
     emphasisFocus = focus ?? undefined
     paintFocus(

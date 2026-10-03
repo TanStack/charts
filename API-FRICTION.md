@@ -344,6 +344,7 @@ Each entry records:
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
 | F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
+| F-308 | Raster format documentation omitted browser encoder fallback   | Documentation         | resolved   |
 
 ## Findings
 

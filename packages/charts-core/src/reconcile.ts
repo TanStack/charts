@@ -113,7 +113,9 @@ function reconcileElement(
   let index = 0
 
   const nextNodes =
-    next.childNodes.length === nextChildren.length ? nextChildren : next.childNodes
+    next.childNodes.length === nextChildren.length
+      ? nextChildren
+      : next.childNodes
   for (const nextNode of nextNodes) {
     if (nextNode.nodeType !== 1) {
       current.insertBefore(nextNode.cloneNode(true), cursor)
