@@ -2178,19 +2178,7 @@ async function compareVisuals(
           const hex = value
             .trim()
             .match(/^#([\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i)
-          if (!hex) {
-            if (!CSS.supports('color', value)) return undefined
-            const canvas = document.createElement('canvas')
-            canvas.width = canvas.height = 1
-            const context = canvas.getContext('2d', {
-              willReadFrequently: true,
-            })
-            if (!context) return undefined
-            context.fillStyle = value
-            context.fillRect(0, 0, 1, 1)
-            const channels = context.getImageData(0, 0, 1, 1).data
-            return [channels[0], channels[1], channels[2], channels[3] / 255]
-          }
+          if (!hex) return undefined
           const digits =
             hex[1].length <= 4
               ? [...hex[1]].map((digit) => `${digit}${digit}`).join('')
