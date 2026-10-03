@@ -12,14 +12,14 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `265b20e` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `fba4052` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `265b20e`.
+at page render time. The measured TanStack workspace revision is `fba4052`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-09-30`.
+Baseline date: `2026-10-03`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -104,25 +104,25 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 31, 2026. Modular imports can be smaller, especially for
 [AG Charts](https://www.ag-grid.com/charts/javascript/module-registry/).
 
-| Library            | Bundle size                            | React externalized | Evidence                                                   |
-| ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 41.56–47.68 KiB                        |     Not applicable | Controlled suite                                           |
-| D3                 | 90 KB gzip                             |                  — | External main export                                       |
-| Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
-| Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
-| Recharts           | 153.08–168.27 KiB                      |   94.96–109.96 KiB | Controlled suite                                           |
-| visx               | 49 KB gzip                             |                  — | External `@visx/xychart` main export                       |
-| Plotly.js          | ~250 kB partial; ~3.6 MB full min+gzip |                  — | [Vendor distribution figures](https://plotly.com/graphs/)  |
-| Lightweight Charts | 60 KB gzip                             |                  — | External main export                                       |
-| ApexCharts         | 164 KB gzip                            |                  — | External main export                                       |
-| Nivo               | 143 KB gzip                            |                  — | External main export                                       |
-| Highcharts         | 100 KB gzip                            |                  — | External main export                                       |
-| Victory            | 105 KB gzip                            |                  — | External main export                                       |
-| uPlot              | 22 KB gzip                             |                  — | External `uplot@1.6.32` main export                        |
-| Vega-Lite          | 87 KB gzip                             |                  — | External `vega-lite@6.4.3`; excludes the peer Vega runtime |
-| Observable Plot    | 83.34–91.94 KiB                        |                  — | Controlled suite                                           |
-| Bklit UI           | —                                      |                  — | Registry-installed source; no fixed package bundle         |
-| AG Charts          | 367 KB gzip                            |                  — | External `ag-charts-community@14.0.2` main export          |
+| Library            | Bundle size                            |   React externalized | Evidence                                                   |
+| ------------------ | -------------------------------------- | -------------------: | ---------------------------------------------------------- |
+| TanStack Charts    | 42.90–49.18 kB gzip                    |       Not applicable | Controlled suite                                           |
+| D3                 | 90 KB gzip                             |                    — | External main export                                       |
+| Chart.js           | 45.78–59.61 kB gzip                    |                    — | Controlled suite                                           |
+| Apache ECharts     | 156.77–177.34 kB gzip                  |                    — | Controlled suite                                           |
+| Recharts           | 156.76–172.30 kB gzip                  | 97.24–112.60 kB gzip | Controlled suite                                           |
+| visx               | 49 KB gzip                             |                    — | External `@visx/xychart` main export                       |
+| Plotly.js          | ~250 kB partial; ~3.6 MB full min+gzip |                    — | [Vendor distribution figures](https://plotly.com/graphs/)  |
+| Lightweight Charts | 60 KB gzip                             |                    — | External main export                                       |
+| ApexCharts         | 164 KB gzip                            |                    — | External main export                                       |
+| Nivo               | 143 KB gzip                            |                    — | External main export                                       |
+| Highcharts         | 100 KB gzip                            |                    — | External main export                                       |
+| Victory            | 105 KB gzip                            |                    — | External main export                                       |
+| uPlot              | 22 KB gzip                             |                    — | External `uplot@1.6.32` main export                        |
+| Vega-Lite          | 87 KB gzip                             |                    — | External `vega-lite@6.4.3`; excludes the peer Vega runtime |
+| Observable Plot    | 85.34–94.15 kB gzip                    |                    — | Controlled suite                                           |
+| Bklit UI           | —                                      |                    — | Registry-installed source; no fixed package bundle         |
+| AG Charts          | 367 KB gzip                            |                    — | External `ag-charts-community@14.0.2` main export          |
 
 The tracked baseline distinguishes the TanStack workspace revision from
 competitor package versions and records the complete chart/tier matrix; the
@@ -135,8 +135,8 @@ browser run, so this page does not publish a cross-machine timing leaderboard.
 
 ## Broader conformance
 
-The catalog corpus contains 117 TanStack/reference pairs: 79 sourced from
-Observable Plot, 27 from Recharts, and 11 from Apache ECharts. Twenty-two pairs
+The catalog corpus contains 188 TanStack/reference pairs: 79 sourced from
+Observable Plot, 98 from Recharts, and 11 from Apache ECharts. Twenty-two pairs
 carry executable interaction scenarios. Those counts describe selected
 reference coverage, not each library's feature ceiling or a list of built-in
 TanStack chart types. Chart.js participates in the standard and stress suites,

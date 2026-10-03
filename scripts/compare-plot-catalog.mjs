@@ -2031,7 +2031,11 @@ async function compareVisuals(
         function elementPaint(element) {
           const style = getComputedStyle(element)
           if (element.localName === 'line') return style.stroke
-          if (style.fill && style.fill !== 'none') {
+          if (
+            style.fill &&
+            style.fill !== 'none' &&
+            Number(style.fillOpacity) > 0
+          ) {
             const referenceId = style.fill.match(
               /url\((?:["'])?#([^"')]+)(?:["'])?\)/,
             )?.[1]
@@ -2174,7 +2178,19 @@ async function compareVisuals(
           const hex = value
             .trim()
             .match(/^#([\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i)
-          if (!hex) return undefined
+          if (!hex) {
+            if (!CSS.supports('color', value)) return undefined
+            const canvas = document.createElement('canvas')
+            canvas.width = canvas.height = 1
+            const context = canvas.getContext('2d', {
+              willReadFrequently: true,
+            })
+            if (!context) return undefined
+            context.fillStyle = value
+            context.fillRect(0, 0, 1, 1)
+            const channels = context.getImageData(0, 0, 1, 1).data
+            return [channels[0], channels[1], channels[2], channels[3] / 255]
+          }
           const digits =
             hex[1].length <= 4
               ? [...hex[1]].map((digit) => `${digit}${digit}`).join('')
