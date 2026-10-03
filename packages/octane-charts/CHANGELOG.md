@@ -1,5 +1,12 @@
 # @tanstack/octane-charts
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`15d65e7`](https://github.com/TanStack/charts/commit/15d65e78769d602a519648e11e04d1795b62547d), [`6ac2b3c`](https://github.com/TanStack/charts/commit/6ac2b3c31fe10f453f4e8c3749fd388eca109f1d), [`548f494`](https://github.com/TanStack/charts/commit/548f494880a628ab3b37e6831e3753909b6303b1), [`816f5da`](https://github.com/TanStack/charts/commit/816f5da318237194ae10aae78b543af59537dc89), [`0cf1061`](https://github.com/TanStack/charts/commit/0cf10617cb47e5ed8a1c9dfeaa3f91aec07cad48), [`548f494`](https://github.com/TanStack/charts/commit/548f494880a628ab3b37e6831e3753909b6303b1), [`548f494`](https://github.com/TanStack/charts/commit/548f494880a628ab3b37e6831e3753909b6303b1), [`af25af0`](https://github.com/TanStack/charts/commit/af25af022a7bb9259564536abb52f1dd92a6905a), [`d454440`](https://github.com/TanStack/charts/commit/d45444098e02939e6df3656488c204f61e98cd8c), [`265b20e`](https://github.com/TanStack/charts/commit/265b20ed2df2588df4d4c6a61a4f42bb9e0224e0), [`b215626`](https://github.com/TanStack/charts/commit/b215626e4730ff1edd82995cdf9d73253b0fd1f1), [`ab3e6cf`](https://github.com/TanStack/charts/commit/ab3e6cfabc887365fe3401a65f80f10a48a89194), [`5b67714`](https://github.com/TanStack/charts/commit/5b677142e73b2f4a9b9457b73aa6b51d8298bf52), [`1770967`](https://github.com/TanStack/charts/commit/177096795746484e01f1464ecb139fa8aaead1a5), [`d3c2954`](https://github.com/TanStack/charts/commit/d3c29546010ae1ef0a2eee772ce80164f36fadde)]:
+  - @tanstack/charts@1.0.0
+
 ## 0.18.0
 
 ### Patch Changes
