@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { lstatSync, readFileSync, readdirSync } from 'node:fs'
 import { relative, resolve, sep } from 'node:path'
+import { isPackageTestPath } from './package-test-path.mjs'
 
 export const tanstackComparisonInputPaths = [
   'benchmarks/comparison/libraries/tanstack',
@@ -14,7 +15,33 @@ export const tanstackComparisonInputPaths = [
 export function tanstackComparisonRevision(repositoryRoot) {
   const revision = execFileSync(
     'git',
-    ['log', '-1', '--format=%H', '--', ...tanstackComparisonInputPaths],
+    [
+      'log',
+      '-1',
+      '--format=%H',
+      '--',
+      ...tanstackComparisonInputPaths,
+      ...['type-test', 'test', 'spec'].flatMap((kind) =>
+        [
+          'ts',
+          'tsx',
+          'js',
+          'jsx',
+          'mts',
+          'cts',
+          'mjs',
+          'cjs',
+          'mtsx',
+          'ctsx',
+          'mjsx',
+          'cjsx',
+          'tsrx',
+        ].map(
+          (extension) =>
+            `:(exclude,glob)packages/*/src/**/*.${kind}.${extension}`,
+        ),
+      ),
+    ],
     {
       cwd: repositoryRoot,
       encoding: 'utf8',
@@ -37,6 +64,10 @@ export function tanstackComparisonInputDigest(
   const hash = createHash('sha256')
   const files = inputPaths
     .flatMap((path) => collectFiles(resolve(repositoryRoot, path)))
+    .filter(
+      (file) =>
+        !isPackageTestPath(relative(repositoryRoot, file).split(sep).join('/')),
+    )
     .sort()
 
   for (const file of files) {

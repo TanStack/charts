@@ -3,11 +3,13 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
+import { resolveMarkStateScene } from './mark-state'
 import { createChartScene, defineChart } from './scene'
 import { text } from './text'
 import type {
   ChartAxisLabelOptions,
   ChartAxisTickLabelContext,
+  ChartAxisTickLabelOpacityContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelValue,
   ChartTextMeasurer,
@@ -37,6 +39,87 @@ const measureText: ChartTextMeasurer = (text, options) => {
 }
 
 describe('automatic scene guide layout', () => {
+  it('updates tick opacity from focus without rebuilding or measuring the chart', () => {
+    const data = [
+      { x: 0, y: 1 },
+      { x: 1, y: 2 },
+      { x: 2, y: 3 },
+    ]
+    const source = lineY(data, { x: 'x', y: 'y' })
+    const rendered = vi.fn()
+    const measured = vi.fn(measureText)
+    const opacity = vi.fn(
+      (context: ChartAxisTickLabelOpacityContext<number>) =>
+        context.focus?.primary.xValue === context.value ? 0 : 1,
+    )
+    const definition = defineChart({
+      marks: [
+        {
+          ...source,
+          initialize(context) {
+            const initialized = source.initialize(context)
+            return {
+              ...initialized,
+              render(context) {
+                rendered()
+                return initialized.render(context)
+              },
+            }
+          },
+        },
+      ],
+      scales: {
+        x: {
+          scale: scaleBand<number>().domain([0, 1, 2]),
+          axis: { tickLabels: { opacity, thin: false } },
+        },
+        y: { scale: scaleLinear, axis: false },
+      },
+    })
+    const scene = createChartScene(
+      definition,
+      { width: 320, height: 180 },
+      { measureText: measured },
+    )
+    rendered.mockClear()
+    measured.mockClear()
+    opacity.mockClear()
+    const point = scene.points[1]!
+    const pointer = { x: point.x, y: point.y }
+    for (const source of [
+      'pointer',
+      'keyboard',
+      'programmatic',
+      'restored',
+    ] as const) {
+      const focus = {
+        primary: point,
+        group: [point],
+        source,
+        pinned: source === 'restored',
+      }
+      const focused = resolveMarkStateScene(scene, focus, pointer).scene
+      const labels = flatten(focused.nodes).filter(
+        (node): node is SceneLabel =>
+          node.kind === 'label' && node.key.startsWith('x-tick-label:'),
+      )
+      expect(labels.map((label) => label.style?.opacity)).toEqual([1, 0, 1])
+      expect(focused.points).toBe(scene.points)
+      expect(focused.scales).toBe(scene.scales)
+      expect(
+        opacity.mock.calls
+          .slice(-3)
+          .every(
+            ([context]) =>
+              context.focus === focus && context.pointer === pointer,
+          ),
+      ).toBe(true)
+    }
+    expect(rendered).not.toHaveBeenCalled()
+    expect(measured).not.toHaveBeenCalled()
+    expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
+  })
+
   it('keeps grid candidates when tick stubs are removed', () => {
     const scene = createChartScene(
       defineChart({

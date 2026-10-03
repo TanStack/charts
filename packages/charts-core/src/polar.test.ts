@@ -9,6 +9,7 @@ import {
 } from 'd3-shape'
 import * as rootExports from './index'
 import { resolveChartPointerFocus } from './interaction'
+import { resolveMarkStateScene } from './mark-state'
 import {
   angleGrid,
   focusGroupAngle,
@@ -16,6 +17,8 @@ import {
   polar,
   radialArc,
   radialArea,
+  radialBarAngle,
+  radialBarRadius,
   radialDot,
   radialGrid,
   radialLine,
@@ -28,6 +31,7 @@ import type {
   ChartMotionContext,
   ChartMotionDefinition,
   ChartMotionTiming,
+  ChartMarkState,
   SceneNode,
 } from './types'
 import type { RadialRuleOptions, RadialTextOptions } from './polar'
@@ -44,6 +48,269 @@ const slices: readonly Slice[] = [
 ]
 
 describe('polar marks', () => {
+  it.each(['angle', 'radius'] as const)(
+    'resolves radial bar %s states without changing ownership or base paint',
+    (kind) => {
+      const rows = [
+        { id: 'a', angle: 1, radius: 1 },
+        { id: 'b', angle: 2, radius: 2 },
+      ]
+      const options = {
+        key: 'id' as const,
+        angle: 'angle' as const,
+        radius: 'radius' as const,
+        states: [
+          {
+            when: { focus: 'unmatched' as const },
+            style: {
+              opacity: ({
+                datum,
+                index,
+                data,
+              }: {
+                datum: (typeof rows)[number]
+                index: number
+                data: readonly (typeof rows)[number][]
+              }) => {
+                expect(data).toBe(rows)
+                expect(datum).toBe(rows[index])
+                return 0.25
+              },
+            },
+            transition: { type: 'tween' as const, duration: 120 },
+          },
+        ],
+      }
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            polar({
+              marks: [
+                kind === 'angle'
+                  ? radialBarAngle(rows, options)
+                  : radialBarRadius(rows, options),
+              ],
+              scales: {
+                angle: { scale: kind === 'radius' ? scaleBand : scaleLinear },
+                radius: { scale: kind === 'angle' ? scaleBand : scaleLinear },
+              },
+            }),
+          ],
+          scales: { x: null, y: null },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+      const primary = scene.points[0]!
+      const resolved = resolveMarkStateScene(scene, {
+        primary,
+        group: [primary],
+        source: 'pointer',
+        pinned: false,
+      })
+      expect(
+        flatten(resolved.scene.nodes)
+          .filter((node) => node.kind === 'area')
+          .map((node) => node.style?.opacity),
+      ).toEqual([undefined, 0.25])
+      expect(resolved.transitions?.[scene.points[1]!.markId]).toMatchObject({
+        duration: 120,
+      })
+      expect(resolved.scene.points).toBe(scene.points)
+      expect(
+        flatten(scene.nodes).every((node) => node.style?.opacity === undefined),
+      ).toBe(true)
+      expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
+    },
+  )
+  it.each(['arc', 'area', 'dot', 'line', 'text'] as const)(
+    'resolves %s states with original datum ownership and transitions',
+    (kind) => {
+      const rows = [
+        {
+          id: 'a',
+          series: 'A',
+          angle: 0,
+          radius: 1,
+          startAngle: 0,
+          endAngle: 1,
+        },
+        {
+          id: 'b',
+          series: 'B',
+          angle: 1,
+          radius: 2,
+          startAngle: 1,
+          endAngle: 2,
+        },
+      ]
+      const states: readonly ChartMarkState<(typeof rows)[number]>[] = [
+        {
+          when: { focus: 'unmatched' },
+          style: {
+            opacity: ({ datum, index, data }) => {
+              expect(data).toBe(rows)
+              expect(datum).toBe(rows[index])
+              return 0.25
+            },
+          },
+          transition: { type: 'tween', duration: 120 },
+        },
+      ]
+      const options = { key: 'id' as const, z: 'series' as const, states }
+      const container =
+        kind === 'arc'
+          ? polar({
+              marks: [radialArc(rows, options)],
+              scales: { angle: null, radius: null },
+            })
+          : polar({
+              marks: [
+                kind === 'area'
+                  ? radialArea(rows, {
+                      ...options,
+                      angle: 'angle',
+                      radius: 'radius',
+                    })
+                  : kind === 'line'
+                    ? radialLine(rows, {
+                        ...options,
+                        angle: 'angle',
+                        radius: 'radius',
+                      })
+                    : kind === 'text'
+                      ? radialText(rows, {
+                          ...options,
+                          angle: 'angle',
+                          radius: 'radius',
+                          text: 'id',
+                        })
+                      : radialDot(rows, {
+                          ...options,
+                          angle: 'angle',
+                          radius: 'radius',
+                        }),
+              ],
+              scales: {
+                angle: { scale: scaleLinear },
+                radius: { scale: scaleLinear },
+              },
+            })
+      const scene = createChartScene(
+        defineChart({
+          marks: [container],
+          scales: { x: null, y: null },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+      const primary = scene.points[0]!
+      const resolved = resolveMarkStateScene(scene, {
+        primary,
+        group: [primary],
+        source: 'pointer',
+        pinned: false,
+      })
+      const leaves = flatten(resolved.scene.nodes).filter(
+        (node) =>
+          node.kind ===
+          (kind === 'dot'
+            ? 'dot'
+            : kind === 'text'
+              ? 'label'
+              : kind === 'line'
+                ? 'polyline'
+                : 'area'),
+      )
+      expect(leaves.map((node) => node.style?.opacity)).toEqual([
+        undefined,
+        0.25,
+      ])
+      expect(resolved.transitions?.[scene.points[1]!.markId]).toMatchObject({
+        duration: 120,
+      })
+      expect(resolved.scene.points).toBe(scene.points)
+      expect(
+        flatten(scene.nodes).every((node) => node.style?.opacity === undefined),
+      ).toBe(true)
+      expect(resolveMarkStateScene(scene, null).scene).toBe(scene)
+    },
+  )
+
+  it('uses polar state defaults per child while allowing replacement or an empty opt-out', () => {
+    const rows = [
+      { id: 'a', angle: 0, radius: 1 },
+      { id: 'b', angle: 1, radius: 2 },
+    ]
+    const options = {
+      angle: 'angle' as const,
+      radius: 'radius' as const,
+      key: 'id' as const,
+    }
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            marks: [
+              radialDot(rows, { ...options, id: 'default' }),
+              radialDot(rows, {
+                ...options,
+                id: 'override',
+                states: [
+                  { when: { focus: 'unmatched' }, style: { opacity: 0.7 } },
+                ],
+              }),
+              radialDot(rows, { ...options, id: 'opt-out', states: [] }),
+            ],
+            states: [
+              {
+                when: { focus: 'unmatched' },
+                style: {
+                  opacity: ({ datum, data }) => {
+                    expectTypeOf(datum).toEqualTypeOf<(typeof rows)[number]>()
+                    expect(data).toBe(rows)
+                    return 0.2
+                  },
+                },
+              },
+            ],
+            scales: {
+              angle: { scale: scaleLinear },
+              radius: { scale: scaleLinear },
+            },
+            guides: [radialGrid()],
+          }),
+        ],
+        scales: { x: null, y: null },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const primary = scene.points[0]!
+    const resolved = resolveMarkStateScene(scene, {
+      primary,
+      group: [primary],
+      source: 'keyboard',
+      pinned: false,
+    })
+    const dots = flatten(resolved.scene.nodes).filter(
+      (node) => node.kind === 'dot',
+    )
+    expect(dots.map((node) => node.style?.opacity)).toEqual([
+      undefined,
+      0.2,
+      undefined,
+      0.7,
+      undefined,
+      undefined,
+    ])
+    expect(
+      flatten(resolved.scene.nodes)
+        .filter((node) => node.key.startsWith('ring:'))
+        .every((node) => node.style?.opacity === undefined),
+    ).toBe(true)
+  })
+
   it('renders responsive D3 arcs and emits centroid interaction points', () => {
     const arcs = pie(slices, { value: 'value' })
     const definition = defineChart({

@@ -310,7 +310,7 @@ function atomicGroupPoints(
 ): readonly ChartPoint[] {
   const candidate = focusCandidatePoint(node, candidatePoints)
   if (candidate) return [candidate]
-  if (node.pointOwner) {
+  if (node.pointOwner || node.pointOwners) {
     const owned = sceneNodeOwnedPoints(
       node,
       candidatePoints,

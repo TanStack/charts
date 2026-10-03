@@ -48,6 +48,10 @@ module graph through that explicit import.
 
 ## React Native adapter
 
+The React Native adapter is experimental. See
+[Installation](../installation.md#react-native-and-expo) for supported versions,
+verified checks, and native-device validation limits.
+
 The React Native entry selects its native build through the package export
 conditions and renders the shared scene with `react-native-svg`.
 
@@ -466,6 +470,11 @@ Despite its historical name, `RenderChartImageOptions` supports PNG, JPEG, and
 WebP. `scale` defaults to `2` and is clamped to at least `0.1`. `type` defaults
 to `image/png`.
 
+Encoding support depends on the browser. If the requested encoder is
+unavailable, the browser can return PNG instead, including WebP requests in
+WebKit. Check the returned `blob.type` before choosing a filename or sending
+the image to a consumer that requires a specific format.
+
 Raster export requires:
 
 - a browser document and window
@@ -475,7 +484,8 @@ Raster export requires:
 
 The promise rejects when any requirement fails or Canvas encoding returns no
 blob. `downloadChartImage` defaults to `chart.png`; keep the filename extension
-consistent with the selected MIME type.
+consistent with the actual encoded MIME type. The download helper uses the
+filename you supply and does not rename it after an encoding fallback.
 
 The raster helpers accept a mounted SVG, Canvas, or mixed chart root, or an
 ancestor containing one. SVG is serialized, decoded, and drawn into the export
@@ -608,7 +618,9 @@ interface ChartSurface<
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
     cursor?: ChartCursorPresentation<TXValue, TYValue> | null,
+    options?: { stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null },
   ) => ChartScene | void
+  readonly supportsStateFocus?: true
   destroy: () => void
 }
 
@@ -641,7 +653,11 @@ interface ChartRendererRenderContext<
 }
 ```
 
-`element` is the one accessible, interactive root. `layers`, when present,
+`element` is the one accessible, interactive root. `surface.destroy()` releases animation work,
+subscriptions, and renderer resources. The mounting host owns removal of the
+chart root and cleanup of its interaction listeners.
+
+`layers`, when present,
 lists child surfaces from back to front. `defaultElement` is the topmost
 surface element owned by the host's default renderer. SVG-oriented
 `ChartRenderContext` callbacks expose that element as `svg` and also include

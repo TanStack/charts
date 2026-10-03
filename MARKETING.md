@@ -4,12 +4,12 @@ Last updated: 2026-08-26
 
 ## Status
 
-TanStack Charts is in official Alpha on `main`. The latest public release is
+The latest public TanStack Charts release is
 `0.18.0`. Repository docs, examples, and the catalog may include contracts not
 available in that release, so documentation at the verified release source
-revision remains the release record. Alpha is not a production-readiness claim,
-and marketing must keep the compatibility limits in
-[Alpha stability](./docs/stability.md) visible.
+revision remains the release record. Releases before 1.0 follow the
+[Alpha policy](./docs/stability.md); the [stable compatibility contract](./docs/compatibility.md)
+applies starting with 1.0. Marketing must state the policy for the version it describes.
 
 ## Executive summary
 
@@ -44,8 +44,7 @@ responsive, accessible, server-rendered application charts.
 **Product category:** TypeScript visualization grammar; application charting
 library.
 
-**Product type:** MIT-licensed open-source developer library. The current
-package line is Alpha.
+**Product type:** MIT-licensed open-source developer library.
 
 **Core model:** Marks consume application data directly. Channels describe
 visual encodings. Compact TanStack primitives and native D3 callables compose
@@ -462,7 +461,7 @@ about being "AI-native."
 | The chart catalog is smaller than AG Charts, ECharts, or Nivo | Also correct. The product thesis is a composable grammar with interoperable primitives, not first-party ownership of every specialized chart type.                                                                                                                                                                                                                                       |
 | Why not use D3 or visx directly?                              | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                                                                                                        |
 | Why not use Observable Plot?                                  | Plot is the closest API inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, composable capability-level imports, framework lifecycle, and stable interactive scenes.                                                                                                  |
-| Is it ready for production?                                   | It is Alpha. Teams can evaluate it or adopt it with exact version pins and upgrade tests, but minor releases may contain breaking changes. Do not market Alpha as stable or production-ready.                                                                                                                                                                                            |
+| Is it ready for production?                                   | Before 1.0, pin an exact version and test upgrades, minor releases may break APIs. Starting with 1.0, use the documented stable compatibility contract and check the support boundaries for your framework and renderer. Do not describe an unreleased candidate as a verified release.                                                                                                  |
 | Can it handle millions of live points?                        | Canvas is an explicit opt-in and keeps the same definition and interaction API while removing per-mark DOM cost. It still creates scene nodes and interaction points, default focus is linear without a spatial index, and overplotting does not become useful because the pixels are cheaper. Treat million-point streaming as a measured representation problem, not a renderer claim. |
 
 ## Anti-personas

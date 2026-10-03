@@ -190,6 +190,7 @@ export type {
   ChartAxisLabelOptions,
   ChartAxisPresentationOptions,
   ChartAxisTickLabelContext,
+  ChartAxisTickLabelOpacityContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelThinOptions,
   ChartAxisTickLabelValue,

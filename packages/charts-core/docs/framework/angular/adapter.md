@@ -42,7 +42,10 @@ when chart state changes; mutating the existing object does not produce an
 
 The verified package contract covers complete SVG server rendering through
 Angular's `renderApplication`, browser mount, immutable updates, and teardown.
-Angular hydration is not yet part of the adapter's tested public contract.
+With `provideClientHydration`, the adapter adopts the existing server-rendered
+SVG and mark nodes, preserves them through immutable updates, and cleans up
+on destruction. Installed-package checks cover Angular 19 and 22 AOT builds
+in Chromium, Firefox, and WebKit, not every version within the peer range.
 
 ## Presentation and rendering
 

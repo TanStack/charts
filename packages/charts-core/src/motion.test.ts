@@ -31,6 +31,62 @@ const rows = [
   { id: 'b', category: 'B', value: 80 },
 ]
 
+describe('structured SVG text motion', () => {
+  it.each([
+    '<tspan data-ts-key="child">old</tspan>',
+    'before<tspan data-ts-key="child">old</tspan>after',
+  ])('preserves replacement text after an exiting child in %s', (markup) => {
+    const emptyPoints: { x: number; y: number }[] = []
+    const base = createChartScene(
+      defineChart({
+        marks: [dot(emptyPoints, { x: 'x', y: 'y' })],
+        guides: false,
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        },
+      }),
+      { width: 300, height: 200 },
+    )
+    const scene = (text: string): ChartScene => ({
+      ...base,
+      nodes: [
+        {
+          kind: 'group',
+          key: 'marks',
+          className: 'ts-chart__marks',
+          children: [{ kind: 'label', key: 'label', x: 10, y: 20, text }],
+        },
+      ],
+    })
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    const frames = installFrames()
+    try {
+      surface.render(scene('old'), { ariaLabel: 'Text transition' })
+      const text = container.querySelector('text')!
+      text.innerHTML = markup
+      const child = text.firstElementChild!
+      surface.render(scene('new'), { ariaLabel: 'Text transition' })
+      expect(container.querySelector('text')).toBe(text)
+      expect(text.firstElementChild).toBe(child)
+      frames.run(0)
+      frames.run(50)
+      expect(text.firstElementChild).toBe(child)
+      expect(Number(child.getAttribute('opacity'))).toBeCloseTo(0.5)
+      frames.run(100)
+      expect(text.firstElementChild).toBeNull()
+      expect(text.textContent).toBe('new')
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
+  })
+})
+
 const groupedFocusRows = [
   { id: 'a', series: 'series-a', x: 0, y: 4 },
   { id: 'b', series: 'series-a', x: 1, y: 6 },
@@ -2037,6 +2093,9 @@ describe('SVG motion', () => {
     expect(interruptedRadius).toBeLessThan(12)
     expect(Number(circle(grouped)?.getAttribute('r'))).toBeGreaterThan(4)
     expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeLessThan(1)
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeGreaterThan(
+      0.15,
+    )
 
     surface.paintFocus({
       primary: grouped,
@@ -2064,7 +2123,12 @@ describe('SVG motion', () => {
 
     surface.paintFocus(null)
     frames.run(4_000)
-    for (let time = 4_016; time <= 8_000; time += 16) {
+    frames.run(4_080)
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeGreaterThan(
+      0.15,
+    )
+    expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeLessThan(1)
+    for (let time = 4_096; time <= 8_000; time += 16) {
       if (container.querySelector('svg')?.dataset.tsMotionState === 'finished')
         break
       frames.run(time)
@@ -3781,6 +3845,153 @@ describe('SVG motion', () => {
     request.mockRestore()
     if (descriptor) Object.defineProperty(window, 'matchMedia', descriptor)
     else Reflect.deleteProperty(window, 'matchMedia')
+  })
+
+  it('retains independent emphasis through interrupted data motion and restores it', async () => {
+    const makeScene = (offset: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            dot(
+              [
+                { id: 'a', x: 0, y: 4 + offset, series: 'a' },
+                { id: 'b', x: 1, y: 8 + offset, series: 'b' },
+              ],
+              {
+                id: 'series',
+                x: 'x',
+                y: 'y',
+                z: 'series',
+                key: 'id',
+                states: [
+                  {
+                    when: (context) => !context.matches('series'),
+                    style: { opacity: 0.2 },
+                    transition: { type: 'tween', duration: 100 },
+                  },
+                ],
+              },
+            ),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([-1, 2]) },
+            y: { scale: scaleLinear().domain([0, 20]) },
+          },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const first = makeScene(0),
+      next = makeScene(1),
+      third = makeScene(2)
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    const frames = installManagedFrames()
+    try {
+      surface.render(first, { ariaLabel: 'Interrupted emphasis' })
+      surface.render(next, { ariaLabel: 'Interrupted emphasis' })
+      frames.run(0)
+      frames.run(40)
+      const point = next.points[1]!
+      surface.paintFocus(null, null, null, {
+        stateFocus: {
+          primary: point,
+          group: [point],
+          source: 'legend',
+          pinned: false,
+        },
+      })
+      surface.render(third, { ariaLabel: 'Interrupted emphasis' })
+      frames.run(40)
+      frames.run(140)
+      await Promise.resolve()
+      const a = container.querySelector(
+        `circle[data-ts-key="${third.points[0]!.key}"]`,
+      )!
+      const b = container.querySelector(
+        `circle[data-ts-key="${third.points[1]!.key}"]`,
+      )!
+      if (frames.pending()) {
+        frames.run(140)
+        frames.run(240)
+      }
+      expect(Number(a.getAttribute('opacity'))).toBeCloseTo(0.2)
+      expect(b.getAttribute('opacity')).not.toBe('0.2')
+      surface.paintFocus(null)
+      for (const time of [240, 340]) if (frames.pending()) frames.run(time)
+      expect(a.getAttribute('opacity')).not.toBe('0.2')
+      surface.destroy()
+      expect(frames.pending()).toBe(0)
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
+  })
+
+  it('snaps independent emphasis and restoration under reduced motion', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: true }),
+    })
+    const request = vi.spyOn(window, 'requestAnimationFrame')
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(
+            [
+              { x: 0, y: 1, series: 'a' },
+              { x: 1, y: 2, series: 'b' },
+            ],
+            {
+              id: 'series',
+              x: 'x',
+              y: 'y',
+              z: 'series',
+              states: [
+                {
+                  when: (context) => !context.matches('series'),
+                  style: { opacity: 0.2 },
+                  transition: { type: 'tween', duration: 100 },
+                },
+              ],
+            },
+          ),
+        ],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    try {
+      surface.render(scene, { ariaLabel: 'Reduced emphasis' })
+      const point = scene.points[1]!
+      surface.paintFocus(null, null, null, {
+        stateFocus: {
+          primary: point,
+          group: [point],
+          source: 'legend',
+          pinned: false,
+        },
+      })
+      const a = container.querySelector(
+        `circle[data-ts-key="${scene.points[0]!.key}"]`,
+      )!
+      expect(a.getAttribute('opacity')).toBe('0.2')
+      surface.paintFocus(null)
+      expect(a.getAttribute('opacity')).not.toBe('0.2')
+      expect(request).not.toHaveBeenCalled()
+    } finally {
+      surface.destroy()
+      request.mockRestore()
+      if (descriptor) Object.defineProperty(window, 'matchMedia', descriptor)
+      else Reflect.deleteProperty(window, 'matchMedia')
+    }
   })
 
   it('carries spring momentum through an interrupted target change', () => {

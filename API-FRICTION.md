@@ -343,6 +343,8 @@ Each entry records:
 | F-304 | Gradient resources hid cross-renderer ownership                | API                   | resolved   |
 | F-305 | Categorical legend styling required a replacement renderer     | API                   | resolved   |
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
+| F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
+| F-308 | Raster format documentation omitted browser encoder fallback   | Documentation         | resolved   |
 
 ## Findings
 
@@ -3785,6 +3787,34 @@ Each entry records:
   partial compilation and Svelte package compilation pass. Packed React
   consumers retain their renderer boundary without pulling SVG modules.
 
+- 1.0 follow-up: a real Angular hydration test reports successful framework
+  hydration but catches the adapter replacing its SVG through `[innerHTML]`.
+  The local fix seeds prerendered markup once in `ngAfterViewInit` only when
+  the surface is empty, leaving existing server markup for renderer adoption.
+  An isolated Node server render and browser hydration reproduce the identity
+  failure before this fix and pass afterward, including actual browser host
+  mounting and immutable signal-driven updates. All four Angular tests and
+  fresh before/after partial builds pass. Minified module size falls 15 bytes
+  and gzip falls 3, while raw output adds 58. Installed candidate tarballs pass
+  hydration, reactive updates, identity, and cleanup in Chromium, Firefox,
+  and WebKit with Angular 22.0.8 in both JIT and AOT/linker builds. The AOT
+  browser bundle excludes the JIT compiler. Minimum-peer Angular 19.0.0 AOT
+  linking exposed an unsupported alias on an `@else if` block. Moving the
+  structured-content alias to the primary `@if` preserves the mutually
+  exclusive content branches and passes installed-package hydration, updates,
+  identity, and teardown in Chromium, Firefox, and WebKit with TypeScript
+  5.6.3 and normal Zone.js bootstrap. This template change leaves minified
+  module bytes unchanged and reduces gzip by one byte. Reactive tooltip tests
+  cover structured/text transitions and retain the custom body. The corrected
+  tarball also passes the Angular 22 AOT audit in all three engines. These checks
+  do not cover every Angular peer version. Same-process server/client tests were invalid
+  because Angular retained its server document, so that evidence is replaced.
+  The 1.0 lifecycle audit also found the canonical SSR guide and Angular adapter
+  page still described hydration as unverified. Both now describe SVG adoption
+  with `provideClientHydration` and the verified Angular 19/22 AOT browser scope.
+  A direct Preact SSR-to-hydration regression additionally checks SVG and path
+  identity, immutable label updates, a single surface, and empty-host teardown.
+
 ### F-124 — Name-only inventories masked undocumented contracts
 
 - Status: resolved
@@ -4547,6 +4577,13 @@ Each entry records:
   directories and rejects any skill missing from the allowlist, then the normal
   reference test checks that every tracked skill matches the current package
   version.
+- 1.0 readiness follow-up: a temporary major-version rehearsal advanced every
+  package to 1.0.0, but release-facing prose still called that version the
+  official Alpha line. The README, installation guide, overview, marketing
+  policy, and historical Alpha policy now distinguish releases before 1.0
+  from the stable contract that takes effect at 1.0. The fixed Alpha badge is
+  removed. A regression advances the tracked references to 1.0.0 and rejects
+  current-Alpha claims while requiring both version-scoped policies.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -4778,6 +4815,58 @@ Each entry records:
   dot mark with `{ focus: 'primary', pinned: true }`; pointer pin/unpin,
   same-point pointer tracking, SVG/Canvas null-focus restoration, Escape,
   close-button dismissal, and revision preservation are regression-covered.
+- Type follow-up: PR #161 exposed state dash patterns rejected by dot, bar,
+  rect, area, and text types despite existing renderer support. A pinned-dot
+  regression reproduces TS2353 before the type correction while its runtime
+  paint/restoration test passes. The corrected types pass root TypeScript;
+  all 151 measured consumer JavaScript outputs have identical SHA-256 hashes
+  before and after the correction. No renderer runtime changed.
+- Scope follow-up: issue #126 exposed the missing polar and geographic
+  authoring path. Radial marks now retain their original source data in the
+  same state metadata used by Cartesian marks, and the polar container wraps
+  each stateful child with its own points. Container defaults are replaced by
+  explicit child states, including an empty-array opt-out. `geoShape` uses the
+  existing initialized-mark state path. Focused regressions verify paint,
+  callback ownership, transitions, unchanged points, and guide isolation.
+- Group ownership follow-up: issue #135 showed that a composed datum resolved
+  states independently on each leaf. `SceneGroup.states.target: 'group'` now
+  applies paint once and stops inheritance while preserving independent nested
+  definitions. Tests fail on the old resolver and pass after the fix. Chromium,
+  Firefox, and WebKit verify tween completion, restoration, unchanged geometry,
+  and cancellation on teardown. Eleven interleaved 1,000-candle trials measured
+  median resolver cost at 0.864 ms for groups versus 1.138 ms for leaves, with
+  999 versus 2,997 style resolutions. Geometry callbacks now resolve only for
+  their supported node kinds. The locked consumers shrink in both size metrics;
+  the complete release audit remains pending.
+
+- Legend follow-up: issue #127 required series emphasis without making a
+  second owner of tooltips and pinned interaction focus. The opt-in interactive
+  legend now supplies an independent inline-state focus with source `legend`.
+  Generic host control context exposes `setStateFocus`, and series point lookup
+  stays in the optional legend module. SVG, Canvas, and motion accept independent
+  state focus while focus guides and tick-label callbacks retain real focus.
+  Unfocused emphasis revealed that renderer restoration flags depended on real
+  focus rather than painted state; those flags now track the painted scene.
+  Unit tests cover pointer and keyboard emphasis, pinned restoration, unchanged
+  tooltip text, no focus callbacks, and labels seeing real focus. Chromium,
+  Firefox, and WebKit verify the same lifecycle for SVG and motion with no page
+  errors. Scene-update tests now cover new datum ownership, disabling hover,
+  hiding a series, and removing the legend. Motion tests verify interrupted
+  data updates, restoration, teardown cleanup, and immediate reduced-motion
+  paint without animation frames. Custom-renderer tests verify capability
+  rejection and forwarding without real focus callbacks. Mixed SVG/Canvas
+  tests verify forwarding to every layer and require support from all layers.
+  Final bundle costs and full release verification remain open.
+- Canvas legend follow-up: the pixel fixture initially used color-only dots,
+  whose point group is intentionally null. The documentation now distinguishes
+  per-point paint from `z` series ownership, and explains that `z` supplies
+  default color without duplicated setup. Testing that documented series form
+  exposed missing visibility ownership metadata: selecting one of two dot
+  series retained four points instead of two. Dot initialization now marks
+  default color as series-owned when it comes from `z`. The regression passes,
+  while a separate regression preserves independent color categories. Actual
+  Canvas pixels, keyboard emphasis, pinned restoration, unchanged tooltip,
+  and teardown pass in Chromium, Firefox, and WebKit with no page errors.
 
 ### F-163 — Cross-row transforms lacked a public ownership boundary
 
@@ -5978,6 +6067,16 @@ Each entry records:
   content drift, malformed metadata, and workspace version-only changes. The
   schema-4 baseline records both commit attribution and the input digest, and
   the full validation graph passes after the squash merge.
+- `1.0` readiness follow-up: PR #155 changed only `adapter.test.ts`, but the
+  broad source-directory digest invalidated production comparison provenance
+  and selected browser comparison and stress jobs. Package test/spec modules
+  now remain full-static validation inputs without being production digest or
+  benchmark-selection inputs. Mixed test/runtime changes still select both
+  benchmark partitions. Source bundle builders reject imports of those test
+  modules rather than allowing an excluded file to become a hidden runtime
+  dependency. All 24 focused provenance, classification, and boundary tests
+  pass. Honest comparison artifact regeneration remains required before landing
+  the updated provenance rule.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
@@ -6713,9 +6812,10 @@ Each entry records:
   measurement, motion, and visual geometry while exposing `never` point types.
 - Boundary: this is shared scene identity infrastructure, not a Waffle,
   selection, or composite-mark utility. Multi-point geometry such as regression
-  bands and difference fills cannot honestly use singular `pointOwner`; add a
-  point-set ownership form only when a real filtered or focused case requires
-  it. Duplicate authored top-level mark IDs remain invalid and should be
+  bands and difference fills cannot honestly use singular `pointOwner`.
+  Issue #134 supplied a concrete multi-series decorative area case, so
+  `pointOwners` now retains that point-set ownership without hit-test targets.
+  Duplicate authored top-level mark IDs remain invalid and should be
   rejected at definition validation rather than repaired during reconciliation.
 - Verification: the full charts-core suite passes 650 tests and the root
   TypeScript program passes. Focused regressions cover colon-containing text
@@ -6738,11 +6838,32 @@ Each entry records:
   the dots for grouped x focus, while the decorative lines still contribute
   Date/value domains and visible geometry. This is the first composed-view
   consumer and requires no new ownership utility.
+- Point-set follow-up: decorative multi-series areas retain inline states on
+  ordinary and outer composite marks without adding interaction targets.
+  Regression tests cover unrelated owner keys, copied owners, duplicate-key
+  reference identity, restricted scopes, and semantic adoption. Exact owners
+  use the existing identity index instead of scanning the full scope for each
+  owner. In nine interleaved trials, ownership resolution for 5,000 copied
+  exact owners had a median of 0.180 ms versus 81.675 ms with the initial
+  scanning implementation. This is an isolated resolver measurement, not
+  browser hover latency. Final bundle and renderer verification remain open.
 - Annotation follow-up: Case 58 now wraps both extrema text layers with the
   same decorator, leaving the minimum and maximum dots as the only annotation
   interaction points while preserving label geometry and automatic margins.
   Its focused test rejects label-owned points; quick browser conformance passes
   visual and strict-type gates at 98.5% diagnostic geometry similarity.
+- Focus-type follow-up: the 1.0 audit reproduced `decorative(whenFocused(mark))`
+  and nested focused composites compiling before their existing runtime guard
+  rejects them. `whenFocused` now retains type-only focus-filtered metadata,
+  and `compositeMark` carries that metadata through nested children.
+  `decorative` rejects known focus-filtered inputs, while ordinary and
+  inline-state marks remain accepted. Three type regressions fail with unused
+  expected-error directives before this change and pass afterward. Root
+  TypeScript passes. Runtime guards remain for JavaScript, custom marks, and
+  explicitly widened types. The twelve-package artifact build passes, and an
+  isolated installed-tarball consumer reproduces the three unused expected-error
+  failures on the prior package and passes after installing the correction,
+  with strict TypeScript 6.0.3 and `skipLibCheck: false`.
 - Bundle-audit follow-up: focus filtering and stable-key assignment reuse one
   ownership lookup and one structural-key index. This removes 563 minified and
   113–143 gzip bytes from every comparison case while preserving exact key,
@@ -9045,3 +9166,36 @@ Each entry records:
   with the pinned TypeScript compiler and typechecks the generated declarations
   as a downstream consumer. Packed runtime, React Native, and seven framework
   adapter gates pass. All 60 comparison bundle measurements are unchanged.
+
+### F-307 - Grouped-y keyboard navigation followed x order
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: PR #160 reproduction and real keyboard verification for 1.0
+- Friction: grouped-y rows were visited by the x position of their first
+  point, forcing consumers to supply corrected navigation ordering.
+- Decision: select a direct grouped-axis-first comparator before sorting.
+  Keep nearest modes and grouped-x ordering unchanged, with no second sort.
+- Verification: the focused regression fails before and passes after. All
+  59 focus and interaction tests and root TypeScript pass. Chromium, Firefox,
+  and WebKit verify initial focus, ArrowDown, ArrowUp, normal and reversed y
+  domains, and empty-host teardown with no page errors. A paired minified
+  benchmark rejects the dynamic-property comparator's measured overhead.
+
+### F-308 - Raster format documentation omitted browser encoder fallback
+
+- Status: resolved
+- Severity: low
+- Owner: Documentation
+- Observed in: current-source 1.0 export checks in Chromium, Firefox, and WebKit
+- Friction: the reference listed WebP as supported and told callers to match
+  filenames to the selected MIME type, but WebKit returned a PNG Blob for a
+  WebP request. The download helper keeps the caller's filename.
+- Decision: document browser encoding support, PNG fallback, checking
+  `blob.type`, and the unchanged download filename. Keep the native browser
+  encoding behavior rather than adding a runtime encoder or dependency.
+- Verification: JPEG decodes at scale two in all three engines; requested WebP
+  decodes as WebP in Chromium and Firefox and PNG in WebKit. Dimensions and
+  opaque red pixels pass with lossy-encoding tolerance, alongside ten existing
+  PNG checks per engine. No page errors or console warnings/errors occur.

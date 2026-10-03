@@ -26,6 +26,10 @@
           "to": "stability"
         },
         {
+          "label": "Stable Compatibility",
+          "to": "compatibility"
+        },
+        {
           "label": "Quick Start",
           "to": "quick-start"
         }

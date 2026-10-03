@@ -39,6 +39,19 @@ describe('TanStack comparison source provenance', () => {
     commitAll(repository, 'Add measured source')
     const measuredRevision = runGit(repository, 'rev-parse', 'HEAD')
 
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'test source\n',
+    )
+    commitAll(repository, 'Add validation-only test')
+    expect(tanstackComparisonRevision(repository)).toBe(measuredRevision)
+
+    for (const name of ['decorative.type-test.ts', 'Chart.test.tsrx']) {
+      await writeFile(resolve(dirname(coreInput), name), 'validation source\n')
+      commitAll(repository, `Add ${name}`)
+      expect(tanstackComparisonRevision(repository)).toBe(measuredRevision)
+    }
+
     await writeFile(resolve(repository, 'README.md'), '# Documentation\n')
     commitAll(repository, 'Update documentation')
 
@@ -56,6 +69,26 @@ describe('TanStack comparison source provenance', () => {
     await writeFile(coreInput, 'export const value = 1\n')
 
     const inputDigest = tanstackComparisonInputDigest(repository, [inputPath])
+    for (const name of ['decorative.type-test.ts', 'Chart.test.tsrx']) {
+      await writeFile(resolve(dirname(coreInput), name), 'validation source\n')
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+        inputDigest,
+      )
+    }
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'test source\n',
+    )
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+      inputDigest,
+    )
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'updated test\n',
+    )
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+      inputDigest,
+    )
     expect(inputDigest).toMatch(/^sha256:[0-9a-f]{64}$/u)
     expect(
       tanstackComparisonSourceFailure(

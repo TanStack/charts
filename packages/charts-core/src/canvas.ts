@@ -331,9 +331,15 @@ function createUniversalCanvasChartRenderer(
             y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
           }
         },
-        paintFocus(focus, pointer, cursor) {
+        supportsStateFocus: true,
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || destroyed) return
-          const state = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(
+            scene,
+            focus,
+            pointer,
+            options?.stateFocus,
+          )
           const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
           if (state.scene !== scene || markStatePainted || previousTransition) {
@@ -370,10 +376,11 @@ function createUniversalCanvasChartRenderer(
               cancelAnimation = () => {}
             }
           }
-          markStatePainted = Boolean(focus && state.scene !== scene)
-          stateTransition = focus
-            ? (state.transition ?? previousTransition)
-            : undefined
+          markStatePainted = state.scene !== scene
+          stateTransition =
+            state.scene !== scene
+              ? (state.transition ?? previousTransition)
+              : undefined
           const presentation = resolveFocusPresentation(
             resolved.scene,
             focus,
@@ -529,7 +536,12 @@ function createLayeredChartRenderer(
           presentationListeners.add(listener)
           return () => presentationListeners.delete(listener)
         },
-        paintFocus(focus, pointer, cursor) {
+        get supportsStateFocus() {
+          return mounted.every((layer) => layer.surface.supportsStateFocus)
+            ? true
+            : undefined
+        },
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || destroyed) return
           const presentedNodes: SceneNode[] = []
           let hasPresentedScene = false
@@ -538,6 +550,7 @@ function createLayeredChartRenderer(
               focus,
               pointer,
               cursor,
+              options,
             )
             hasPresentedScene ||= result !== undefined
             presentedNodes.push(

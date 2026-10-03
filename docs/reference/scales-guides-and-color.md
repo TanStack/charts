@@ -209,7 +209,7 @@ interface ChartAxisOptions<TValue extends ChartValue> {
               opacity?:
                 | number
                 | ((
-                    context: ChartAxisTickLabelContext<TValue>,
+                    context: ChartAxisTickLabelOpacityContext<TValue>,
                   ) => number | undefined)
               anchor?:
                 | 'start'
@@ -373,6 +373,19 @@ side. The automatic value accounts for the host's inline direction. `dx` and
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
 anchor changes snap.
+
+An opacity callback also receives `focus` and `pointer`, both `null` during
+initial layout. It runs again when focus changes, updating paint without
+rebuilding marks, measuring text, or changing tick placement and thinning.
+Clearing focus restores the initial opacity. Other tick-label callbacks remain
+layout-only. For example, hide the tick that matches the focused x value:
+
+```ts
+const tickLabels = {
+  opacity: ({ value, focus }) =>
+    focus && Object.is(value, focus.primary.xValue) ? 0 : 1,
+}
+```
 
 Axis titles keep the compact string form when only text is needed. Use the
 object form for title typography, paint, offset, or motion:
@@ -828,6 +841,7 @@ interface InteractiveColorLegendItemContext {
 }
 
 interface InteractiveColorLegendOptions<TValue extends ChartKey> {
+  hover?: 'series' | false
   visible: ControlledSignal<
     readonly TValue[],
     InteractiveColorLegendChange<TValue>
@@ -849,11 +863,31 @@ proposed replacement. The legend owns domain-ordered toggling, responsive
 layout, and native browser buttons. It filters series geometry and focus points
 after scale resolution, so hidden values remain in categorical and positional
 domains. A mark participates when its categorical `color` channel establishes
-series identity without a separate `z` channel.
+series identity without a separate `z` channel. Dot marks also participate when
+`z` supplies their series and default color, with no separate `color` channel.
 
 The DOM hosts replace the scene fallback with native `button` elements. Static
 SVG output retains a noninteractive visual fallback. This control is not yet
 implemented by the React Native host.
+
+Set `hover: 'series'` to match inline mark states against the series under the
+pointer or on the focused legend button. Its state context has `source:
+'legend'`, and `matches('series')` identifies the emphasized category. Leaving
+or blurring restores the chart's interaction styling. Hidden series do not
+receive emphasis.
+
+Emphasis matches semantic series, not rendered color strings. Line and area
+marks can establish a series through categorical `color`. For dot marks, use
+`z: 'series'` to establish series ownership; `z` also supplies the default
+color channel, so a second `color: 'series'` is unnecessary. A color-only dot
+can vary its paint while remaining outside any semantic series.
+
+Legend emphasis does not set interaction focus, show a tooltip, move a
+crosshair, or activate `whenFocused` geometry. Existing pinned focus and its
+tooltip stay in place. Tick-label opacity still sees the real interaction
+focus. Static SVG remains noninteractive. A custom renderer must declare
+`supportsStateFocus: true` and honor the fourth `paintFocus` argument's
+`stateFocus`, otherwise requesting emphasis throws.
 
 ## Custom legends
 

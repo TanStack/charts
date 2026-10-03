@@ -65,6 +65,44 @@ describe('Vue adapter', () => {
     expect(html).toContain('class="ts-chart revenue-surface"')
   })
 
+  it('hydrates server markup in place, updates, and cleans up', async () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const label = ref('Revenue')
+    const component = {
+      render: () =>
+        h(Chart, {
+          definition,
+          width: 480,
+          height: 260,
+          ariaLabel: label.value,
+        }),
+    }
+    target.innerHTML = await renderToString(createSSRApp(component))
+    const serverSvg = target.querySelector('svg')
+    const serverLine = target.querySelector('.ts-chart__line')
+    expect(serverSvg).not.toBeNull()
+    expect(serverLine).not.toBeNull()
+    const app = createSSRApp(component)
+    const warnings = vi.fn()
+    app.config.warnHandler = warnings
+    try {
+      app.mount(target)
+      await nextTick()
+      expect(target.querySelector('svg')).toBe(serverSvg)
+      expect(target.querySelector('.ts-chart__line')).toBe(serverLine)
+      expect(warnings).not.toHaveBeenCalled()
+      label.value = 'Updated revenue'
+      await nextTick()
+      expect(target.querySelector('svg')).toBe(serverSvg)
+      expect(serverSvg?.getAttribute('aria-label')).toBe('Updated revenue')
+    } finally {
+      app.unmount()
+      expect(target.childElementCount).toBe(0)
+      target.remove()
+    }
+  })
+
   it('mounts and cleans up the shared host', async () => {
     const target = document.createElement('div')
     const label = ref('Revenue')

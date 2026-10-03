@@ -35,6 +35,7 @@ import type {
   ChartCursorPresentation,
   ChartFocusMode,
   ChartFocusSource,
+  ChartFocusState,
   ChartFocusStrategy,
   ChartHostControl,
   ChartPoint,
@@ -133,6 +134,7 @@ export function mountChartRenderer<
   let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
   let focusSource: ChartFocusSource = 'pointer'
+  let emphasisFocus: ChartFocusState<TDatum, TXValue, TYValue> | undefined
   let focusOwner: FocusOwner | null = null
   let pointerPosition: ChartTooltipPosition | null = null
   let pinnedKey: string | null = null
@@ -156,7 +158,7 @@ export function mountChartRenderer<
   const controlInstances = new Map<
     string,
     {
-      extension: ChartHostControlExtension
+      extension: ChartHostControlExtension<TDatum, TXValue, TYValue>
       instance: ChartHostControlInstance
     }
   >()
@@ -558,6 +560,7 @@ export function mountChartRenderer<
   const paintFocus = (
     point: ChartPoint<TDatum, TXValue, TYValue> | null,
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    updateTooltip = true,
   ) => {
     paintingFocus = true
     let paintedScene: ChartScene<TDatum, TXValue, TYValue> | void
@@ -570,14 +573,18 @@ export function mountChartRenderer<
             pinned: interactionIsPinned(),
           }
         : null
-      paintedScene = hasCursorPresentation
-        ? surface?.paintFocus(focus, pointerPosition, cursorPresentation)
-        : surface?.paintFocus(focus, pointerPosition)
+      paintedScene = emphasisFocus
+        ? surface?.paintFocus(focus, pointerPosition, cursorPresentation, {
+            stateFocus: emphasisFocus,
+          })
+        : hasCursorPresentation
+          ? surface?.paintFocus(focus, pointerPosition, cursorPresentation)
+          : surface?.paintFocus(focus, pointerPosition)
     } finally {
       paintingFocus = false
     }
     interactionScene = paintedScene ?? scene
-    paintTooltip(point, points)
+    if (updateTooltip) paintTooltip(point, points)
   }
 
   const resolveClientPointer = (clientX: number, clientY: number) => {
@@ -1051,7 +1058,11 @@ export function mountChartRenderer<
   function syncHostControls() {
     const retained = new Set<string>()
     for (const control of scene.controls ?? []) {
-      const extension = control.extension as ChartHostControlExtension
+      const extension = control.extension as ChartHostControlExtension<
+        TDatum,
+        TXValue,
+        TYValue
+      >
       const identity = `${extension.id}:${control.key}`
       retained.add(identity)
       let current = controlInstances.get(identity)
@@ -1063,7 +1074,11 @@ export function mountChartRenderer<
       if (!current) {
         current = {
           extension,
-          instance: extension.create({ container, surface: surface! }),
+          instance: extension.create({
+            container,
+            surface: surface!,
+            setStateFocus,
+          }),
         }
         controlInstances.set(identity, current)
       }
@@ -1074,6 +1089,21 @@ export function mountChartRenderer<
       current.instance.destroy()
       controlInstances.delete(identity)
     }
+  }
+
+  function setStateFocus(
+    focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+  ) {
+    if (destroyed) return
+    if (focus !== null && !surface?.supportsStateFocus) {
+      throw new TypeError('Renderer does not support independent state focus')
+    }
+    emphasisFocus = focus ?? undefined
+    paintFocus(
+      focusedPoint,
+      focusedPoint ? focusPointsForPoint(focusedPoint) : [],
+      false,
+    )
   }
 
   function destroyHostControls() {

@@ -293,6 +293,7 @@ export function dot<TDatum>(
 
       const initialized = {
         id,
+        seriesFromColor: options.z !== undefined && options.color === undefined,
         states: markStates(data, options.states),
         channels,
       }

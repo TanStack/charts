@@ -11,8 +11,12 @@ import {
   type InteractiveColorLegendItemContext,
 } from './interactive-legend'
 import { lineY } from './line'
+import { dot } from './dot'
+import { crosshair } from './crosshair'
+import { whenFocused } from './focus-mark'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
+import { tooltip } from './tooltip'
 import type { ChartHost } from './dom-types'
 import type {
   ChartBounds,
@@ -31,6 +35,280 @@ const rows = [
 type Series = (typeof rows)[number]['series']
 
 describe('interactiveColorLegend', () => {
+  it('filters dot series when z supplies both ownership and default color', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [dot(rows, { x: 'x', y: 'y', z: 'series' })],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        color: {
+          legend: interactiveColorLegend({
+            visible: controlledSignal<
+              readonly Series[],
+              InteractiveColorLegendChange<Series>
+            >(['Manufacturing'], () => {}),
+          }),
+        },
+      }),
+      { width: 480, height: 320 },
+    )
+    expect(scene.points).toHaveLength(2)
+    expect(scene.points.every((point) => point.group === 'Manufacturing')).toBe(
+      true,
+    )
+  })
+
+  it('does not treat independent dot paint categories as semantic series', () => {
+    const data = rows.map((row, index) => ({
+      ...row,
+      paint: index % 2 ? 'cool' : 'warm',
+    }))
+    const scene = createChartScene(
+      defineChart({
+        marks: [dot(data, { x: 'x', y: 'y', z: 'series', color: 'paint' })],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        color: {
+          legend: interactiveColorLegend({
+            visible: controlledSignal<
+              readonly string[],
+              InteractiveColorLegendChange<string>
+            >(['warm'], () => {}),
+          }),
+        },
+      }),
+      { width: 480, height: 320 },
+    )
+    expect(scene.points).toHaveLength(data.length)
+    expect(new Set(scene.points.map((point) => point.group))).toEqual(
+      new Set(['Manufacturing', 'Construction']),
+    )
+  })
+
+  it('refreshes hovered ownership on data updates and clears disabled or removed emphasis', () => {
+    let data = rows.map((row) => ({ ...row }))
+    let hover: 'series' | false = 'series'
+    let visible: readonly Series[] = ['Manufacturing', 'Construction']
+    let showLegend = true
+    const observed: (typeof data)[number][] = []
+    const options = () => ({
+      definition: defineChart({
+        marks: [
+          lineY(data, {
+            id: 'industries',
+            x: 'x',
+            y: 'y',
+            color: 'series',
+            states: [
+              {
+                when: (context) => {
+                  expect(context.data[context.index]).toBe(context.datum)
+                  observed.push(context.datum)
+                  return !context.matches('series')
+                },
+                style: { opacity: 0.2 },
+              },
+            ],
+          }),
+        ],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+        color: {
+          domain: ['Manufacturing', 'Construction'],
+          range: ['#2563eb', '#f97316'],
+          legend: showLegend
+            ? interactiveColorLegend({
+                hover,
+                visible: controlledSignal(visible, () => {}),
+              })
+            : undefined,
+        },
+        svgAnimation: false,
+        keyboard: false,
+        pointer: false,
+      }),
+      width: 480,
+      height: 320,
+      ariaLabel: 'Updated emphasis',
+    })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountChart(container, options())
+    try {
+      const button = legendButton(container, 'Construction')
+      button.dispatchEvent(new MouseEvent('pointerenter'))
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).not.toBeNull()
+      data = data.map((row) => ({ ...row, y: row.y + 10 }))
+      observed.length = 0
+      host.update(options())
+      expect(legendButton(container, 'Construction')).toBe(button)
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).not.toBeNull()
+      expect(observed.length).toBeGreaterThan(0)
+      expect(observed.every((datum) => data.includes(datum))).toBe(true)
+      hover = false
+      host.update(options())
+      expect(container.querySelector('[opacity="0.2"]')).toBeNull()
+      button.dispatchEvent(new MouseEvent('pointerenter'))
+      expect(container.querySelector('[opacity="0.2"]')).toBeNull()
+      hover = 'series'
+      host.update(options())
+      button.dispatchEvent(new MouseEvent('pointerenter'))
+      visible = ['Manufacturing']
+      host.update(options())
+      expect(container.querySelector('[opacity="0.2"]')).toBeNull()
+      expect(
+        host
+          .getScene()
+          .points.every((point) => point.group === 'Manufacturing'),
+      ).toBe(true)
+      visible = ['Manufacturing', 'Construction']
+      host.update(options())
+      button.dispatchEvent(new MouseEvent('pointerenter'))
+      showLegend = false
+      host.update(options())
+      expect(container.querySelector('button[data-series-id]')).toBeNull()
+      expect(container.querySelector('[opacity="0.2"]')).toBeNull()
+    } finally {
+      host.destroy()
+      container.remove()
+    }
+  })
+
+  it('emphasizes a series without replacing pinned interaction focus or tooltip', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const onFocusChange = vi.fn()
+    const stateSources: string[] = []
+    const definition = defineChart({
+      marks: [
+        lineY(rows, {
+          id: 'industries',
+          x: 'x',
+          y: 'y',
+          color: 'series',
+          states: [
+            {
+              when: (context) => {
+                stateSources.push(context.focus.source)
+                return !context.matches('series')
+              },
+              style: { opacity: 0.2 },
+            },
+          ],
+        }),
+        crosshair(),
+        whenFocused(
+          dot(rows, {
+            id: 'focus-overlay',
+            x: 'x',
+            y: 'y',
+            z: 'series',
+          }),
+          { match: 'group' },
+        ),
+      ],
+      scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+      color: {
+        domain: ['Manufacturing', 'Construction'],
+        range: ['#2563eb', '#f97316'],
+        legend: interactiveColorLegend({
+          hover: 'series',
+          visible: controlledSignal<
+            readonly Series[],
+            InteractiveColorLegendChange<Series>
+          >(['Manufacturing', 'Construction'], () => {}),
+        }),
+      },
+      svgAnimation: false,
+      pointer: false,
+      keyboard: false,
+      tooltip,
+    })
+    const host = mountChart(container, {
+      definition,
+      width: 480,
+      height: 320,
+      ariaLabel: 'Series',
+      onFocusChange,
+    })
+    try {
+      const point = host
+        .getScene()
+        .points.find((point) => point.group === 'Manufacturing')!
+      host.interaction.setControlledFocus(point, { pinned: true })
+      const tooltipElement =
+        container.querySelector<HTMLElement>('.ts-chart-tooltip')!
+      const pinnedText = tooltipElement.textContent
+      const focusGeometry = () =>
+        Array.from(
+          container.querySelectorAll(
+            '[data-ts-focus-guide-layer], circle[data-ts-key*="focus-overlay"]',
+          ),
+          (node) => node.outerHTML,
+        )
+      const pinnedGeometry = focusGeometry()
+      expect(
+        container.querySelectorAll(
+          'circle[data-ts-key*="focus-overlay"][visibility="visible"]',
+        ),
+      ).toHaveLength(1)
+      expect(
+        container.querySelector('[data-ts-focus-guide-layer]'),
+      ).not.toBeNull()
+      onFocusChange.mockClear()
+      stateSources.length = 0
+      const construction = legendButton(container, 'Construction')
+      construction.dispatchEvent(new MouseEvent('pointerenter'))
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).not.toBeNull()
+      expect(
+        container.querySelector('[stroke="#f97316"][opacity="0.2"]'),
+      ).toBeNull()
+      expect(stateSources).toContain('legend')
+      expect(onFocusChange).not.toHaveBeenCalled()
+      expect(tooltipElement.hidden).toBe(false)
+      expect(tooltipElement.textContent).toBe(pinnedText)
+      expect(focusGeometry()).toEqual(pinnedGeometry)
+      construction.dispatchEvent(new MouseEvent('pointerleave'))
+      expect(
+        container.querySelector('[stroke="#f97316"][opacity="0.2"]'),
+      ).not.toBeNull()
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).toBeNull()
+      construction.focus()
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).not.toBeNull()
+      construction.blur()
+      expect(
+        container.querySelector('[stroke="#f97316"][opacity="0.2"]'),
+      ).not.toBeNull()
+      expect(onFocusChange).not.toHaveBeenCalled()
+      expect(tooltipElement.textContent).toBe(pinnedText)
+      expect(focusGeometry()).toEqual(pinnedGeometry)
+      host.interaction.setControlledFocus(null)
+      const unfocusedGeometry = focusGeometry()
+      expect(unfocusedGeometry).not.toEqual(pinnedGeometry)
+      onFocusChange.mockClear()
+      construction.dispatchEvent(new MouseEvent('pointerenter'))
+      expect(
+        container.querySelector('[stroke="#2563eb"][opacity="0.2"]'),
+      ).not.toBeNull()
+      expect(tooltipElement.hidden).toBe(true)
+      expect(focusGeometry()).toEqual(unfocusedGeometry)
+      expect(onFocusChange).not.toHaveBeenCalled()
+      construction.dispatchEvent(new MouseEvent('pointerleave'))
+      expect(container.querySelector('[opacity="0.2"]')).toBeNull()
+    } finally {
+      host.destroy()
+      expect(container.childElementCount).toBe(0)
+      container.remove()
+    }
+  })
+
   it('filters series after scale resolution and retains a static fallback', () => {
     const definition = createDefinition(['Manufacturing'], () => {})
     const scene = createChartScene(definition, { width: 480, height: 320 })

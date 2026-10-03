@@ -1694,6 +1694,7 @@ async function compareVisuals(
                         (boxes[index]?.height ?? 0) > 0,
                     )
                     .map(elementPaint)
+                    .filter(Boolean)
                     .sort()
               const actual = driverSamples?.length ?? elements.length
               return [
@@ -2030,8 +2031,18 @@ async function compareVisuals(
 
         function elementPaint(element) {
           const style = getComputedStyle(element)
-          if (element.localName === 'line') return style.stroke
-          if (style.fill && style.fill !== 'none') {
+          if (Number(style.opacity) === 0 || style.visibility === 'hidden')
+            return undefined
+          const stroke =
+            style.stroke !== 'none' && Number(style.strokeOpacity) > 0
+              ? style.stroke
+              : undefined
+          if (element.localName === 'line') return stroke
+          if (
+            style.fill &&
+            style.fill !== 'none' &&
+            Number(style.fillOpacity) > 0
+          ) {
             const referenceId = style.fill.match(
               /url\((?:["'])?#([^"')]+)(?:["'])?\)/,
             )?.[1]
@@ -2045,7 +2056,7 @@ async function compareVisuals(
               ? getComputedStyle(gradientStop).getPropertyValue('stop-color')
               : style.fill
           }
-          return style.stroke
+          return stroke
         }
 
         function primarySvg(container) {

@@ -2,6 +2,110 @@ import { describe, expect, it, vi } from 'vitest'
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 
 describe('keyed SVG reconciliation', () => {
+  it.each([
+    ['<tspan data-ts-key="a">old</tspan>', 'new'],
+    ['old', '<tspan data-ts-key="a">new</tspan>'],
+    [
+      'before<tspan data-ts-key="a">old</tspan>after',
+      'start<tspan data-ts-key="a">new</tspan>end',
+    ],
+  ])('updates structured text from %s to %s', (previous, next) => {
+    const container = document.createElement('div')
+    reconcileChartSvg(container, `<svg><text>${previous}</text></svg>`)
+    const text = container.querySelector('text')!
+    const child = text.querySelector('tspan')
+    reconcileChartSvg(container, `<svg><text>${next}</text></svg>`)
+    expect(container.querySelector('text')).toBe(text)
+    expect(text.innerHTML).toBe(next)
+    if (child && next.includes('<tspan'))
+      expect(text.querySelector('tspan')).toBe(child)
+  })
+
+  it('preserves replacement text after an old child finishes exiting', () => {
+    const frames: FrameRequestCallback[] = []
+    const request = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancel = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    try {
+      const container = document.createElement('div')
+      reconcileChartSvg(container, '<svg><text><tspan>old</tspan></text></svg>')
+      const text = container.querySelector('text')!
+      const child = text.firstElementChild
+      reconcileChartSvg(container, '<svg><text>new</text></svg>', {
+        duration: 100,
+        easing: 'linear',
+      })
+      expect(text.firstElementChild).toBe(child)
+      frames.shift()?.(0)
+      frames.shift()?.(100)
+      expect(text.firstElementChild).toBeNull()
+      expect(text.textContent).toBe('new')
+    } finally {
+      request.mockRestore()
+      cancel.mockRestore()
+    }
+  })
+
+  it.each([undefined, { duration: 0 }])(
+    'removes obsolete duplicate keyed children with animation %s',
+    (animation) => {
+      const container = document.createElement('div')
+      reconcileChartSvg(
+        container,
+        '<svg><g><rect data-ts-key="a" x="1"/><rect data-ts-key="a" x="2"/><circle data-ts-key="b" r="3"/></g></svg>',
+      )
+      const previous = [...container.querySelectorAll('rect')]
+      const circle = container.querySelector('circle')
+      reconcileChartSvg(
+        container,
+        '<svg><g><circle data-ts-key="b" r="4"/><rect data-ts-key="a" x="5"/></g></svg>',
+        animation,
+      )
+      expect(container.querySelectorAll('rect')).toHaveLength(1)
+      expect(container.querySelector('rect')?.getAttribute('x')).toBe('5')
+      expect(previous.filter((node) => node.parentElement)).toHaveLength(1)
+      expect(container.querySelector('circle')).toBe(circle)
+      expect(circle?.getAttribute('r')).toBe('4')
+      expect(
+        [...container.querySelector('g')!.children].map(
+          (node) => node.localName,
+        ),
+      ).toEqual(['circle', 'rect'])
+    },
+  )
+
+  it('removes stale attributes and retains empty and qualified attributes', () => {
+    const container = document.createElement('div')
+    reconcileChartSvg(
+      container,
+      '<svg><use data-ts-key="a" x="10" stroke="red" aria-label="old" xlink:href="#old"/></svg>',
+    )
+    const element = container.querySelector('use')!
+    reconcileChartSvg(
+      container,
+      '<svg><use data-ts-key="a" x="20" fill="" aria-label="" xlink:href="#new"/></svg>',
+    )
+    expect(container.querySelector('use')).toBe(element)
+    expect(element.hasAttribute('stroke')).toBe(false)
+    expect(element.getAttribute('x')).toBe('20')
+    expect(element.getAttribute('fill')).toBe('')
+    expect(element.getAttribute('aria-label')).toBe('')
+    expect(element.getAttribute('xlink:href')).toBe('#new')
+    expect(element.getAttributeNames().sort()).toEqual([
+      'aria-label',
+      'data-ts-key',
+      'fill',
+      'x',
+      'xlink:href',
+    ])
+  })
+
   it('retains keyed elements while updating geometry', () => {
     const container = document.createElement('div')
     reconcileChartSvg(
