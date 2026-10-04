@@ -1,5 +1,5 @@
 {
-  "name": "@charts-poc/react-18-compat",
+  "name": "@charts-internal/react-18-compat",
   "version": "0.0.0",
   "private": true,
   "type": "module",
