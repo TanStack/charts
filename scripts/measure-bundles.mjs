@@ -359,9 +359,6 @@ const nativeExternals = [
   'react-native-svg/*',
 ]
 const entries = [
-  measured('Legacy Plot POC host core', 'benchmarks/entries/core.ts', {
-    inputBoundary: { forbid: ['d3GeometryRuntime'] },
-  }),
   budgeted(
     'Granular data transform suite',
     'benchmarks/entries/charts-transform-suite.ts',
@@ -2161,10 +2158,6 @@ const entries = [
     58.117,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
-  measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
-  measured('Stateful Plot renderer', 'benchmarks/entries/stateful-plot.ts'),
-  measured('React host', 'benchmarks/entries/react-host.ts'),
-  measured('React + Plot adapter', 'benchmarks/entries/react-observable.ts'),
   measured('Plot minimal line', 'benchmarks/entries/minimal-line.ts'),
   measured(
     'Plot representative marks',

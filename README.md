@@ -166,11 +166,6 @@ verification. Those internal boundaries are assembled into the published
 `@tanstack/charts` package. Existing package names remain published for
 compatibility, but new applications do not need them.
 
-The earlier host experiment remains under `@plot-poc/*` for migration evidence
-and benchmark comparison. The private
-[`@tanstack/charts-d3`](./packages/charts-core-d3) package preserves a
-superseded backend experiment.
-
 ## Core model
 
 TanStack Charts deliberately splits ownership:
@@ -338,7 +333,6 @@ The repository includes three complementary benchmark suites:
 
 ```sh
 pnpm bundle:check
-pnpm performance
 pnpm performance:pointer
 pnpm benchmark:check
 pnpm benchmark:stress:quick

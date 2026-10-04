@@ -19,24 +19,12 @@ importers:
       '@observablehq/sample-datasets':
         specifier: 1.0.1
         version: 1.0.1
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:packages/core
-      '@plot-poc/observable':
-        specifier: workspace:*
-        version: link:packages/plot
-      '@plot-poc/react-host':
-        specifier: workspace:*
-        version: link:packages/react
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.1.2
         version: 7.2.0(svelte@5.56.8)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0))
       '@tanstack/charts':
         specifier: workspace:*
         version: link:packages/charts-core
-      '@tanstack/charts-d3':
-        specifier: workspace:*
-        version: link:packages/charts-core-d3
       '@tanstack/charts-data':
         specifier: workspace:*
         version: link:packages/charts-demo-data
@@ -665,34 +653,6 @@ importers:
         specifier: ^3.0.8
         version: 3.0.8
 
-  packages/charts-core-d3:
-    dependencies:
-      d3-array:
-        specifier: 3.2.4
-        version: 3.2.4
-      d3-format:
-        specifier: 3.1.2
-        version: 3.1.2
-      d3-scale:
-        specifier: 4.0.2
-        version: 4.0.2
-      d3-shape:
-        specifier: 3.2.0
-        version: 3.2.0
-    devDependencies:
-      '@types/d3-array':
-        specifier: ^3.2.2
-        version: 3.2.2
-      '@types/d3-format':
-        specifier: ^3.0.4
-        version: 3.0.4
-      '@types/d3-scale':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/d3-shape':
-        specifier: ^3.1.8
-        version: 3.1.8
-
   packages/charts-demo-data: {}
 
   packages/charts-fixtures:
@@ -738,20 +698,6 @@ importers:
         specifier: 4.0.2
         version: 4.0.2
 
-  packages/core: {}
-
-  packages/fixtures:
-    dependencies:
-      '@observablehq/plot':
-        specifier: 0.6.17
-        version: 0.6.17
-      '@plot-poc/observable':
-        specifier: workspace:*
-        version: link:../plot
-      '@tanstack/charts-data':
-        specifier: workspace:*
-        version: link:../charts-demo-data
-
   packages/lit-charts:
     dependencies:
       '@tanstack/charts':
@@ -778,15 +724,6 @@ importers:
         specifier: 4.0.2
         version: 4.0.2
 
-  packages/plot:
-    dependencies:
-      '@observablehq/plot':
-        specifier: ^0.6.17
-        version: 0.6.17
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:../core
-
   packages/preact-charts:
     dependencies:
       '@tanstack/charts':
@@ -799,18 +736,6 @@ importers:
       preact-render-to-string:
         specifier: ^6.6.6
         version: 6.7.0(preact@10.29.7)
-
-  packages/react:
-    dependencies:
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:../core
-      '@plot-poc/observable':
-        specifier: workspace:*
-        version: link:../plot
-      react:
-        specifier: ^19.0.0
-        version: 19.2.3
 
   packages/react-18-compat:
     dependencies:
