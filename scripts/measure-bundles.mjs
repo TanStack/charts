@@ -2246,8 +2246,6 @@ for (const row of entryRows) {
 }
 
 for (const [label, directory] of [
-  ['React proof application', 'examples/react/dist/assets'],
-  ['Octane proof application', 'examples/octane/dist/assets'],
   ['Dynamic sandbox application', 'examples/sandbox/dist/assets'],
   ['React TanStack proof application', 'examples/charts-react/dist/assets'],
   ['Octane TanStack proof application', 'examples/charts-octane/dist/assets'],

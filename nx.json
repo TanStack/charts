@@ -131,7 +131,6 @@
       "{workspaceRoot}/vitest.octane*.config.ts",
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/core/**/*",
-      "{workspaceRoot}/packages/octane/**/*",
       "{workspaceRoot}/packages/octane-charts/**/*",
       "{workspaceRoot}/packages/plot/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",

@@ -25,9 +25,6 @@ importers:
       '@plot-poc/observable':
         specifier: workspace:*
         version: link:packages/plot
-      '@plot-poc/octane-host':
-        specifier: workspace:*
-        version: link:packages/octane
       '@plot-poc/react-host':
         specifier: workspace:*
         version: link:packages/react
@@ -463,50 +460,6 @@ importers:
         specifier: ^8.0.16
         version: 8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0)
 
-  examples/octane:
-    dependencies:
-      '@plot-poc/fixtures':
-        specifier: workspace:*
-        version: link:../../packages/fixtures
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@plot-poc/octane-host':
-        specifier: workspace:*
-        version: link:../../packages/octane
-      octane:
-        specifier: 0.1.13
-        version: 0.1.13(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0))
-    devDependencies:
-      vite:
-        specifier: ^8.0.16
-        version: 8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0)
-
-  examples/react:
-    dependencies:
-      '@plot-poc/fixtures':
-        specifier: workspace:*
-        version: link:../../packages/fixtures
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@plot-poc/react-host':
-        specifier: workspace:*
-        version: link:../../packages/react
-      react:
-        specifier: 19.2.3
-        version: 19.2.3
-      react-dom:
-        specifier: 19.2.3
-        version: 19.2.3(react@19.2.3)
-    devDependencies:
-      '@vitejs/plugin-react':
-        specifier: ^6.0.1
-        version: 6.0.4(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0))
-      vite:
-        specifier: ^8.0.16
-        version: 8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0)
-
   examples/sandbox:
     dependencies:
       '@tanstack/charts':
@@ -808,18 +761,6 @@ importers:
       lit:
         specifier: ^3.3.3
         version: 3.3.3
-
-  packages/octane:
-    dependencies:
-      '@plot-poc/host-core':
-        specifier: workspace:*
-        version: link:../core
-      '@plot-poc/observable':
-        specifier: workspace:*
-        version: link:../plot
-      octane:
-        specifier: ^0.1.13
-        version: 0.1.13(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0))
 
   packages/octane-charts:
     dependencies:
