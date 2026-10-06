@@ -126,6 +126,14 @@ function createTooltipExtension<
       resolvedContent,
       nextContext.pinned,
     )
+    if (custom) {
+      Object.assign(tooltipElement.style, {
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
+        padding: '0',
+      })
+    }
     if (!custom) {
       if (typeof resolvedContent === 'string') {
         paintPlainTooltip(tooltipElement, resolvedContent)
