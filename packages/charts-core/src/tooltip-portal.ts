@@ -99,6 +99,16 @@ function createPortal(
       element.dataset.tsChartTooltipPortal = 'popover'
       element.style.zIndex = '1'
       usesPopover = true
+      if (
+        document?.head &&
+        !document.querySelector('style[data-ts-chart-portal-style]')
+      ) {
+        const style = document.createElement('style')
+        style.setAttribute('data-ts-chart-portal-style', '')
+        style.textContent =
+          '[data-ts-chart-tooltip-portal="popover"]::backdrop { display: none !important; }'
+        document.head.append(style)
+      }
     } else {
       moveToFallback()
     }
@@ -107,6 +117,10 @@ function createPortal(
       right: 'auto',
       bottom: 'auto',
       margin: '0',
+      border: 'none',
+      background: 'transparent',
+      outline: 'none',
+      padding: '0',
     })
   }
 
