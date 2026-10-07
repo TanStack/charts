@@ -36,6 +36,36 @@ describe('createInteractionAxis', () => {
     expect(axis.order(3, 1)).toEqual([1, 3])
   })
 
+  it('snaps to the nearest value like a linear search, preferring the lower index on ties', () => {
+    // Unevenly spaced, so that some probes fall exactly between two values.
+    const values = [0, 1, 3, 6, 10, 15, 21]
+    for (const reverse of [false, true]) {
+      const axis = createInteractionAxis({
+        axis: 'x',
+        scale: scale((value) => (reverse ? -Number(value) : Number(value))),
+        extent: [-30, 30],
+        sample: values[0]!,
+        values,
+      })
+      const positions = axis.positions!
+      for (let position = -25; position <= 25; position += 0.5) {
+        const bounded = axis.clampPosition(position)
+        let expected = 0
+        for (const [index, candidate] of positions.entries()) {
+          if (
+            Math.abs(candidate - bounded) <
+            Math.abs(positions[expected]! - bounded)
+          ) {
+            expected = index
+          }
+        }
+        expect(axis.valueAt(position)).toBe(values[expected])
+      }
+      expect(axis.indexOf(15)).toBe(5)
+      expect(axis.indexOf(2)).toBe(-1)
+    }
+  })
+
   it('clamps and inverts continuous dates using fresh Date values', () => {
     const start = new Date(Date.UTC(2024, 0, 1))
     const axis = createInteractionAxis({

@@ -41,7 +41,7 @@ export function createInteractionAxis<TValue extends ChartValue>(
   }
   const extent = [minimum, maximum] as const
   const values = options.values?.map(cloneValue)
-  const keys = values?.map(valueKey)
+  let indexByKey: Map<string, number> | undefined
   let positions: readonly number[] | undefined
 
   if (values) {
@@ -51,7 +51,7 @@ export function createInteractionAxis<TValue extends ChartValue>(
       )
     }
     const expectedKind = valueKind(sample)
-    const unique = new Set<string>()
+    const indices = new Map<string, number>()
     positions = values.map((value, index) => {
       assertValue(value, `The ${axis}-axis interaction value at index ${index}`)
       if (valueKind(value) !== expectedKind) {
@@ -59,16 +59,17 @@ export function createInteractionAxis<TValue extends ChartValue>(
           `The ${axis}-axis interaction values must use one value type`,
         )
       }
-      const key = keys![index]!
-      if (unique.has(key)) {
+      const key = valueKey(value)
+      if (indices.has(key)) {
         throw new TypeError(
           `The ${axis}-axis interaction values must be unique`,
         )
       }
-      unique.add(key)
+      indices.set(key, index)
       return mappedPosition(scale, value, axis)
     })
     assertMonotonePositions(positions, axis)
+    indexByKey = indices
   } else {
     const kind = valueKind(sample)
     if (kind === 'string') {
@@ -85,7 +86,7 @@ export function createInteractionAxis<TValue extends ChartValue>(
 
   const clampPosition = (position: number) =>
     Math.max(minimum, Math.min(maximum, position))
-  const indexOf = (value: TValue) => keys?.indexOf(valueKey(value)) ?? -1
+  const indexOf = (value: TValue) => indexByKey?.get(valueKey(value)) ?? -1
   const at = (index: number) => {
     if (!values?.length) {
       throw new TypeError(
@@ -128,16 +129,7 @@ export function createInteractionAxis<TValue extends ChartValue>(
     valueAt(position) {
       const bounded = clampPosition(position)
       if (values && positions) {
-        let nearestIndex = 0
-        let nearestDistance = Number.POSITIVE_INFINITY
-        positions.forEach((candidate, index) => {
-          const distance = Math.abs(candidate - bounded)
-          if (distance < nearestDistance) {
-            nearestIndex = index
-            nearestDistance = distance
-          }
-        })
-        return cloneValue(values[nearestIndex]!)
+        return cloneValue(values[nearestIndex(positions, bounded)]!)
       }
       return invert(bounded)
     },
@@ -172,6 +164,27 @@ export function createInteractionAxis<TValue extends ChartValue>(
     clampPosition,
     layoutKey: valueKey,
   }
+}
+
+/**
+ * Finds the position nearest to `position` by binary search over strictly
+ * monotone positions, preferring the lower index on a tie.
+ */
+function nearestIndex(positions: readonly number[], position: number): number {
+  const direction = Math.sign(positions.at(-1)! - positions[0]!)
+  let low = 0
+  let high = positions.length
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2)
+    if ((positions[middle]! - position) * direction < 0) low = middle + 1
+    else high = middle
+  }
+  if (low === 0) return 0
+  if (low === positions.length) return low - 1
+  return Math.abs(positions[low]! - position) <
+    Math.abs(positions[low - 1]! - position)
+    ? low
+    : low - 1
 }
 
 function assertMonotonePositions(
