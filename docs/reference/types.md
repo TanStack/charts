@@ -481,8 +481,8 @@ their behavior:
   and
   [Interactive categorical legend](./scales-guides-and-color.md#interactive-categorical-legend).
 - `@tanstack/charts/interaction/brush`: `BrushRange`, `BrushXChange`,
-  `BrushXSource`, `BrushXTarget`, `BrushXValuesOptions`, and
-  `BrushXContinuousOptions`. See
+  `BrushXFormatContext`, `BrushXSource`, `BrushXTarget`,
+  `BrushXValuesOptions`, and `BrushXContinuousOptions`. See
   [Horizontal brush](./focus-and-interaction.md#horizontal-brush).
 - `@tanstack/charts/interaction/cursor`: `ContinuousCursorValue`,
   `ContinuousCursorPosition`, `ContinuousCursorPointerSource`,

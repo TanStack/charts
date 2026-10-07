@@ -268,6 +268,45 @@ describe('brushX', () => {
     container.remove()
   })
 
+  it('tells format which handle it is labeling', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [dot(rows, { x: 'date', y: 'value' })],
+        scales: {
+          x: { scale: scaleUtc().domain(dates) },
+          y: { scale: scaleLinear },
+        },
+        controls: [
+          brushX({
+            id: 'window',
+            range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+              range(dates[0], dates[2]),
+              () => {},
+            ),
+            values: dates,
+            format: (date, { handle }) =>
+              `${handle} ${date.toISOString().slice(0, 7)}`,
+          }),
+        ],
+      }),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Date range',
+    })
+    const valueText = (handle: string) =>
+      container
+        .querySelector(`[data-chart-brush-handle="${handle}"]`)
+        ?.getAttribute('aria-valuetext')
+
+    expect(valueText('start')).toBe('start 2024-01')
+    expect(valueText('end')).toBe('end 2024-03')
+
+    host.destroy()
+    container.remove()
+  })
+
   it('rejects duplicate and nonmonotone authored values at scene resolution', () => {
     const value = range(dates[0], dates[2])
     expect(() =>
