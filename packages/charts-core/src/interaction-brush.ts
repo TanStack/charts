@@ -48,13 +48,18 @@ interface BrushXChangeEvent<
   readonly target: BrushXTarget
 }
 
+export interface BrushXFormatContext {
+  /** The handle whose value is being formatted. */
+  readonly handle: 'start' | 'end'
+}
+
 interface BrushXBaseOptions<TValue extends ChartValue> {
   id?: string
   range: ControlledSignal<BrushRange<TValue>, BrushXChange<TValue>>
   ariaLabel?: string
   startAriaLabel?: string
   endAriaLabel?: string
-  format?: (value: TValue) => string
+  format?: (value: TValue, context: BrushXFormatContext) => string
   handleSize?: number
   selectionStyle?: SceneStyle
   handleStyle?: SceneStyle
@@ -86,7 +91,7 @@ interface BrushXControl<TValue extends ChartValue> extends ChartHostControl {
   readonly ariaLabel: string
   readonly startAriaLabel: string
   readonly endAriaLabel: string
-  readonly format: (value: TValue) => string
+  readonly format: (value: TValue, context: BrushXFormatContext) => string
   readonly handleSize: number
   readonly selectionStyle: SceneStyle
   readonly handleStyle: SceneStyle
@@ -568,7 +573,10 @@ function createBrushXControl({
       ),
     )
     element.setAttribute('aria-valuenow', String(index))
-    element.setAttribute('aria-valuetext', control.format(value))
+    element.setAttribute(
+      'aria-valuetext',
+      control.format(value, { handle: handleTarget }),
+    )
     element.setAttribute(
       'aria-keyshortcuts',
       'ArrowLeft ArrowRight ArrowUp ArrowDown Home End',
