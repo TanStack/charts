@@ -100,7 +100,7 @@ describe('createInteractionAxis', () => {
   })
 
   it('snaps every position to a singleton candidate', () => {
-    const axis = createInteractionAxis({
+    const axis = createInteractionAxis<number>({
       axis: 'x',
       scale: scale(Number),
       extent: [0, 100],
