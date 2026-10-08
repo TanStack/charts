@@ -268,6 +268,130 @@ describe('brushX', () => {
     container.remove()
   })
 
+  it('tells format which handle it is labeling', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [dot(rows, { x: 'date', y: 'value' })],
+        scales: {
+          x: { scale: scaleUtc().domain(dates) },
+          y: { scale: scaleLinear },
+        },
+        controls: [
+          brushX({
+            id: 'window',
+            range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+              range(dates[0], dates[2]),
+              () => {},
+            ),
+            values: dates,
+            format: (date, { handle }) =>
+              `${handle} ${date.toISOString().slice(0, 7)}`,
+          }),
+        ],
+      }),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Date range',
+    })
+    const valueText = (handle: string) =>
+      container
+        .querySelector(`[data-chart-brush-handle="${handle}"]`)
+        ?.getAttribute('aria-valuetext')
+
+    expect(valueText('start')).toBe('start 2024-01')
+    expect(valueText('end')).toBe('end 2024-03')
+
+    host.destroy()
+    container.remove()
+  })
+
+  it('keeps the number of values when dragging the selection to an edge', () => {
+    const brush = mountDailyBrush(range(days[1]!, days[3]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() - 1000)
+    expect(brush.commits.at(-1)).toEqual(range(days[0]!, days[2]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() + 1000)
+    expect(brush.commits.at(-1)).toEqual(range(days[2]!, days[4]!))
+
+    brush.destroy()
+  })
+
+  it('cancels a selection drag when an origin endpoint is removed', () => {
+    const brush = mountDailyBrush(range(days[1]!, days[3]!))
+    const center = brush.center()
+    const mouse = (type: string, clientX = center) => {
+      const event = new MouseEvent(type, {
+        bubbles: true,
+        clientX,
+        clientY: 100,
+      })
+      Object.defineProperty(event, 'view', { value: window })
+      return event
+    }
+    brush.selection().dispatchEvent(mouse('mousedown'))
+    window.dispatchEvent(mouse('mousemove', center + 1000))
+    const removed = vi.spyOn(window, 'removeEventListener')
+    brush.setCandidates(days.filter((_, index) => index !== 1))
+    expect(removed.mock.calls.map(([type]) => type)).toEqual(
+      expect.arrayContaining(['mousemove', 'mouseup']),
+    )
+    window.dispatchEvent(mouse('mousemove', center + 1000))
+    window.dispatchEvent(mouse('mouseup', center + 1000))
+    expect(brush.commits).toEqual([])
+    brush.destroy()
+    removed.mockRestore()
+  })
+
+  it.each([false, true])(
+    'does not jump an uneven gap during a small drag (reverse: %s)',
+    (reverse) => {
+      const container = document.createElement('div')
+      document.body.append(container)
+      const values = [0, 1, 100, 101, 102]
+      let value: BrushRange<number> = { start: 1, end: 100 }
+      const changes: BrushRange<number>[] = []
+      const options = () => ({
+        definition: defineChart({
+          marks: [dot(values, { x: (x) => x, y: () => 1 })],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 102]), reverse },
+            y: { scale: scaleLinear },
+          },
+          controls: [
+            brushX({
+              id: 'window',
+              values,
+              range: controlledSignal<BrushRange<number>, BrushXChange<number>>(
+                value,
+                (next) => {
+                  value = next
+                  changes.push(next)
+                  host.update(options())
+                },
+              ),
+            }),
+          ],
+        }),
+        width: 480,
+        height: 240,
+        ariaLabel: 'Uneven brush',
+      })
+      const host = mountChart(container, options())
+      const selection = container.querySelector<SVGRectElement>('.selection')!
+      const center =
+        Number(selection.getAttribute('x')) +
+        Number(selection.getAttribute('width')) / 2
+      const scale = host.getScene().scales.x!
+      dragMouse(selection, center, center + scale.map(1.6) - scale.map(1))
+      expect(changes.at(-1)).toEqual({ start: 1, end: 100 })
+      host.destroy()
+      container.remove()
+    },
+  )
+
   it('rejects duplicate and nonmonotone authored values at scene resolution', () => {
     const value = range(dates[0], dates[2])
     expect(() =>
@@ -340,6 +464,76 @@ function definition(
   })
 }
 
+const days = Array.from(
+  { length: 5 },
+  (_, index) => new Date(Date.UTC(2024, 0, 1 + index)),
+)
+
+function mountDailyBrush(initial: BrushRange<Date>) {
+  const halfDay = 43_200_000
+  const container = document.createElement('div')
+  document.body.append(container)
+  let value = initial
+  let candidates = days
+  const commits: BrushRange<Date>[] = []
+  const options = () => ({
+    definition: defineChart({
+      marks: [
+        dot(
+          days.map((date, index) => ({ date, value: index })),
+          { x: 'date', y: 'value' },
+        ),
+      ],
+      scales: {
+        x: {
+          scale: scaleUtc().domain([
+            new Date(days[0]!.getTime() - halfDay),
+            new Date(days[4]!.getTime() + halfDay),
+          ]),
+        },
+        y: { scale: scaleLinear },
+      },
+      controls: [
+        brushX({
+          id: 'window',
+          range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+            value,
+            (next, { reason }) => {
+              value = next
+              if (reason.type === 'commit') commits.push(next)
+              host.update(options())
+            },
+          ),
+          values: candidates,
+        }),
+      ],
+    }),
+    width: 480,
+    height: 240,
+    ariaLabel: 'Daily range',
+  })
+  const host = mountChart(container, options())
+  const selection = () =>
+    container.querySelector<SVGRectElement>(
+      '[data-chart-brush="window"] .selection',
+    )!
+  return {
+    commits,
+    selection,
+    setCandidates(next: Date[]) {
+      candidates = next
+      host.update(options())
+    },
+    center: () =>
+      Number(selection().getAttribute('x')) +
+      Number(selection().getAttribute('width')) / 2,
+    destroy() {
+      host.destroy()
+      container.remove()
+    },
+  }
+}
+
 function range(start: Date, end: Date): BrushRange<Date> {
   return { start, end }
 }
@@ -355,6 +549,22 @@ function beginMouseBrush(container: HTMLElement) {
   })
   Object.defineProperty(event, 'view', { value: window })
   overlay.dispatchEvent(event)
+}
+
+function dragMouse(target: Element, fromX: number, toX: number) {
+  const mouse = (type: string, clientX: number) => {
+    const event = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      clientY: 100,
+    })
+    Object.defineProperty(event, 'view', { value: window })
+    return event
+  }
+  target.dispatchEvent(mouse('mousedown', fromX))
+  window.dispatchEvent(mouse('mousemove', toX))
+  window.dispatchEvent(mouse('mouseup', toX))
 }
 
 interface TestTouch {

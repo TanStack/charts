@@ -6,6 +6,42 @@ runtime. Nothing in this pass has been pushed, merged, published, or deployed.
 
 ## Implemented compatible changes
 
+### Expanded batch checkpoint
+
+This checkpoint supersedes the earlier prototype and validation status below.
+The expanded batch is not release-ready. No external writes were made.
+
+| Report         | Local implementation                                                   | Maximum additional gzip cost |
+| -------------- | ---------------------------------------------------------------------- | ---------------------------: |
+| #177           | Approved scale fix, commit `c76566f1`                                  |           0.002 kB, approved |
+| #178           | Stable callbacks, with changed-data and group-membership regressions   |   0.125 kB, pending approval |
+| PR #171        | Key map and binary search, reverse, tie, singleton and Date coverage   |   0.048 kB, pending approval |
+| PR #172        | Compatible handle context for accessible formatters                    |   0.006 kB, pending approval |
+| #170 / PR #173 | Preserve count, avoid uneven-gap jumps, cancel removed-origin gestures |   0.293 kB, pending approval |
+| #168 / PR #169 | Custom card ownership and default-style restoration                    |   0.096 kB, pending approval |
+
+Costs were measured separately with equivalent production builds, not offset
+against reductions elsewhere. Only #177's ceiling adjustments and universal
+baseline changes are approved. Other limits remain unchanged.
+
+For 120,000 candidates, seven repeated runs measured a median 306.20 ms for
+1,000 lookup pairs in 1.0 and 0.30 ms with PR #171. Initialization medians were
+22.81 ms and 20.32 ms. This is focused evidence, not a whole-chart performance
+claim. The brush center search is logarithmic, not a scan per pointer event.
+
+All unit-test targets passed, including 2,202 default tests before three
+additional interaction regressions. Root TypeScript and all four maintained
+web example builds passed. Full validation, browser verification, and final
+preview regeneration remain pending. The comparison baseline refresh is now
+authorized, but needs rerunning after source is stable and numeric changes
+are approved. Its current working copy is not final provenance.
+
+#174, #179, #180's tick styling, #181, and #182 still need implementation or
+verification. They have not been silently moved to v2. The v2-only default
+changes listed below remain excluded.
+
+### Earlier pass
+
 - #176: React public entries and implementations declare `use client`.
   Seven compilation regressions fail on the base and pass with the directives.
   The existing packed-package gate checks every React import entry, including

@@ -54,6 +54,103 @@ const definition = defineChart({
 })
 
 describe('renderer-neutral chart host', () => {
+  it('allows a focus callback to rebuild a definition without a feedback loop', () => {
+    const fake = createFakeRenderer()
+    const onFocusChange = vi.fn(() => {
+      if (onFocusChange.mock.calls.length > 3) throw new Error('Focus loop')
+      host.update(options())
+    })
+    const options = () => ({
+      definition: defineChart(definition, {}),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Reentrant focus',
+      onFocusChange,
+    })
+    const host = mountChartRenderer(document.createElement('div'), options())
+    host.interaction.setControlledFocus(host.getScene().points[0]!)
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    host.destroy()
+  })
+
+  it('notifies changed group members without repeating unchanged primary focus', () => {
+    const fake = createFakeRenderer()
+    const first = { id: 'first', x: 0, y: 4 }
+    let rows = [first]
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const options = () => ({
+      definition: defineChart({
+        ...definition,
+        focus: 'group-x' as const,
+        marks: rows.map((row) =>
+          lineY([row], { id: row.id, x: 'x', y: 'y', z: 'id', key: 'id' }),
+        ),
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Changing group',
+      onFocusChange,
+      onFocusGroupChange,
+    })
+    const host = mountChartRenderer(document.createElement('div'), options())
+    host.interaction.setControlledFocus(host.getScene().points[0]!)
+    rows = [first, { id: 'second', x: 0, y: 8 }]
+    host.update(options())
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    expect(onFocusGroupChange).toHaveBeenCalledTimes(2)
+    expect(onFocusGroupChange.mock.calls.at(-1)?.[0]).toHaveLength(2)
+    rows = [{ ...first, y: 5 }, rows[1]!]
+    host.update(options())
+    expect(onFocusChange).toHaveBeenCalledTimes(2)
+    expect(onFocusGroupChange).toHaveBeenCalledTimes(3)
+    host.destroy()
+  })
+
+  it.each([false, true])(
+    'does not notify unchanged focus on scene rebuilds (cursor: %s)',
+    (cursor) => {
+      const fake = createFakeRenderer()
+      const onFocusChange = vi.fn()
+      const onFocusGroupChange = vi.fn()
+      const cursorOptions = {
+        cursor: cursor
+          ? {
+              use: cursorHost,
+              mode: 'focus' as const,
+              match: 'x' as const,
+              controller: createChartCursor<number, number>(),
+            }
+          : undefined,
+      }
+      const options = () => ({
+        definition: defineChart(definition, cursorOptions),
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Stable focus',
+        onFocusChange,
+        onFocusGroupChange,
+      })
+      const host = mountChartRenderer(document.createElement('div'), options())
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      expect(onFocusChange).toHaveBeenCalledOnce()
+      expect(onFocusGroupChange).toHaveBeenCalledOnce()
+      for (let index = 0; index < 3; index++) host.update(options())
+      expect(onFocusChange).toHaveBeenCalledOnce()
+      expect(onFocusGroupChange).toHaveBeenCalledOnce()
+      expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary).toBe(
+        host.getScene().points[0],
+      )
+      host.interaction.setControlledFocus(null)
+      expect(onFocusChange).toHaveBeenLastCalledWith(null)
+      expect(onFocusGroupChange).toHaveBeenLastCalledWith([])
+      host.destroy()
+    },
+  )
+
   it.each([false, true])(
     'requires explicit independent-state-focus support from a custom renderer (%s)',
     (supported) => {
@@ -1557,6 +1654,49 @@ describe('renderer-neutral chart host', () => {
     expect(tooltipContent).toMatchObject({
       rows: [{ value: '1 · 8' }, { value: '0 · 4' }],
     })
+    host.destroy()
+  })
+
+  it('lets custom tooltip bodies own their card styles and restores default styles', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const options = {
+      definition: defineChart(definition, { tooltip: tooltipExtension }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Tooltip card ownership',
+    }
+    const host = mountChartRenderer(container, options)
+    const focus = () =>
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+    focus()
+    const element = container.querySelector<HTMLElement>('.ts-chart-tooltip')!
+    const defaultStyles = [
+      'background',
+      'border',
+      'padding',
+      'boxShadow',
+      'borderRadius',
+      'maxWidth',
+      'font',
+      'color',
+    ] as const
+    const original = defaultStyles.map((key) => element.style[key])
+    host.update({
+      ...options,
+      onTooltipBodyChange(target) {
+        if (target) target.element.textContent = 'My own tooltip card'
+      },
+    })
+    focus()
+    expect(element.style.background).toBe('transparent')
+    expect(element.style.padding).toBe('0px')
+    expect(element.style.boxShadow).toBe('none')
+    expect(element.style.borderRadius).toBe('0px')
+    host.update(options)
+    focus()
+    expect(defaultStyles.map((key) => element.style[key])).toEqual(original)
     host.destroy()
   })
 

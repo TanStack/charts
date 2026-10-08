@@ -133,6 +133,7 @@ export function mountChartRenderer<
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
+  let notifiedPoints: readonly ChartPoint<TDatum, TXValue, TYValue>[] = []
   let focusSource: ChartFocusSource = 'pointer'
   let emphasisFocus: ChartFocusState<TDatum, TXValue, TYValue> | undefined
   let focusOwner: FocusOwner | null = null
@@ -244,8 +245,7 @@ export function mountChartRenderer<
       focusOwner = null
       paintFocus(null, [])
       if (previousFocusedPoint) {
-        options.onFocusChange?.(null)
-        options.onFocusGroupChange?.([])
+        notifyFocus(null, [])
       }
     } else {
       cursorPresentation = null
@@ -278,8 +278,7 @@ export function mountChartRenderer<
       ) {
         if (!trackedPointer) focusSource = 'restored'
         paintFocus(nextFocusedPoint, nextFocusedPoints)
-        options.onFocusChange?.(nextFocusedPoint)
-        options.onFocusGroupChange?.(nextFocusedPoints)
+        notifyFocus(nextFocusedPoint, nextFocusedPoints)
       }
     }
     const onRender = options.onRender
@@ -478,8 +477,7 @@ export function mountChartRenderer<
         !sameChartPointIdentity(previous, point) ||
         (notifyRestored && (previous !== null || point !== null))
       ) {
-        options.onFocusChange?.(point)
-        options.onFocusGroupChange?.(points)
+        notifyFocus(point, points)
       }
       return
     }
@@ -488,8 +486,7 @@ export function mountChartRenderer<
     focusedPoint = null
     paintFocus(null, [])
     if (previous) {
-      options.onFocusChange?.(null)
-      options.onFocusGroupChange?.([])
+      notifyFocus(null, [])
     }
   }
 
@@ -530,8 +527,29 @@ export function mountChartRenderer<
     }
     focusedPoint = point
     paintFocus(point, points)
-    options.onFocusChange?.(point)
-    options.onFocusGroupChange?.(points)
+    notifyFocus(point, points)
+  }
+
+  const notifyFocus = (
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => {
+    const previous = notifiedPoints
+    let groupChanged = previous.length !== points.length
+    if (options.onFocusGroupChange && !groupChanged) {
+      for (let index = 0; index < points.length; index++) {
+        if (!sameFocusObservation(previous[index]!, points[index]!)) {
+          groupChanged = true
+          break
+        }
+      }
+    }
+    // Store the observation before callbacks, which can synchronously update us.
+    notifiedPoints = points
+    if (!sameFocusObservation(previous[0] ?? null, point)) {
+      options.onFocusChange?.(point)
+    }
+    if (groupChanged) options.onFocusGroupChange?.(points)
   }
 
   const dismissTooltip = () => {
@@ -1353,6 +1371,20 @@ function resolveTooltipInput<
 
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function sameFocusObservation<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  first: ChartPoint<TDatum, TXValue, TYValue> | null,
+  second: ChartPoint<TDatum, TXValue, TYValue> | null,
+) {
+  return (
+    sameChartPointIdentity(first, second) &&
+    Object.is(first?.datum, second?.datum)
+  )
 }
 
 function cssPixelLength(value: string | undefined) {

@@ -70,6 +70,7 @@ function createTooltipExtension<
   let activeBodyChange:
     ReturnType<typeof extensionContext.bodyChange> | undefined
   let bodyVisible = false
+  let customBody = false
   let bodyScene: ChartScene<TDatum, TXValue, TYValue> | undefined
   let bodyPoints: readonly ChartPoint<TDatum, TXValue, TYValue>[] = []
   let bodyPinned = false
@@ -126,6 +127,13 @@ function createTooltipExtension<
       resolvedContent,
       nextContext.pinned,
     )
+    if (custom !== customBody) {
+      Object.assign(
+        tooltipElement.style,
+        custom ? customTooltipCardStyle : tooltipCardStyle,
+      )
+      customBody = custom
+    }
     if (!custom) {
       if (typeof resolvedContent === 'string') {
         paintPlainTooltip(tooltipElement, resolvedContent)
@@ -380,6 +388,29 @@ function samePointList(
   )
 }
 
+const customTooltipCardStyle = {
+  maxWidth: 'none',
+  padding: '0',
+  border: 'none',
+  borderRadius: '0',
+  background: 'transparent',
+  color: 'inherit',
+  boxShadow: 'none',
+  font: 'inherit',
+}
+
+const tooltipCardStyle = {
+  maxWidth: 'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+  padding: 'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+  border:
+    'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+  borderRadius: 'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+  background: 'var(--ts-chart-tooltip-background, Canvas)',
+  color: 'var(--ts-chart-tooltip-color, CanvasText)',
+  boxShadow: 'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+  font: 'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
+}
+
 function createTooltip(document: Document) {
   const tooltipElement = document.createElement('div')
   tooltipElement.className = 'ts-chart-tooltip'
@@ -388,15 +419,7 @@ function createTooltip(document: Document) {
   Object.assign(tooltipElement.style, {
     position: 'absolute',
     zIndex: '1',
-    maxWidth: 'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
-    padding: 'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
-    border:
-      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
-    borderRadius: 'var(--ts-chart-tooltip-border-radius, 0.45rem)',
-    background: 'var(--ts-chart-tooltip-background, Canvas)',
-    color: 'var(--ts-chart-tooltip-color, CanvasText)',
-    boxShadow: 'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
-    font: 'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
+    ...tooltipCardStyle,
     pointerEvents: 'none',
     overflowWrap: 'anywhere',
   })

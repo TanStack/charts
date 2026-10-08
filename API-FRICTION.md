@@ -345,7 +345,7 @@ Each entry records:
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
 | F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
 | F-308 | Raster format documentation omitted browser encoder fallback   | Documentation         | resolved   |
-| F-309 | Immutable range setters lost their returned scale              | API                   | open       |
+| F-309 | Immutable range setters lost their returned scale              | API                   | resolved   |
 | F-310 | React client boundaries and migration options were unclear     | Documentation/Tooling | resolved   |
 
 ## Findings
@@ -9204,7 +9204,7 @@ Each entry records:
 
 ### F-309 - Immutable range setters lost their returned scale
 
-- Status: open
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: reproducing GitHub issue #177 against 1.0 runtime code
@@ -9213,13 +9213,13 @@ Each entry records:
   and tick positions in the original unit range.
 - Decision: retain the returned scale, without changing domain inference or
   the independently mutable domain requirement for semantic viewports. The
-  local prototype is saved on `taren/post-1.0-scale-range`, commit `27c93088`.
-  Do not ship it while the unchanged bundle gate fails.
+  fix is included in `taren/post-1.0-fixes`, commit `c76566f1`, after the
+  user approved its measured size exception.
 - Verification: the new regression fails before the fix and passes afterward
   for two responsive widths, mapping, inversion, tick positions, and source
   immutability. All 30 configured-scale tests and root TypeScript pass. The
   minimal fix adds 0.002 kB minified to affected consumer bundles; gzip deltas
-  range from -0.001 to +0.002 kB. Reviewed budget authority is still needed.
+  range from -0.001 to +0.002 kB. The user approved that exception on October 8.
 
 ### F-310 - React client boundaries and migration defaults were hard to find
 
