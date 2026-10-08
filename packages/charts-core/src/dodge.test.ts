@@ -3,12 +3,56 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { createDotLayout, dodgeX, dodgeY } from './dodge'
 import type { DotLayoutResolveContext } from './dodge'
 import { dodgeOffsets } from './dodge-internal'
+import { resolveDotLayout } from './dot-layout'
 import { dot } from './dot'
 import { facet } from './facet'
 import { createChartScene, defineChart } from './scene'
 import type { SceneDot, SceneNode } from './types'
 
 describe('dot dodge layouts', () => {
+  it('compresses crowded layouts inside every anchored plot edge', () => {
+    const context = {
+      chart: { x: 10, y: 20, width: 30, height: 30 },
+      measuredPositions: Array(20).fill(50),
+      radii: Array.from({ length: 20 }, (_, i) => 2 + (i % 4)),
+    }
+    for (const anchor of ['top', 'middle', 'bottom'] as const) {
+      const positions = dodgeY({ anchor, fit: 'compress' })[resolveDotLayout](
+        context,
+      )
+      positions.forEach((position, i) => {
+        expect(position - context.radii[i]!).toBeGreaterThanOrEqual(20)
+        expect(position + context.radii[i]!).toBeLessThanOrEqual(50)
+      })
+    }
+    for (const anchor of ['left', 'middle', 'right'] as const) {
+      const positions = dodgeX({ anchor, fit: 'compress' })[resolveDotLayout](
+        context,
+      )
+      positions.forEach((position, i) => {
+        expect(position - context.radii[i]!).toBeGreaterThanOrEqual(10)
+        expect(position + context.radii[i]!).toBeLessThanOrEqual(40)
+      })
+    }
+    const roomy = { ...context, chart: { ...context.chart, height: 1000 } }
+    expect(dodgeY({ fit: 'compress' })[resolveDotLayout](roomy)).toEqual(
+      dodgeY()[resolveDotLayout](roomy),
+    )
+    expect(
+      dodgeY({ fit: 'compress' })[resolveDotLayout]({
+        ...context,
+        measuredPositions: [],
+        radii: [],
+      }),
+    ).toEqual([])
+    expect(() =>
+      dodgeY({ fit: 'compress' })[resolveDotLayout]({
+        ...context,
+        radii: Array(20).fill(20),
+      }),
+    ).toThrow(/diameter/)
+  })
+
   it('places variable radii largest first with stable source-order ties', () => {
     expect(dodgeOffsets([50, 50, 50, 50], [2, 6, 6, 4], 0, false)).toEqual([
       16, 0, -12, 10,

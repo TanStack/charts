@@ -22,6 +22,8 @@ export interface DodgeOptions<TAnchor extends string> {
   anchor?: TAnchor
   /** Empty pixels between neighboring circle edges. Defaults to 1. */
   padding?: number
+  /** Compress overflowing offsets into the plot. Compression can overlap dots. */
+  fit?: 'overflow' | 'compress'
 }
 
 export type DodgeXOptions<TAnchor extends DodgeXAnchor = DodgeXAnchor> =
@@ -68,6 +70,7 @@ export function dodgeX<const TAnchor extends DodgeXAnchor = 'left'>(
 ): DodgeXLayout<TAnchor> {
   const anchor = options.anchor ?? ('left' as TAnchor)
   const padding = validPadding(options.padding)
+  const compress = options.fit === 'compress'
   if (anchor !== 'left' && anchor !== 'middle' && anchor !== 'right') {
     throw new TypeError(`dodgeX: unknown anchor "${String(anchor)}"`)
   }
@@ -83,6 +86,7 @@ export function dodgeX<const TAnchor extends DodgeXAnchor = 'left'>(
         padding,
         edgeAnchored,
       )
+      if (compress) compressOffsets(offsets, radii, chart.width, edgeAnchored)
       const baseline =
         anchor === 'left'
           ? chart.x
@@ -101,6 +105,7 @@ export function dodgeY<const TAnchor extends DodgeYAnchor = 'bottom'>(
 ): DodgeYLayout<TAnchor> {
   const anchor = options.anchor ?? ('bottom' as TAnchor)
   const padding = validPadding(options.padding)
+  const compress = options.fit === 'compress'
   if (anchor !== 'top' && anchor !== 'middle' && anchor !== 'bottom') {
     throw new TypeError(`dodgeY: unknown anchor "${String(anchor)}"`)
   }
@@ -116,6 +121,7 @@ export function dodgeY<const TAnchor extends DodgeYAnchor = 'bottom'>(
         padding,
         edgeAnchored,
       )
+      if (compress) compressOffsets(offsets, radii, chart.height, edgeAnchored)
       const baseline =
         anchor === 'top'
           ? chart.y
@@ -125,6 +131,38 @@ export function dodgeY<const TAnchor extends DodgeYAnchor = 'bottom'>(
       const direction = anchor === 'bottom' ? -1 : 1
       return offsets.map((offset) => baseline + offset * direction)
     },
+  }
+}
+
+function compressOffsets(
+  offsets: number[],
+  radii: readonly number[],
+  size: number,
+  edgeAnchored: boolean,
+) {
+  if (!offsets.length) return
+  let minimum = Infinity
+  let maximum = -Infinity
+  let radius = 0
+  let fits = true
+  const start = edgeAnchored ? 0 : -size / 2
+  for (let index = 0; index < offsets.length; index++) {
+    const offset = offsets[index]!
+    const r = radii[index]!
+    minimum = Math.min(minimum, offset)
+    maximum = Math.max(maximum, offset)
+    radius = Math.max(radius, r)
+    if (offset - r < start || offset + r > start + size) fits = false
+  }
+  if (fits) return
+  if (radius * 2 > size)
+    throw new RangeError(
+      'dodge: compress requires each circle diameter to fit within the plot',
+    )
+  const factor =
+    maximum === minimum ? 0 : (size - radius * 2) / (maximum - minimum)
+  for (let index = 0; index < offsets.length; index++) {
+    offsets[index] = start + radius + (offsets[index]! - minimum) * factor
   }
 }
 

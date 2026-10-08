@@ -31,11 +31,13 @@ The layouts and `createDotLayout` are also exported from `@tanstack/charts` and
 function dodgeY(options?: {
   anchor?: 'top' | 'middle' | 'bottom'
   padding?: number
+  fit?: 'overflow' | 'compress'
 }): DodgeYLayout
 
 function dodgeX(options?: {
   anchor?: 'left' | 'middle' | 'right'
   padding?: number
+  fit?: 'overflow' | 'compress'
 }): DodgeXLayout
 
 function createDotLayout(options: {
@@ -52,6 +54,14 @@ function createDotLayout(options: {
 `dodgeY` defaults to `bottom`; `dodgeX` defaults to `left`. `padding` is the
 empty pixel distance between neighboring circle edges and defaults to `1`.
 It must be finite and nonnegative.
+
+`fit` defaults to `overflow`, preserving collision-free placement even when
+the swarm extends beyond the plot. Use `fit: 'compress'` to fit crowded
+offsets inside the plot without changing the measured coordinate or radii.
+Compression can make circles overlap. Layouts that already fit are unchanged.
+If a circle's diameter exceeds the available plot dimension, compression
+throws a `RangeError`; reduce `r` or provide more space. Clipping an overflowing
+swarm does not remove its points from keyboard or pointer interaction.
 
 The public type surface also includes `CreateDotLayoutOptions`, `DotLayout`,
 `DotLayoutResolveContext`, `DodgeOptions`, `DodgeXAnchor`, `DodgeYAnchor`,

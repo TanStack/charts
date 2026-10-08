@@ -142,6 +142,9 @@ export function mountChartRenderer<
   let observer: ResizeObserver | undefined
   let observedContentSize:
     { width: number | undefined; height: number | undefined } | undefined
+  let measuredBounds: DOMRect | undefined
+  let renderedWidth: number
+  let renderedHeight: number
   let renderFrame: number | undefined
   let forceScheduledRender = false
   let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
@@ -189,6 +192,8 @@ export function mountChartRenderer<
     const previousCursorPresentation = cursorPresentation
     const previousCursorBinding = renderedCursorBinding
     scene = createHostedScene(createScene())
+    renderedWidth = scene.width
+    renderedHeight = scene.height
     interactionScene = scene
     const renderer = resolveChartRenderer(scene, options.renderer)
     if (!surface) {
@@ -329,6 +334,7 @@ export function mountChartRenderer<
       (measureWidth || measureHeight) && !observedContentSize
         ? container.getBoundingClientRect()
         : undefined
+    if (bounds) measuredBounds = bounds
     const contentSize =
       measureWidth || measureHeight
         ? (observedContentSize ?? currentContainerContentSize(bounds))
@@ -345,16 +351,17 @@ export function mountChartRenderer<
     return (
       (observesContainerWidth() &&
         next.width !== undefined &&
-        next.width !== scene.width) ||
+        next.width !== renderedWidth) ||
       (observesContainerHeight() &&
         next.height !== undefined &&
-        next.height !== scene.height)
+        next.height !== renderedHeight)
     )
   }
 
   const configureObserver = () => {
     observer?.disconnect()
     observer = undefined
+    if (observedContentSize) measuredBounds = container.getBoundingClientRect()
     observedContentSize = undefined
     if (!observesContainerWidth() && !observesContainerHeight()) return
     const ResizeObserverConstructor = view?.ResizeObserver
@@ -363,6 +370,27 @@ export function mountChartRenderer<
       const entry =
         entries.find((candidate) => candidate.target === container) ??
         entries[0]
+      if (entry && !observedContentSize && measuredBounds) {
+        const bounds = container.getBoundingClientRect()
+        const content = currentContainerContentSize(bounds)
+        // The first observer report can be more precise than CSSOM. Adopt
+        // that precision only when both layout and CSS content size stayed
+        // unchanged since rendering. Later resizes are compared exactly.
+        if (
+          bounds.width === measuredBounds.width &&
+          content.width === scene.width
+        ) {
+          renderedWidth =
+            positiveFiniteNumber(entry.contentRect.width) ?? renderedWidth
+        }
+        if (
+          bounds.height === measuredBounds.height &&
+          content.height === scene.height
+        ) {
+          renderedHeight =
+            positiveFiniteNumber(entry.contentRect.height) ?? renderedHeight
+        }
+      }
       observedContentSize = entry
         ? {
             width: positiveFiniteNumber(entry.contentRect.width),

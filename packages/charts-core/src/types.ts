@@ -347,6 +347,8 @@ export interface ChartAxisTickOptions<TValue extends ChartValue = any> {
   values?: readonly TValue[]
   /** Length of the visible tick stub in pixels. */
   size?: number
+  /** Paint for tick stubs. False hides the stubs while keeping labels. */
+  line?: false | ChartGuideLineStyle
   /** Gap between the tick stub and label in pixels. */
   padding?: number
   format?: (value: TValue) => string

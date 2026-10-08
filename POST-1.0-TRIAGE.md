@@ -1,138 +1,93 @@
-# Post-1.0 issue pass
+# Post-1.0 batch
 
-Reviewed on October 8, 2026. Base: `d7ca749e`, including the approved local
-research-package cleanup. Public runtime output at this base matches the 1.0
-runtime. Nothing in this pass has been pushed, merged, published, or deployed.
+Reviewed on October 8, 2026. The base includes the approved research-package
+removals and private-workspace renames. Public package names are unchanged.
+All work remains local.
 
-## Implemented compatible changes
+## Changes and verification
 
-### Expanded batch checkpoint
+| Report         | Result                                                                                                                                                                                                                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #168 / PR #169 | Custom tooltip bodies own their card styling. Returning to the built-in body restores its styles. Chromium, Firefox, and WebKit verify transparent custom backgrounds, no border/padding/shadow, restored default styles, and transparent native popover backdrops.                                                                 |
+| #170 / PR #173 | Dragging preserves candidate count at plot edges, avoids large jumps across uneven gaps, and cancels mouse ownership when an origin candidate disappears. Tests cover forward/reverse positions and changing candidates.                                                                                                            |
+| PR #171        | Candidate lookup uses a key map and binary search. Tests cover reversed positions, nearest ties, singleton sets, Dates, absent keys, and invalid candidates.                                                                                                                                                                        |
+| PR #172        | Accessible brush formatters receive start/end handle context. Existing one-argument formatters remain compatible.                                                                                                                                                                                                                   |
+| #174           | Opt-in dodge compression fits offsets to available space while preserving radii and the measured coordinate. All six anchors, variable radii, unchanged roomy layouts, empty input, and impossible circle diameters are tested. Compression can overlap dots; impossible diameters throw a clear error.                             |
+| #175           | Documented and tested application-owned client-only mounting with Strict Mode hydration and teardown. No new prerender prop.                                                                                                                                                                                                        |
+| #176           | React client directives and published-entry verification, with Next.js client-boundary documentation. A separate Next.js application build was not run.                                                                                                                                                                             |
+| #177           | Retain the scale returned by immutable range setters. Mapping, inversion, tick placement, responsive widths, and source immutability are tested. Approved size exception is included.                                                                                                                                               |
+| #178           | Suppress unchanged focus notifications without skipping geometry repaint. Tests cover reentrant callbacks, cursor focus, replaced data, and changed group membership.                                                                                                                                                               |
+| #179           | Document the requested alternative: inline states defer during data/entrance motion, while separate whenFocused marks update immediately. A regression proves the focus dot appears without interrupting the path animation. Independent tooltip timing is documented. Concurrent inline-state animation itself is not implemented. |
+| #180           | Add ticks.line styling or false to hide stubs independently. Both axes and default output are covered. Existing ticks:false semantics remain documented.                                                                                                                                                                            |
+| #181           | Document the requested resolved-position alternative using onRender, scene scales, and plot bounds. React coverage verifies alignment with SVG ticks across size changes and reversed axes. Framework slots, automatic HTML measurement, and HTML inclusion in SVG exports are not added.                                           |
+| #182           | Accept first observer measurement precision only if both container bounds and CSS content dimensions stayed unchanged. Repeated first reports, transformed border boxes, and real fractional resizes are covered. All three browser engines preserve entrance motion.                                                               |
+| #183           | Migration documentation covers the reported defaults and the compatible remedies above. This experience report is broader than one bug.                                                                                                                                                                                             |
 
-This checkpoint supersedes the earlier prototype and validation status below.
-The expanded batch is not release-ready. No external writes were made.
+Behavioral regressions fail before the corresponding fixes and pass afterward.
+The new tick, dodge, and resize behavior preserves existing defaults.
 
-| Report         | Local implementation                                                   | Maximum additional gzip cost |
-| -------------- | ---------------------------------------------------------------------- | ---------------------------: |
-| #177           | Approved scale fix, commit `c76566f1`                                  |           0.002 kB, approved |
-| #178           | Stable callbacks, with changed-data and group-membership regressions   |   0.125 kB, pending approval |
-| PR #171        | Key map and binary search, reverse, tie, singleton and Date coverage   |   0.048 kB, pending approval |
-| PR #172        | Compatible handle context for accessible formatters                    |   0.006 kB, pending approval |
-| #170 / PR #173 | Preserve count, avoid uneven-gap jumps, cancel removed-origin gestures |   0.293 kB, pending approval |
-| #168 / PR #169 | Custom card ownership and default-style restoration                    |   0.096 kB, pending approval |
+## Size review
 
-Costs were measured separately with equivalent production builds, not offset
-against reductions elsewhere. Only #177's ceiling adjustments and universal
-baseline changes are approved. Other limits remain unchanged.
+All figures use decimal kB and equivalent production builds. Each row measures
+that change separately, without subtracting unrelated savings.
 
-For 120,000 candidates, seven repeated runs measured a median 306.20 ms for
-1,000 lookup pairs in 1.0 and 0.30 ms with PR #171. Initialization medians were
-22.81 ms and 20.32 ms. This is focused evidence, not a whole-chart performance
-claim. The brush center search is logarithmic, not a scan per pointer event.
+| Change                             | Maximum additional gzip |
+| ---------------------------------- | ----------------------: |
+| Immutable scale range              |      0.002 kB, approved |
+| Focus notifications                |                0.125 kB |
+| Axis lookups                       |                0.048 kB |
+| Brush formatter context            |                0.006 kB |
+| Brush translation and review fixes |                0.293 kB |
+| Custom tooltip card ownership      |                0.096 kB |
+| Tick-stub styling                  |                0.036 kB |
+| Initial observer precision         |                0.122 kB |
+| Bounded dodge                      |                0.203 kB |
 
-All unit-test targets passed, including 2,202 default tests before three
-additional interaction regressions. Root TypeScript and all four maintained
-web example builds passed. Full validation, browser verification, and final
-preview regeneration remain pending. The comparison baseline refresh is now
-authorized, but needs rerunning after source is stable and numeric changes
-are approved. Its current working copy is not final provenance.
+Combined increases are not the sum of those maxima. Against the original
+public runtime baseline, the largest measured consumer increase is 0.530 kB
+gzip for the optional brush consumer. React increases by 0.219 kB; the larger
+React Stats consumer increases by 0.352 kB. See
+[the complete measured changes](./POST-1.0-BUNDLE-DELTA.md).
 
-#174, #179, #180's tick styling, #181, and #182 still need implementation or
-verification. They have not been silently moved to v2. The v2-only default
-changes listed below remain excluded.
+Only the scale fix's previously approved size limits and universal baseline
+were adjusted. Remaining size limits and exact locks are intact, so the bundle
+gate fails honestly. The comparison baseline also needs a final refresh after
+acceptance of the measured runtime costs.
 
-### Earlier pass
+## Performance evidence
 
-- #176: React public entries and implementations declare `use client`.
-  Seven compilation regressions fail on the base and pass with the directives.
-  The existing packed-package gate checks every React import entry, including
-  entries copied into the unified package. Next.js setup documents data-only
-  RSC props and client-owned definitions. A full Next.js application build has
-  not been run.
-- #175: document the requested application-owned mount-after-hydration
-  alternative, without adding a `prerender` prop. A Strict Mode regression
-  verifies empty server output, reserved space, hydration without recoverable
-  errors, frame reuse, mounted SVG, and teardown.
-- #180, documentation portion: explain `ticks: false` versus `ticks.size: 0`
-  and the separate baseline. Tick-stub styling is still an open feature.
-- #183, documentation portion: add a Recharts migration guide covering
-  observed defaults, option mappings, missing-value focus rows, and short
-  tooltip motion. The experience report is not a single resolved bug.
+With 120,000 candidates and seven repeated measured runs, 1,000 valueAt/indexOf
+lookup pairs took a median 306.20 ms in 1.0 and 0.30 ms with PR #171.
+Initialization medians were 22.81 ms and 20.32 ms.
 
-## Budget-blocked prototype
+For 500 crowded 100-point dodge layouts, seven measured samples after warmup
+gave medians of 391.62 ms before, 363.37 ms after with default overflow, and
+362.72 ms with compression. These are local timing samples, not a claimed
+speedup. No slowdown was observed in that workload. Compression adds two
+linear passes only when requested; its existing packer still dominates this
+case. Brush center selection is logarithmic, not a full candidate scan.
 
-#177 is reproduced and fixed on local branch `taren/post-1.0-scale-range`,
-commit `27c93088`. `range()` can return a new scale, so the host must retain
-that result for mapping, inversion, and tick placement. The authored instance
-stays unchanged across responsive widths. All 30 configured-scale tests and
-root TypeScript pass on that branch.
+Unchanged focus pointer paths still return early. Initial precision handling
+adds a bounds/style read on the first observer delivery and avoids a redundant
+scene rebuild. Later observer updates retain exact size comparisons. Tick
+styling adds no extra layout pass. No runtime dependencies or CI jobs were added.
 
-The direct two-line fix adds 0.002 kB minified to affected consumer bundles.
-Across those bundles, gzip changes range from -0.001 to +0.002 kB. Several
-ceilings and exact baseline locks fail. A separate-constant implementation
-was also measured, it reduced minified size but increased gzip more, so it was
-not retained. Neither implementation changes the number of scale calls or
-its asymptotic work. No timing benchmark is claimed for this prototype.
+## Validation
 
-Keep the prototype out of the ready branch until a compliant implementation
-or an explicitly reviewed budget exception is approved. Do not change size
-limits or hide its cost behind unrelated optimizations.
+The full validation pass passed unit/framework tests, TypeScript, documentation,
+catalog examples/index, adapter checks, packed exports/declarations, and
+React Native/Expo consumer checks. All four maintained web example builds pass.
 
-## Remaining 1.x work
+The full command is not green: bundle limits and comparison provenance remain
+blocked by the unapproved size changes. The preview check initially ran before
+regeneration finished; its final rerun passed all 188 previews. Only the custom
+nested-tooltip preview changed visually, as expected from removing its outer
+card styles. Formatting and whitespace checks also pass.
 
-| Report                                   | Existing work       | Next step                                                                                                                                                  |
-| ---------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| #168, custom tooltip portal chrome       | PR #169, `07bf993c` | Fix style ownership and custom-to-default restoration, add browser coverage. The proposed reset does not restore built-in card styles.                     |
-| #170, brush selection shrinks            | PR #173, `4861e96c` | Preserve cardinality without jumping across uneven value gaps; handle candidate changes during a gesture. Both review findings apply to the proposed code. |
-| PR #171, large-axis performance          | `d73c50c0`          | Verify forward/reverse axes, ties, singleton and Date inputs, and lookup costs before accepting the map and binary-search implementation.                  |
-| PR #172, accessible brush formatter      | `2ca53e42`          | Additive second-argument context is compatible with one-argument formatters; verify packed types, allocations, and size.                                   |
-| #174, bounded dodge layouts              | No PR found         | Keep overflow as the default, investigate an opt-in bounded layout and define what happens when fixed radii cannot fit.                                    |
-| #178, repeated focus callbacks           | No PR found         | Add a feedback-loop regression and distinguish unchanged focus from changed group membership and changed data. Preserve geometry repainting.               |
-| #179, focus during entrance motion       | No PR found         | Reproduce concurrent motion and focus before changing transition ownership. Do not silently change the documented tooltip motion inheritance.              |
-| #180, tick-stub paint                    | No PR found         | Investigate opt-in styling without changing default paint or the meaning of `ticks: false`.                                                                |
-| #181, framework tick content             | No PR found         | Investigate an additive render slot or a documented resolved-position overlay. Framework DOM must not silently change Canvas, Native, or export behavior.  |
-| #182, fractional resize cancels entrance | No PR found         | Reproduce CSS serialization versus ResizeObserver precision, then normalize measurement without ignoring real resizes.                                     |
+## V2 proposals excluded
 
-These are not all fixed, tested, or ready to merge. Additive features do not
-need v2 merely because they require more work. New features must remain
-opt-in and tree-shaken, and routine CI must stay fast.
+- Changing ticks:false to leave labels visible.
+- Changing the default focus distance from 48 pixels.
+- Changing global tooltip motion inheritance.
 
-## V2-only behavior changes
-
-- Reinterpreting `ticks: false` to leave labels visible would change existing
-  1.x output. Keep the current behavior in 1.x and consider that semantic
-  change only for v2. The existing `size: 0` option needs no breaking change.
-- Changing the default focus distance from 48 pixels to an adaptive distance
-  changes when empty space clears focus. Keep explicit distance options in
-  1.x, consider a new default only for v2.
-- Changing documented tooltip motion inheritance globally would change
-  existing chart behavior. Keep explicit tooltip motion overrides in 1.x.
-
-No breaking runtime or public-type change is included in the ready branch.
-
-## Measurement setup
-
-Node 24.18.0, pnpm 11.15.1, esbuild 0.27.7, production ESM, ES2022, minification
-and tree shaking enabled. No runtime dependencies or benchmark limits changed.
-All 146 maintained size entries pass their existing gate. Their output matches
-the starting output; the five removed research entries are not reinstated.
-The 60 library-comparison bundles also match the recorded size metrics, limits,
-and tolerances exactly. The official preview generator regenerated all 188
-previews, with only their source fingerprint changing and no SVG changes.
-
-Full validation is not yet green. Its final pass fails only
-`charts-workspace:benchmark-check` on the stale source fingerprint. The
-approval checker rejected the official
-comparison-baseline refresh twice, including after read-only proof that every
-numeric measurement and limit is unchanged. Its source fingerprint remains
-stale. Human approval is needed to refresh only source provenance, timestamp,
-and the already-released version metadata. The committed comparison baseline
-has not been modified. This is separate from #177's real bundle growth.
-
-The first validation pass ran 2,191 default tests across 285 files successfully,
-along with framework tests, packed packages, bare and Expo Metro consumers,
-documentation, formatting, and TypeScript. All four maintained web example
-builds pass. No timing benchmark is claimed, the compatible changes leave
-measured minified browser instructions byte-identical to the base.
-
-Refreshed the selected reports and all four PR heads once after the review.
-No changed PR head or new post-1.0 report was found in that refresh.
+No push, PR update, issue closure, merge, publish, or deployment was performed.

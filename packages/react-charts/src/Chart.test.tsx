@@ -225,6 +225,72 @@ if (false) {
 }
 
 describe('React adapter', () => {
+  it('positions framework tick content from resolved layout across size and direction changes', async () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+    const labels = React.createRef<HTMLOListElement>()
+    const values = [0, 1, 2]
+    for (const reverse of [false, true]) {
+      for (const height of [200, 320]) {
+        const definition = defineChart({
+          margin: { left: 72 },
+          marks: [lineY([0, 2, 1])],
+          scales: {
+            x: { scale: scaleLinear },
+            y: {
+              scale: scaleLinear().domain([0, 2]),
+              reverse,
+              axis: { ticks: { values }, tickLabels: false },
+            },
+          },
+        })
+        await act(async () =>
+          root.render(
+            <div style={{ position: 'relative' }}>
+              <ol ref={labels}>
+                {values.map((value) => (
+                  <li key={value}>{value}</li>
+                ))}
+              </ol>
+              <Chart
+                definition={definition}
+                width={480}
+                height={height}
+                ariaLabel="Framework tick labels"
+                onRender={({ scene }) => {
+                  Array.from(labels.current!.children).forEach(
+                    (element, index) => {
+                      const label = element as HTMLElement
+                      label.style.top = `${scene.scales.y.map(values[index]!)}px`
+                      label.style.left = `${scene.chart.x - 8}px`
+                    },
+                  )
+                }}
+              />
+            </div>,
+          ),
+        )
+        values.forEach((value, index) => {
+          const stub = target.querySelector(
+            `[data-ts-key="y-tick-rule:number:${value}"]`,
+          )!
+          const label = labels.current!.children[index] as HTMLElement
+          expect(parseFloat(label.style.top)).toBeCloseTo(
+            Number(stub.getAttribute('y1')),
+            3,
+          )
+          expect(parseFloat(label.style.left)).toBeCloseTo(
+            Number(stub.getAttribute('x1')) - 8,
+            3,
+          )
+        })
+      }
+    }
+    await act(async () => root.unmount())
+    target.remove()
+  })
+
   it('updates custom tooltip bodies when only the primary series changes', async () => {
     const definition = defineChart({
       marks: [

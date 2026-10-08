@@ -32,6 +32,63 @@ const rows = [
 ]
 
 describe('structured SVG text motion', () => {
+  it('shows a separate focused dot during entrance without cancelling data motion', () => {
+    const rows = [
+      { x: 0, y: 1 },
+      { x: 1, y: 2 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY(rows, { x: 'x', y: 'y' }),
+          dot(rows, { id: 'dots', x: 'x', y: 'y', r: 2 }),
+          whenFocused(dot(rows, { id: 'focus-dots', x: 'x', y: 'y', r: 6 }), {
+            match: 'x',
+          }),
+        ],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+      }),
+      { width: 480, height: 240 },
+    )
+    const container = document.createElement('div')
+    const frames = installManagedFrames()
+    const surface = motion({
+      transition: { type: 'tween', duration: 1000 },
+    }).mount(container, () => {})
+    try {
+      surface.render(scene, { ariaLabel: 'Immediate focus during entrance' })
+      frames.run(0)
+      frames.run(100)
+      const svg = container.querySelector('svg')!
+      const path = container.querySelector('path')!
+      const before = path.getAttribute('d')
+      const point = scene.points.find((point) => point.markId === 'dots')!
+      surface.paintFocus({
+        primary: point,
+        group: [point],
+        source: 'pointer',
+        pinned: false,
+      })
+      expect(
+        container
+          .querySelector('[data-ts-focus-layer] circle[visibility="visible"]')
+          ?.getAttribute('r'),
+      ).toBe('6')
+      expect(svg.dataset.tsMotionState).toBe('running')
+      expect(path.getAttribute('d')).toBe(before)
+      surface.paintFocus(null)
+      expect(
+        container
+          .querySelector('[data-ts-focus-layer]')
+          ?.getAttribute('visibility'),
+      ).toBe('hidden')
+      expect(svg.dataset.tsMotionState).toBe('running')
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
+  })
+
   it.each([
     '<tspan data-ts-key="child">old</tspan>',
     'before<tspan data-ts-key="child">old</tspan>after',

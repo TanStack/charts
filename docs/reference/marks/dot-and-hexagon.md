@@ -50,6 +50,10 @@ function dot<TDatum>(
 | `strokeWidth`   | `number`                             | SVG default          | Stroke width                          |
 | `states`        | `readonly ChartMarkState[]`          | None                 | Focus-driven presentation overrides   |
 
+With the motion renderer, inline `states` wait for active entrance or data
+motion to settle. For a dot that appears immediately on focus during motion,
+use a separate [`whenFocused` mark](../motion.md#motion).
+
 `rScale` is called only for finite, nonnegative raw radii. The mapped result
 must also be finite and nonnegative or the row is skipped.
 

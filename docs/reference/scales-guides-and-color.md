@@ -189,6 +189,7 @@ interface ChartAxisOptions<TValue extends ChartValue> {
               spacing?: number
               values?: readonly TValue[]
               size?: number
+              line?: false | ChartGuideLineStyle
               padding?: number
               format?: (value: TValue) => string
             }
@@ -316,6 +317,17 @@ sparkline needs domain rounding independent of its size.
 `axis.ticks: false` removes both tick stubs and their candidate labels. To keep
 labels while hiding only the stubs, use `axis: { ticks: { size: 0 } }`. The
 baseline is separate, hide it with `axis.line: false`.
+
+Use `axis.ticks.line` to style the stubs with `ChartGuideLineStyle`, or set
+it to `false` to hide just the stubs. This option does not change the
+baseline, grid, tick values, or label formatting.
+
+```ts
+const axis = {
+  line: { stroke: 'navy' },
+  ticks: { line: { stroke: 'navy', strokeWidth: 2 } },
+}
+```
 
 `count`, `spacing`, and `values` are mutually exclusive candidate policies.
 `count` is a scale hint, `spacing` derives that hint from the final axis length,

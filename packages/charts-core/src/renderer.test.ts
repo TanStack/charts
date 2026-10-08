@@ -2600,6 +2600,80 @@ describe('renderer-neutral chart host', () => {
     cancelFrame.mockRestore()
   })
 
+  it.each([false, true])(
+    'adopts observer precision without repainting an unchanged initial layout (transformed border box: %s)',
+    (transformed) => {
+      let resize: ResizeObserverCallback | undefined
+      class TestResizeObserver {
+        constructor(callback: ResizeObserverCallback) {
+          resize = callback
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+      }
+      const original = window.ResizeObserver
+      window.ResizeObserver = TestResizeObserver
+      const frames: FrameRequestCallback[] = []
+      const requestFrame = vi
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback)
+          return frames.length
+        })
+      const fake = createFakeRenderer()
+      const container = document.createElement('div')
+      container.style.width = '569.594px'
+      container.style.height = '200.016px'
+      const inset = transformed ? 24 : 0
+      if (transformed)
+        Object.assign(container.style, {
+          boxSizing: 'border-box',
+          padding: '10px',
+          border: '2px solid',
+          transform: 'scale(2)',
+        })
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(
+          0,
+          0,
+          569.59375 * (transformed ? 2 : 1),
+          200.015625 * (transformed ? 2 : 1),
+        ),
+      )
+      const host = mountChartRenderer(container, {
+        definition,
+        renderer: fake.renderer,
+        ariaLabel: 'Fractional chart',
+      })
+      const observe = (width: number) =>
+        resize?.(
+          [
+            {
+              target: container,
+              contentRect: new DOMRect(0, 0, width - inset, 200.015625 - inset),
+              borderBoxSize: [],
+              contentBoxSize: [],
+              devicePixelContentBoxSize: [],
+            },
+          ],
+          {} as ResizeObserver,
+        )
+      observe(569.59375)
+      expect(frames).toHaveLength(0)
+      expect(host.getScene().width).toBe(569.594 - inset)
+      observe(569.59375)
+      expect(frames).toHaveLength(0)
+      observe(569.71875)
+      expect(frames).toHaveLength(1)
+      frames.shift()?.(0)
+      expect(host.getScene().width).toBe(569.71875 - inset)
+      host.destroy()
+      requestFrame.mockRestore()
+      window.ResizeObserver = original
+    },
+  )
+
   it('keeps padding and borders out of container-owned scene dimensions', () => {
     let resize: ResizeObserverCallback | undefined
     let contentWidth = 480
