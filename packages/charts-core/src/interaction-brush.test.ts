@@ -268,6 +268,59 @@ describe('brushX', () => {
     container.remove()
   })
 
+  it('keeps the number of values when dragging the selection to an edge', () => {
+    const brush = mountDailyBrush(range(days[1]!, days[3]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() - 1000)
+    expect(brush.commits.at(-1)).toEqual(range(days[0]!, days[2]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() + 1000)
+    expect(brush.commits.at(-1)).toEqual(range(days[2]!, days[4]!))
+
+    brush.destroy()
+  })
+
+  it('snaps the edge leading a drag on an unevenly spaced axis', () => {
+    const values = [0, 1, 100, 101, 102].map(day)
+    const brush = mountDailyBrush(range(values[1]!, values[2]!), values)
+    const dayWidth = Number(brush.selection().getAttribute('width')) / 99
+    const from = brush.center()
+
+    mouse(brush.selection(), 'mousedown', from)
+    mouse(window, 'mousemove', from + 0.7 * dayWidth)
+    expect(brush.value()).toEqual(range(values[1]!, values[3]!))
+    // The leading edge depends on the drag's direction from where it
+    // started, not on the last movement.
+    mouse(window, 'mousemove', from + 0.6 * dayWidth)
+    expect(brush.value()).toEqual(range(values[1]!, values[3]!))
+    mouse(window, 'mouseup', from + 0.6 * dayWidth)
+    expect(brush.value()).toEqual(range(values[1]!, values[3]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() + 1000)
+    expect(brush.value()).toEqual(range(values[1]!, values[4]!))
+
+    dragMouse(brush.selection(), brush.center(), brush.center() - 1000)
+    expect(brush.value()).toEqual(range(values[0]!, values[3]!))
+
+    brush.destroy()
+  })
+
+  it('keeps the dragged range when the values change during the drag', () => {
+    const values = days.slice(0, 4)
+    const brush = mountDailyBrush(range(values[1]!, values[2]!), values)
+    const step = Number(brush.selection().getAttribute('width'))
+    const from = brush.center()
+
+    mouse(brush.selection(), 'mousedown', from)
+    mouse(window, 'mousemove', from + step)
+    expect(brush.value()).toEqual(range(values[2]!, values[3]!))
+    brush.setValues([values[0]!, values[2]!, values[3]!])
+    mouse(window, 'mouseup', from + step)
+    expect(brush.value()).toEqual(range(values[2]!, values[3]!))
+
+    brush.destroy()
+  })
+
   it('rejects duplicate and nonmonotone authored values at scene resolution', () => {
     const value = range(dates[0], dates[2])
     expect(() =>
@@ -340,6 +393,76 @@ function definition(
   })
 }
 
+function day(index: number) {
+  return new Date(Date.UTC(2024, 0, 1 + index))
+}
+
+const days = Array.from({ length: 5 }, (_, index) => day(index))
+
+function mountDailyBrush(initial: BrushRange<Date>, values = days) {
+  const halfDay = 43_200_000
+  const container = document.createElement('div')
+  document.body.append(container)
+  const domain = [
+    new Date(values[0]!.getTime() - halfDay),
+    new Date(values.at(-1)!.getTime() + halfDay),
+  ]
+  let value = initial
+  const commits: BrushRange<Date>[] = []
+  const options = () => ({
+    definition: defineChart({
+      marks: [
+        dot(
+          values.map((date, index) => ({ date, value: index })),
+          { x: 'date', y: 'value' },
+        ),
+      ],
+      scales: {
+        x: { scale: scaleUtc().domain(domain) },
+        y: { scale: scaleLinear },
+      },
+      controls: [
+        brushX({
+          id: 'window',
+          range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+            value,
+            (next, { reason }) => {
+              value = next
+              if (reason.type === 'commit') commits.push(next)
+              host.update(options())
+            },
+          ),
+          values,
+        }),
+      ],
+    }),
+    width: 480,
+    height: 240,
+    ariaLabel: 'Daily range',
+  })
+  const host = mountChart(container, options())
+  const selection = () =>
+    container.querySelector<SVGRectElement>(
+      '[data-chart-brush="window"] .selection',
+    )!
+  return {
+    commits,
+    value: () => value,
+    setValues(next: Date[]) {
+      values = next
+      host.update(options())
+    },
+    selection,
+    center: () =>
+      Number(selection().getAttribute('x')) +
+      Number(selection().getAttribute('width')) / 2,
+    destroy() {
+      host.destroy()
+      container.remove()
+    },
+  }
+}
+
 function range(start: Date, end: Date): BrushRange<Date> {
   return { start, end }
 }
@@ -355,6 +478,23 @@ function beginMouseBrush(container: HTMLElement) {
   })
   Object.defineProperty(event, 'view', { value: window })
   overlay.dispatchEvent(event)
+}
+
+function dragMouse(target: Element, fromX: number, toX: number) {
+  mouse(target, 'mousedown', fromX)
+  mouse(window, 'mousemove', toX)
+  mouse(window, 'mouseup', toX)
+}
+
+function mouse(target: EventTarget, type: string, clientX: number) {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    clientX,
+    clientY: 100,
+  })
+  Object.defineProperty(event, 'view', { value: window })
+  target.dispatchEvent(event)
 }
 
 interface TestTouch {

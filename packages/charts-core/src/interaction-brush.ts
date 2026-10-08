@@ -265,6 +265,7 @@ function createBrushXControl({
   let active = false
   let origin: BrushRange<ChartValue> | undefined
   let gestureRange: BrushRange<ChartValue> | undefined
+  let originLeft: number | undefined
   let target: BrushXTarget = 'selection'
   let activeInput: 'mouse' | 'touch' | undefined
   let activeView: (Window & typeof globalThis) | undefined
@@ -354,6 +355,8 @@ function createBrushXControl({
     active = true
     origin = cloneRange(control.range)
     gestureRange = cloneRange(control.range)
+    originLeft =
+      typeof event.selection?.[0] === 'number' ? event.selection[0] : undefined
     target = eventTarget(event.sourceEvent, control)
     activeInput = isTouchSource(event.sourceEvent) ? 'touch' : 'mouse'
     activeView =
@@ -364,7 +367,7 @@ function createBrushXControl({
 
   function handleBrush(event: D3BrushEvent<unknown>) {
     if (moving || !active || !event.sourceEvent || !control || !origin) return
-    const next = selectionRange(event.selection, control.axis)
+    const next = gestureSelectionRange(event.selection)
     if (
       !next ||
       (gestureRange && sameRange(control.axis, next, gestureRange))
@@ -395,7 +398,7 @@ function createBrushXControl({
     }
     if (!origin) return
     active = false
-    let next = selectionRange(event.selection, control.axis)
+    let next = gestureSelectionRange(event.selection)
     if (!next) {
       const position = sourceSceneX(event.sourceEvent)
       if (position == null) return finishGesture()
@@ -415,6 +418,13 @@ function createBrushXControl({
     })
     moveToControlledRange()
     finishGesture()
+  }
+
+  function gestureSelectionRange(selection: BrushSelection | null) {
+    if (!control) return null
+    return target === 'selection' && originLeft !== undefined
+      ? translatedSelectionRange(selection, control.axis, originLeft)
+      : selectionRange(selection, control.axis)
   }
 
   function cancelPointer(event: Event) {
@@ -453,6 +463,7 @@ function createBrushXControl({
   function finishGesture() {
     origin = undefined
     gestureRange = undefined
+    originLeft = undefined
     target = 'selection'
     activeInput = undefined
     activeView = undefined
@@ -641,6 +652,33 @@ function selectionRange<TValue extends ChartValue>(
   return normalizeRange(axis, {
     start: axis.valueAt(selection[0]),
     end: axis.valueAt(selection[1]),
+  })
+}
+
+function translatedSelectionRange<TValue extends ChartValue>(
+  selection: BrushSelection | null,
+  axis: InteractionAxis<TValue>,
+  originLeft: number,
+): BrushRange<TValue> | null {
+  const snapped = selectionRange(selection, axis)
+  if (!snapped || !axis.values) return snapped
+  // Snapping each edge separately can change the number of selected
+  // values, as when D3 stops the selection at the plot edge between
+  // two values. Instead, snap the edge leading the drag, and place the
+  // other edge the selection's width away from it.
+  const [left, right] = selection as [number, number]
+  const width = right - left
+  if (left > originLeft) {
+    const end = axis.valueAt(right)
+    return normalizeRange(axis, {
+      start: axis.valueAt(axis.position(end) - width),
+      end,
+    })
+  }
+  const start = axis.valueAt(left)
+  return normalizeRange(axis, {
+    start,
+    end: axis.valueAt(axis.position(start) + width),
   })
 }
 
