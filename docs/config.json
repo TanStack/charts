@@ -159,6 +159,10 @@
       "label": "Guides",
       "children": [
         {
+          "label": "Coming from Recharts",
+          "to": "guides/coming-from-recharts"
+        },
+        {
           "label": "Choosing a Chart",
           "to": "guides/choosing-a-chart"
         },

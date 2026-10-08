@@ -345,6 +345,8 @@ Each entry records:
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
 | F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
 | F-308 | Raster format documentation omitted browser encoder fallback   | Documentation         | resolved   |
+| F-309 | Immutable range setters lost their returned scale              | API                   | open       |
+| F-310 | React client boundaries and migration options were unclear     | Documentation/Tooling | resolved   |
 
 ## Findings
 
@@ -9199,3 +9201,43 @@ Each entry records:
   decodes as WebP in Chromium and Firefox and PNG in WebKit. Dimensions and
   opaque red pixels pass with lossy-encoding tolerance, alongside ten existing
   PNG checks per engine. No page errors or console warnings/errors occur.
+
+### F-309 - Immutable range setters lost their returned scale
+
+- Status: open
+- Severity: high
+- Owner: API
+- Observed in: reproducing GitHub issue #177 against 1.0 runtime code
+- Friction: Charts copies a configured scale but discards the object returned
+  by `range()`. An immutable range setter therefore leaves mapping, inversion,
+  and tick positions in the original unit range.
+- Decision: retain the returned scale, without changing domain inference or
+  the independently mutable domain requirement for semantic viewports. The
+  local prototype is saved on `taren/post-1.0-scale-range`, commit `27c93088`.
+  Do not ship it while the unchanged bundle gate fails.
+- Verification: the new regression fails before the fix and passes afterward
+  for two responsive widths, mapping, inversion, tick positions, and source
+  immutability. All 30 configured-scale tests and root TypeScript pass. The
+  minimal fix adds 0.002 kB minified to affected consumer bundles; gzip deltas
+  range from -0.001 to +0.002 kB. Reviewed budget authority is still needed.
+
+### F-310 - React client boundaries and migration defaults were hard to find
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation/Tooling
+- Observed in: GitHub issues #175, #176, #180, and the FACEIT migration report
+  in #183
+- Friction: React entries did not declare their client boundary, a chart
+  definition cannot be serialized through an RSC prop, and existing options
+  for client-only mounting, tick stubs, sparse focus, and small sparkline
+  domains were difficult to find.
+- Decision: preserve client directives in React entries and verify the
+  published imports during the existing package gate. Document application
+  ownership of the client boundary and post-hydration mounting. Add a Recharts
+  migration guide and explicit tick-size and nicening guidance, without
+  changing defaults or adding a runtime API.
+- Verification: seven source compilation regressions fail before and pass
+  after adding the directives. The client-only recipe passes Strict Mode SSR,
+  hydration, mounted SVG, frame reuse, and teardown checks without recoverable
+  hydration errors. Consumer bundle output remains unchanged.

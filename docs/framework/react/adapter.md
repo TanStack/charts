@@ -77,6 +77,56 @@ set forwarded to the host remains declarative and complete.
 
 ## SSR and hydration
 
+### Next.js App Router
+
+React chart entries include `'use client'`. This identifies the React Server
+Component boundary, it does not disable server-rendered SVG.
+
+Put the chart definition, configured scales, renderers, and callbacks inside
+your application's client component. Pass data from a Server Component, not a
+`defineChart()` result. Definitions contain functions and scale instances that
+cannot cross that boundary as serializable props.
+
+```tsx
+'use client'
+
+import { useMemo } from 'react'
+import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { Chart } from '@tanstack/charts/react'
+
+export function TrafficChart({
+  rows,
+}: {
+  rows: { hour: number; visits: number }[]
+}) {
+  const definition = useMemo(
+    () =>
+      defineChart({
+        marks: [lineY(rows, { x: 'hour', y: 'visits' })],
+        scales: { x: { scale: scaleLinear }, y: { scale: scaleLinear } },
+      }),
+    [rows],
+  )
+
+  return (
+    <Chart
+      definition={definition}
+      ariaLabel="Hourly traffic"
+      initialWidth={720}
+      height={260}
+    />
+  )
+}
+```
+
+The same boundary applies to `/react/core`, `/react/canvas`, `/react/tooltip`,
+and the corresponding `@tanstack/react-charts` entries. See Next.js's
+[Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+for prop serialization and server rendering.
+
+### Default server output
+
 The default SVG entry emits:
 
 - the outer `.ts-chart-host` div
@@ -85,6 +135,10 @@ The default SVG entry emits:
 
 The client renders the same initial structure, then the layout effect adopts
 and reconciles that SVG. There is no placeholder-only server mode.
+
+If you want to skip server chart rendering, use the application-owned
+[client-only chart](../../guides/ssr-and-hydration.md#client-only-react-charts)
+pattern. It preserves the same placeholder during the first browser render.
 
 The Canvas entry emits the same outer structure with a named Canvas root and
 five `aria-hidden` canvases: one hidden stable base bitmap and four live paint

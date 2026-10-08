@@ -369,6 +369,47 @@ describe('React adapter', () => {
     }
   })
 
+  it('mounts an application-owned client-only chart after hydration without a mismatch', async () => {
+    function ClientOnlyChart({ children }: { children: React.ReactNode }) {
+      const [mounted, setMounted] = React.useState(false)
+      React.useEffect(() => setMounted(true), [])
+      return (
+        <div style={{ width: '100%', height: 260 }}>
+          {mounted ? children : null}
+        </div>
+      )
+    }
+    const renderSvg = vi.fn(renderChartSvgWithResources)
+    const chart = (
+      <React.StrictMode>
+        <ClientOnlyChart>
+          <Chart
+            definition={definition}
+            height={260}
+            ariaLabel="Revenue"
+            renderSvg={renderSvg}
+          />
+        </ClientOnlyChart>
+      </React.StrictMode>
+    )
+    const target = document.createElement('div')
+    target.innerHTML = renderToString(chart)
+    const frame = target.firstElementChild
+    expect(frame?.getAttribute('style')).toBe('width:100%;height:260px')
+    expect(target.querySelector('svg')).toBeNull()
+    expect(renderSvg).not.toHaveBeenCalled()
+    const recoverable = vi.fn()
+    let root!: ReturnType<typeof hydrateRoot>
+    await act(async () => {
+      root = hydrateRoot(target, chart, { onRecoverableError: recoverable })
+    })
+    expect(target.firstElementChild).toBe(frame)
+    expect(target.querySelector('.ts-chart__marks path')).not.toBeNull()
+    expect(recoverable).not.toHaveBeenCalled()
+    await act(async () => root.unmount())
+    expect(target.children).toHaveLength(0)
+  })
+
   it('keeps complete SSR markup and hydration identity in Strict Mode', async () => {
     const target = document.createElement('div')
     const chart = (

@@ -1,3 +1,5 @@
+'use client'
+
 export { Chart } from './Chart'
 export type { ChartCommonProps, ChartProps } from './Chart'
 export type { ChartTooltipBodyRenderContext } from './tooltip'

@@ -27,6 +27,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/concepts/scales-and-d3.md: Scales: Start with compact scales, upgrade individual mappings to D3 when their semantics require it, and keep responsive range ownership clear.
 - docs/concepts/marks-and-layering.md: Marks and Layering: Choose built-in geometric marks, compose them in render order, and preserve stable layer identity.
 - docs/concepts/layout-axes-and-coordinates.md: Layout, Axes, and Coordinates: Learn how responsive ranges, automatic margins, guides, band alignment, and scene coordinates work.
+- docs/guides/coming-from-recharts.md: Coming from Recharts: Map common Recharts options to chart definitions, marks, scales, focus, and responsive sizing.
 - docs/guides/choosing-a-chart.md: Choosing a Chart: Choose a visual encoding from the question, data shape, and comparison task before composing TanStack Charts marks.
 - docs/guides/responsive-charts.md: Responsive Charts: Size charts from their containers while preserving readable guides, deterministic SSR, and application-controlled height.
 - docs/guides/themes-and-styling.md: Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.

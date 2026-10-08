@@ -309,6 +309,14 @@ Without an explicit `axis.ticks` policy, the responsive target is
 `clamp(2, floor(chart.height / 48), 7)` for y. The configured scale may return
 a different number of ticks.
 
+`nice: true` uses that responsive or authored tick count when rounding a scale
+domain, even if the axis is hidden. Use a number such as `nice: 5` when a small
+sparkline needs domain rounding independent of its size.
+
+`axis.ticks: false` removes both tick stubs and their candidate labels. To keep
+labels while hiding only the stubs, use `axis: { ticks: { size: 0 } }`. The
+baseline is separate, hide it with `axis.line: false`.
+
 `count`, `spacing`, and `values` are mutually exclusive candidate policies.
 `count` is a scale hint, `spacing` derives that hint from the final axis length,
 and `values` supplies exact semantic candidates. Grid lines and tick stubs use
