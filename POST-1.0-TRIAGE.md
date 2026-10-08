@@ -49,10 +49,10 @@ gzip for the optional brush consumer. React increases by 0.219 kB; the larger
 React Stats consumer increases by 0.352 kB. See
 [the complete measured changes](./POST-1.0-BUNDLE-DELTA.md).
 
-Only the scale fix's previously approved size limits and universal baseline
-were adjusted. Remaining size limits and exact locks are intact, so the bundle
-gate fails honestly. The comparison baseline also needs a final refresh after
-acceptance of the measured runtime costs.
+The user approved the complete measured increases on October 8. The 35 ceilings
+that needed room now include their measured growth, preserving prior headroom.
+The 10 exact universal baselines and 60 comparison cases were refreshed using
+the repository commands. The new measurements exactly match the reviewed batch.
 
 ## Performance evidence
 
@@ -78,11 +78,10 @@ The full validation pass passed unit/framework tests, TypeScript, documentation,
 catalog examples/index, adapter checks, packed exports/declarations, and
 React Native/Expo consumer checks. All four maintained web example builds pass.
 
-The full command is not green: bundle limits and comparison provenance remain
-blocked by the unapproved size changes. The preview check initially ran before
-regeneration finished; its final rerun passed all 188 previews. Only the custom
-nested-tooltip preview changed visually, as expected from removing its outer
-card styles. Formatting and whitespace checks also pass.
+Full `pnpm validate` passes with the approved bundle limits and refreshed
+comparison baseline. All 188 previews pass. Only the
+custom nested-tooltip preview changed visually, as expected from removing its
+outer card styles.
 
 ## V2 proposals excluded
 

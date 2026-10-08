@@ -4,7 +4,8 @@ Baseline: `d7ca749e`, whose public runtime output also matches `8d9fe649`.
 Final: the runtime changes committed with this report. Node 24.18.0,
 pnpm 11.15.1, esbuild 0.27.7, minified production ESM, ES2022, tree shaking.
 All values are decimal kB. Only changed consumers are listed. Removed research
-entries were not restored. Limits remain unchanged except the approved scale fix.
+entries were not restored. The user approved these increases on October 8;
+affected limits and exact baselines now include the measured changes.
 
 | Consumer                                    | Baseline gzip | Final gzip | Gzip change | Minified change |
 | ------------------------------------------- | ------------: | ---------: | ----------: | --------------: |
