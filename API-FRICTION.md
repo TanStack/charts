@@ -345,6 +345,12 @@ Each entry records:
 | F-306 | Inferred consumer declarations could not name core types       | Tooling               | resolved   |
 | F-307 | Grouped-y keyboard navigation followed x order                 | API                   | resolved   |
 | F-308 | Raster format documentation omitted browser encoder fallback   | Documentation         | resolved   |
+| F-309 | Immutable range setters lost their returned scale              | API                   | resolved   |
+| F-310 | React client boundaries and migration options were unclear     | Documentation/Tooling | resolved   |
+| F-311 | Crowded dodge layouts had no bounded offset policy             | API                   | resolved   |
+| F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
+| F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
+| F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
 
 ## Findings
 
@@ -9199,3 +9205,96 @@ Each entry records:
   decodes as WebP in Chromium and Firefox and PNG in WebKit. Dimensions and
   opaque red pixels pass with lossy-encoding tolerance, alongside ten existing
   PNG checks per engine. No page errors or console warnings/errors occur.
+
+### F-309 - Immutable range setters lost their returned scale
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: reproducing GitHub issue #177 against 1.0 runtime code
+- Friction: Charts copies a configured scale but discards the object returned
+  by `range()`. An immutable range setter therefore leaves mapping, inversion,
+  and tick positions in the original unit range.
+- Decision: retain the returned scale, without changing domain inference or
+  the independently mutable domain requirement for semantic viewports. The
+  fix is included in `taren/post-1.0-fixes`, commit `c76566f1`, after the
+  user approved its measured size exception.
+- Verification: the new regression fails before the fix and passes afterward
+  for two responsive widths, mapping, inversion, tick positions, and source
+  immutability. All 30 configured-scale tests and root TypeScript pass. The
+  minimal fix adds 0.002 kB minified to affected consumer bundles; gzip deltas
+  range from -0.001 to +0.002 kB. The user approved that exception on October 8.
+
+### F-310 - React client boundaries and migration defaults were hard to find
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation/Tooling
+- Observed in: GitHub issues #175, #176, #180, and the FACEIT migration report
+  in #183
+- Friction: React entries did not declare their client boundary, a chart
+  definition cannot be serialized through an RSC prop, and existing options
+  for client-only mounting, tick stubs, sparse focus, and small sparkline
+  domains were difficult to find.
+- Decision: preserve client directives in React entries and verify the
+  published imports during the existing package gate. Document application
+  ownership of the client boundary and post-hydration mounting. Add a Recharts
+  migration guide and explicit tick-size and nicening guidance, without
+  changing defaults or adding a runtime API.
+- Verification: seven source compilation regressions fail before and pass
+  after adding the directives. The client-only recipe passes Strict Mode SSR,
+  hydration, mounted SVG, frame reuse, and teardown checks without recoverable
+  hydration errors. Consumer bundle output remains unchanged.
+
+### F-311 - Crowded dodge layouts had no bounded offset policy
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: reproducing issue #174 with crowded, variable-radius dots
+- Friction: collision-free offsets extended outside the plot, requiring a
+  custom packer to bound positions.
+- Decision: add opt-in `fit: 'compress'`, preserving existing overflow behavior.
+  Compression can overlap dots. A circle wider than the plot requires a smaller
+  authored radius and produces an explicit error.
+- Verification: all six anchors keep variable-radius circles within bounds;
+  roomy layouts retain their exact positions, empty layouts work, and oversized
+  circles fail clearly. The crowded-layout regression fails before the feature.
+
+### F-312 - Tick stubs could not be styled independently
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: issue #180, authored baseline paint did not affect tick stubs
+- Decision: add `axis.ticks.line` with the existing guide style type and `false`
+  to hide stubs while retaining labels. Keep existing axis defaults.
+- Verification: both axes accept stroke paint and retain all authored labels
+  when stubs are hidden. Existing default guide output tests pass unchanged.
+
+### F-313 - Initial observer precision cancelled entrance motion
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: issue #182, CSS reported 569.594 while layout reported 569.59375
+- Decision: adopt the first observer's precision only when the measured bounds
+  and CSS content size have not changed. Compare subsequent resizes exactly.
+- Verification: regression covers repeated initial reports, transformed border
+  boxes, and a real 0.125 pixel resize. Chromium, Firefox, and WebKit retain
+  running entrance motion and accept subsequent fractional resizes.
+
+### F-314 - Framework ticks and immediate focus layers were hard to discover
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation
+- Observed in: issues #179 and #181 duplicated layout math and expected inline
+  states to own geometry concurrently with data motion
+- Decision: document resolved scales and plot bounds from `onRender` for HTML
+  tick content, plus `whenFocused` for immediate focus indicators. Explain
+  inline state deferral and independent tooltip timing. No motion default changes.
+- Verification: React HTML labels align with SVG tick stubs across size and
+  direction changes. A focus dot appears during entrance while the data path
+  and its running animation remain intact. Concurrent inline states remain a
+  separate feature; this addresses the documented alternatives requested.

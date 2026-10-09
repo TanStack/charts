@@ -133,6 +133,7 @@ export function mountChartRenderer<
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
+  let notifiedPoints: readonly ChartPoint<TDatum, TXValue, TYValue>[] = []
   let focusSource: ChartFocusSource = 'pointer'
   let emphasisFocus: ChartFocusState<TDatum, TXValue, TYValue> | undefined
   let focusOwner: FocusOwner | null = null
@@ -141,6 +142,9 @@ export function mountChartRenderer<
   let observer: ResizeObserver | undefined
   let observedContentSize:
     { width: number | undefined; height: number | undefined } | undefined
+  let measuredBounds: DOMRect | undefined
+  let renderedWidth: number
+  let renderedHeight: number
   let renderFrame: number | undefined
   let forceScheduledRender = false
   let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
@@ -188,6 +192,8 @@ export function mountChartRenderer<
     const previousCursorPresentation = cursorPresentation
     const previousCursorBinding = renderedCursorBinding
     scene = createHostedScene(createScene())
+    renderedWidth = scene.width
+    renderedHeight = scene.height
     interactionScene = scene
     const renderer = resolveChartRenderer(scene, options.renderer)
     if (!surface) {
@@ -244,8 +250,7 @@ export function mountChartRenderer<
       focusOwner = null
       paintFocus(null, [])
       if (previousFocusedPoint) {
-        options.onFocusChange?.(null)
-        options.onFocusGroupChange?.([])
+        notifyFocus(null, [])
       }
     } else {
       cursorPresentation = null
@@ -278,8 +283,7 @@ export function mountChartRenderer<
       ) {
         if (!trackedPointer) focusSource = 'restored'
         paintFocus(nextFocusedPoint, nextFocusedPoints)
-        options.onFocusChange?.(nextFocusedPoint)
-        options.onFocusGroupChange?.(nextFocusedPoints)
+        notifyFocus(nextFocusedPoint, nextFocusedPoints)
       }
     }
     const onRender = options.onRender
@@ -330,6 +334,7 @@ export function mountChartRenderer<
       (measureWidth || measureHeight) && !observedContentSize
         ? container.getBoundingClientRect()
         : undefined
+    if (bounds) measuredBounds = bounds
     const contentSize =
       measureWidth || measureHeight
         ? (observedContentSize ?? currentContainerContentSize(bounds))
@@ -346,16 +351,17 @@ export function mountChartRenderer<
     return (
       (observesContainerWidth() &&
         next.width !== undefined &&
-        next.width !== scene.width) ||
+        next.width !== renderedWidth) ||
       (observesContainerHeight() &&
         next.height !== undefined &&
-        next.height !== scene.height)
+        next.height !== renderedHeight)
     )
   }
 
   const configureObserver = () => {
     observer?.disconnect()
     observer = undefined
+    if (observedContentSize) measuredBounds = container.getBoundingClientRect()
     observedContentSize = undefined
     if (!observesContainerWidth() && !observesContainerHeight()) return
     const ResizeObserverConstructor = view?.ResizeObserver
@@ -364,6 +370,27 @@ export function mountChartRenderer<
       const entry =
         entries.find((candidate) => candidate.target === container) ??
         entries[0]
+      if (entry && !observedContentSize && measuredBounds) {
+        const bounds = container.getBoundingClientRect()
+        const content = currentContainerContentSize(bounds)
+        // The first observer report can be more precise than CSSOM. Adopt
+        // that precision only when both layout and CSS content size stayed
+        // unchanged since rendering. Later resizes are compared exactly.
+        if (
+          bounds.width === measuredBounds.width &&
+          content.width === scene.width
+        ) {
+          renderedWidth =
+            positiveFiniteNumber(entry.contentRect.width) ?? renderedWidth
+        }
+        if (
+          bounds.height === measuredBounds.height &&
+          content.height === scene.height
+        ) {
+          renderedHeight =
+            positiveFiniteNumber(entry.contentRect.height) ?? renderedHeight
+        }
+      }
       observedContentSize = entry
         ? {
             width: positiveFiniteNumber(entry.contentRect.width),
@@ -478,8 +505,7 @@ export function mountChartRenderer<
         !sameChartPointIdentity(previous, point) ||
         (notifyRestored && (previous !== null || point !== null))
       ) {
-        options.onFocusChange?.(point)
-        options.onFocusGroupChange?.(points)
+        notifyFocus(point, points)
       }
       return
     }
@@ -488,8 +514,7 @@ export function mountChartRenderer<
     focusedPoint = null
     paintFocus(null, [])
     if (previous) {
-      options.onFocusChange?.(null)
-      options.onFocusGroupChange?.([])
+      notifyFocus(null, [])
     }
   }
 
@@ -530,8 +555,29 @@ export function mountChartRenderer<
     }
     focusedPoint = point
     paintFocus(point, points)
-    options.onFocusChange?.(point)
-    options.onFocusGroupChange?.(points)
+    notifyFocus(point, points)
+  }
+
+  const notifyFocus = (
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => {
+    const previous = notifiedPoints
+    let groupChanged = previous.length !== points.length
+    if (options.onFocusGroupChange && !groupChanged) {
+      for (let index = 0; index < points.length; index++) {
+        if (!sameFocusObservation(previous[index]!, points[index]!)) {
+          groupChanged = true
+          break
+        }
+      }
+    }
+    // Store the observation before callbacks, which can synchronously update us.
+    notifiedPoints = points
+    if (!sameFocusObservation(previous[0] ?? null, point)) {
+      options.onFocusChange?.(point)
+    }
+    if (groupChanged) options.onFocusGroupChange?.(points)
   }
 
   const dismissTooltip = () => {
@@ -1353,6 +1399,20 @@ function resolveTooltipInput<
 
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function sameFocusObservation<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  first: ChartPoint<TDatum, TXValue, TYValue> | null,
+  second: ChartPoint<TDatum, TXValue, TYValue> | null,
+) {
+  return (
+    sameChartPointIdentity(first, second) &&
+    Object.is(first?.datum, second?.datum)
+  )
 }
 
 function cssPixelLength(value: string | undefined) {

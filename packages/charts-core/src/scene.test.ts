@@ -1304,6 +1304,49 @@ describe('native mark and channel scene', () => {
     )
   })
 
+  it.each(['x', 'y'] as const)(
+    'styles %s tick stubs independently and can hide them without hiding labels',
+    (axis) => {
+      const style = {
+        stroke: 'red',
+        strokeOpacity: 0.6,
+        strokeWidth: 2,
+        strokeDasharray: '2 3',
+        lineCap: 'round' as const,
+      }
+      const make = (line: typeof style | false) =>
+        createChartScene(
+          defineChart({
+            marks: [lineY([1, 3, 2])],
+            scales: {
+              ...linearAxes([0, 2], [0, 3]).scales,
+              [axis]: {
+                ...linearAxes([0, 2], [0, 3]).scales[axis],
+                axis: { ticks: { values: [0, 1, 2], line } },
+              },
+            },
+          }),
+          { width: 480, height: 260 },
+        )
+      const styled = flatten(make(style).nodes)
+      const stubs = styled.filter((node) =>
+        node.key.startsWith(`${axis}-tick-rule:`),
+      )
+      expect(stubs).toHaveLength(3)
+      for (const stub of stubs) expect(stub.style).toEqual(style)
+      const hidden = flatten(make(false).nodes)
+      expect(
+        hidden.filter((node) => node.key.startsWith(`${axis}-tick-rule:`)),
+      ).toHaveLength(0)
+      expect(
+        hidden.filter(
+          (node) =>
+            node.kind === 'label' && node.key.startsWith(`${axis}-tick-label:`),
+        ),
+      ).toHaveLength(3)
+    },
+  )
+
   it('styles each grid and only the axis baseline through guide options', () => {
     const axes = linearAxes([0, 2], [0, 3])
     const scene = createChartScene(

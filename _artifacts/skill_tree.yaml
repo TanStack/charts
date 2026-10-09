@@ -196,8 +196,6 @@ skills:
       - 'debug-and-verify-charts'
     sources:
       - 'TanStack/charts:docs/guides/migrating.md'
-      - 'TanStack/charts:packages/charts-core-d3/docs/observable-plot-migration.md'
-      - 'TanStack/charts:packages/charts-core-d3/docs/tanstack-stats-migration.md'
     subsystems:
       - 'Observable Plot'
       - 'Recharts'

@@ -337,20 +337,4 @@ docs/reference/view-composition.md
 
 </details>
 
-<details>
-<summary>Archived D3-core docs (8)</summary>
-
-```text
-packages/charts-core-d3/docs/AI-GUIDE.md
-packages/charts-core-d3/docs/bundle-and-performance.md
-packages/charts-core-d3/docs/custom-marks.md
-packages/charts-core-d3/docs/dynamic-charts.md
-packages/charts-core-d3/docs/observable-plot-migration.md
-packages/charts-core-d3/docs/recipes.md
-packages/charts-core-d3/docs/responsive-theme-accessibility.md
-packages/charts-core-d3/docs/tanstack-stats-migration.md
-```
-
-</details>
-
 Additional evidence read: root and client package READMEs, adapter implementations, package manifests and peer constraints, `API-FRICTION.md` F-001–F-257, relevant `CHANGELOG.md` migrations, all ten public GitHub issues found for the repository, and current official TanStack Table, Query, DB, Router, Store, Virtual, Pacer, Start, and Form guidance needed for ecosystem coordination.

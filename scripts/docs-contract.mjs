@@ -500,7 +500,7 @@ async function validateDocumentedTanStackImports(
     }
     for (const code of typedCodeFences(source)) {
       for (const match of code.matchAll(
-        /(?:\bfrom\s+|\bimport\s*\(\s*)['"](@charts-poc\/[^'"]+)['"]/g,
+        /(?:\bfrom\s+|\bimport\s*\(\s*)['"](@charts-(?:internal|poc)\/[^'"]+)['"]/g,
       )) {
         failures.push(
           `${path} imports private workspace package ${match[1]} from public documentation`,

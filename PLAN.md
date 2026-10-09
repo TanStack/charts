@@ -2283,7 +2283,7 @@ Maintenance gates:
 5. Authored case metadata and source stay the source of truth.
 
 The maintenance command is `pnpm catalog:index:check`; the local authoring app
-build is `pnpm --filter @charts-poc/conformance-example build`.
+build is `pnpm --filter @charts-internal/conformance-example build`.
 
 The executable smoke harness covers sorted bars and fixed-boundary histograms
 for both renderers. It creates immutable external workspaces, keeps canonical

@@ -21,6 +21,40 @@ import type {
 } from './types'
 
 describe('configured scales', () => {
+  it('uses the scale returned by an immutable range setter without changing its source', () => {
+    const immutable = (range: readonly number[] = [0, 1]) => {
+      const scale = scaleLinear().domain([0, 2]).range(range)
+      return new Proxy(scale, {
+        get(target, key) {
+          if (key === 'copy') return () => immutable(target.range())
+          if (key === 'range') {
+            return (next?: readonly number[]) =>
+              next ? immutable(next) : target.range()
+          }
+          return Reflect.get(target, key)
+        },
+      })
+    }
+    const source = immutable()
+    const definition = defineChart({
+      marks: [lineY([0, 1, 2])],
+      scales: {
+        x: { scale: source },
+        y: { scale: scaleLinear().domain([0, 2]) },
+      },
+    })
+    for (const width of [480, 720]) {
+      const scene = createChartScene(definition, { width, height: 260 })
+      expect(scene.scales.x.map(0)).toBe(scene.chart.x)
+      expect(scene.scales.x.map(2)).toBe(scene.chart.x + scene.chart.width)
+      expect(scene.scales.x.invert?.(scene.chart.x)).toBe(0)
+      expect(scene.scales.x.ticks.at(-1)?.position).toBe(
+        scene.chart.x + scene.chart.width,
+      )
+      expect(source.range()).toEqual([0, 1])
+    }
+  })
+
   it('requires explicit positional scale decisions in chart definitions', () => {
     // @ts-expect-error Both positional dimensions must supply a scale or null.
     const invalid = defineChart({ marks: [lineY([1, 2, 3])] })

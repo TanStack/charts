@@ -1504,8 +1504,11 @@ function createAxes(
       )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
+    const tickLine = presentation?.ticks && presentation.ticks.line
     const tickSize = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
+      presentation?.ticks === false || tickLine === false
+        ? 0
+        : (presentation?.ticks?.size ?? 4),
     )
     const tickPadding = finiteMargin(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
@@ -1546,7 +1549,7 @@ function createAxes(
         x2: tick.position,
         y1: axisY,
         y2: tickEnd,
-        style: axisStyle(),
+        style: axisStyle(tickLine),
       })
     }
     for (const candidate of visibleLabels) {
@@ -1611,8 +1614,11 @@ function createAxes(
       )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
+    const tickLine = presentation?.ticks && presentation.ticks.line
     const tickSize = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
+      presentation?.ticks === false || tickLine === false
+        ? 0
+        : (presentation?.ticks?.size ?? 4),
     )
     const tickPadding = finiteMargin(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
@@ -1651,7 +1657,7 @@ function createAxes(
         x2: tickEnd,
         y1: tick.position,
         y2: tick.position,
-        style: axisStyle(),
+        style: axisStyle(tickLine),
       })
     }
     for (const candidate of visibleLabels) {

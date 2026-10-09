@@ -612,6 +612,10 @@ them. Number and Date values may instead use scale inversion only when
 `keyboard: false`.
 
 `BrushXValuesOptions<TValue>` is the candidate-backed form.
+`format` supplies each keyboard handle's value text. Its
+`BrushXFormatContext` names the `start` or `end` handle, so values that mark
+boundaries between items, such as bar edges, can name the first item after the
+start handle and the last item before the end handle.
 `BrushXContinuousOptions<number | Date>` is the invertible, pointer-only form.
 `BrushXSource` distinguishes pointer and keyboard commits, while
 `BrushXTarget` identifies the selection, start handle, end handle, or newly

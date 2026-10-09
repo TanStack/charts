@@ -75,7 +75,7 @@ pnpm catalog:previews
 pnpm catalog:previews:check
 
 # Build the standalone authoring app
-pnpm --filter @charts-poc/conformance-example build
+pnpm --filter @charts-internal/conformance-example build
 ```
 
 Reports are written to
