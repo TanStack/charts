@@ -51,8 +51,8 @@ server-rendered application charts.
 
 > [!IMPORTANT]
 > This README follows unreleased `main`. The latest
-> published release is TanStack Charts `1.0.0`; use its
-> [release-source documentation](https://github.com/TanStack/charts/tree/v1.0.0/docs).
+> published release is TanStack Charts `1.1.0`; use its
+> [release-source documentation](https://github.com/TanStack/charts/tree/v1.1.0/docs).
 > Releases before 1.0 follow the [Alpha policy](./docs/stability.md) and may
 > break APIs between minor releases. The [stable compatibility contract](./docs/compatibility.md)
 > applies starting with 1.0. Check the policy for your installed version before upgrading.

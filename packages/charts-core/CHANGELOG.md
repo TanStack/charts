@@ -1,5 +1,29 @@
 # @tanstack/charts
 
+## 1.1.0
+
+### Minor Changes
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`df25302`](https://github.com/TanStack/charts/commit/df253029f54c777897afc3240d93a7b91b5649dd) - Add opt-in `fit: 'compress'` for crowded dodge layouts and `axis.ticks.line` for styling or hiding tick stubs independently of labels. Preserve existing layout and tick defaults.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58) - Pass `brushX` `format` a context naming the `start` or `end` handle it is labeling, so values that mark boundaries between items can produce correct value text for each handle.
+
+### Patch Changes
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58) - Keep the number of selected values when dragging a `brushX` selection with explicit `values`, including when the drag stops at the edge of the plot.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58) - Remove built-in card styles from custom tooltip bodies and restore them when returning to the built-in tooltip.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`df25302`](https://github.com/TanStack/charts/commit/df253029f54c777897afc3240d93a7b91b5649dd) - Accept the first resize observer's measurement precision when layout and CSS content dimensions are unchanged, avoiding a spurious resize that cancels entrance motion. Continue responding to actual fractional resizes.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`c76566f`](https://github.com/TanStack/charts/commit/c76566f1135301e97fc977593a0484a9f96422f6) - Use the scale returned by its range setter so immutable custom scales receive the chart's pixel range without changing their source.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58) - Look up interaction values by key and snap pointer positions by binary search, so `brushX`, `zoomX`, `handleX`, and cursors with many explicit values stay responsive while dragging.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`8d9fe64`](https://github.com/TanStack/charts/commit/8d9fe649dac3bdfd8ee2f48526d81fc7dfb24c11) - Mark React chart entries as client components for React Server Component applications. Document where chart definitions belong and how to render a hydration-safe client-only chart.
+
+- [#184](https://github.com/TanStack/charts/pull/184) [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58) - Avoid repeating focus callbacks after scene updates when the focused datum and group have not changed. Continue repainting updated geometry and notifying changed data or group membership.
+
 ## 1.0.0
 
 ### Major Changes

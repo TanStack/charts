@@ -4,8 +4,8 @@ description: Install TanStack Charts with compact scales, framework adapters, an
 ---
 
 These docs follow unreleased `main`. The latest
-published release is TanStack Charts `1.0.0`; use its
-[release-source docs](https://github.com/TanStack/charts/tree/v1.0.0/docs)
+published release is TanStack Charts `1.1.0`; use its
+[release-source docs](https://github.com/TanStack/charts/tree/v1.1.0/docs)
 for the exact surface. Releases before 1.0 follow the [Alpha policy](./stability.md)
 and may break APIs between minor releases. The
 [stable compatibility contract](./compatibility.md) applies starting with 1.0.
