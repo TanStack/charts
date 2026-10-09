@@ -1,5 +1,12 @@
 # @tanstack/react-native-charts
 
+## 1.1.0
+
+### Patch Changes
+
+- Updated dependencies [[`df25302`](https://github.com/TanStack/charts/commit/df253029f54c777897afc3240d93a7b91b5649dd), [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58), [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58), [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58), [`df25302`](https://github.com/TanStack/charts/commit/df253029f54c777897afc3240d93a7b91b5649dd), [`c76566f`](https://github.com/TanStack/charts/commit/c76566f1135301e97fc977593a0484a9f96422f6), [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58), [`8d9fe64`](https://github.com/TanStack/charts/commit/8d9fe649dac3bdfd8ee2f48526d81fc7dfb24c11), [`2d54fc8`](https://github.com/TanStack/charts/commit/2d54fc8affe5a043c4c803274a0017d10ea73f58)]:
+  - @tanstack/charts@1.1.0
+
 ## 1.0.0
 
 ### Patch Changes

@@ -4,7 +4,7 @@ description: Learn what TanStack Charts provides, how its grammar works, and whe
 ---
 
 These docs follow unreleased `main`. The latest published TanStack Charts
-release is `1.0.0`. Releases before 1.0 follow the [Alpha policy](./stability.md)
+release is `1.1.0`. Releases before 1.0 follow the [Alpha policy](./stability.md)
 and may break APIs between minor releases. The
 [stable compatibility contract](./compatibility.md) applies starting with 1.0.
 
