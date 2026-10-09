@@ -83,10 +83,20 @@ comparison baseline. All 188 previews pass. Only the
 custom nested-tooltip preview changed visually, as expected from removing its
 outer card styles.
 
-## V2 proposals excluded
+## V2 scope
 
-- Changing ticks:false to leave labels visible.
-- Changing the default focus distance from 48 pixels.
-- Changing global tooltip motion inheritance.
+No breaking changes are needed for these proposals. The additive
+`ticks: { line: false }` option covers tick-line visibility without changing
+the existing `ticks: false` behavior.
+
+## Rejected default changes
+
+The user rejected these proposals on October 8, 2026, not deferred them to V2.
+Both behaviors already have explicit configuration options:
+
+- Keep the default focus distance at 48 pixels. Applications can set
+  `maxFocusDistance` when they need different behavior.
+- Keep tooltip motion inheritance unchanged. Applications can set
+  `tooltip({ motion: ... })`, including `motion: false`.
 
 No push, PR update, issue closure, merge, publish, or deployment was performed.
