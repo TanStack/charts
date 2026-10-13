@@ -1184,9 +1184,9 @@ describe('Canvas renderer', () => {
       const fake = contexts.get(this)
       if (context && fake) {
         context.getTransform = () => {
-          const scale = fake.operations.findLast((op) =>
-            op.startsWith('scale:'),
-          )
+          const scale = [...fake.operations]
+            .reverse()
+            .find((op) => op.startsWith('scale:'))
           const [a, d] = scale?.slice(6).split(',').map(Number) ?? [2, 2]
           return { a, b: 0, c: 0, d, e: 0, f: 0 } as DOMMatrix
         }
