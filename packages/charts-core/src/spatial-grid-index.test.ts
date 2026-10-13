@@ -86,10 +86,10 @@ describe('grid spatial index', () => {
     (_name, anchors) => {
       const points = anchors.map(([x, y], index) => point(index, x, y))
       const index = gridSpatialIndex(points)
-      for (const query of [...anchors, [1e308, 1e308] as const]) {
+      for (const [x, y] of [...anchors, [1e308, 1e308] as const]) {
         for (const maxDistance of [0, Infinity]) {
-          expect(index.findNearest(...query, maxDistance)).toBe(
-            nearestPoint(points, ...query, maxDistance),
+          expect(index.findNearest(x, y, maxDistance)).toBe(
+            nearestPoint(points, x, y, maxDistance),
           )
         }
       }
