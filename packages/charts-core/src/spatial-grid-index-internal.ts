@@ -175,9 +175,11 @@ export function createGridIndex<
             const edge = minY + (bottom + 1) * cellHeight - slackY
             bound = Math.min(bound, rectDistance(minX, edge, maxX, maxY))
           }
-          if (bound === Infinity || bound > bestDistance || bound > limit) {
-            break
-          }
+          const covered =
+            left <= 0 && right >= columns - 1 && top <= 0 && bottom >= rows - 1
+          // An infinite distance bound can still tie unvisited points when
+          // squared distances overflow. Only stop once those ties are scanned.
+          if (covered || bound > bestDistance || bound > limit) break
         }
       }
       for (const index of outside) visit(index)
@@ -188,11 +190,18 @@ export function createGridIndex<
 }
 
 function axisCells(extent: number, cellSize: number, count: number): number {
+  // Overflowing finite-anchor extents cannot be partitioned safely. Collapse
+  // that axis so the existing point scan preserves linear lookup semantics.
+  if (!Number.isFinite(extent) || !Number.isFinite(cellSize)) return 1
   if (!(extent > 0) || !(cellSize > 0)) return 1
-  return Math.max(1, Math.min(count, Math.ceil(extent / cellSize)))
+  const cells = Math.max(1, Math.min(count, Math.ceil(extent / cellSize)))
+  return Number.isFinite(cells / extent) ? cells : 1
 }
 
 function clampCell(position: number, cells: number): number {
+  // A singleton axis has no scale; an opposite extreme query can yield NaN
+  // through an overflowing subtraction multiplied by that zero scale.
+  if (cells === 1) return 0
   const cell = Math.floor(position)
   return cell < 0 ? 0 : cell >= cells ? cells - 1 : cell
 }

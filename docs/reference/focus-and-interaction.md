@@ -612,6 +612,10 @@ them. Number and Date values may instead use scale inversion only when
 `keyboard: false`.
 
 `BrushXValuesOptions<TValue>` is the candidate-backed form.
+`format` supplies each keyboard handle's value text. Its
+`BrushXFormatContext` names the `start` or `end` handle, so values that mark
+boundaries between items, such as bar edges, can name the first item after the
+start handle and the last item before the end handle.
 `BrushXContinuousOptions<number | Date>` is the invertible, pointer-only form.
 `BrushXSource` distinguishes pointer and keyboard commits, while
 `BrushXTarget` identifies the selection, start handle, end handle, or newly
@@ -1022,6 +1026,11 @@ returns the same point as a linear anchor scan: the smallest squared anchor
 distance, the earliest point in `points` order on a tie, and `null` when that
 distance exceeds `maxDistance`. A negative `maxDistance` matches only exact
 anchors, and points with non-finite anchors stay searchable.
+
+Coordinates are captured when the index is built. If you call the factory
+outside the chart host, keep the points array and point identities unchanged
+for the index lifetime, and rebuild after changing anchors. The chart host
+rebuilds the index when the scene changes.
 
 It is nearest-center lookup, not shape hit testing. Like any index, it
 replaces primitive containment and affinity ranking, so a pointer inside a

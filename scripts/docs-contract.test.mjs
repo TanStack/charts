@@ -141,7 +141,7 @@ Body
 | SVG output | ✅ Default | 🔴 Canvas only |
 `),
     ).toContainEqual(['SVG output', '✅ Default', '🔴 Canvas only'])
-    expect(formatComparisonRange([19_481, 22_761])).toBe('19.02–22.23 KiB')
+    expect(formatComparisonRange([19_481, 22_761])).toBe('19.48–22.76 kB gzip')
   })
 
   it('allows only reviewed competitor links on the comparison page', () => {

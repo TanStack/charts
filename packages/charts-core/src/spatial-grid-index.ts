@@ -13,6 +13,8 @@ import type {
  * squared distance from each point's `x`/`y` anchor, the earliest point on a
  * tie, and `null` beyond `maxDistance`. It does not test scene shapes, so
  * rectangles, areas, and lines are matched by their anchor points only.
+ * Coordinates are captured at build time. Keep the points array and point
+ * identities unchanged for the index lifetime; rebuild after changing anchors.
  */
 export function gridSpatialIndex<
   TDatum,

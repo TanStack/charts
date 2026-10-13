@@ -217,6 +217,29 @@ describe('CI workflow contract', () => {
       stress: false,
     })
     assert.deepEqual(
+      classifyCiChanges([
+        'packages/charts-core/src/adapter.test.ts',
+        'packages/react-charts/src/nested/hydration.spec.tsx',
+        'packages/charts-core/src/decorative.type-test.ts',
+        'packages/octane-charts/src/Chart.hydration.client.test.tsrx',
+      ]),
+      { static: 'full', compare: false, stress: false },
+    )
+    assert.deepEqual(
+      classifyCiChanges([
+        'packages/octane-charts/src/Chart.hydration.client.test.tsrx',
+        'packages/octane-charts/src/Chart.tsrx',
+      ]),
+      { static: 'full', compare: true, stress: true },
+    )
+    assert.deepEqual(
+      classifyCiChanges([
+        'packages/charts-core/src/adapter.test.ts',
+        'packages/charts-core/src/adapter.ts',
+      ]),
+      { static: 'full', compare: true, stress: true },
+    )
+    assert.deepEqual(
       classifyCiChanges(['packages/charts-core/src/reconcile.ts']),
       {
         static: 'full',

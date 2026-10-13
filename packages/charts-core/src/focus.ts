@@ -57,7 +57,9 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean) {
       points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     ) {
       const sorted = [...points].sort(
-        (left, right) => left.x - right.x || left.y - right.y,
+        grouped && axis === 'y'
+          ? (left, right) => left.y - right.y || left.x - right.x
+          : (left, right) => left.x - right.x || left.y - right.y,
       )
       if (!grouped) return sorted
       const unique = new Map<string, (typeof points)[number]>()

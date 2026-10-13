@@ -32,6 +32,71 @@ gridSpatialIndex satisfies ChartSpatialIndexFactory<number>
 
 describe('grid spatial index', () => {
   it.each([
+    [
+      'tiny horizontal',
+      [
+        [0, 0],
+        [1e-308, 0],
+      ],
+    ],
+    [
+      'tiny vertical',
+      [
+        [0, 0],
+        [0, 1e-308],
+      ],
+    ],
+    [
+      'horizontal',
+      [
+        [-1e308, 0],
+        [1e308, 0],
+      ],
+    ],
+    [
+      'vertical',
+      [
+        [0, -1e308],
+        [0, 1e308],
+      ],
+    ],
+    [
+      'diagonal',
+      [
+        [-1e308, -1e308],
+        [1e308, 1e308],
+      ],
+    ],
+    [
+      'zero-width axis',
+      [
+        [-1e308, 0],
+        [-1e308, 1],
+      ],
+    ],
+    [
+      'zero-height axis',
+      [
+        [0, -1e308],
+        [1, -1e308],
+      ],
+    ],
+  ] as const)(
+    'preserves linear lookup for %s at extreme finite coordinates',
+    (_name, anchors) => {
+      const points = anchors.map(([x, y], index) => point(index, x, y))
+      const index = gridSpatialIndex(points)
+      for (const query of [...anchors, [1e308, 1e308] as const]) {
+        for (const maxDistance of [0, Infinity]) {
+          expect(index.findNearest(...query, maxDistance)).toBe(
+            nearestPoint(points, ...query, maxDistance),
+          )
+        }
+      }
+    },
+  )
+
+  it.each([
     ['one column', (random: () => number) => [480, random() * 540] as const],
     ['one row', (random: () => number) => [random() * 960, 270] as const],
     [

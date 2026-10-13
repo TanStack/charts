@@ -13,7 +13,7 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
   source: ChartScaleInput<TValue>,
   context: ChartScaleResolveContext,
 ): ResolvedScale {
-  const scale = resolveScaleInput(source, {
+  let scale = resolveScaleInput(source, {
     values: context.values,
     includeZero: context.includeZero,
     nice: context.options?.nice,
@@ -29,7 +29,7 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
   const range = context.options?.reverse
     ? ([naturalRange[1], naturalRange[0]] as const)
     : naturalRange
-  scale.range(range)
+  scale = scale.range(range)
   const domain = copyDomain(scale.domain())
   if (
     viewport &&

@@ -16,7 +16,7 @@ export interface FilterMarkSceneOptions {
 }
 
 export interface StripMarkSceneInteractionOptions {
-  conditional?: 'remove' | 'reject'
+  conditional?: 'remove' | 'reject' | 'preserve-states'
 }
 
 /** Removes every interaction-owned scene field without changing painted geometry. */
@@ -143,10 +143,13 @@ function filterNode<
 
 function stripSceneNodeInteraction(
   node: SceneNode,
-  conditional: 'remove' | 'reject',
+  conditional: 'remove' | 'reject' | 'preserve-states',
 ): SceneNode {
   if (node.kind === 'group') {
-    if (conditional === 'reject' && (node.focus || node.states)) {
+    if (
+      conditional !== 'remove' &&
+      (node.focus || (conditional === 'reject' && node.states))
+    ) {
       throw new TypeError(
         'decorative() cannot wrap scene geometry with focus or state behavior',
       )
@@ -159,11 +162,21 @@ function stripSceneNodeInteraction(
       focus: _focus,
       states: _states,
       pointOwner: _pointOwner,
+      pointOwners: _pointOwners,
       focusCandidateIndex: _focusCandidateIndex,
       ...decorative
     } = node
     return {
       ...decorative,
+      ...(conditional === 'preserve-states' && _states
+        ? { states: _states }
+        : {}),
+      ...(conditional === 'preserve-states' && _pointOwner
+        ? { pointOwner: _pointOwner }
+        : {}),
+      ...(conditional === 'preserve-states' && _pointOwners
+        ? { pointOwners: _pointOwners }
+        : {}),
       children: children.map((child) =>
         stripSceneNodeInteraction(child, conditional),
       ),
@@ -171,15 +184,30 @@ function stripSceneNodeInteraction(
   }
 
   if (node.kind === 'label') {
-    const { pointOwner: _pointOwner, ...decorative } = node
-    return decorative
+    const {
+      pointOwner: _pointOwner,
+      pointOwners: _pointOwners,
+      ...decorative
+    } = node
+    return conditional === 'preserve-states' ? node : decorative
   }
   const {
     interaction: _interaction,
     pointOwner: _pointOwner,
+    pointOwners: _pointOwners,
     ...decorative
   } = node
-  return decorative
+  return conditional === 'preserve-states'
+    ? {
+        ...decorative,
+        ...(_pointOwner || _interaction?.point
+          ? { pointOwner: _pointOwner ?? _interaction?.point }
+          : {}),
+        ...(_pointOwners || _interaction?.points
+          ? { pointOwners: _pointOwners ?? _interaction?.points }
+          : {}),
+      }
+    : decorative
 }
 
 function metadataPoints<
@@ -251,7 +279,7 @@ function filterGroupState<
   }
 }
 
-function collectMarkScenePoints<
+export function collectMarkScenePoints<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
@@ -271,6 +299,7 @@ function collectMarkScenePoints<
   const visit = (nodes: readonly SceneNode[]) => {
     for (const node of nodes) {
       if (node.pointOwner) add([node.pointOwner])
+      if (node.pointOwners) add(node.pointOwners)
       if (node.kind === 'group') {
         if (node.focus) {
           add(node.focus.points)
