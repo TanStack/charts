@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import type {

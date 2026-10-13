@@ -62,9 +62,10 @@ consumers remain unchanged apart from one byte of compression variation.
 
 Pattern resources are part of the default scene and SVG contracts. Copying the
 declared list adds 7 to 8 gzip bytes to scene-only consumers. Emitting scoped
-tiles through the existing node serializer adds 123 to 139 bytes to static
-SVG, DOM, and React consumers. Canvas tile rasterization adds about 320 bytes to the Canvas
-renderer. The `linePattern()` and `dotPattern()` vocabulary stays in its own
+tiles through the existing node serializer adds 110 to 139 bytes to static
+SVG, DOM, and React consumers. Canvas consumers add 619 to 646 gzip bytes after integration with current upstream
+rendering code. These deltas were measured against upstream `f29d6493` with the
+same toolchain; affected ceilings retain their existing upstream headroom. The `linePattern()` and `dotPattern()` vocabulary stays in its own
 subpath: its static SVG fixture adds about 0.27 KiB under a 0.3 KiB incremental
 cap, and the ordinary line consumer forbids it.
 
@@ -81,6 +82,12 @@ pie allocation, full scale-backed gauge composition, a scale-backed polar line
 and scatter composition, and projected GeoJSON. Atlas datasets remain
 application-owned inputs rather than chart-package dependencies. The locked
 Cartesian entries prove those D3 geometry modules remain opt-in.
+
+Polar and geographic focus states reuse the initialized-mark state resolver.
+The complete static SVG consumers add 35 gzip bytes for geographic shapes,
+75 for arcs, 170 for the gauge, 164 for radial labels, 57 for radial bars,
+and 78 for polar line/scatter composition. Their optional ceilings retain
+about 20 to 35 bytes of headroom. Locked Cartesian consumers stay byte-identical.
 
 The advanced custom-mark scale-value factory follows the same rule: its
 subpath has a dedicated budget, while ordinary chart entries must retain zero

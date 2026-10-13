@@ -92,6 +92,10 @@ await downloadChartImage(chartContainer, 'quarterly-revenue.png', {
 2 produces a 2400 × 1350 canvas while retaining the 1200 × 675 visual
 coordinate system.
 
+JPEG and WebP encoding depend on browser support. A browser can return PNG
+when the requested encoder is unavailable. Check `blob.type` before choosing
+a file extension, the download helper keeps the filename you supply.
+
 ## Export a Canvas chart
 
 Pass the Canvas root or an ancestor containing it to the same

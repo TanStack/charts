@@ -23,15 +23,27 @@ import type {
   RenderChartSvgOptions,
 } from './types'
 
-export interface ChartHostControlExtension extends ChartHostControlExtensionToken {
+export interface ChartHostControlExtension<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartHostControlExtensionToken {
   create: (
-    context: ChartHostControlExtensionContext,
+    context: ChartHostControlExtensionContext<TDatum, TXValue, TYValue>,
   ) => ChartHostControlInstance
 }
 
-export interface ChartHostControlExtensionContext {
+export interface ChartHostControlExtensionContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   container: HTMLElement
-  surface: ChartSurface<any, any, any>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
+  /** Overrides inline-state matching. Null restores real interaction focus. */
+  setStateFocus: (
+    focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+  ) => void
 }
 
 export interface ChartHostControlInstance {
@@ -100,6 +112,8 @@ export interface ChartSurface<
   readonly layers?: readonly ChartSurface<TDatum, TXValue, TYValue>[]
   /** Topmost surface element owned by the chart's default renderer. */
   readonly defaultElement?: Element
+  /** Renderer honors independent inline-state focus in paintFocus options. */
+  readonly supportsStateFocus?: true
   render: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
@@ -125,6 +139,7 @@ export interface ChartSurface<
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
     cursor?: ChartCursorPresentation<TXValue, TYValue> | null,
+    options?: { stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null },
   ) => ChartScene<TDatum, TXValue, TYValue> | void
   destroy: () => void
 }

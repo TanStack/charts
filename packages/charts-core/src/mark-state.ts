@@ -29,8 +29,10 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
   scene: TScene,
   focus: ChartFocusState | null,
   pointer: ChartTooltipPosition | null = null,
+  stateFocus: ChartFocusState | null = focus,
 ): ResolvedMarkState<TScene> {
-  if (!focus || !sceneHasMarkStates(scene.nodes)) return { scene }
+  if ((!focus && !stateFocus) || !sceneHasMarkStates(scene.nodes))
+    return { scene }
   let transition: ChartMarkStateTransition | undefined
   const transitions: Record<string, ChartMarkStateTransition> = {}
 
@@ -43,28 +45,29 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
   ): readonly SceneNode[] =>
     nodes.map((node) => {
       const state = node.kind === 'group' ? node.states : undefined
+      const ownsState = state?.target === 'group'
       const points = state?.points ?? inheritedPoints
       const nodeDefinitions = state?.definitions ?? definitions
       const nodeData = state?.data ?? data
       const lookup = state
         ? createScenePointLookup(state.points)
         : inheritedLookup
-      const candidates = points
-        ? lookup
+      const candidates =
+        points && lookup
           ? sceneNodeOwnedPoints(node, points, lookup)
-          : points
-        : emptyPoints
+          : emptyPoints
       const resolved =
-        node.kind !== 'group' &&
+        (node.kind !== 'group' || ownsState) &&
         nodeDefinitions &&
         nodeData &&
+        stateFocus &&
         candidates.length
           ? resolveNodeState(
               node,
               candidates,
               nodeData,
               nodeDefinitions,
-              focus,
+              stateFocus,
               pointer,
             )
           : { node }
@@ -77,14 +80,19 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
           )
         }
       }
-      const next = resolved.node
+      let next = resolved.node
+      if (next.kind === 'label' && next.focusOpacity) {
+        const opacity = next.focusOpacity({ focus, pointer })
+        if (opacity !== undefined)
+          next = { ...next, style: { ...next.style, opacity } }
+      }
       return next.kind === 'group'
         ? {
             ...next,
             children: visit(
               next.children,
               candidates.length ? candidates : points,
-              nodeDefinitions,
+              ownsState ? undefined : nodeDefinitions,
               nodeData,
               lookup,
             ),
@@ -101,10 +109,11 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
 }
 
 export function sceneHasMarkStates(nodes: readonly SceneNode[]): boolean {
-  return nodes.some(
-    (node) =>
-      node.kind === 'group' &&
-      (node.states !== undefined || sceneHasMarkStates(node.children)),
+  return nodes.some((node) =>
+    node.kind === 'label'
+      ? node.focusOpacity !== undefined
+      : node.kind === 'group' &&
+        (node.states !== undefined || sceneHasMarkStates(node.children)),
   )
 }
 
@@ -160,11 +169,12 @@ function matchingContext(
       pointer,
       matches: (match) => matchesFocusAnchor(point, focus, match),
     }
-    const matches =
+    if (
       typeof definition.when === 'function'
         ? definition.when(context)
         : matchesSelector(definition.when, context)
-    if (matches) return context
+    )
+      return context
   }
   return undefined
 }
@@ -207,23 +217,16 @@ function applyStateStyle(
   let output: SceneNode = { ...node, style }
   const dx = resolveValue(definition.dx, context) ?? 0
   const dy = resolveValue(definition.dy, context) ?? 0
-  const r = resolveValue(definition.r, context)
-  const radius = resolveValue(definition.radius, context)
-  const inset = resolveValue(definition.inset, context)
-  const fontSize = resolveValue(definition.fontSize, context)
-  const fontWeight = resolveValue(definition.fontWeight, context)
-  const rotate = resolveValue(definition.rotate, context)
 
   switch (output.kind) {
     case 'dot':
-      output = {
-        ...output,
-        x: output.x + dx,
-        y: output.y + dy,
-        radius: r ?? output.radius,
-      }
+      output.x += dx
+      output.y += dy
+      output.radius = resolveValue(definition.r, context) ?? output.radius
       break
     case 'rect': {
+      const radius = resolveValue(definition.radius, context)
+      const inset = resolveValue(definition.inset, context)
       const currentInset = output.inset ?? 0
       let nextInset = Math.max(0, inset ?? currentInset)
       if (
@@ -272,14 +275,13 @@ function applyStateStyle(
       break
     }
     case 'label':
-      output = {
-        ...output,
-        x: output.x + dx,
-        y: output.y + dy,
-        fontSize: fontSize ?? output.fontSize,
-        fontWeight: fontWeight ?? output.fontWeight,
-        rotate: rotate ?? output.rotate,
-      }
+      output.x += dx
+      output.y += dy
+      output.fontSize =
+        resolveValue(definition.fontSize, context) ?? output.fontSize
+      output.fontWeight =
+        resolveValue(definition.fontWeight, context) ?? output.fontWeight
+      output.rotate = resolveValue(definition.rotate, context) ?? output.rotate
       break
   }
   return output
@@ -311,13 +313,12 @@ function mergeTransition(
   next: ChartMarkStateTransition,
 ): ChartMarkStateTransition {
   if (!current || current.type !== next.type) return next
-  if (current.type === 'spring' && next.type === 'spring') {
-    return { ...current, ...next }
+  if (current.type === 'tween' && next.type === 'tween') {
+    return {
+      ...current,
+      ...next,
+      duration: Math.max(current.duration ?? 250, next.duration ?? 250),
+    }
   }
-  if (current.type !== 'tween' || next.type !== 'tween') return next
-  return {
-    ...current,
-    ...next,
-    duration: Math.max(current.duration ?? 250, next.duration ?? 250),
-  }
+  return { ...current, ...next }
 }

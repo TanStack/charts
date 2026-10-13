@@ -189,6 +189,7 @@ interface ChartAxisOptions<TValue extends ChartValue> {
               spacing?: number
               values?: readonly TValue[]
               size?: number
+              line?: false | ChartGuideLineStyle
               padding?: number
               format?: (value: TValue) => string
             }
@@ -209,7 +210,7 @@ interface ChartAxisOptions<TValue extends ChartValue> {
               opacity?:
                 | number
                 | ((
-                    context: ChartAxisTickLabelContext<TValue>,
+                    context: ChartAxisTickLabelOpacityContext<TValue>,
                   ) => number | undefined)
               anchor?:
                 | 'start'
@@ -309,6 +310,25 @@ Without an explicit `axis.ticks` policy, the responsive target is
 `clamp(2, floor(chart.height / 48), 7)` for y. The configured scale may return
 a different number of ticks.
 
+`nice: true` uses that responsive or authored tick count when rounding a scale
+domain, even if the axis is hidden. Use a number such as `nice: 5` when a small
+sparkline needs domain rounding independent of its size.
+
+`axis.ticks: false` removes both tick stubs and their candidate labels. To keep
+labels while hiding only the stubs, use `axis: { ticks: { size: 0 } }`. The
+baseline is separate, hide it with `axis.line: false`.
+
+Use `axis.ticks.line` to style the stubs with `ChartGuideLineStyle`, or set
+it to `false` to hide just the stubs. This option does not change the
+baseline, grid, tick values, or label formatting.
+
+```ts
+const axis = {
+  line: { stroke: 'navy' },
+  ticks: { line: { stroke: 'navy', strokeWidth: 2 } },
+}
+```
+
 `count`, `spacing`, and `values` are mutually exclusive candidate policies.
 `count` is a scale hint, `spacing` derives that hint from the final axis length,
 and `values` supplies exact semantic candidates. Grid lines and tick stubs use
@@ -373,6 +393,19 @@ side. The automatic value accounts for the host's inline direction. `dx` and
 weight, anchor, offset, opacity, and rotation all participate in collision
 thinning and automatic margins. Numeric typography follows tick-label motion;
 anchor changes snap.
+
+An opacity callback also receives `focus` and `pointer`, both `null` during
+initial layout. It runs again when focus changes, updating paint without
+rebuilding marks, measuring text, or changing tick placement and thinning.
+Clearing focus restores the initial opacity. Other tick-label callbacks remain
+layout-only. For example, hide the tick that matches the focused x value:
+
+```ts
+const tickLabels = {
+  opacity: ({ value, focus }) =>
+    focus && Object.is(value, focus.primary.xValue) ? 0 : 1,
+}
+```
 
 Axis titles keep the compact string form when only text is needed. Use the
 object form for title typography, paint, offset, or motion:
@@ -828,6 +861,7 @@ interface InteractiveColorLegendItemContext {
 }
 
 interface InteractiveColorLegendOptions<TValue extends ChartKey> {
+  hover?: 'series' | false
   visible: ControlledSignal<
     readonly TValue[],
     InteractiveColorLegendChange<TValue>
@@ -849,11 +883,31 @@ proposed replacement. The legend owns domain-ordered toggling, responsive
 layout, and native browser buttons. It filters series geometry and focus points
 after scale resolution, so hidden values remain in categorical and positional
 domains. A mark participates when its categorical `color` channel establishes
-series identity without a separate `z` channel.
+series identity without a separate `z` channel. Dot marks also participate when
+`z` supplies their series and default color, with no separate `color` channel.
 
 The DOM hosts replace the scene fallback with native `button` elements. Static
 SVG output retains a noninteractive visual fallback. This control is not yet
 implemented by the React Native host.
+
+Set `hover: 'series'` to match inline mark states against the series under the
+pointer or on the focused legend button. Its state context has `source:
+'legend'`, and `matches('series')` identifies the emphasized category. Leaving
+or blurring restores the chart's interaction styling. Hidden series do not
+receive emphasis.
+
+Emphasis matches semantic series, not rendered color strings. Line and area
+marks can establish a series through categorical `color`. For dot marks, use
+`z: 'series'` to establish series ownership; `z` also supplies the default
+color channel, so a second `color: 'series'` is unnecessary. A color-only dot
+can vary its paint while remaining outside any semantic series.
+
+Legend emphasis does not set interaction focus, show a tooltip, move a
+crosshair, or activate `whenFocused` geometry. Existing pinned focus and its
+tooltip stay in place. Tick-label opacity still sees the real interaction
+focus. Static SVG remains noninteractive. A custom renderer must declare
+`supportsStateFocus: true` and honor the fourth `paintFocus` argument's
+`stateFocus`, otherwise requesting emphasis throws.
 
 ## Custom legends
 
@@ -989,6 +1043,12 @@ SVG and React Native emit a native `<pattern>`. Canvas rasterizes one tile at
 the device pixel ratio and repeats it under the same rotation, including for
 text labels. Standalone SVG export resolves `var()` paint inside the tile like
 any other chart paint. Pattern tiles do not animate.
+
+Canvas stops circular pattern dependencies by resource ID. Each paint permits
+tiles up to 4096 device pixels per side, 16,777,216 tile pixels in total, and
+64 nested pattern dependencies. Exceeding these limits throws a `RangeError`
+before allocating the next tile. Reduce the tile size or dependency chain
+when rendering externally supplied definitions.
 
 `ChartPattern` is a type export from `@tanstack/charts`,
 `@tanstack/charts/universal`, and `@tanstack/charts/types`.

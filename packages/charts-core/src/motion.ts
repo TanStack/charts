@@ -350,11 +350,10 @@ function createTooltipMotionController(
 ): ChartTooltipMotionController {
   const view = context.container.ownerDocument.defaultView
   let presenceAnimation: Animation | undefined
-  let presencePhase: 'enter' | 'exit' | undefined
+  let exiting = false
   let movementAnimation: Animation | undefined
   let movementFrame: number | undefined
   let springMovement: TooltipSpringMovement | undefined
-  let hideGeneration = 0
 
   const prefersReducedMotion = () =>
     policy.respectReducedMotion &&
@@ -476,6 +475,7 @@ function createTooltipMotionController(
         if (movementAnimation !== animation) return
         element.style.removeProperty('translate')
         movementAnimation = undefined
+        animation.cancel()
       }
       return
     }
@@ -522,7 +522,7 @@ function createTooltipMotionController(
   return {
     beforePaint(element) {
       const wasHidden = element.hasAttribute('hidden')
-      const resumingExit = presencePhase === 'exit'
+      const resumingExit = exiting
       const previousLeft = finiteStyleNumber(element.style.left)
       const previousTop = finiteStyleNumber(element.style.top)
       const movement = captureMovement(element)
@@ -532,9 +532,8 @@ function createTooltipMotionController(
       if (resumingExit) {
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
       }
-      hideGeneration += 1
       return {
         wasHidden,
         showPresence: wasHidden || resumingExit,
@@ -553,7 +552,7 @@ function createTooltipMotionController(
         stopMovement(element)
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return
@@ -578,7 +577,7 @@ function createTooltipMotionController(
       })
       if (!snapshot.showPresence) return
       presenceAnimation?.cancel()
-      presencePhase = 'enter'
+      exiting = false
       const animation = animatePresence(
         element,
         resolved,
@@ -587,7 +586,7 @@ function createTooltipMotionController(
       )
       presenceAnimation = animation
       if (!animation) {
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return
@@ -597,7 +596,8 @@ function createTooltipMotionController(
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
+        animation.cancel()
       }
     },
     hide(element, override, complete) {
@@ -606,41 +606,41 @@ function createTooltipMotionController(
         stopMovement(element)
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return false
       }
-      const generation = ++hideGeneration
+      if (exiting) return true
       const from = readTooltipPresenceState(element)
       presenceAnimation?.cancel()
-      presencePhase = 'exit'
+      exiting = true
       const animation = animatePresence(element, resolved, from, {
         opacity: 0,
         scale: 0.96,
       })
       presenceAnimation = animation
       if (!animation) {
-        presencePhase = undefined
+        exiting = false
         stopMovement(element)
         return false
       }
       animation.onfinish = () => {
-        if (generation !== hideGeneration) return
-        complete()
+        if (presenceAnimation !== animation) return
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         stopMovement(element)
+        animation.cancel()
+        complete()
       }
       return true
     },
     destroy(element) {
-      hideGeneration += 1
       presenceAnimation?.cancel()
       presenceAnimation = undefined
-      presencePhase = undefined
+      exiting = false
       stopMovement(element)
       element?.style.removeProperty('opacity')
       element?.style.removeProperty('transform')
@@ -837,6 +837,7 @@ function createMotionSvgChartRenderer<
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
             cursor: ChartCursorPresentation<TXValue, TYValue> | null
+            stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null
           }
         | undefined
       let desiredStateFocus:
@@ -844,6 +845,7 @@ function createMotionSvgChartRenderer<
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
             cursor: ChartCursorPresentation<TXValue, TYValue> | null
+            stateFocus: ChartFocusState<TDatum, TXValue, TYValue> | null
           }
         | undefined
       const svgElement = () => {
@@ -869,7 +871,19 @@ function createMotionSvgChartRenderer<
           if (destroyed || dataMotionActive || !pendingStateFocus) return
           const pending = pendingStateFocus
           pendingStateFocus = undefined
-          applyStateFocus(pending.focus, pending.pointer, pending.cursor)
+          applyStateFocus(
+            pending.focus,
+            pending.pointer,
+            pending.cursor,
+            scene
+              ? resolveMarkStateScene(
+                  scene,
+                  pending.focus,
+                  pending.pointer,
+                  pending.stateFocus,
+                )
+              : undefined,
+          )
         })
       }
       const applyStateFocus = (
@@ -915,15 +929,16 @@ function createMotionSvgChartRenderer<
                 markTransitions,
               })
           restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
-          stateScene =
-            focus && presented.scene !== scene ? presented.scene : undefined
+          stateScene = presented.scene !== scene ? presented.scene : undefined
         }
-        stateTransition = focus
-          ? (resolved.transition ?? previousTransition)
-          : undefined
-        stateTransitions = focus
-          ? (resolved.transitions ?? previousTransitions)
-          : undefined
+        stateTransition =
+          resolved.scene !== scene
+            ? (resolved.transition ?? previousTransition)
+            : undefined
+        stateTransitions =
+          resolved.scene !== scene
+            ? (resolved.transitions ?? previousTransitions)
+            : undefined
         paintMotionSvgFocus(svgElement(), presented.scene, focus)
         cancelFocusAnimation = paintMotionSvgFocusGuides({
           container,
@@ -1055,14 +1070,22 @@ function createMotionSvgChartRenderer<
           presentationListeners.add(listener)
           return () => presentationListeners.delete(listener)
         },
-        paintFocus(focus, pointer, cursor) {
+        supportsStateFocus: true,
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || !renderOptions) return
           desiredStateFocus = {
             focus,
             pointer: pointer ?? null,
             cursor: cursor ?? null,
+            stateFocus:
+              options?.stateFocus === undefined ? focus : options.stateFocus,
           }
-          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const resolved = resolveMarkStateScene(
+            scene,
+            focus,
+            pointer,
+            options?.stateFocus,
+          )
           if (dataMotionActive) {
             pendingStateFocus = desiredStateFocus
             paintMotionSvgFocus(svgElement(), resolved.scene, focus)
@@ -2087,12 +2110,8 @@ function reconcileMotionElement(
 ) {
   addUpdateTrack(current, next, tracks, context)
 
-  if (!next.firstElementChild) {
-    if (current.firstElementChild) {
-      for (const child of [...current.children]) {
-        addExitMotionTrack(child, tracks, context)
-      }
-    } else if (current.textContent !== next.textContent) {
+  if (!next.firstElementChild && !current.firstElementChild) {
+    if (current.textContent !== next.textContent) {
       current.textContent = next.textContent
     }
     return
@@ -2102,11 +2121,28 @@ function reconcileMotionElement(
   const nextChildren = [...next.children]
   const currentByIdentity = indexMotionChildren(currentChildren)
   const nextIdentities = motionIdentities(nextChildren)
-  const retained = new Set<Element>()
-  let cursor = current.firstElementChild
+  const unmatched = new Set(currentChildren)
+  if (current.childNodes.length !== currentChildren.length) {
+    for (let child = current.firstChild; child;) {
+      const following = child.nextSibling
+      if (child.nodeType !== 1) child.remove()
+      child = following
+    }
+  }
+  let cursor: ChildNode | null = current.firstChild
+  let index = 0
 
-  nextChildren.forEach((nextChild, index) => {
-    const matched = currentByIdentity.get(nextIdentities[index])
+  const nextNodes =
+    next.childNodes.length === nextChildren.length
+      ? nextChildren
+      : next.childNodes
+  for (const nextNode of nextNodes) {
+    if (nextNode.nodeType !== 1) {
+      current.insertBefore(nextNode.cloneNode(true), cursor)
+      continue
+    }
+    const nextChild = nextNode as Element
+    const matched = currentByIdentity.get(nextIdentities[index++])
     let rendered: Element
     if (
       matched &&
@@ -2114,7 +2150,7 @@ function reconcileMotionElement(
       matched.localName === nextChild.localName
     ) {
       rendered = matched
-      retained.add(matched)
+      unmatched.delete(matched)
       if (rendered !== cursor) current.insertBefore(rendered, cursor)
       reconcileMotionElement(rendered, nextChild, tracks, context)
     } else {
@@ -2122,11 +2158,11 @@ function reconcileMotionElement(
       current.insertBefore(rendered, cursor)
       addEnterMotionTrack(rendered, tracks, context)
     }
-    cursor = rendered.nextElementSibling
-  })
+    cursor = rendered.nextSibling
+  }
 
-  for (const child of currentChildren) {
-    if (!retained.has(child) && child.parentElement === current) {
+  for (const child of unmatched) {
+    if (child.parentElement === current) {
       addExitMotionTrack(child, tracks, context)
     }
   }
@@ -2171,7 +2207,8 @@ function addUpdateTrack(
       !((barPath || semanticPath) && name === 'data-ts-motion-role') &&
       !(rollingTransform !== undefined && name === 'transform')
     ) {
-      current.removeAttribute(name)
+      if (name === 'opacity') nextNames.add(name)
+      else current.removeAttribute(name)
     }
   }
 
@@ -2198,8 +2235,9 @@ function addUpdateTrack(
       continue
     }
     const parsed =
-      previous !== null && target !== null && motionAttributes.has(name)
-        ? parseMotionAttribute(previous, target)
+      motionAttributes.has(name) &&
+      (name === 'opacity' || (previous !== null && target !== null))
+        ? parseMotionAttribute(previous ?? '1', target ?? '1')
         : undefined
     if (parsed) attributes.push({ name, ...parsed, target })
     else if (target !== null) current.setAttribute(name, target)

@@ -476,6 +476,13 @@ async function validatePublishedTargets(packageInfo) {
         await isFile(targetPath),
         `${packageInfo.name} ${key} ${condition} target is missing: ${target}`,
       )
+      if (packageInfo.kind === 'react' && condition === 'import') {
+        assert.match(
+          await readFile(targetPath, 'utf8'),
+          /^["']use client["'];/,
+          `${packageInfo.name} ${key} lost its React client boundary`,
+        )
+      }
     }
   }
 }

@@ -138,6 +138,7 @@ interface ScenePainter {
   font: FontState
   document: Document
   patterns: Map<string, CanvasPattern | null>
+  patternBudget: { active: Set<string>; pixels: number }
 }
 
 type CanvasPaint = string | CanvasGradient | CanvasPattern
@@ -336,9 +337,15 @@ function createUniversalCanvasChartRenderer(
             y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
           }
         },
-        paintFocus(focus, pointer, cursor) {
+        supportsStateFocus: true,
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || destroyed) return
-          const state = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(
+            scene,
+            focus,
+            pointer,
+            options?.stateFocus,
+          )
           const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
           if (state.scene !== scene || markStatePainted || previousTransition) {
@@ -375,10 +382,11 @@ function createUniversalCanvasChartRenderer(
               cancelAnimation = () => {}
             }
           }
-          markStatePainted = Boolean(focus && state.scene !== scene)
-          stateTransition = focus
-            ? (state.transition ?? previousTransition)
-            : undefined
+          markStatePainted = state.scene !== scene
+          stateTransition =
+            state.scene !== scene
+              ? (state.transition ?? previousTransition)
+              : undefined
           const presentation = resolveFocusPresentation(
             resolved.scene,
             focus,
@@ -534,7 +542,12 @@ function createLayeredChartRenderer(
           presentationListeners.add(listener)
           return () => presentationListeners.delete(listener)
         },
-        paintFocus(focus, pointer, cursor) {
+        get supportsStateFocus() {
+          return mounted.every((layer) => layer.surface.supportsStateFocus)
+            ? true
+            : undefined
+        },
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || destroyed) return
           const presentedNodes: SceneNode[] = []
           let hasPresentedScene = false
@@ -543,6 +556,7 @@ function createLayeredChartRenderer(
               focus,
               pointer,
               cursor,
+              options,
             )
             hasPresentedScene ||= result !== undefined
             presentedNodes.push(
@@ -1200,6 +1214,7 @@ function createPainter(
     font: readFont(root),
     document: root.ownerDocument,
     patterns: new Map(),
+    patternBudget: { active: new Set(), pixels: 0 },
   }
 }
 
@@ -1720,6 +1735,8 @@ function resolvePattern(
   pattern: ChartPattern,
   origin: readonly [number, number] = [0, 0],
 ): CanvasPattern | null {
+  const budget = painter.patternBudget
+  if (budget.active.has(pattern.id)) return null
   // SVG serializes tile geometry in hundredths; match it.
   const width = hundredths(pattern.width)
   const height = hundredths(pattern.height)
@@ -1731,22 +1748,37 @@ function resolvePattern(
   const scale = Math.hypot(a, b) || 1
   const pixelWidth = Math.ceil(width * scale)
   const pixelHeight = Math.ceil(height * scale)
+  if (pixelWidth > 4096 || pixelHeight > 4096) {
+    throw new RangeError(
+      'Canvas pattern tiles cannot exceed 4096 device pixels per side',
+    )
+  }
   const key = `${pattern.id}:${pixelWidth}:${pixelHeight}`
   let canvasPattern = painter.patterns.get(key)
   if (canvasPattern === undefined) {
+    const pixels = pixelWidth * pixelHeight
+    if (budget.active.size >= 64 || budget.pixels + pixels > 16_777_216) {
+      throw new RangeError(
+        'Canvas patterns exceed the per-paint allocation or dependency limit',
+      )
+    }
+    budget.pixels += pixels
     const canvas = painter.document.createElement('canvas')
     canvas.width = pixelWidth
     canvas.height = pixelHeight
     const tileContext = requiredContext(canvas)
     tileContext.scale(pixelWidth / width, pixelHeight / height)
-    // A tile that references itself paints nothing, as a circular SVG
-    // pattern reference does.
-    painter.patterns.set(key, null)
-    paintNodes(
-      { ...painter, context: tileContext },
-      pattern.nodes,
-      defaultPaint,
-    )
+    // Dependency identity stays stable when fractional tiles change resolution.
+    budget.active.add(pattern.id)
+    try {
+      paintNodes(
+        { ...painter, context: tileContext },
+        pattern.nodes,
+        defaultPaint,
+      )
+    } finally {
+      budget.active.delete(pattern.id)
+    }
     canvasPattern = context.createPattern(canvas, 'repeat')
     painter.patterns.set(key, canvasPattern)
   }

@@ -16,7 +16,7 @@ export function dodgeOffsets(
   radii: readonly number[],
   padding: number,
   edgeAnchored: boolean,
-): readonly number[] {
+): number[] {
   if (measuredPositions.length !== radii.length) {
     throw new TypeError('dodge: positions and radii must have equal lengths')
   }

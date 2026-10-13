@@ -50,8 +50,14 @@ export function sceneNodeOwnedPoints(
   }
 
   if (node.pointOwner) {
-    const owned = pointCandidates(node.pointOwner, scope)
+    const owned = pointCandidates(node.pointOwner, scope, lookup)
     if (owned.length) return owned
+  }
+
+  if (node.pointOwners) {
+    return node.pointOwners.flatMap((point) =>
+      pointCandidates(point, scope, lookup),
+    )
   }
 
   if ('interaction' in node && node.interaction) {
@@ -59,7 +65,7 @@ export function sceneNodeOwnedPoints(
       ? [node.interaction.point]
       : node.interaction.points
     const owned = candidates.flatMap((candidate) =>
-      pointCandidates(candidate, scope),
+      pointCandidates(candidate, scope, lookup),
     )
     if (owned.length) return owned
   }
@@ -107,11 +113,16 @@ export function sceneKeyOwnedPoints(
 function pointCandidates(
   owner: ChartPoint,
   scope: readonly ChartPoint[],
+  lookup: ScenePointLookup,
 ): readonly ChartPoint[] {
-  const identical = scope.filter((point) => point === owner)
+  const candidates = (lookup.keys.get(owner.key) ?? []).filter(
+    (point) =>
+      point.key === owner.key &&
+      (scope === lookup.points || scope.includes(point)),
+  )
+  const identical = candidates.filter((point) => point === owner)
   if (identical.length) return identical
-  const keyed = scope.filter((point) => point.key === owner.key)
-  if (keyed.length) return keyed
+  if (candidates.length) return candidates
   const semantic = scope.filter(
     (point) =>
       Object.is(point.datum, owner.datum) &&

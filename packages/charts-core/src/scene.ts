@@ -20,7 +20,6 @@ import type {
   ChartAxisPresentationOptions,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
-  ChartAxisTickLabelValue,
   ChartBounds,
   ChartBuildContext,
   ChartHostControl,
@@ -1506,8 +1505,11 @@ function createAxes(
       )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
+    const tickLine = presentation?.ticks && presentation.ticks.line
     const tickSize = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
+      presentation?.ticks === false || tickLine === false
+        ? 0
+        : (presentation?.ticks?.size ?? 4),
     )
     const tickPadding = finiteMargin(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
@@ -1548,7 +1550,7 @@ function createAxes(
         x2: tick.position,
         y1: axisY,
         y2: tickEnd,
-        style: axisStyle(),
+        style: axisStyle(tickLine),
       })
     }
     for (const candidate of visibleLabels) {
@@ -1613,8 +1615,11 @@ function createAxes(
       )
     }
     const ticks = presentation?.ticks === false ? [] : guide.scale.ticks
+    const tickLine = presentation?.ticks && presentation.ticks.line
     const tickSize = finiteMargin(
-      presentation?.ticks === false ? 0 : (presentation?.ticks?.size ?? 4),
+      presentation?.ticks === false || tickLine === false
+        ? 0
+        : (presentation?.ticks?.size ?? 4),
     )
     const tickPadding = finiteMargin(
       presentation?.ticks === false ? 0 : (presentation?.ticks?.padding ?? 4),
@@ -1653,7 +1658,7 @@ function createAxes(
         x2: tickEnd,
         y1: tick.position,
         y2: tick.position,
-        style: axisStyle(),
+        style: axisStyle(tickLine),
       })
     }
     for (const candidate of visibleLabels) {
@@ -1850,7 +1855,12 @@ function createTickLabelCandidates(
     const fontSize =
       resolveTickLabelValue(options.fontSize, context) ?? defaultFontSize
     const fontWeight = resolveTickLabelValue(options.fontWeight, context)
-    const opacity = resolveTickLabelValue(options.opacity, context)
+    const opacityOption = options.opacity
+    const opacity = resolveTickLabelValue(opacityOption, {
+      ...context,
+      focus: null,
+      pointer: null,
+    })
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
     // Automatic anchors preserve a physical placement outside the plot.
@@ -1867,40 +1877,30 @@ function createTickLabelCandidates(
             : 'middle'
     const anchor =
       resolveTickLabelValue(options.anchor, context) ?? automaticAnchor
-    const label: SceneLabel =
-      guide.channel === 'x'
-        ? {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: tick.position + dx,
-            y:
-              axisPosition + direction * (size + padding + fontSize * 0.8) + dy,
-            text: tick.label,
-            anchor,
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
-        : {
-            kind: 'label',
-            key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
-            x: axisPosition + direction * (size + padding) + dx,
-            y: tick.position + dy,
-            text: tick.label,
-            anchor,
-            baseline: 'middle',
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
+    const isX = guide.channel === 'x'
+    const label: SceneLabel = {
+      kind: 'label',
+      key: `${guide.id}-tick-label:${valueKey(tick.value)}`,
+      x: isX
+        ? tick.position + dx
+        : axisPosition + direction * (size + padding) + dx,
+      y: isX
+        ? axisPosition + direction * (size + padding + fontSize * 0.8) + dy
+        : tick.position + dy,
+      text: tick.label,
+      anchor,
+      rotate,
+      fontSize,
+      fontWeight,
+      style: {
+        fill: theme.muted,
+        ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
+      },
+    }
+    if (!isX) label.baseline = 'middle'
+    if (typeof opacityOption === 'function') {
+      label.focusOpacity = (state) => opacityOption({ ...context, ...state })
+    }
     return {
       value: tick.value,
       label,
@@ -1910,16 +1910,12 @@ function createTickLabelCandidates(
   })
 }
 
-function resolveTickLabelValue<TValue extends ChartValue, TOutput>(
-  value: ChartAxisTickLabelValue<TValue, TOutput> | undefined,
-  context: ChartAxisTickLabelContext<TValue>,
+function resolveTickLabelValue<TContext, TOutput>(
+  value: TOutput | ((context: TContext) => TOutput | undefined) | undefined,
+  context: TContext,
 ): TOutput | undefined {
   return typeof value === 'function'
-    ? (
-        value as (
-          context: ChartAxisTickLabelContext<TValue>,
-        ) => TOutput | undefined
-      )(context)
+    ? (value as (context: TContext) => TOutput | undefined)(context)
     : value
 }
 

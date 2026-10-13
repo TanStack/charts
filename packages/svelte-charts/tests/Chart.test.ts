@@ -1,4 +1,6 @@
-import { mount, tick, unmount } from 'svelte'
+import { hydrate, mount, tick, unmount } from 'svelte'
+import { createServer } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import type { Snippet } from 'svelte'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
@@ -43,6 +45,47 @@ const tooltipDefinition = defineChart(definition, {
 })
 
 describe('Svelte adapter', () => {
+  it('hydrates server markup without replacing chart nodes', async () => {
+    const server = await createServer({
+      configFile: false,
+      logLevel: 'silent',
+      appType: 'custom',
+      plugins: [svelte({ configFile: false })],
+      server: { middlewareMode: true },
+      ssr: { noExternal: ['@tanstack/charts', 'svelte'] },
+    })
+    const props = { definition, width: 480, height: 260, ariaLabel: 'Revenue' }
+    const target = document.createElement('div')
+    document.body.append(target)
+    try {
+      const { default: ServerChart } = await server.ssrLoadModule(
+        '/packages/svelte-charts/src/Chart.svelte',
+      )
+      const { render } = await server.ssrLoadModule('svelte/server')
+      target.innerHTML = render(ServerChart, { props }).body
+      const svg = target.querySelector('svg')
+      const line = target.querySelector('.ts-chart__line')
+      expect(svg).not.toBeNull()
+      expect(line).not.toBeNull()
+      const warnings = vi.spyOn(console, 'warn')
+      let component: ReturnType<typeof hydrate> | undefined
+      try {
+        component = hydrate(Chart, { target, props, recover: false })
+        await tick()
+        expect(target.querySelector('svg')).toBe(svg)
+        expect(target.querySelector('.ts-chart__line')).toBe(line)
+        expect(warnings).not.toHaveBeenCalled()
+      } finally {
+        if (component) await unmount(component)
+        warnings.mockRestore()
+      }
+      expect(target.childElementCount).toBe(0)
+    } finally {
+      target.remove()
+      await server.close()
+    }
+  })
+
   it('exposes the native snippet context', () => {
     type Context = ChartTooltipBodySnippetContext<
       (typeof rows)[number],

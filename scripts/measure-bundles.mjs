@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
 import { readBundleConcurrency } from './measure-bundles-options.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
+import { assertNoPackageTestInputs } from './package-test-path.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const outputDirectory = resolve(root, '.bundle-output')
@@ -359,9 +360,6 @@ const nativeExternals = [
   'react-native-svg/*',
 ]
 const entries = [
-  measured('Legacy Plot POC host core', 'benchmarks/entries/core.ts', {
-    inputBoundary: { forbid: ['d3GeometryRuntime'] },
-  }),
   budgeted(
     'Granular data transform suite',
     'benchmarks/entries/charts-transform-suite.ts',
@@ -649,7 +647,7 @@ const entries = [
     'Decorative line + static SVG',
     'benchmarks/entries/charts-decorative-line-svg.ts',
     'D3-scale line + static SVG',
-    0.5,
+    0.6037890625,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -679,37 +677,37 @@ const entries = [
   budgeted(
     'D3-scale lineX + static SVG',
     'benchmarks/entries/charts-line-x-svg.ts',
-    21.75,
+    21.7937890625,
   ),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    26.36,
+    26.4055078125,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    24.39,
+    24.42834375,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    25.58,
+    25.6436015625,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    21.71,
+    21.7508125,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    25.76,
+    25.808390625,
   ),
   budgeted(
     'D3-scale dots + static SVG',
     'benchmarks/entries/charts-dot-svg.ts',
-    22.12,
+    22.1728125,
     {
       inputBoundary: {
         forbid: [
@@ -816,7 +814,7 @@ const entries = [
   budgeted(
     'Frame + static SVG',
     'benchmarks/entries/charts-frame-svg.ts',
-    13.08,
+    13.1325078125,
   ),
   incrementalBudgeted(
     'Spatial density contours + static SVG',
@@ -955,7 +953,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    30.49,
+    30.6041796875,
     {
       inputBoundary: {
         require: [
@@ -1124,7 +1122,7 @@ const entries = [
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    21.63,
+    21.676578125,
     { inputBoundary: { forbid: ['d3Hexbin'] } },
   ),
   incrementalBudgeted(
@@ -1154,7 +1152,7 @@ const entries = [
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    21.6,
+    21.651484375,
     {
       inputBoundary: {
         forbid: [
@@ -1194,22 +1192,22 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    22.56,
+    22.6175546875,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
     'benchmarks/entries/charts-vector-svg.ts',
-    21.79,
+    21.828859375,
   ),
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    19.06,
+    19.12953125,
   ),
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    18.05,
+    18.1547890625,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(
@@ -1228,18 +1226,18 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    27.14,
+    27.345671875,
   ),
   budgeted(
     'Radial labels + static SVG',
     'benchmarks/entries/charts-radial-label-svg.ts',
-    23.65,
+    23.8701796875,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   budgeted(
     'Polar radial bars + static SVG',
     'benchmarks/entries/charts-radial-bar-svg.ts',
-    27.14,
+    27.2484375,
     {
       inputBoundary: {
         require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
@@ -1250,7 +1248,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    28.15,
+    28.273671875,
   ),
   locked(
     'Representative marks',
@@ -1277,7 +1275,7 @@ const entries = [
   budgeted(
     'Representative marks + mark Canvas renderer',
     'benchmarks/entries/charts-representative-mark-canvas.ts',
-    39.62,
+    39.98125,
     {
       rendererBoundary: 'mixed',
       inputBoundary: {
@@ -1358,7 +1356,7 @@ const entries = [
     'Selected overlay + static SVG',
     'benchmarks/entries/charts-selected-overlay-svg.ts',
     'D3-scale dots + static SVG',
-    1.6,
+    1.6497421875,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1391,7 +1389,7 @@ const entries = [
     'Interactive legend + DOM host',
     'benchmarks/entries/charts-interactive-legend.ts',
     'TanStack DOM host',
-    2.6,
+    2.8658828125,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1544,7 +1542,7 @@ const entries = [
     'Horizontal brush + DOM host',
     'benchmarks/entries/charts-brush-x.ts',
     'TanStack DOM host',
-    20,
+    20.30859375,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1655,7 +1653,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    45.43,
+    46.1524765625,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',
@@ -1735,7 +1733,7 @@ const entries = [
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
-    12.46,
+    12.5054375,
     {
       inputBoundary: {
         require: ['compactLinear'],
@@ -1754,7 +1752,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    31.16,
+    31.680796875,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1816,7 +1814,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    22.57,
+    22.8037109375,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1922,7 +1920,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    56.88,
+    57.4916484375,
   ),
   locked(
     'Custom-scale line scene',
@@ -1948,37 +1946,37 @@ const entries = [
   budgeted(
     'D3 curved line scene',
     'benchmarks/entries/charts-d3-curved-line-scene.ts',
-    21.7,
+    21.747203125,
   ),
   budgeted(
     'D3 time-scale line scene',
     'benchmarks/entries/charts-d3-time-scene.ts',
-    23.99,
+    24.03234375,
   ),
   budgeted(
     'Direct D3 monotone + TanStack SVG',
     'benchmarks/entries/charts-d3-curve-svg.ts',
-    24.07,
+    24.127484375,
   ),
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    23.12,
+    23.1693203125,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    26.36,
+    26.4055078125,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    39.43,
+    39.9817734375,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    44.71,
+    45.248265625,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -2182,13 +2180,9 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    57.94,
+    58.58965625,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
-  measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
-  measured('Stateful Plot renderer', 'benchmarks/entries/stateful-plot.ts'),
-  measured('React host', 'benchmarks/entries/react-host.ts'),
-  measured('React + Plot adapter', 'benchmarks/entries/react-observable.ts'),
   measured('Plot minimal line', 'benchmarks/entries/minimal-line.ts'),
   measured(
     'Plot representative marks',
@@ -2243,6 +2237,7 @@ await runWithConcurrency(
       metafile: true,
     })
     const retainedInputs = collectRetainedInputs(result.metafile)
+    assertNoPackageTestInputs(Object.keys(result.metafile.inputs))
     const contents = await readFile(outfile)
     entryRows[index] = {
       label,
@@ -2269,8 +2264,6 @@ for (const row of entryRows) {
 }
 
 for (const [label, directory] of [
-  ['React proof application', 'examples/react/dist/assets'],
-  ['Octane proof application', 'examples/octane/dist/assets'],
   ['Dynamic sandbox application', 'examples/sandbox/dist/assets'],
   ['React TanStack proof application', 'examples/charts-react/dist/assets'],
   ['Octane TanStack proof application', 'examples/charts-octane/dist/assets'],
