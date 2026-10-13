@@ -8,3 +8,5 @@ Add renderer-neutral pattern resources. Declare repeating tiles in a chart's
 `linePattern()` and `dotPattern()` build hatch and dot tiles whose paint
 accepts CSS variables. SVG, Canvas, standalone export, and React Native draw
 the same tile, with resource IDs scoped by `idPrefix`.
+Canvas stops cyclic pattern dependencies and rejects tiles that exceed its
+documented allocation limits.
