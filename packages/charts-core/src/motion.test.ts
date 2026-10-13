@@ -31,6 +31,55 @@ const rows = [
   { id: 'b', category: 'B', value: 80 },
 ]
 
+describe('motion resize policy', () => {
+  it.each([false, true])(
+    'handles a resize during entrance with resize: %s',
+    (resize) => {
+      const definition = defineChart({
+        marks: [barY(rows, { x: 'category', y: 'value' })],
+        scales: {
+          x: { scale: scaleBand },
+          y: { scale: scaleLinear().domain([0, 100]) },
+        },
+        guides: false,
+      })
+      const first = createChartScene(definition, { width: 300, height: 200 })
+      const next = createChartScene(definition, { width: 400, height: 200 })
+      const container = document.createElement('div')
+      const frames = installManagedFrames()
+      const surface = motion({
+        resize,
+        transition: { type: 'tween', duration: 1000, easing: 'linear' },
+      }).mount(container, () => {})
+      try {
+        surface.render(first, { ariaLabel: 'Resize during entrance' })
+        frames.run(0)
+        frames.run(100)
+        expect(container.querySelector('svg')!.dataset.tsMotionState).toBe(
+          'running',
+        )
+        const before = container.querySelector('rect')!.getAttribute('height')
+        surface.render(next, { ariaLabel: 'Resize during entrance' })
+        const svg = container.querySelector('svg')!
+        const bar = container.querySelector('rect')!
+        if (resize) {
+          expect(svg.dataset.tsMotionState).toBe('running')
+          expect(bar.getAttribute('height')).toBe(before)
+        } else {
+          expect(svg.dataset.tsMotionState).not.toBe('running')
+          expect(Number(bar.getAttribute('height'))).toBeGreaterThan(
+            Number(before),
+          )
+          expect(frames.pending()).toBe(0)
+        }
+      } finally {
+        surface.destroy()
+        frames.restore()
+      }
+    },
+  )
+})
+
 describe('structured SVG text motion', () => {
   it('shows a separate focused dot during entrance without cancelling data motion', () => {
     const rows = [
