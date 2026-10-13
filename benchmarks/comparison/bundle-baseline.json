@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "ceccb9261078c40103dea3b509740610497a2642",
+      "revision": "cad4bc90aff2ca2de61dc15f0eb573d64f33b451",
       "inputDigest": "sha256:b29a3bd6185c2ffd4c8d840dabc66096d2348d40d2b9ec3dd335fa957d453a58"
     },
     "chartjs": {
@@ -36,17 +36,8 @@
     }
   },
   "matrix": {
-    "chartTypes": [
-      "line",
-      "bar",
-      "area",
-      "scatter"
-    ],
-    "tiers": [
-      "basic",
-      "interactive",
-      "advanced"
-    ]
+    "chartTypes": ["line", "bar", "area", "scatter"],
+    "tiers": ["basic", "interactive", "advanced"]
   },
   "tolerance": {
     "relative": 0.03,
