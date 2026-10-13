@@ -56,6 +56,12 @@ their semantic baseline, radial lines and areas grow from the polar center,
 and arcs sweep through their authored angle. Keyed removals stay painted
 through their exit transition.
 
+With the default `resize: false`, a real size change during entrance or data
+motion cancels that animation and paints the final scene at the new size.
+Use `resize: true` to animate the resized scene from the currently painted
+geometry. A size notification that does not change the chart's dimensions does
+not interrupt its entrance.
+
 Data-less `crosshair` marks use the same keyed focus-motion path. Rapid pointer
 or keyboard retargeting preserves the guide elements and incoming spring
 velocity; labels remain aligned to their moving rules.

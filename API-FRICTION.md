@@ -4551,6 +4551,12 @@ Each entry records:
 - `0.9.0` release verification: the focused preview contract proves version-only
   manifests hash identically while an export change does not. The generated
   `0.9.0` preview manifest and the full release validation pass.
+- October 13 maintenance evidence: adding resize regression tests while the
+  preview generator was running invalidated its source fingerprint, even
+  though all 188 preview images were unchanged. The generator hashes test
+  files under the core source tree as well as production inputs. Regenerate
+  only after source and test edits are final. Excluding non-rendering test
+  inputs remains a tooling follow-up; no integrity checks were relaxed.
 
 ### F-153 — Changesets left release-facing version claims behind
 
@@ -9283,6 +9289,11 @@ Each entry records:
 - Verification: regression covers repeated initial reports, transformed border
   boxes, and a real 0.125 pixel resize. Chromium, Firefox, and WebKit retain
   running entrance motion and accept subsequent fractional resizes.
+- Follow-up from #182: a real resize during entrance still follows the existing
+  `resize: false` policy and paints the final scene immediately. The motion
+  reference now states this explicitly and explains `resize: true`. Two
+  regression cases verify cancellation with the default and continuation from
+  painted geometry with the opt-in. No default changed.
 
 ### F-314 - Framework ticks and immediate focus layers were hard to discover
 
