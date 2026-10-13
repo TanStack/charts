@@ -17,13 +17,15 @@ describe('motion run clock', () => {
       const now = vi.spyOn(window.performance, 'now').mockReturnValue(1000)
       const request = vi
         .spyOn(window, 'requestAnimationFrame')
-        .mockImplementation((callback) => {
+        .mockImplementation(function (this: Window, callback) {
+          expect(this).toBe(window)
           callbacks.set(++handle, callback)
           return handle
         })
       const cancel = vi
         .spyOn(window, 'cancelAnimationFrame')
-        .mockImplementation((id) => {
+        .mockImplementation(function (this: Window, id) {
+          expect(this).toBe(window)
           if (id !== null && id !== undefined) callbacks.delete(id)
         })
       const container = document.createElement('div')

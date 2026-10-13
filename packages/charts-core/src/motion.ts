@@ -3955,9 +3955,7 @@ function runTracks(
     return () => {}
   }
   const view = root.ownerDocument.defaultView
-  const requestFrame = view?.requestAnimationFrame?.bind(view)
-  const cancelFrame = view?.cancelAnimationFrame?.bind(view)
-  if (!view || !requestFrame || !cancelFrame) {
+  if (!view?.requestAnimationFrame || !view.cancelAnimationFrame) {
     activeTracks.forEach(completeMotionTrack)
     lifecycle.finish?.()
     return () => {}
@@ -3998,7 +3996,7 @@ function runTracks(
     lifecycle.publish?.()
     root.dataset.tsMotionProgress = String(finished.size / activeTracks.length)
     if (finished.size < activeTracks.length && elapsed < safetyLimit) {
-      frame = requestFrame(tick)
+      frame = view.requestAnimationFrame(tick)
       return
     }
     for (const track of activeTracks) {
@@ -4008,12 +4006,12 @@ function runTracks(
     root.dataset.tsMotionState = 'finished'
     root.dataset.tsMotionProgress = '1'
   }
-  frame = requestFrame(tick)
+  frame = view.requestAnimationFrame(tick)
 
   return () => {
     if (cancelled) return
     cancelled = true
-    cancelFrame(frame)
+    view.cancelAnimationFrame(frame)
     activeTracks.forEach((track) => {
       if (!finished.has(track)) track.cancel?.()
     })
