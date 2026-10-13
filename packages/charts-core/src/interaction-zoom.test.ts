@@ -817,10 +817,26 @@ describe('zoomX', () => {
     expect(focusChanges.at(-1)).toBe(point!.key)
 
     focusChanges.length = 0
-    target.dispatchEvent(wheel(point!.x, point!.y, { deltaY: -240 }))
+    target.dispatchEvent(wheel(point!.x + 10, point!.y, { deltaY: -240 }))
     expect(accepted.end - accepted.start).toBeLessThan(10)
-    expect(focusChanges.length).toBeGreaterThan(0)
-    expect(focusChanges.at(-1)).toBe(point!.key)
+    expect(focusChanges).toEqual([])
+    const [updatedPoint, nextPoint] = host.getScene().points
+    expect(updatedPoint!.x).not.toBe(point!.x)
+    const focusedCircle = container.querySelector(
+      '.ts-chart__focus-layer--default circle[visibility="visible"]',
+    )
+    expect(focusedCircle).not.toBeNull()
+    expect(Number(focusedCircle!.getAttribute('cx'))).toBeCloseTo(
+      updatedPoint!.x,
+      2,
+    )
+    expect(Number(focusedCircle!.getAttribute('cy'))).toBeCloseTo(
+      updatedPoint!.y,
+      2,
+    )
+
+    target.dispatchEvent(mouse('pointermove', nextPoint!.x, nextPoint!.y))
+    expect(focusChanges).toEqual([nextPoint!.key])
 
     host.destroy()
     container.remove()

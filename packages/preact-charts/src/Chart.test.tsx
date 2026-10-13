@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { render } from 'preact'
+import { hydrate, render } from 'preact'
 import type { ComponentChildren } from 'preact'
 import renderToString from 'preact-render-to-string'
 import { act } from 'preact/test-utils'
@@ -52,6 +52,38 @@ if (false) {
 }
 
 describe('Preact adapter', () => {
+  it('hydrates server markup in place, updates, and cleans up', () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const chart = (ariaLabel: string) => (
+      <Chart
+        definition={definition}
+        width={480}
+        height={260}
+        ariaLabel={ariaLabel}
+      />
+    )
+    target.innerHTML = renderToString(chart('Revenue'))
+    const svg = target.querySelector('svg')
+    const path = target.querySelector('.ts-chart__marks path')
+    expect(svg).not.toBeNull()
+    expect(path).not.toBeNull()
+    try {
+      act(() => hydrate(chart('Revenue'), target))
+      expect(target.querySelectorAll('svg')).toHaveLength(1)
+      expect(target.querySelector('svg')).toBe(svg)
+      expect(target.querySelector('.ts-chart__marks path')).toBe(path)
+      act(() => render(chart('Updated revenue'), target))
+      expect(target.querySelector('svg')).toBe(svg)
+      expect(target.querySelector('.ts-chart__marks path')).toBe(path)
+      expect(svg?.getAttribute('aria-label')).toBe('Updated revenue')
+    } finally {
+      act(() => render(null, target))
+      expect(target.childElementCount).toBe(0)
+      target.remove()
+    }
+  })
+
   it('server-renders complete SVG', () => {
     const html = renderToString(
       <Chart

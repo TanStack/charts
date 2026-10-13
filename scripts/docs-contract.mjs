@@ -189,9 +189,9 @@ export function markdownTableRows(source) {
 }
 
 export function formatComparisonRange(byteValues) {
-  const minimum = Math.min(...byteValues) / 1024
-  const maximum = Math.max(...byteValues) / 1024
-  return `${minimum.toFixed(2)}–${maximum.toFixed(2)} KiB`
+  const minimum = Math.min(...byteValues) / 1000
+  const maximum = Math.max(...byteValues) / 1000
+  return `${minimum.toFixed(2)}–${maximum.toFixed(2)} kB gzip`
 }
 
 export function isPublicChartLibraryLinkAllowed(path, href) {
@@ -500,7 +500,7 @@ async function validateDocumentedTanStackImports(
     }
     for (const code of typedCodeFences(source)) {
       for (const match of code.matchAll(
-        /(?:\bfrom\s+|\bimport\s*\(\s*)['"](@charts-poc\/[^'"]+)['"]/g,
+        /(?:\bfrom\s+|\bimport\s*\(\s*)['"](@charts-(?:internal|poc)\/[^'"]+)['"]/g,
       )) {
         failures.push(
           `${path} imports private workspace package ${match[1]} from public documentation`,

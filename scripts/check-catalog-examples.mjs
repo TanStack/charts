@@ -14,7 +14,7 @@ const browserModuleExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
 const demoDataPrefixes = ['@tanstack/charts-data/']
 const forbiddenPublicNames =
   /\b(?:Conformance|ExampleOptions|tanstackCase|tanstackMount|reactMount|catalogPreviewDefinition)\b/
-const privatePackageName = '@charts-poc/'
+const privatePackageNames = ['@charts-internal/', '@charts-poc/']
 
 const directories = (await fs.readdir(casesRoot, { withFileTypes: true }))
   .filter((entry) => entry.isDirectory())
@@ -75,7 +75,7 @@ for (const directory of directories) {
         `${directory}/${relativePath}: contains conformance-only code`,
       )
     }
-    if (source.includes(privatePackageName)) {
+    if (privatePackageNames.some((name) => source.includes(name))) {
       failures.push(
         `${directory}/${relativePath}: exposes a private workspace package`,
       )

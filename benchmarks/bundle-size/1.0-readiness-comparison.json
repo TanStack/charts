@@ -1,0 +1,2586 @@
+{
+  "schemaVersion": 1,
+  "baselineRevision": "327f488f46463408e91eef4828d54f45017f717d",
+  "candidateRevision": "eccf20ee",
+  "candidateNote": "Combined correctness fixes including element-only SVG child fast path and implicit-opacity interpolation; measured before the newly approved motion ceiling update",
+  "node": "v24.18.0",
+  "esbuild": "0.27.7",
+  "typescript": "6.0.3",
+  "entryInputsUnchanged": true,
+  "lockfileUnchanged": true,
+  "summary": {
+    "total": 151,
+    "grown": 77,
+    "smaller": 0,
+    "equalGzip": 74
+  },
+  "entries": [
+    {
+      "entry": "charts-area-x-svg.js",
+      "baseline": {
+        "minified": 71162,
+        "gzip": 26230,
+        "sha256": "316395eddba1b079956e5ec574d7ab6f289d905ec57110ae6f228ba2bdad50ef"
+      },
+      "candidate": {
+        "minified": 71088,
+        "gzip": 26273,
+        "sha256": "0d3fdebd7f476eb1d246eccf2443821323132ef3b63fc9988927897325023952"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 43
+      }
+    },
+    {
+      "entry": "charts-arrow-svg.js",
+      "baseline": {
+        "minified": 59326,
+        "gzip": 22089,
+        "sha256": "b4e44c5a0f515bfcd1dca5f205659f344d038cd812f7abc009982c1a63abc16a"
+      },
+      "candidate": {
+        "minified": 59252,
+        "gzip": 22136,
+        "sha256": "b39ba0827d6d0e1a799e923f867e86d4c954546924ad9cfadd64eb987eb2aa30"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 47
+      }
+    },
+    {
+      "entry": "charts-axis-label-styles.js",
+      "baseline": {
+        "minified": 59660,
+        "gzip": 22264,
+        "sha256": "321adf79ce58836c0471451d8166f93d573c8362a1699024e6c6a173338fd46b"
+      },
+      "candidate": {
+        "minified": 59586,
+        "gzip": 22311,
+        "sha256": "456fddecd2afec4e8f9c2b9668bd9094caa0bd5bb8b2f25276bc568d06928150"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 47
+      }
+    },
+    {
+      "entry": "charts-box-svg.js",
+      "baseline": {
+        "minified": 92380,
+        "gzip": 32090,
+        "sha256": "6dc874d7fcd4c3ac161af103902d19280d475927c834da2447944ab8469e94f5"
+      },
+      "candidate": {
+        "minified": 92663,
+        "gzip": 32213,
+        "sha256": "fce3e63e31b648e336859d3df8a07b2e7290b5a8fb1c6e0dcf31989d0a003aaf"
+      },
+      "delta": {
+        "minified": 283,
+        "gzip": 123
+      }
+    },
+    {
+      "entry": "charts-brush-x.js",
+      "baseline": {
+        "minified": 142193,
+        "gzip": 48820,
+        "sha256": "73b06e9c1f90f97bff2507fef5ff4af7244442625abb6a8d29ad23b0f27ddf19"
+      },
+      "candidate": {
+        "minified": 142869,
+        "gzip": 49163,
+        "sha256": "5d427654c7818f8502244f9128e48e7884e8385074908ee53e4aeffb14d73b82"
+      },
+      "delta": {
+        "minified": 676,
+        "gzip": 343
+      }
+    },
+    {
+      "entry": "charts-canvas.js",
+      "baseline": {
+        "minified": 87901,
+        "gzip": 29792,
+        "sha256": "4e3cd7f83a03c92867a921a1cd6ddbfe2d586a6e4fe24a4e83c8de8d6730cc89"
+      },
+      "candidate": {
+        "minified": 88501,
+        "gzip": 30077,
+        "sha256": "9f9b9e0243f5556bc80a13766d82e00c2347680868bb7b432139a46f9f3845c9"
+      },
+      "delta": {
+        "minified": 600,
+        "gzip": 285
+      }
+    },
+    {
+      "entry": "charts-categorical-legend-items.js",
+      "baseline": {
+        "minified": 10236,
+        "gzip": 3675,
+        "sha256": "f91c47e9a92534154559dd647a915898fad227aedd95bdef03014ae87d84e475"
+      },
+      "candidate": {
+        "minified": 10236,
+        "gzip": 3675,
+        "sha256": "f91c47e9a92534154559dd647a915898fad227aedd95bdef03014ae87d84e475"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-categorical-legend.js",
+      "baseline": {
+        "minified": 4749,
+        "gzip": 1780,
+        "sha256": "79f53ac50a5e1b2df0daff1cddaea6bb3bafaa7af80703c6201e250d319f7109"
+      },
+      "candidate": {
+        "minified": 4749,
+        "gzip": 1780,
+        "sha256": "79f53ac50a5e1b2df0daff1cddaea6bb3bafaa7af80703c6201e250d319f7109"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-compact-linear-scene.js",
+      "baseline": {
+        "minified": 35865,
+        "gzip": 12732,
+        "sha256": "3a3d8db6b9d8c177430878ecf1d696783682c52724c19292c935eeb7f36adf96"
+      },
+      "candidate": {
+        "minified": 35791,
+        "gzip": 12781,
+        "sha256": "91babda821ab179c2aaa3be2977750328684d32b84c3e36e13396ea72188d9f5"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 49
+      }
+    },
+    {
+      "entry": "charts-composite-mark.js",
+      "baseline": {
+        "minified": 86390,
+        "gzip": 31059,
+        "sha256": "44f66cb6ab89557d6ed2c106545eefaa5f23c3055327f8dca26f82cc2ccc023f"
+      },
+      "candidate": {
+        "minified": 86673,
+        "gzip": 31175,
+        "sha256": "37512136a6a790c09d3088299d2567883337b835c8e23ae7d3a47d3d8157c8ea"
+      },
+      "delta": {
+        "minified": 283,
+        "gzip": 116
+      }
+    },
+    {
+      "entry": "charts-continuous-cursor.js",
+      "baseline": {
+        "minified": 94379,
+        "gzip": 32435,
+        "sha256": "7c769f242bd315338821d54a8930cd442b779b4e92c257ae176c83311b6f42db"
+      },
+      "candidate": {
+        "minified": 95051,
+        "gzip": 32784,
+        "sha256": "27704b5a1d36fce45f736f32a8e7e2761aab4489ab1f841b2f7176ceda163440"
+      },
+      "delta": {
+        "minified": 672,
+        "gzip": 349
+      }
+    },
+    {
+      "entry": "charts-core.js",
+      "baseline": {
+        "minified": 53412,
+        "gzip": 19894,
+        "sha256": "1ed561fddf3ddf8321ed333098a18e41ccda515ac4e8897c62830afd0c711cb0"
+      },
+      "candidate": {
+        "minified": 53338,
+        "gzip": 19935,
+        "sha256": "5697f181cfd13264c4910494d1e3c94fea6bc0d6d78dde768de2938eb14044a9"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 41
+      }
+    },
+    {
+      "entry": "charts-crosshair-kernel.js",
+      "baseline": {
+        "minified": 10109,
+        "gzip": 3479,
+        "sha256": "5de75bd8c81d0e55b3bf4a608142249e7cbbda499a896535b2c084972ecefa86"
+      },
+      "candidate": {
+        "minified": 10109,
+        "gzip": 3479,
+        "sha256": "5de75bd8c81d0e55b3bf4a608142249e7cbbda499a896535b2c084972ecefa86"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-cursor-controller.js",
+      "baseline": {
+        "minified": 569,
+        "gzip": 352,
+        "sha256": "ba31bf51eb31f36444d92f537afc5e393c634b373e88574b981cc8ceac5ec0fd"
+      },
+      "candidate": {
+        "minified": 569,
+        "gzip": 352,
+        "sha256": "ba31bf51eb31f36444d92f537afc5e393c634b373e88574b981cc8ceac5ec0fd"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-cursor-host-policy.js",
+      "baseline": {
+        "minified": 14920,
+        "gzip": 5607,
+        "sha256": "afa0aa54cd52f2422d3243ad9efc255c29125f86764c99d324b8d37f4a5320a3"
+      },
+      "candidate": {
+        "minified": 15084,
+        "gzip": 5659,
+        "sha256": "7a2545d7c1f365550f80117e646ea532ccef17528c309fc1d4da1d0f1d748d15"
+      },
+      "delta": {
+        "minified": 164,
+        "gzip": 52
+      }
+    },
+    {
+      "entry": "charts-custom-scale-scene.js",
+      "baseline": {
+        "minified": 34047,
+        "gzip": 11995,
+        "sha256": "8b062e4096d42eb83fc57a2289b03f24ba3980f0d4e36201e41fcc661066319c"
+      },
+      "candidate": {
+        "minified": 33973,
+        "gzip": 12045,
+        "sha256": "3ae826866787a11b96959d0c146fd09cd92c6c46e1c6feb025d6ca754f41e463"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 50
+      }
+    },
+    {
+      "entry": "charts-d3-curve-svg.js",
+      "baseline": {
+        "minified": 66801,
+        "gzip": 24511,
+        "sha256": "8a02fc40d88578038dbdc8f8ebd507c34026b8094d012e19fd2edfa976497246"
+      },
+      "candidate": {
+        "minified": 66727,
+        "gzip": 24556,
+        "sha256": "cfdbe51deadec5c6514866f040e94c6dea11be44909f9e5fb1383a7746954938"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 45
+      }
+    },
+    {
+      "entry": "charts-d3-curved-line-scene.js",
+      "baseline": {
+        "minified": 60529,
+        "gzip": 22195,
+        "sha256": "f848ba5b00e4a81c547b85dd4cb48c9fbe1edce8ea498a2adba5b968536c8135"
+      },
+      "candidate": {
+        "minified": 60455,
+        "gzip": 22235,
+        "sha256": "bdece4691be2ab7174de33e8073a7b4fae03e54499335669dab3c4e829f37346"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 40
+      }
+    },
+    {
+      "entry": "charts-d3-delaunay-dom.js",
+      "baseline": {
+        "minified": 126513,
+        "gzip": 45655,
+        "sha256": "ae81ff18d70d61559d051c9b83d18530394b2c99cfc92e07281d984a2c977bbe"
+      },
+      "candidate": {
+        "minified": 127230,
+        "gzip": 46004,
+        "sha256": "22f657ba19f257e532ee4cf9ab84586aa7e4b4f71b0f7f9bf100695697bfe35b"
+      },
+      "delta": {
+        "minified": 717,
+        "gzip": 349
+      }
+    },
+    {
+      "entry": "charts-d3-linear-scene.js",
+      "baseline": {
+        "minified": 53344,
+        "gzip": 19856,
+        "sha256": "358ce174b4f9e9ba2d1df25de6fb1e8bd47d2069ce9f69a0f269ddfa658f4e2e"
+      },
+      "candidate": {
+        "minified": 53270,
+        "gzip": 19898,
+        "sha256": "ab4d684f677e809f236d18d4b3f5ff1c77a6c1ef4835cc9cb0a24563e85921eb"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 42
+      }
+    },
+    {
+      "entry": "charts-d3-quadtree-dom.js",
+      "baseline": {
+        "minified": 111740,
+        "gzip": 40223,
+        "sha256": "61c9fe52837487141de6bc5cedd21271cbbc38504d621d55c9edb278242139f7"
+      },
+      "candidate": {
+        "minified": 112459,
+        "gzip": 40590,
+        "sha256": "5ae881b2a75f703ed2f1e41d27037d9225ebbf213be47fb3cf9374aaab87d3ca"
+      },
+      "delta": {
+        "minified": 719,
+        "gzip": 367
+      }
+    },
+    {
+      "entry": "charts-d3-time-scene.js",
+      "baseline": {
+        "minified": 68137,
+        "gzip": 24535,
+        "sha256": "485645dce82fd19d629d58d8cbfd3b1cd3f9cae6777af612fdd22898170155a9"
+      },
+      "candidate": {
+        "minified": 68063,
+        "gzip": 24581,
+        "sha256": "196275b224e1b70f2d2291c83a941091bfce27f52066186fc0a9a7665b0593b8"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 46
+      }
+    },
+    {
+      "entry": "charts-d3-time-svg.js",
+      "baseline": {
+        "minified": 74392,
+        "gzip": 26844,
+        "sha256": "e86c2e5a3b156d6ccb745769128769dbad837fb55bd71e26859393130f555a16"
+      },
+      "candidate": {
+        "minified": 74318,
+        "gzip": 26890,
+        "sha256": "865a9764179d6847aa7f88844c3846f2197841d79ab1dd29c988cacb110a3ffb"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 46
+      }
+    },
+    {
+      "entry": "charts-d3-transform-histogram.js",
+      "baseline": {
+        "minified": 63033,
+        "gzip": 23523,
+        "sha256": "76f089dbb99c03a9f12ede4d981afd4ea82671e157e100cf253c322f73e5eae7"
+      },
+      "candidate": {
+        "minified": 62959,
+        "gzip": 23568,
+        "sha256": "0738ba96bad375702ad0bed47dd06caf72beae295e79b8406d733f12465172f4"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 45
+      }
+    },
+    {
+      "entry": "charts-decorative-line-svg.js",
+      "baseline": {
+        "minified": 60920,
+        "gzip": 22548,
+        "sha256": "141df80c7b1e81a11fdef41f33fccd1bd6a54aa5cf8c8d328991cdce343e3b50"
+      },
+      "candidate": {
+        "minified": 61917,
+        "gzip": 22865,
+        "sha256": "1ffd29d633facc748c91cf6bdad360773aac6b4ebf043470d103bca203b26f00"
+      },
+      "delta": {
+        "minified": 997,
+        "gzip": 317
+      }
+    },
+    {
+      "entry": "charts-difference-svg.js",
+      "baseline": {
+        "minified": 84109,
+        "gzip": 29293,
+        "sha256": "513d8c323d34fc7dfbf6ecd66e95810caf8ab82d46c0bca5fda8a504bf04b583"
+      },
+      "candidate": {
+        "minified": 84345,
+        "gzip": 29374,
+        "sha256": "fe38090f295455e2703895160d596862f178be687b0f3c15673836464b68a7b8"
+      },
+      "delta": {
+        "minified": 236,
+        "gzip": 81
+      }
+    },
+    {
+      "entry": "charts-dodge-svg.js",
+      "baseline": {
+        "minified": 62088,
+        "gzip": 23066,
+        "sha256": "66b8bddab581a1f8a6638de27b8154806ba4677bb83267237759c067cea621ef"
+      },
+      "candidate": {
+        "minified": 62061,
+        "gzip": 23123,
+        "sha256": "9c7cfaec073b6a6a9e27409d5522d95ae3856bf2bd6b5ec54f5e061727bab15d"
+      },
+      "delta": {
+        "minified": -27,
+        "gzip": 57
+      }
+    },
+    {
+      "entry": "charts-dom.js",
+      "baseline": {
+        "minified": 81870,
+        "gzip": 28574,
+        "sha256": "148501a883fa9a957c7b22e5b91e9529dd812d047c8d67cdc393d49bd33edb86"
+      },
+      "candidate": {
+        "minified": 82541,
+        "gzip": 28902,
+        "sha256": "dcc4d1c0ca9f1ecff7c861b99faf8419cd9a15265a30990a5cee575a64821070"
+      },
+      "delta": {
+        "minified": 671,
+        "gzip": 328
+      }
+    },
+    {
+      "entry": "charts-dot-svg.js",
+      "baseline": {
+        "minified": 60667,
+        "gzip": 22509,
+        "sha256": "01db3010a13bba4e398939b6b1692225c4c73e01a50de7360ed5d084481b10ae"
+      },
+      "candidate": {
+        "minified": 60640,
+        "gzip": 22568,
+        "sha256": "7521b84a037f57151433cc851e3ba4b35dabe06455becdb197ee2db58676b364"
+      },
+      "delta": {
+        "minified": -27,
+        "gzip": 59
+      }
+    },
+    {
+      "entry": "charts-facet-svg.js",
+      "baseline": {
+        "minified": 70925,
+        "gzip": 26047,
+        "sha256": "13d78ce37c7d437b11aeaf65ac0b3f01dc6142ea60d14e1a3cb18d186723251b"
+      },
+      "candidate": {
+        "minified": 71032,
+        "gzip": 26114,
+        "sha256": "bb7d2d0509d0b9cf692743e2ced3a7df10d82020ee80bea941183e7d811c4f5b"
+      },
+      "delta": {
+        "minified": 107,
+        "gzip": 67
+      }
+    },
+    {
+      "entry": "charts-focus-guide.js",
+      "baseline": {
+        "minified": 65332,
+        "gzip": 23813,
+        "sha256": "ba352b4f59b846e81fea78431ec91ecb48372673ba05dd9dc9054cc8d3cf2011"
+      },
+      "candidate": {
+        "minified": 65305,
+        "gzip": 23867,
+        "sha256": "cb49d7aeb3d3067edf9307567cf7e529de7a1de8b82930d7b1828ae7defedd5c"
+      },
+      "delta": {
+        "minified": -27,
+        "gzip": 54
+      }
+    },
+    {
+      "entry": "charts-frame-svg.js",
+      "baseline": {
+        "minified": 37347,
+        "gzip": 13254,
+        "sha256": "c07ec6f861ec78202c2bcb5bd2092f634d4ac062613d4d8515fef88cdf5f5dee"
+      },
+      "candidate": {
+        "minified": 37273,
+        "gzip": 13298,
+        "sha256": "a216a7d032bc290bfa8ed9b80bc4cc442b223695b1357fadf4729ef5ccd2486a"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 44
+      }
+    },
+    {
+      "entry": "charts-geo-svg.js",
+      "baseline": {
+        "minified": 53918,
+        "gzip": 19360,
+        "sha256": "d8c61de36c733b0cbb63adc94cd8da9402a1affccaf1b2072a68ef8273bb5669"
+      },
+      "candidate": {
+        "minified": 53930,
+        "gzip": 19440,
+        "sha256": "522b842806c6819e7e116e264963758b6a44268132cf6723b1a00ce63a2e28db"
+      },
+      "delta": {
+        "minified": 12,
+        "gzip": 80
+      }
+    },
+    {
+      "entry": "charts-hexagon-svg.js",
+      "baseline": {
+        "minified": 59065,
+        "gzip": 22002,
+        "sha256": "f5f0dab629ba867c825a15c78b702928fe06460a498a5543a728e0f5e89b246a"
+      },
+      "candidate": {
+        "minified": 58991,
+        "gzip": 22050,
+        "sha256": "60f9f12914ccbeb4f270b11f7a91796e77096009811e09063362b55225b2e166"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 48
+      }
+    },
+    {
+      "entry": "charts-hierarchy-sunburst.js",
+      "baseline": {
+        "minified": 19330,
+        "gzip": 7599,
+        "sha256": "8eb0b1b0c76031dd7ebba9bf7967d11639708555012cfd33504bfc1b03fcc81f"
+      },
+      "candidate": {
+        "minified": 19330,
+        "gzip": 7599,
+        "sha256": "ef41076c6955676a0ae07d7db400a566730e2334b55c534d9a8a783d049cd177"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-hierarchy-tree.js",
+      "baseline": {
+        "minified": 10292,
+        "gzip": 4111,
+        "sha256": "0a4fa86ea98d9dc06235646c45ce7978e1f284de045fdb5ca5d84b9baf7d198a"
+      },
+      "candidate": {
+        "minified": 10292,
+        "gzip": 4111,
+        "sha256": "0a4fa86ea98d9dc06235646c45ce7978e1f284de045fdb5ca5d84b9baf7d198a"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-hierarchy-treemap.js",
+      "baseline": {
+        "minified": 16985,
+        "gzip": 6755,
+        "sha256": "41019107f1f410125f28f1f1906c762755dc05ced01e536abe8c4b9f235c52cd"
+      },
+      "candidate": {
+        "minified": 16985,
+        "gzip": 6755,
+        "sha256": "41019107f1f410125f28f1f1906c762755dc05ced01e536abe8c4b9f235c52cd"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-histogram-svg.js",
+      "baseline": {
+        "minified": 66488,
+        "gzip": 24812,
+        "sha256": "0d5e6a84dc3dd8dfa04c8591f1f9da0a162451c647e52f01d80d2064753185ee"
+      },
+      "candidate": {
+        "minified": 66414,
+        "gzip": 24858,
+        "sha256": "61b82594836195931b052a6c9939d90b9fe516d2916a5528e17abef5c9dfcb55"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 46
+      }
+    },
+    {
+      "entry": "charts-interaction-signal.js",
+      "baseline": {
+        "minified": 74,
+        "gzip": 93,
+        "sha256": "ee8674ba3b837469aeb61356c576ee3779960a05d1330373a83520bd9bbc38aa"
+      },
+      "candidate": {
+        "minified": 74,
+        "gzip": 93,
+        "sha256": "ee8674ba3b837469aeb61356c576ee3779960a05d1330373a83520bd9bbc38aa"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-interactive-legend.js",
+      "baseline": {
+        "minified": 89387,
+        "gzip": 31162,
+        "sha256": "16d85423ef732ac6bb74f93c89a2b224b2f13388ed3cde8ec95c7adf38baed78"
+      },
+      "candidate": {
+        "minified": 91035,
+        "gzip": 31831,
+        "sha256": "0d10c67970eb8d3af62d66b6b0ad4f32f913048921c6a474f932c7c234f0453a"
+      },
+      "delta": {
+        "minified": 1648,
+        "gzip": 669
+      }
+    },
+    {
+      "entry": "charts-keyed-selection.js",
+      "baseline": {
+        "minified": 780,
+        "gzip": 398,
+        "sha256": "b454a2cc8ca0b24a7531179e1e78b1965498ebf01d22c48ba4e49b7efbee49f7"
+      },
+      "candidate": {
+        "minified": 780,
+        "gzip": 398,
+        "sha256": "b454a2cc8ca0b24a7531179e1e78b1965498ebf01d22c48ba4e49b7efbee49f7"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-line-x-svg.js",
+      "baseline": {
+        "minified": 59581,
+        "gzip": 22128,
+        "sha256": "14b1e73bd8505235b8c18cfef4574d6036523f1f66458df5d377b47cefb2003a"
+      },
+      "candidate": {
+        "minified": 59507,
+        "gzip": 22179,
+        "sha256": "67e1f2c2dfcef7d0c5718efcae44ef90a730ca92ce51f869a28144ccb69a9904"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 51
+      }
+    },
+    {
+      "entry": "charts-link-svg.js",
+      "baseline": {
+        "minified": 58958,
+        "gzip": 21984,
+        "sha256": "7d34814c7da423294540eefa3117ea14ec5442846573138cd6d77eede1fded6a"
+      },
+      "candidate": {
+        "minified": 58884,
+        "gzip": 22021,
+        "sha256": "af93f3f3cbbf9c54d7fac01bb85081fcb45c5452889a38a858baf3da4e562fe9"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 37
+      }
+    },
+    {
+      "entry": "charts-mark-scale-values.js",
+      "baseline": {
+        "minified": 743,
+        "gzip": 395,
+        "sha256": "da08f512c16588aa0d7ac63b4ad363b88da4f54e9e9103d80e0947c568e77341"
+      },
+      "candidate": {
+        "minified": 743,
+        "gzip": 395,
+        "sha256": "da08f512c16588aa0d7ac63b4ad363b88da4f54e9e9103d80e0947c568e77341"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-motion-definition.js",
+      "baseline": {
+        "minified": 384,
+        "gzip": 264,
+        "sha256": "15977c856ba37b69fcc44e9ca5c0f90386c80e421d0ebc493a68d517044e2981"
+      },
+      "candidate": {
+        "minified": 384,
+        "gzip": 264,
+        "sha256": "15977c856ba37b69fcc44e9ca5c0f90386c80e421d0ebc493a68d517044e2981"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-motion-svg-renderer.js",
+      "baseline": {
+        "minified": 68558,
+        "gzip": 22959,
+        "sha256": "7e9d706704e8138b301cdd08e804a69f69e2eb2994dcf7f6e8b1f7b481ef9f4b"
+      },
+      "candidate": {
+        "minified": 69366,
+        "gzip": 23240,
+        "sha256": "85429739a6d19ca7f478192ab73aa3d2334bf98017b5802a00859d96bcfee2f2"
+      },
+      "delta": {
+        "minified": 808,
+        "gzip": 281
+      }
+    },
+    {
+      "entry": "charts-network-force.js",
+      "baseline": {
+        "minified": 20808,
+        "gzip": 7733,
+        "sha256": "17f3b8ac5d2a3debd9e9a3c1fc3e33e0b12a8633fa8d422a61d0bcf90660ccdd"
+      },
+      "candidate": {
+        "minified": 20808,
+        "gzip": 7733,
+        "sha256": "17f3b8ac5d2a3debd9e9a3c1fc3e33e0b12a8633fa8d422a61d0bcf90660ccdd"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-network-sankey.js",
+      "baseline": {
+        "minified": 24155,
+        "gzip": 8421,
+        "sha256": "c66c719d7acf0c3bef165185979d652bcb2584ece6e24263abf01b4dce41c46e"
+      },
+      "candidate": {
+        "minified": 24465,
+        "gzip": 8474,
+        "sha256": "3a0e56677e013918da58c8230475536e967ba51fdee106d6d855435603a530c7"
+      },
+      "delta": {
+        "minified": 310,
+        "gzip": 53
+      }
+    },
+    {
+      "entry": "charts-pointer-anchor-kernel.js",
+      "baseline": {
+        "minified": 157,
+        "gzip": 153,
+        "sha256": "cce38227541965c49c573c4ab40541c0d1acb9e988b5cfb8b27b6b445b28b0b6"
+      },
+      "candidate": {
+        "minified": 157,
+        "gzip": 153,
+        "sha256": "cce38227541965c49c573c4ab40541c0d1acb9e988b5cfb8b27b6b445b28b0b6"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-pointer-geometry-kernel.js",
+      "baseline": {
+        "minified": 7462,
+        "gzip": 2877,
+        "sha256": "72ca5f01d574d3fc5f30143b1f0b8d6f238c6b83f24f947e40aad21426db05d0"
+      },
+      "candidate": {
+        "minified": 7462,
+        "gzip": 2877,
+        "sha256": "72ca5f01d574d3fc5f30143b1f0b8d6f238c6b83f24f947e40aad21426db05d0"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-polar-arc-svg.js",
+      "baseline": {
+        "minified": 51309,
+        "gzip": 18333,
+        "sha256": "a961300608beee5a4fe00d793f3aa37afd1e5c90817aa66ad0ee0cea0400ba2d"
+      },
+      "candidate": {
+        "minified": 51468,
+        "gzip": 18453,
+        "sha256": "78878116cb8d66088869ac5d5a464485ceab015a9a026370b806db7735c7d32f"
+      },
+      "delta": {
+        "minified": 159,
+        "gzip": 120
+      }
+    },
+    {
+      "entry": "charts-polar-gauge-svg.js",
+      "baseline": {
+        "minified": 76506,
+        "gzip": 27647,
+        "sha256": "52c231ac9db4ebaf262241aae1b28fe998c78ac061e2f3460adcb1bc1cc58303"
+      },
+      "candidate": {
+        "minified": 76734,
+        "gzip": 27859,
+        "sha256": "85ae3336ed5882b8a2a2d7c4f51a918d77f235cef22112a2d2af93efce73dd5e"
+      },
+      "delta": {
+        "minified": 228,
+        "gzip": 212
+      }
+    },
+    {
+      "entry": "charts-polar-line-scatter-svg.js",
+      "baseline": {
+        "minified": 80269,
+        "gzip": 28693,
+        "sha256": "a68fca6d1a7eebd56438fc1b1db8235f7e060b00d9bb3133b7491ba04440b8fd"
+      },
+      "candidate": {
+        "minified": 80464,
+        "gzip": 28810,
+        "sha256": "1fb51c683cbbcfd0e3c6dde20a71cdd36f999018491d118fad66b334602cdd0a"
+      },
+      "delta": {
+        "minified": 195,
+        "gzip": 117
+      }
+    },
+    {
+      "entry": "charts-polar-pie-svg.js",
+      "baseline": {
+        "minified": 54381,
+        "gzip": 19372,
+        "sha256": "d77a8abf7fd1611a94289721c39bf4502e384cd4677bc59d9e6a57d25b916f2b"
+      },
+      "candidate": {
+        "minified": 54540,
+        "gzip": 19491,
+        "sha256": "5c627a96867156abaf9b382ab390c2813bb7eb233b75901bb279a1437b6b8b3d"
+      },
+      "delta": {
+        "minified": 159,
+        "gzip": 119
+      }
+    },
+    {
+      "entry": "charts-radial-bar-svg.js",
+      "baseline": {
+        "minified": 76508,
+        "gzip": 27650,
+        "sha256": "19896cf68876d29da5fb5fd058d9b7f7239bfe48124a4d3d3458b0c9c3360a38"
+      },
+      "candidate": {
+        "minified": 76701,
+        "gzip": 27750,
+        "sha256": "d5de43c0b744add7f7aff69c050e46f2e3e761dbcdab0b07d7541bcc18707505"
+      },
+      "delta": {
+        "minified": 193,
+        "gzip": 100
+      }
+    },
+    {
+      "entry": "charts-radial-label-svg.js",
+      "baseline": {
+        "minified": 66210,
+        "gzip": 24074,
+        "sha256": "7f8c3eb1fb2d2fceb0d7768ce8227ef3b463b2758b6dc2e00ce1e5d035ea7770"
+      },
+      "candidate": {
+        "minified": 66372,
+        "gzip": 24280,
+        "sha256": "8e9a9ad7526038b322631bc040702975440c63b74528a5985cb78bdd3915c152"
+      },
+      "delta": {
+        "minified": 162,
+        "gzip": 206
+      }
+    },
+    {
+      "entry": "charts-react-canvas.js",
+      "baseline": {
+        "minified": 90182,
+        "gzip": 30622,
+        "sha256": "8224cd01a1cd823a364fa6fd28fb0a1864803ab8f35f08d0e88cf20bf67852ea"
+      },
+      "candidate": {
+        "minified": 90781,
+        "gzip": 30923,
+        "sha256": "0e752f9a1b16e197a61052262e8bd3572f1637abfb59f9a5d070bfaf05d981c6"
+      },
+      "delta": {
+        "minified": 599,
+        "gzip": 301
+      }
+    },
+    {
+      "entry": "charts-react-compact-line-tooltip-portal.js",
+      "baseline": {
+        "minified": 104601,
+        "gzip": 36737,
+        "sha256": "4f091eb278c454afc03525fd39e097d9c05c8287734e4140287e7aa3c6481272"
+      },
+      "candidate": {
+        "minified": 105271,
+        "gzip": 37100,
+        "sha256": "36f9de7252ec1f7a514463f86b515ddecab0a1886e66770da3aeda629a59c5ce"
+      },
+      "delta": {
+        "minified": 670,
+        "gzip": 363
+      }
+    },
+    {
+      "entry": "charts-react-compact-line-tooltip.js",
+      "baseline": {
+        "minified": 102068,
+        "gzip": 35911,
+        "sha256": "95430c3af9c2571e63a284f5494b73d0ce40a21622343ed8c515e190be75344f"
+      },
+      "candidate": {
+        "minified": 102740,
+        "gzip": 36265,
+        "sha256": "670816ff24772ed2e86f0b4b5e82bd42b7f4cb28279636544b48e414322cc68b"
+      },
+      "delta": {
+        "minified": 672,
+        "gzip": 354
+      }
+    },
+    {
+      "entry": "charts-react-compact-line.js",
+      "baseline": {
+        "minified": 90354,
+        "gzip": 31746,
+        "sha256": "ccd187e480234337ce7029a20e20c78e449eb4039c0c0ed80e244bf33244b2a3"
+      },
+      "candidate": {
+        "minified": 91024,
+        "gzip": 32091,
+        "sha256": "0b7430889f2a7f68e3b7357549d8a816ac7eb498b8075816e047ae58f517004f"
+      },
+      "delta": {
+        "minified": 670,
+        "gzip": 345
+      }
+    },
+    {
+      "entry": "charts-react-core.js",
+      "baseline": {
+        "minified": 59740,
+        "gzip": 20973,
+        "sha256": "59ba583b02625f91ae0cf9481f277c38f31b97ec2238686ef7146be104157f98"
+      },
+      "candidate": {
+        "minified": 59931,
+        "gzip": 21124,
+        "sha256": "9db44b957287a8f7790325102408516df97af60efb652766563e16967254b668"
+      },
+      "delta": {
+        "minified": 191,
+        "gzip": 151
+      }
+    },
+    {
+      "entry": "charts-react-line-mark-canvas.js",
+      "baseline": {
+        "minified": 130654,
+        "gzip": 46035,
+        "sha256": "0f7475609e124dd4ea81591f1a6dcea9933f7cc0c6fe3cd57004c25cb45e15d5"
+      },
+      "candidate": {
+        "minified": 131455,
+        "gzip": 46427,
+        "sha256": "abb78b92cfc17bc0698331f75808ff29a2690a3fcbe2625b6ccecd2ab34fd950"
+      },
+      "delta": {
+        "minified": 801,
+        "gzip": 392
+      }
+    },
+    {
+      "entry": "charts-react-line.js",
+      "baseline": {
+        "minified": 107854,
+        "gzip": 38849,
+        "sha256": "8579deb78238b7e7dba4c09d659468b6944a776bcc194697b0ed1ae0738da09e"
+      },
+      "candidate": {
+        "minified": 108526,
+        "gzip": 39215,
+        "sha256": "10a0bbe377b748368fbaa03a5789e6de7d19d06988d2fc81e617f024f460f54a"
+      },
+      "delta": {
+        "minified": 672,
+        "gzip": 366
+      }
+    },
+    {
+      "entry": "charts-react-native-line.js",
+      "baseline": {
+        "minified": 85539,
+        "gzip": 31253,
+        "sha256": "4fcd77bc1bafcf57ef5f29d21e1e2bc433b655c0563d0777510314afa137ecac"
+      },
+      "candidate": {
+        "minified": 85779,
+        "gzip": 31385,
+        "sha256": "ceecdb70ce512be6d3dbd7edfed54bf49b41b77d9401072a59ff61512f94d3ac"
+      },
+      "delta": {
+        "minified": 240,
+        "gzip": 132
+      }
+    },
+    {
+      "entry": "charts-react-native-tooltip.js",
+      "baseline": {
+        "minified": 70054,
+        "gzip": 24737,
+        "sha256": "80c491a6a080b782202e283a8d1f615c09d1a1c25d666b65adcb898c71f4c291"
+      },
+      "candidate": {
+        "minified": 70294,
+        "gzip": 24878,
+        "sha256": "2e45628fc64ddaad3015be80fd1270f3a83d7143ae01157f9116d9d4df3e3eda"
+      },
+      "delta": {
+        "minified": 240,
+        "gzip": 141
+      }
+    },
+    {
+      "entry": "charts-react-native-universal-boundary.js",
+      "baseline": {
+        "minified": 67204,
+        "gzip": 23703,
+        "sha256": "ff005c1d96ff03a33471ad41de73aa523d6b0140b8a67e58c68b0b018e144e26"
+      },
+      "candidate": {
+        "minified": 67444,
+        "gzip": 23832,
+        "sha256": "6bd6704170dd289c70a1cbcae9c6a9e0dcf56cc30f56ac05d8ed73253239f49e"
+      },
+      "delta": {
+        "minified": 240,
+        "gzip": 129
+      }
+    },
+    {
+      "entry": "charts-react-native.js",
+      "baseline": {
+        "minified": 61885,
+        "gzip": 21943,
+        "sha256": "d0fb84d42d951d8428c389f393eea25db3e468ef7449617f983febc8411622cc"
+      },
+      "candidate": {
+        "minified": 62125,
+        "gzip": 22106,
+        "sha256": "269927687e56e2ea581b8d021a992082e0633d5b818e43416707fa3e3fa71775"
+      },
+      "delta": {
+        "minified": 240,
+        "gzip": 163
+      }
+    },
+    {
+      "entry": "charts-react-stats-parity-tsx.js",
+      "baseline": {
+        "minified": 168735,
+        "gzip": 59175,
+        "sha256": "994a9827e99e0622d532489221fc8df0b73b02a9dc6251523bb3ec49e64db911"
+      },
+      "candidate": {
+        "minified": 169414,
+        "gzip": 59511,
+        "sha256": "cbaf46bfde391f659b3d8f0f8a68dd149dab511d5833894a6e2f04408d58cdda"
+      },
+      "delta": {
+        "minified": 679,
+        "gzip": 336
+      }
+    },
+    {
+      "entry": "charts-react.js",
+      "baseline": {
+        "minified": 84195,
+        "gzip": 29518,
+        "sha256": "68fafbaca9eb6db657b5527f339bd59d2702af2a8a39c9935dbd7b267d83bb22"
+      },
+      "candidate": {
+        "minified": 84867,
+        "gzip": 29851,
+        "sha256": "57e4690f6b9571b95c6966db2267dadff259ea266aad7bda220e662c9ad4a46b"
+      },
+      "delta": {
+        "minified": 672,
+        "gzip": 333
+      }
+    },
+    {
+      "entry": "charts-regression-svg.js",
+      "baseline": {
+        "minified": 79498,
+        "gzip": 28860,
+        "sha256": "a9b9f903ff79e67c5ced76df5edc4ba2f0af9656e17f0a86f5f0b243adf6dc0b"
+      },
+      "candidate": {
+        "minified": 79734,
+        "gzip": 28959,
+        "sha256": "5ccdff1bc7b5aae5a79aed3a225752b774084c7802f6dc1007b2df0b64b7e184"
+      },
+      "delta": {
+        "minified": 236,
+        "gzip": 99
+      }
+    },
+    {
+      "entry": "charts-renderer.js",
+      "baseline": {
+        "minified": 57397,
+        "gzip": 20143,
+        "sha256": "b27d97721083bcfbe8e25142ba9a4d7e8b96b84c5d28fdbcbf1324a8c497685c"
+      },
+      "candidate": {
+        "minified": 57589,
+        "gzip": 20305,
+        "sha256": "b94ca6c8c8181ce687c30e2bc27c878f5464d048ef4c051210b1e0a08f8999f0"
+      },
+      "delta": {
+        "minified": 192,
+        "gzip": 162
+      }
+    },
+    {
+      "entry": "charts-representative-mark-canvas.js",
+      "baseline": {
+        "minified": 113424,
+        "gzip": 40086,
+        "sha256": "69ffb735c54bd57eaa442ef98c75f9975ee9d45eecf12b2a747983f9315fa87f"
+      },
+      "candidate": {
+        "minified": 113805,
+        "gzip": 40268,
+        "sha256": "1897953a754eaef080f55f2066aabf29fab09ff51f2a092dd524d3666325da3e"
+      },
+      "delta": {
+        "minified": 381,
+        "gzip": 182
+      }
+    },
+    {
+      "entry": "charts-representative.js",
+      "baseline": {
+        "minified": 83306,
+        "gzip": 30340,
+        "sha256": "18f325179558b99fe4db79bf407135c4a3df6116dec956f13a0b6500fc50da6d"
+      },
+      "candidate": {
+        "minified": 83279,
+        "gzip": 30397,
+        "sha256": "40a17b16ab9f3724a6f4bd86d319937bddd35f2a959258ac3e3c6ae279f78ede"
+      },
+      "delta": {
+        "minified": -27,
+        "gzip": 57
+      }
+    },
+    {
+      "entry": "charts-ridgeline-svg.js",
+      "baseline": {
+        "minified": 61679,
+        "gzip": 22893,
+        "sha256": "1a9febe226be1ba9213a12ea525971f8f83b54d130f092b79e2abde5d9367eb3"
+      },
+      "candidate": {
+        "minified": 61605,
+        "gzip": 22936,
+        "sha256": "170dfdf65fd01aca179a6cc637732aad78684dff62798d0c7845c88df2099aa2"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 43
+      }
+    },
+    {
+      "entry": "charts-scale-band-kernel.js",
+      "baseline": {
+        "minified": 1785,
+        "gzip": 900,
+        "sha256": "7d0e960fd46c4c1deb3ac0667a25733c1f52c470b6224ef13aa83ac6d05b0d6d"
+      },
+      "candidate": {
+        "minified": 1785,
+        "gzip": 900,
+        "sha256": "7d0e960fd46c4c1deb3ac0667a25733c1f52c470b6224ef13aa83ac6d05b0d6d"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-scale-family-kernel.js",
+      "baseline": {
+        "minified": 4269,
+        "gzip": 1890,
+        "sha256": "243f0055f24edb29975ec5ebe287d622fe7067745f12cab973b077cddaec339d"
+      },
+      "candidate": {
+        "minified": 4269,
+        "gzip": 1890,
+        "sha256": "243f0055f24edb29975ec5ebe287d622fe7067745f12cab973b077cddaec339d"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-scale-handle.js",
+      "baseline": {
+        "minified": 94108,
+        "gzip": 32330,
+        "sha256": "105bbf6df47bffe970a94121a38bc08865e2ac13f0027cfe714e5b1fba58c5a5"
+      },
+      "candidate": {
+        "minified": 94778,
+        "gzip": 32674,
+        "sha256": "4c4ae16dfc0e3f9bf2592e63337f8ee8e47dff50133453c2a4871d955a4d9ac6"
+      },
+      "delta": {
+        "minified": 670,
+        "gzip": 344
+      }
+    },
+    {
+      "entry": "charts-scale-linear-kernel.js",
+      "baseline": {
+        "minified": 2243,
+        "gzip": 1120,
+        "sha256": "fd4f5ed991f06421131495cdfcaf3c8fb644e34e3999db1597a4a8589e7662ae"
+      },
+      "candidate": {
+        "minified": 2243,
+        "gzip": 1120,
+        "sha256": "fd4f5ed991f06421131495cdfcaf3c8fb644e34e3999db1597a4a8589e7662ae"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-scale-ordinal-kernel.js",
+      "baseline": {
+        "minified": 899,
+        "gzip": 521,
+        "sha256": "701a4ab9a3358f2f8cddd588715cf23176ce5837d2d282281e0f125c667db2b9"
+      },
+      "candidate": {
+        "minified": 899,
+        "gzip": 521,
+        "sha256": "701a4ab9a3358f2f8cddd588715cf23176ce5837d2d282281e0f125c667db2b9"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-scale-point-kernel.js",
+      "baseline": {
+        "minified": 1764,
+        "gzip": 899,
+        "sha256": "4c7ca1897136784e9d755ed6841635cdd64164a7a70b34c17b2362137a030a67"
+      },
+      "candidate": {
+        "minified": 1764,
+        "gzip": 899,
+        "sha256": "4c7ca1897136784e9d755ed6841635cdd64164a7a70b34c17b2362137a030a67"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-selected-overlay-svg.js",
+      "baseline": {
+        "minified": 65514,
+        "gzip": 24037,
+        "sha256": "01f77c1b225fbcec1346f3e61a5dfc6983286cd653d67654352512d46d38b7f2"
+      },
+      "candidate": {
+        "minified": 66035,
+        "gzip": 24246,
+        "sha256": "6d50f87b0ec45a82101648353d7c5fef9dbcc50d8acda220dccb7e83bb9133ef"
+      },
+      "delta": {
+        "minified": 521,
+        "gzip": 209
+      }
+    },
+    {
+      "entry": "charts-spatial-contour-svg.js",
+      "baseline": {
+        "minified": 44747,
+        "gzip": 16109,
+        "sha256": "fe11860313788e8b552780dcf471a090d083556808733112146517c0254eeb0b"
+      },
+      "candidate": {
+        "minified": 44675,
+        "gzip": 16157,
+        "sha256": "114013a26c890bc3b4acf72b20ae489f30ce609cbd1e0219905902c30eded389"
+      },
+      "delta": {
+        "minified": -72,
+        "gzip": 48
+      }
+    },
+    {
+      "entry": "charts-spatial-delaunay-svg.js",
+      "baseline": {
+        "minified": 81757,
+        "gzip": 30324,
+        "sha256": "cad60d9d3104579280d681de58560c53be6ebcc8f040159c1c6e9d4adf51e400"
+      },
+      "candidate": {
+        "minified": 81681,
+        "gzip": 30369,
+        "sha256": "c2cd1e6e78a719a16031152d9f0be2fba9bfa12677f31f5c75c6fe25b7116dd9"
+      },
+      "delta": {
+        "minified": -76,
+        "gzip": 45
+      }
+    },
+    {
+      "entry": "charts-spatial-density-svg.js",
+      "baseline": {
+        "minified": 68667,
+        "gzip": 25466,
+        "sha256": "201b356b1beb1a2a39193a1525b62e1c91ec1d6b7d4ed55150daf5294ce1478b"
+      },
+      "candidate": {
+        "minified": 68593,
+        "gzip": 25507,
+        "sha256": "3af9f4f2a30e164dfee66b8618331e84a4b60498009dbe6a89da35e6c678f8f4"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 41
+      }
+    },
+    {
+      "entry": "charts-spatial-hexbin-svg.js",
+      "baseline": {
+        "minified": 63331,
+        "gzip": 23637,
+        "sha256": "03cd03e7760141532492f299f5b4c5fe735d95214b4767dbdcdc97106d0ba1e5"
+      },
+      "candidate": {
+        "minified": 63257,
+        "gzip": 23684,
+        "sha256": "0d763a936ae2b033be0de1f9694997ad6349141709aaccd51f22a6ba9fe0a193"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 47
+      }
+    },
+    {
+      "entry": "charts-spatial-voronoi-svg.js",
+      "baseline": {
+        "minified": 85293,
+        "gzip": 31643,
+        "sha256": "445df209978ddfbfb2728477bda3c6d3384a0a5b11e02798f9d6892ffcda5b62"
+      },
+      "candidate": {
+        "minified": 85219,
+        "gzip": 31684,
+        "sha256": "7946b5a8349f9ba68d3341d91843b4ae9a3b6b7d487bc7b0dc198b9afee94c5c"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 41
+      }
+    },
+    {
+      "entry": "charts-spring-kernel.js",
+      "baseline": {
+        "minified": 1455,
+        "gzip": 713,
+        "sha256": "0657b13f3e3f4e104a7b559f195f5cf645d7bfdd18fd49bfcbf08d415f97c2f3"
+      },
+      "candidate": {
+        "minified": 1455,
+        "gzip": 713,
+        "sha256": "0657b13f3e3f4e104a7b559f195f5cf645d7bfdd18fd49bfcbf08d415f97c2f3"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-stats-parity.js",
+      "baseline": {
+        "minified": 166297,
+        "gzip": 58105,
+        "sha256": "ad080d8c5fefb44660f92e5ecb6eeee842171d38235c918b02834a61808f49c0"
+      },
+      "candidate": {
+        "minified": 166976,
+        "gzip": 58472,
+        "sha256": "4e6c59db6f1858bf07a8d91f6fd87ee2bb03614e7377ef2b467028638bd1db1e"
+      },
+      "delta": {
+        "minified": 679,
+        "gzip": 367
+      }
+    },
+    {
+      "entry": "charts-svg.js",
+      "baseline": {
+        "minified": 59566,
+        "gzip": 22210,
+        "sha256": "9db5396459d4e8cbb01c1c4f04d16cf42103e04f9b0766a1e4d1e8abf5f213f5"
+      },
+      "candidate": {
+        "minified": 59492,
+        "gzip": 22256,
+        "sha256": "88d577f5886d26d404ec46aa73566ee72fb7786d848f4c5da91ce19b50ff7783"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 46
+      }
+    },
+    {
+      "entry": "charts-tick-label-accessors.js",
+      "baseline": {
+        "minified": 59856,
+        "gzip": 22309,
+        "sha256": "ca45451596defcf1561713d91d3d5bffa3cadcec76885581ed2379b2e6bea2c4"
+      },
+      "candidate": {
+        "minified": 59782,
+        "gzip": 22356,
+        "sha256": "1dc044e7c478e7e0e6b7097dba585a95fdf78852860c69fc1ce9d7da5aa6b0e8"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 47
+      }
+    },
+    {
+      "entry": "charts-tick-svg.js",
+      "baseline": {
+        "minified": 62067,
+        "gzip": 22960,
+        "sha256": "8c404d904a65f5c08054b5135ad35298989b2e1f2fbd0cb6c5bcb93ffe821966"
+      },
+      "candidate": {
+        "minified": 61993,
+        "gzip": 23013,
+        "sha256": "fe83af2d61528194535bc2f58f3ac579829a0bfcac9341673fd045115765d27f"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 53
+      }
+    },
+    {
+      "entry": "charts-time-svg.js",
+      "baseline": {
+        "minified": 74392,
+        "gzip": 26844,
+        "sha256": "e86c2e5a3b156d6ccb745769128769dbad837fb55bd71e26859393130f555a16"
+      },
+      "candidate": {
+        "minified": 74318,
+        "gzip": 26890,
+        "sha256": "865a9764179d6847aa7f88844c3846f2197841d79ab1dd29c988cacb110a3ffb"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 46
+      }
+    },
+    {
+      "entry": "charts-tooltip-kernel.js",
+      "baseline": {
+        "minified": 11659,
+        "gzip": 4620,
+        "sha256": "729b1a4023cbf2ef777c7a7207f04c1eb1460df10f5a3fa5e5f780b6cdd61d70"
+      },
+      "candidate": {
+        "minified": 11659,
+        "gzip": 4620,
+        "sha256": "729b1a4023cbf2ef777c7a7207f04c1eb1460df10f5a3fa5e5f780b6cdd61d70"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-tooltip-portal-kernel.js",
+      "baseline": {
+        "minified": 3636,
+        "gzip": 1623,
+        "sha256": "307542944a0fa7f72b9538ed45c8de10fe77146f18ca378c69c858c96b46669f"
+      },
+      "candidate": {
+        "minified": 3636,
+        "gzip": 1623,
+        "sha256": "307542944a0fa7f72b9538ed45c8de10fe77146f18ca378c69c858c96b46669f"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-bin-time.js",
+      "baseline": {
+        "minified": 2843,
+        "gzip": 1326,
+        "sha256": "bdd08df8b1e0c86368422b8e10a4b1efaf300d4022c2ed6748b65ff4a335655a"
+      },
+      "candidate": {
+        "minified": 2843,
+        "gzip": 1326,
+        "sha256": "bdd08df8b1e0c86368422b8e10a4b1efaf300d4022c2ed6748b65ff4a335655a"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-bin-xy.js",
+      "baseline": {
+        "minified": 6392,
+        "gzip": 2814,
+        "sha256": "ab2e1eacbe20a340ed21e6fc4d5ecf7add9482415fec66345702e07499baf840"
+      },
+      "candidate": {
+        "minified": 6392,
+        "gzip": 2814,
+        "sha256": "ab2e1eacbe20a340ed21e6fc4d5ecf7add9482415fec66345702e07499baf840"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-bin.js",
+      "baseline": {
+        "minified": 6988,
+        "gzip": 2958,
+        "sha256": "56259ed723f4c9b0100a6d7f753d46000a81855a69990d6dfdfefe8ff5593ec3"
+      },
+      "candidate": {
+        "minified": 6988,
+        "gzip": 2958,
+        "sha256": "56259ed723f4c9b0100a6d7f753d46000a81855a69990d6dfdfefe8ff5593ec3"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-cumulative.js",
+      "baseline": {
+        "minified": 2179,
+        "gzip": 1048,
+        "sha256": "3575882ab5f85088d09100bfb9db9e754b75690c4471d01c863bb2d868a597b0"
+      },
+      "candidate": {
+        "minified": 2179,
+        "gzip": 1048,
+        "sha256": "3575882ab5f85088d09100bfb9db9e754b75690c4471d01c863bb2d868a597b0"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-fold.js",
+      "baseline": {
+        "minified": 711,
+        "gzip": 427,
+        "sha256": "0d1d8689add14783f75ab8249052531da9da27e8346aff4105b02bc0a73aef9f"
+      },
+      "candidate": {
+        "minified": 711,
+        "gzip": 427,
+        "sha256": "0d1d8689add14783f75ab8249052531da9da27e8346aff4105b02bc0a73aef9f"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-group.js",
+      "baseline": {
+        "minified": 1870,
+        "gzip": 923,
+        "sha256": "f138c93fd8413bd435a0f7793d5a1757cd7edbc732cd2abe5e4bcb8d62a6eb37"
+      },
+      "candidate": {
+        "minified": 1870,
+        "gzip": 923,
+        "sha256": "f138c93fd8413bd435a0f7793d5a1757cd7edbc732cd2abe5e4bcb8d62a6eb37"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-mosaic.js",
+      "baseline": {
+        "minified": 4688,
+        "gzip": 1999,
+        "sha256": "e32abf30e2b0dc96a0046b58f10478a63b3b79d83c3bb99d61a0a3a2603d7c9e"
+      },
+      "candidate": {
+        "minified": 4688,
+        "gzip": 1999,
+        "sha256": "e32abf30e2b0dc96a0046b58f10478a63b3b79d83c3bb99d61a0a3a2603d7c9e"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-normalize.js",
+      "baseline": {
+        "minified": 1553,
+        "gzip": 836,
+        "sha256": "302eb2911d5009704eeb1bffda3321769368da9a1febc3607bf4c9d10a3dc844"
+      },
+      "candidate": {
+        "minified": 1553,
+        "gzip": 836,
+        "sha256": "302eb2911d5009704eeb1bffda3321769368da9a1febc3607bf4c9d10a3dc844"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-rank.js",
+      "baseline": {
+        "minified": 1440,
+        "gzip": 785,
+        "sha256": "745147e6b2f0a2fb36f18e31ffa57891d291204a08cc70fb48704178df6da7a3"
+      },
+      "candidate": {
+        "minified": 1440,
+        "gzip": 785,
+        "sha256": "745147e6b2f0a2fb36f18e31ffa57891d291204a08cc70fb48704178df6da7a3"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-reduce.js",
+      "baseline": {
+        "minified": 873,
+        "gzip": 439,
+        "sha256": "4f25e9184cca716bafe86fa3341aff84eafc3f5d0890dfafc7e86bf42a17b1e9"
+      },
+      "candidate": {
+        "minified": 873,
+        "gzip": 439,
+        "sha256": "4f25e9184cca716bafe86fa3341aff84eafc3f5d0890dfafc7e86bf42a17b1e9"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-rolling-window.js",
+      "baseline": {
+        "minified": 2567,
+        "gzip": 1221,
+        "sha256": "42de03d832db7f4bf0d7741c09c600b161a8f7bc8e659ccbf4fd7ef310b6aca9"
+      },
+      "candidate": {
+        "minified": 2567,
+        "gzip": 1221,
+        "sha256": "42de03d832db7f4bf0d7741c09c600b161a8f7bc8e659ccbf4fd7ef310b6aca9"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-select.js",
+      "baseline": {
+        "minified": 1574,
+        "gzip": 796,
+        "sha256": "391ad1f65ad26d183f9130aba39ee46f6636446e181af77c881f753452e17d99"
+      },
+      "candidate": {
+        "minified": 1574,
+        "gzip": 796,
+        "sha256": "391ad1f65ad26d183f9130aba39ee46f6636446e181af77c881f753452e17d99"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-stack.js",
+      "baseline": {
+        "minified": 6424,
+        "gzip": 2739,
+        "sha256": "b23ca3adb140c9a16302b7a972641a45694fb7c9c29433b3162a8f9cb324da08"
+      },
+      "candidate": {
+        "minified": 6424,
+        "gzip": 2739,
+        "sha256": "b23ca3adb140c9a16302b7a972641a45694fb7c9c29433b3162a8f9cb324da08"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-suite.js",
+      "baseline": {
+        "minified": 24236,
+        "gzip": 8835,
+        "sha256": "610784bd842262170679e8c1a4c90f34731e20fe082f74ef6f2c1aa91212fd0d"
+      },
+      "candidate": {
+        "minified": 24236,
+        "gzip": 8835,
+        "sha256": "610784bd842262170679e8c1a4c90f34731e20fe082f74ef6f2c1aa91212fd0d"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-transform-waterfall.js",
+      "baseline": {
+        "minified": 2032,
+        "gzip": 1040,
+        "sha256": "a81c9ef0a33d18a7c5fee5e06da4acbf694264e6bef1e9177c6f7a6dfc3e27e2"
+      },
+      "candidate": {
+        "minified": 2032,
+        "gzip": 1040,
+        "sha256": "a81c9ef0a33d18a7c5fee5e06da4acbf694264e6bef1e9177c6f7a6dfc3e27e2"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "charts-vector-svg.js",
+      "baseline": {
+        "minified": 59525,
+        "gzip": 22175,
+        "sha256": "40d971879ced9592a4a186f6e1b995ea0fd3c8b62221d31c5aece5ff3821df75"
+      },
+      "candidate": {
+        "minified": 59449,
+        "gzip": 22218,
+        "sha256": "930c6ad9bbb201d2da6f4e59fe8400a812657368a0078d7d64b4fd041c7ceea8"
+      },
+      "delta": {
+        "minified": -76,
+        "gzip": 43
+      }
+    },
+    {
+      "entry": "charts-view-composition.js",
+      "baseline": {
+        "minified": 77619,
+        "gzip": 27967,
+        "sha256": "b9b8332dfb5770f2c8a4784a7871b425f277803a1a6e5075a9f3c3c84ef3a746"
+      },
+      "candidate": {
+        "minified": 77773,
+        "gzip": 28037,
+        "sha256": "4ddcbbc68850f8fcb1aa3521e4e70ccb84a43d4ba630092e3489d57cb9944786"
+      },
+      "delta": {
+        "minified": 154,
+        "gzip": 70
+      }
+    },
+    {
+      "entry": "charts-violin-svg.js",
+      "baseline": {
+        "minified": 61525,
+        "gzip": 22844,
+        "sha256": "631ea9f30654cdb8289d963c86e2d74921b4c198561df0a591454be5e6ec06a2"
+      },
+      "candidate": {
+        "minified": 61451,
+        "gzip": 22888,
+        "sha256": "8294323bc433895041e4e64a011cdc3447616243e5dbf6bafa000b14baabe065"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 44
+      }
+    },
+    {
+      "entry": "charts-waffle-svg.js",
+      "baseline": {
+        "minified": 41757,
+        "gzip": 14875,
+        "sha256": "598426a1a4fbc4348004b7bae09cf76eae3183be8bec39fea1b6bf2a55fbe814"
+      },
+      "candidate": {
+        "minified": 41683,
+        "gzip": 14914,
+        "sha256": "4a829edd95e989566eb87bf2c609ce64f01db7cb95aa0b0ad69e6f7627f6d137"
+      },
+      "delta": {
+        "minified": -74,
+        "gzip": 39
+      }
+    },
+    {
+      "entry": "charts-zoom-x.js",
+      "baseline": {
+        "minified": 144668,
+        "gzip": 49548,
+        "sha256": "c8eadf13be9c2391c561700087ff8482a575af5d3ec3122a181eb0880f8e5107"
+      },
+      "candidate": {
+        "minified": 145338,
+        "gzip": 49878,
+        "sha256": "b6c748863a7dddf6cbe44e1629a32b5252c6fcbb23bc9a358d81c121357b7171"
+      },
+      "delta": {
+        "minified": 670,
+        "gzip": 330
+      }
+    },
+    {
+      "entry": "core.js",
+      "baseline": {
+        "minified": 7138,
+        "gzip": 2918,
+        "sha256": "740f53937c68239a8a0530a73f2031bcbba5cd6fa3a862fadefa0829218e9be6"
+      },
+      "candidate": {
+        "minified": 7138,
+        "gzip": 2918,
+        "sha256": "740f53937c68239a8a0530a73f2031bcbba5cd6fa3a862fadefa0829218e9be6"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-array-kernel.js",
+      "baseline": {
+        "minified": 1286,
+        "gzip": 629,
+        "sha256": "4dce3e4596db810ab49677f03483df292668252d32d5309ef42daa122b5c20f4"
+      },
+      "candidate": {
+        "minified": 1286,
+        "gzip": 629,
+        "sha256": "4dce3e4596db810ab49677f03483df292668252d32d5309ef42daa122b5c20f4"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-band-kernel.js",
+      "baseline": {
+        "minified": 2585,
+        "gzip": 1077,
+        "sha256": "2e851c42ff90f10b2417686813353e20f3d22a6e8c06e00de70c7b7757c42fb6"
+      },
+      "candidate": {
+        "minified": 2585,
+        "gzip": 1077,
+        "sha256": "2e851c42ff90f10b2417686813353e20f3d22a6e8c06e00de70c7b7757c42fb6"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-brush-kernel.js",
+      "baseline": {
+        "minified": 48179,
+        "gzip": 16591,
+        "sha256": "3f94966ee912a96f4cfc22a2c451655c246a5b2e71194db5c51b59885a591beb"
+      },
+      "candidate": {
+        "minified": 48179,
+        "gzip": 16591,
+        "sha256": "3f94966ee912a96f4cfc22a2c451655c246a5b2e71194db5c51b59885a591beb"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-contour-kernel.js",
+      "baseline": {
+        "minified": 8326,
+        "gzip": 3295,
+        "sha256": "e051e237638c191d1401f5e3b3aa048cb320e4b0916482bd23df1f20a2cf7942"
+      },
+      "candidate": {
+        "minified": 8326,
+        "gzip": 3295,
+        "sha256": "e051e237638c191d1401f5e3b3aa048cb320e4b0916482bd23df1f20a2cf7942"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-curve-kernel.js",
+      "baseline": {
+        "minified": 6333,
+        "gzip": 2097,
+        "sha256": "e3dfeeaffee91080eb586e09e2c5339bd69c007e2a10c698ba593532fb33039b"
+      },
+      "candidate": {
+        "minified": 6333,
+        "gzip": 2097,
+        "sha256": "e3dfeeaffee91080eb586e09e2c5339bd69c007e2a10c698ba593532fb33039b"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-delaunay-kernel.js",
+      "baseline": {
+        "minified": 19620,
+        "gzip": 7308,
+        "sha256": "86df7e358c110948587d525db0753d65afee9af435fb5f8e72f1412b562ee48b"
+      },
+      "candidate": {
+        "minified": 19620,
+        "gzip": 7308,
+        "sha256": "86df7e358c110948587d525db0753d65afee9af435fb5f8e72f1412b562ee48b"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-ease-kernel.js",
+      "baseline": {
+        "minified": 195,
+        "gzip": 148,
+        "sha256": "0b5e36a85f13b0a85bb5f385061d4ce3a71ea934755d1f7a470c9ae2902b0496"
+      },
+      "candidate": {
+        "minified": 195,
+        "gzip": 148,
+        "sha256": "0b5e36a85f13b0a85bb5f385061d4ce3a71ea934755d1f7a470c9ae2902b0496"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-force-kernel.js",
+      "baseline": {
+        "minified": 14903,
+        "gzip": 5696,
+        "sha256": "1f02ad106c7443476cfe1997d9b7fd61ce53ef6e41eaf5194b15678f13c43463"
+      },
+      "candidate": {
+        "minified": 14903,
+        "gzip": 5696,
+        "sha256": "1f02ad106c7443476cfe1997d9b7fd61ce53ef6e41eaf5194b15678f13c43463"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-format-kernel.js",
+      "baseline": {
+        "minified": 4726,
+        "gzip": 2191,
+        "sha256": "0e57d8dac6d21e270374461fb80fd73e4985aaffd17df008683a5ab4464c133d"
+      },
+      "candidate": {
+        "minified": 4726,
+        "gzip": 2191,
+        "sha256": "0e57d8dac6d21e270374461fb80fd73e4985aaffd17df008683a5ab4464c133d"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-geo-kernel.js",
+      "baseline": {
+        "minified": 24880,
+        "gzip": 9428,
+        "sha256": "02a8a62f018afbfb7629fa0d54e60a6a3fcb80db51af4518d53c9d52237c43de"
+      },
+      "candidate": {
+        "minified": 24880,
+        "gzip": 9428,
+        "sha256": "02a8a62f018afbfb7629fa0d54e60a6a3fcb80db51af4518d53c9d52237c43de"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-hierarchy-kernel.js",
+      "baseline": {
+        "minified": 12005,
+        "gzip": 4684,
+        "sha256": "1a6591e588c492616a48de09056a876d6708716caf142b4d7d0b220fdcd2dccb"
+      },
+      "candidate": {
+        "minified": 12005,
+        "gzip": 4684,
+        "sha256": "1a6591e588c492616a48de09056a876d6708716caf142b4d7d0b220fdcd2dccb"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-hierarchy-partition-kernel.js",
+      "baseline": {
+        "minified": 4788,
+        "gzip": 2021,
+        "sha256": "dc1ace17c9ad6d05ee31d7771b3a96af076d7288c1e4d2a20bcac6544b1c9a4b"
+      },
+      "candidate": {
+        "minified": 4788,
+        "gzip": 2021,
+        "sha256": "dc1ace17c9ad6d05ee31d7771b3a96af076d7288c1e4d2a20bcac6544b1c9a4b"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-hierarchy-tree-kernel.js",
+      "baseline": {
+        "minified": 5991,
+        "gzip": 2500,
+        "sha256": "343f6053ad84342822a168908bba33a879e4303d1c6818d3ff9067b965df844a"
+      },
+      "candidate": {
+        "minified": 5991,
+        "gzip": 2500,
+        "sha256": "343f6053ad84342822a168908bba33a879e4303d1c6818d3ff9067b965df844a"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-hierarchy-treemap-kernel.js",
+      "baseline": {
+        "minified": 6957,
+        "gzip": 2804,
+        "sha256": "249e28b5d6d0ad794dc3c907eb6eb4ab43c055f86c04e985035749f5e7622a50"
+      },
+      "candidate": {
+        "minified": 6957,
+        "gzip": 2804,
+        "sha256": "249e28b5d6d0ad794dc3c907eb6eb4ab43c055f86c04e985035749f5e7622a50"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-interpolate-kernel.js",
+      "baseline": {
+        "minified": 9123,
+        "gzip": 3909,
+        "sha256": "f2027a0e46ea9e0676aa1c5cf12399c14eb32b20d84747183ae8ee6ed3406715"
+      },
+      "candidate": {
+        "minified": 9123,
+        "gzip": 3909,
+        "sha256": "f2027a0e46ea9e0676aa1c5cf12399c14eb32b20d84747183ae8ee6ed3406715"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-linear-kernel.js",
+      "baseline": {
+        "minified": 19525,
+        "gzip": 8027,
+        "sha256": "dc86733610be56a44164f632bfd7a04edc3c017a37cb88622e3194a6984b9c6f"
+      },
+      "candidate": {
+        "minified": 19525,
+        "gzip": 8027,
+        "sha256": "dc86733610be56a44164f632bfd7a04edc3c017a37cb88622e3194a6984b9c6f"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-log-kernel.js",
+      "baseline": {
+        "minified": 19837,
+        "gzip": 8264,
+        "sha256": "7a8db6b05a2abe238945792d67288dfe2324673569fd0799190f24c84784f6dd"
+      },
+      "candidate": {
+        "minified": 19837,
+        "gzip": 8264,
+        "sha256": "7a8db6b05a2abe238945792d67288dfe2324673569fd0799190f24c84784f6dd"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-ordinal-kernel.js",
+      "baseline": {
+        "minified": 1359,
+        "gzip": 633,
+        "sha256": "32ba6f3e336764e9071e9e600a7e3f5f603668a97c9d11a29b159578b65e0ba4"
+      },
+      "candidate": {
+        "minified": 1359,
+        "gzip": 633,
+        "sha256": "32ba6f3e336764e9071e9e600a7e3f5f603668a97c9d11a29b159578b65e0ba4"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-point-kernel.js",
+      "baseline": {
+        "minified": 2787,
+        "gzip": 1133,
+        "sha256": "5e7b8f8a03b9f24e09e4b1fef3e58b1f8158e503459b8743f8b74997488804d7"
+      },
+      "candidate": {
+        "minified": 2787,
+        "gzip": 1133,
+        "sha256": "5e7b8f8a03b9f24e09e4b1fef3e58b1f8158e503459b8743f8b74997488804d7"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-polar-kernel.js",
+      "baseline": {
+        "minified": 7072,
+        "gzip": 2809,
+        "sha256": "a45f3a985c516ce3e231e26903660e4fb32cd40e792eb13a3460f8e7366de336"
+      },
+      "candidate": {
+        "minified": 7072,
+        "gzip": 2809,
+        "sha256": "a45f3a985c516ce3e231e26903660e4fb32cd40e792eb13a3460f8e7366de336"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-polygon-kernel.js",
+      "baseline": {
+        "minified": 1285,
+        "gzip": 634,
+        "sha256": "66b281f4c8339674622e81311d486c303d97964054d88cdb03656d0d76f4693a"
+      },
+      "candidate": {
+        "minified": 1285,
+        "gzip": 634,
+        "sha256": "66b281f4c8339674622e81311d486c303d97964054d88cdb03656d0d76f4693a"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-quadtree-kernel.js",
+      "baseline": {
+        "minified": 4951,
+        "gzip": 1971,
+        "sha256": "ff3e57dc0293f9a6255af9017a0589cb74888f447a7e7a4a56d28b107236922e"
+      },
+      "candidate": {
+        "minified": 4951,
+        "gzip": 1971,
+        "sha256": "ff3e57dc0293f9a6255af9017a0589cb74888f447a7e7a4a56d28b107236922e"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-sankey-kernel.js",
+      "baseline": {
+        "minified": 5538,
+        "gzip": 1871,
+        "sha256": "91bd0f8ef594b3d5415e5185df9ece93503c288dbe3815586bfc9d6ccab99f5e"
+      },
+      "candidate": {
+        "minified": 5538,
+        "gzip": 1871,
+        "sha256": "91bd0f8ef594b3d5415e5185df9ece93503c288dbe3815586bfc9d6ccab99f5e"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-scale-family-kernel.js",
+      "baseline": {
+        "minified": 39515,
+        "gzip": 14358,
+        "sha256": "16c26044852b1b00533657963b0179310a9c9d90d1b8084b61747c07aeeeb9e4"
+      },
+      "candidate": {
+        "minified": 39515,
+        "gzip": 14358,
+        "sha256": "16c26044852b1b00533657963b0179310a9c9d90d1b8084b61747c07aeeeb9e4"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-time-kernel.js",
+      "baseline": {
+        "minified": 5749,
+        "gzip": 2080,
+        "sha256": "6e30a666e6655490b80cf4263b617d95d800583cb661af3a46573fcdc3138365"
+      },
+      "candidate": {
+        "minified": 5749,
+        "gzip": 2080,
+        "sha256": "6e30a666e6655490b80cf4263b617d95d800583cb661af3a46573fcdc3138365"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-time-scale-kernel.js",
+      "baseline": {
+        "minified": 27977,
+        "gzip": 10109,
+        "sha256": "efaee3bba073f6f2a4ccf3b81ef130458b7755bd8a2cfeae17cdf6f179ec92a7"
+      },
+      "candidate": {
+        "minified": 27977,
+        "gzip": 10109,
+        "sha256": "efaee3bba073f6f2a4ccf3b81ef130458b7755bd8a2cfeae17cdf6f179ec92a7"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-transform-kernel.js",
+      "baseline": {
+        "minified": 6315,
+        "gzip": 2453,
+        "sha256": "6b58e5250d495ebf4d6225acfaed3e1c933a348fa500691710e6cc297326fe86"
+      },
+      "candidate": {
+        "minified": 6315,
+        "gzip": 2453,
+        "sha256": "6b58e5250d495ebf4d6225acfaed3e1c933a348fa500691710e6cc297326fe86"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "d3-zoom-kernel.js",
+      "baseline": {
+        "minified": 48077,
+        "gzip": 16292,
+        "sha256": "889c531319edb9815fe2aea3dd4b3541cc8b69afab633837b33a866a68e244b6"
+      },
+      "candidate": {
+        "minified": 48077,
+        "gzip": 16292,
+        "sha256": "889c531319edb9815fe2aea3dd4b3541cc8b69afab633837b33a866a68e244b6"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "full-namespace.js",
+      "baseline": {
+        "minified": 393797,
+        "gzip": 134424,
+        "sha256": "89e14f2e7ff95ab6c12d43bfe6170c10728919fd44abf6e7c8f2552f199b7f7e"
+      },
+      "candidate": {
+        "minified": 393797,
+        "gzip": 134424,
+        "sha256": "89e14f2e7ff95ab6c12d43bfe6170c10728919fd44abf6e7c8f2552f199b7f7e"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "minimal-line.js",
+      "baseline": {
+        "minified": 267814,
+        "gzip": 91402,
+        "sha256": "ef42e09a391afd19b717c496866e97b331e37b4b5c98e194652125378e525466"
+      },
+      "candidate": {
+        "minified": 267814,
+        "gzip": 91402,
+        "sha256": "ef42e09a391afd19b717c496866e97b331e37b4b5c98e194652125378e525466"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "native-ease-kernel.js",
+      "baseline": {
+        "minified": 160,
+        "gzip": 138,
+        "sha256": "c662a9ed6b8ae36d0f122380fc6cd3ffa0ce751412c8e1545bc484b60f6210bb"
+      },
+      "candidate": {
+        "minified": 160,
+        "gzip": 138,
+        "sha256": "c662a9ed6b8ae36d0f122380fc6cd3ffa0ce751412c8e1545bc484b60f6210bb"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "plot-renderer.js",
+      "baseline": {
+        "minified": 242373,
+        "gzip": 85342,
+        "sha256": "ed69d8add8bd2ce0059dcdf47520cfc28e0ca8a232a155450971aa9a79cd5a9e"
+      },
+      "candidate": {
+        "minified": 242373,
+        "gzip": 85342,
+        "sha256": "ed69d8add8bd2ce0059dcdf47520cfc28e0ca8a232a155450971aa9a79cd5a9e"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "react-host.js",
+      "baseline": {
+        "minified": 16422,
+        "gzip": 6281,
+        "sha256": "e1abfa33c076d5d4bb423ac7ee310bec261596f6873df2d11f8f3461f15c0f7c"
+      },
+      "candidate": {
+        "minified": 16422,
+        "gzip": 6281,
+        "sha256": "e1abfa33c076d5d4bb423ac7ee310bec261596f6873df2d11f8f3461f15c0f7c"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "react-observable.js",
+      "baseline": {
+        "minified": 259011,
+        "gzip": 91003,
+        "sha256": "b3917491c8ec391359cb5e3b1bcd37698950c727861a9393d037b07d8f3fe733"
+      },
+      "candidate": {
+        "minified": 259011,
+        "gzip": 91003,
+        "sha256": "b3917491c8ec391359cb5e3b1bcd37698950c727861a9393d037b07d8f3fe733"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "representative-chart.js",
+      "baseline": {
+        "minified": 276281,
+        "gzip": 94428,
+        "sha256": "4dcf6d94c17c6aba19f49edbe6bfd3f9402923cc14f40234e8efc4b2ddb87e7b"
+      },
+      "candidate": {
+        "minified": 276281,
+        "gzip": 94428,
+        "sha256": "4dcf6d94c17c6aba19f49edbe6bfd3f9402923cc14f40234e8efc4b2ddb87e7b"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    },
+    {
+      "entry": "stateful-plot.js",
+      "baseline": {
+        "minified": 270144,
+        "gzip": 92302,
+        "sha256": "7a9d2bdd940df6d6af9258d5c8c5e2acfbbc27635fca0581d155627e053bb256"
+      },
+      "candidate": {
+        "minified": 270144,
+        "gzip": 92302,
+        "sha256": "7a9d2bdd940df6d6af9258d5c8c5e2acfbbc27635fca0581d155627e053bb256"
+      },
+      "delta": {
+        "minified": 0,
+        "gzip": 0
+      }
+    }
+  ]
+}

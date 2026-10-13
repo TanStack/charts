@@ -225,6 +225,72 @@ if (false) {
 }
 
 describe('React adapter', () => {
+  it('positions framework tick content from resolved layout across size and direction changes', async () => {
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+    const labels = React.createRef<HTMLOListElement>()
+    const values = [0, 1, 2]
+    for (const reverse of [false, true]) {
+      for (const height of [200, 320]) {
+        const definition = defineChart({
+          margin: { left: 72 },
+          marks: [lineY([0, 2, 1])],
+          scales: {
+            x: { scale: scaleLinear },
+            y: {
+              scale: scaleLinear().domain([0, 2]),
+              reverse,
+              axis: { ticks: { values }, tickLabels: false },
+            },
+          },
+        })
+        await act(async () =>
+          root.render(
+            <div style={{ position: 'relative' }}>
+              <ol ref={labels}>
+                {values.map((value) => (
+                  <li key={value}>{value}</li>
+                ))}
+              </ol>
+              <Chart
+                definition={definition}
+                width={480}
+                height={height}
+                ariaLabel="Framework tick labels"
+                onRender={({ scene }) => {
+                  Array.from(labels.current!.children).forEach(
+                    (element, index) => {
+                      const label = element as HTMLElement
+                      label.style.top = `${scene.scales.y.map(values[index]!)}px`
+                      label.style.left = `${scene.chart.x - 8}px`
+                    },
+                  )
+                }}
+              />
+            </div>,
+          ),
+        )
+        values.forEach((value, index) => {
+          const stub = target.querySelector(
+            `[data-ts-key="y-tick-rule:number:${value}"]`,
+          )!
+          const label = labels.current!.children[index] as HTMLElement
+          expect(parseFloat(label.style.top)).toBeCloseTo(
+            Number(stub.getAttribute('y1')),
+            3,
+          )
+          expect(parseFloat(label.style.left)).toBeCloseTo(
+            Number(stub.getAttribute('x1')) - 8,
+            3,
+          )
+        })
+      }
+    }
+    await act(async () => root.unmount())
+    target.remove()
+  })
+
   it('updates custom tooltip bodies when only the primary series changes', async () => {
     const definition = defineChart({
       marks: [
@@ -367,6 +433,47 @@ describe('React adapter', () => {
       spy.mockRestore()
       target.remove()
     }
+  })
+
+  it('mounts an application-owned client-only chart after hydration without a mismatch', async () => {
+    function ClientOnlyChart({ children }: { children: React.ReactNode }) {
+      const [mounted, setMounted] = React.useState(false)
+      React.useEffect(() => setMounted(true), [])
+      return (
+        <div style={{ width: '100%', height: 260 }}>
+          {mounted ? children : null}
+        </div>
+      )
+    }
+    const renderSvg = vi.fn(renderChartSvgWithResources)
+    const chart = (
+      <React.StrictMode>
+        <ClientOnlyChart>
+          <Chart
+            definition={definition}
+            height={260}
+            ariaLabel="Revenue"
+            renderSvg={renderSvg}
+          />
+        </ClientOnlyChart>
+      </React.StrictMode>
+    )
+    const target = document.createElement('div')
+    target.innerHTML = renderToString(chart)
+    const frame = target.firstElementChild
+    expect(frame?.getAttribute('style')).toBe('width:100%;height:260px')
+    expect(target.querySelector('svg')).toBeNull()
+    expect(renderSvg).not.toHaveBeenCalled()
+    const recoverable = vi.fn()
+    let root!: ReturnType<typeof hydrateRoot>
+    await act(async () => {
+      root = hydrateRoot(target, chart, { onRecoverableError: recoverable })
+    })
+    expect(target.firstElementChild).toBe(frame)
+    expect(target.querySelector('.ts-chart__marks path')).not.toBeNull()
+    expect(recoverable).not.toHaveBeenCalled()
+    await act(async () => root.unmount())
+    expect(target.children).toHaveLength(0)
   })
 
   it('keeps complete SSR markup and hydration identity in Strict Mode', async () => {

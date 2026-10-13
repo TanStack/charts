@@ -1,3 +1,5 @@
+'use client'
+
 export { RendererChart as Chart } from './RendererChart'
 export type {
   RendererChartCommonProps as ChartCommonProps,

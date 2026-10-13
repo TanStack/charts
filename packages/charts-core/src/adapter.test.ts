@@ -81,6 +81,157 @@ describe('chart adapter controller', () => {
     adapter.destroy()
   })
 
+  it('stores renderer adapter updates that arrive before mount', () => {
+    const onRender = vi.fn()
+    const adapter = createChartRendererAdapter({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 320,
+      height: 180,
+      ariaLabel: 'Initial',
+    })
+
+    adapter.update({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 640,
+      height: 360,
+      ariaLabel: 'Updated',
+      onRender,
+    })
+
+    const container = document.createElement('div')
+    adapter.mount(container)
+
+    expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe(
+      'Updated',
+    )
+    expect(adapter.getScene()?.width).toBe(640)
+    expect(onRender).toHaveBeenCalledOnce()
+
+    adapter.destroy()
+  })
+
+  it('applies updates after mount', () => {
+    const onRender = vi.fn()
+    const adapter = createChartAdapter({
+      definition,
+      width: 320,
+      height: 180,
+      ariaLabel: 'Initial',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+
+    adapter.update({
+      definition,
+      width: 640,
+      height: 360,
+      ariaLabel: 'Updated',
+      onRender,
+    })
+
+    expect(adapter.getScene()?.width).toBe(640)
+    expect(onRender).toHaveBeenCalledOnce()
+    adapter.destroy()
+  })
+
+  it('applies renderer adapter updates after mount', () => {
+    const onRender = vi.fn()
+    const adapter = createChartRendererAdapter({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 320,
+      height: 180,
+      ariaLabel: 'Initial',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+
+    adapter.update({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 640,
+      height: 360,
+      ariaLabel: 'Updated',
+      onRender,
+    })
+
+    expect(adapter.getScene()?.width).toBe(640)
+    expect(onRender).toHaveBeenCalledOnce()
+    adapter.destroy()
+  })
+
+  it('throws when mounted twice', () => {
+    const adapter = createChartAdapter({
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Revenue',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+
+    expect(() => adapter.mount(container)).toThrow('already mounted')
+    adapter.destroy()
+  })
+
+  it('throws when renderer adapter is mounted twice', () => {
+    const adapter = createChartRendererAdapter({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Revenue',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+
+    expect(() => adapter.mount(container)).toThrow('already mounted')
+    adapter.destroy()
+  })
+
+  it('clears the scene after destroy', () => {
+    const adapter = createChartAdapter({
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Revenue',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+    adapter.destroy()
+
+    expect(adapter.getScene()).toBeUndefined()
+  })
+
+  it('clears the renderer adapter scene after destroy', () => {
+    const adapter = createChartRendererAdapter({
+      definition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Revenue',
+    })
+    const container = document.createElement('div')
+    adapter.mount(container)
+    adapter.destroy()
+
+    expect(adapter.getScene()).toBeUndefined()
+  })
+
   it('forwards the surface class during prerender', () => {
     const adapter = createChartAdapter({
       definition,

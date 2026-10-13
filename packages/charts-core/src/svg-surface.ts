@@ -88,6 +88,7 @@ export function createSvgChartRenderer<
 
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
         renderer,
+        supportsStateFocus: true,
         get element() {
           return svgElement()
         },
@@ -129,9 +130,14 @@ export function createSvgChartRenderer<
         clientToScene(scene, clientX, clientY) {
           return svgClientToScene(svgElement(), scene, clientX, clientY)
         },
-        paintFocus(focus, pointer, cursor) {
+        paintFocus(focus, pointer, cursor, options) {
           if (!scene || !renderOptions) return
-          const state = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(
+            scene,
+            focus,
+            pointer,
+            options?.stateFocus,
+          )
           const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
           const transition = resolveMarkStateTransition(
@@ -164,10 +170,11 @@ export function createSvgChartRenderer<
             restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
           }
           retargetedFocus = resolved.retargeted
-          markStatePainted = Boolean(focus && state.scene !== scene)
-          stateTransition = focus
-            ? (state.transition ?? previousTransition)
-            : undefined
+          markStatePainted = state.scene !== scene
+          stateTransition =
+            state.scene !== scene
+              ? (state.transition ?? previousTransition)
+              : undefined
           currentFocus = focus
           paintSvgFocus(
             svgElement(),

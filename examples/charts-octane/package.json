@@ -1,5 +1,5 @@
 {
-  "name": "@charts-poc/octane-example",
+  "name": "@charts-internal/octane-example",
   "version": "0.0.0",
   "private": true,
   "type": "module",

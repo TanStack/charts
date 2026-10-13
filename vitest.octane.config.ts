@@ -7,21 +7,11 @@ export default defineConfig({
     extensions: ['.tsrx', '.ts', '.tsx', '.mjs', '.js', '.jsx', '.json'],
   },
   ssr: {
-    noExternal: [
-      '@plot-poc/octane-host',
-      '@tanstack/charts',
-      '@tanstack/octane-charts',
-    ],
+    noExternal: ['@tanstack/charts', '@tanstack/octane-charts'],
   },
   test: {
     environment: 'jsdom',
-    include: [
-      'packages/octane/**/*.test.tsrx',
-      'packages/octane-charts/**/*.test.tsrx',
-    ],
-    exclude: [
-      'packages/octane/**/*.client.test.tsrx',
-      'packages/octane-charts/**/*.client.test.tsrx',
-    ],
+    include: ['packages/octane-charts/**/*.test.tsrx'],
+    exclude: ['packages/octane-charts/**/*.client.test.tsrx'],
   },
 })
