@@ -3957,7 +3957,7 @@ function runTracks(
   const view = root.ownerDocument.defaultView
   const requestFrame = view?.requestAnimationFrame?.bind(view)
   const cancelFrame = view?.cancelAnimationFrame?.bind(view)
-  if (!requestFrame || !cancelFrame) {
+  if (!view || !requestFrame || !cancelFrame) {
     activeTracks.forEach(completeMotionTrack)
     lifecycle.finish?.()
     return () => {}
@@ -3978,8 +3978,8 @@ function runTracks(
     return () => {}
   }
 
-  let frame = 0
-  let start: number | undefined
+  let frame: number
+  const start = view.performance.now()
   let cancelled = false
   const finished = new Set<MotionTrack>()
   root.dataset.tsMotionState = 'running'
@@ -3987,7 +3987,6 @@ function runTracks(
 
   const tick = (time: number) => {
     if (cancelled) return
-    start ??= time
     const elapsed = time - start
     for (const track of activeTracks) {
       if (finished.has(track)) continue
