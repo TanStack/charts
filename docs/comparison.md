@@ -12,14 +12,14 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `3b8e03c` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `042e330` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `3b8e03c`.
+at page render time. The measured TanStack workspace revision is `042e330`.
 
 ## Capability matrix
 
@@ -108,8 +108,8 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 | ------------------ | -------------------------------------- | -------------------: | ---------------------------------------------------------- |
 | TanStack Charts    | 43.21–49.50 kB gzip                    |       Not applicable | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                    — | External main export                                       |
-| Chart.js           | 45.78–59.61 kB gzip                    |                    — | Controlled suite                                           |
-| Apache ECharts     | 156.77–177.34 kB gzip                  |                    — | Controlled suite                                           |
+| Chart.js           | 45.78–59.61 kB gzip                    |       Not applicable | Controlled suite                                           |
+| Apache ECharts     | 156.77–177.34 kB gzip                  |       Not applicable | Controlled suite                                           |
 | Recharts           | 156.76–172.30 kB gzip                  | 97.24–112.60 kB gzip | Controlled suite                                           |
 | visx               | 49 KB gzip                             |                    — | External `@visx/xychart` main export                       |
 | Plotly.js          | ~250 kB partial; ~3.6 MB full min+gzip |                    — | [Vendor distribution figures](https://plotly.com/graphs/)  |
@@ -120,7 +120,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 | Victory            | 105 KB gzip                            |                    — | External main export                                       |
 | uPlot              | 22 KB gzip                             |                    — | External `uplot@1.6.32` main export                        |
 | Vega-Lite          | 87 KB gzip                             |                    — | External `vega-lite@6.4.3`; excludes the peer Vega runtime |
-| Observable Plot    | 85.34–94.15 kB gzip                    |                    — | Controlled suite                                           |
+| Observable Plot    | 85.34–94.15 kB gzip                    |       Not applicable | Controlled suite                                           |
 | Bklit UI           | —                                      |                    — | Registry-installed source; no fixed package bundle         |
 | AG Charts          | 367 KB gzip                            |                    — | External `ag-charts-community@14.0.2` main export          |
 
