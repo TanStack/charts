@@ -2227,6 +2227,7 @@ describe('SVG motion', () => {
     expect(Number(circle(grouped)?.getAttribute('r'))).toBeCloseTo(12)
     expect(Number(circle(unmatched)?.getAttribute('opacity'))).toBeCloseTo(0.15)
 
+    frames.setTime(4_000)
     surface.paintFocus(null)
     frames.run(4_000)
     frames.run(4_080)
@@ -4575,6 +4576,7 @@ describe('SVG motion', () => {
 })
 
 function installFrames() {
+  const now = vi.spyOn(window.performance, 'now').mockReturnValue(0)
   const callbacks: FrameRequestCallback[] = []
   const request = vi
     .spyOn(window, 'requestAnimationFrame')
@@ -4591,9 +4593,11 @@ function installFrames() {
       const callback = callbacks.shift()
       if (!callback)
         throw new Error(`No animation frame scheduled at ${time}ms`)
+      now.mockReturnValue(time)
       callback(time)
     },
     restore() {
+      now.mockRestore()
       request.mockRestore()
       cancel.mockRestore()
     },
@@ -4631,6 +4635,7 @@ function matrixTransform(element: Element | null) {
 }
 
 function installManagedFrames() {
+  const now = vi.spyOn(window.performance, 'now').mockReturnValue(0)
   const callbacks = new Map<number, FrameRequestCallback>()
   let handle = 0
   const request = vi
@@ -4646,11 +4651,15 @@ function installManagedFrames() {
       if (frame !== null && frame !== undefined) callbacks.delete(frame)
     })
   return {
+    setTime(time: number) {
+      now.mockReturnValue(time)
+    },
     run(time: number) {
       const next = callbacks.entries().next().value as
         [number, FrameRequestCallback] | undefined
       if (!next) throw new Error(`No animation frame scheduled at ${time}ms`)
       callbacks.delete(next[0])
+      now.mockReturnValue(time)
       next[1](time)
     },
     runAll(time: number) {
@@ -4659,12 +4668,14 @@ function installManagedFrames() {
         throw new Error(`No animation frame scheduled at ${time}ms`)
       }
       callbacks.clear()
+      now.mockReturnValue(time)
       pending.forEach((callback) => callback(time))
     },
     pending() {
       return callbacks.size
     },
     restore() {
+      now.mockRestore()
       request.mockRestore()
       cancel.mockRestore()
     },
