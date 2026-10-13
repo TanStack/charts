@@ -695,6 +695,10 @@ interface ChartRenderContext<
 | `paintFocus()`                  | Paint or clear authored focus layers and guides, then optionally return the destination scene used for subsequent pointer hits |
 | `destroy()`                     | Release renderer-owned animation, observers, listeners, and resources                                                          |
 
+Presentation-point subscriptions track temporary interaction geometry, not
+completion of every animation layer. See [Observing motion and styling SVG](./motion.md#observing-motion-and-styling-svg)
+for scene-settling semantics, cancellation, and the limits of renderer DOM hooks.
+
 ### Rectangle geometry helpers
 
 Custom rectangle renderers can share the built-in corner-fit policy:

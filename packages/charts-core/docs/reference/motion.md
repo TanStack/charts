@@ -49,7 +49,11 @@ Set `initial: 'always'` when a hydrated chart should replay the same entrance
 as a client-only mount. Keyed updates start from painted geometry. An
 interrupted spring carries its sampled value and velocity into the new target.
 A spring has no duration; it finishes when both `restSpeed` and `restDelta` are
-satisfied, with a 10-second safety limit.
+satisfied, with a 10-second safety limit. Their defaults are `0.01` value units
+per second and `0.005` value units, respectively. These are absolute thresholds,
+not percentages of the distance traveled. A pixel-coordinate track uses pixels
+and pixels per second; opacity and normalized path-progress tracks use their
+own numeric units. Larger thresholds let a spring settle sooner.
 
 Initial choreography follows geometry: Cartesian bars and paths grow from
 their semantic baseline, radial lines and areas grow from the polar center,
@@ -416,8 +420,47 @@ interface ChartSpring {
 ```
 
 `createChartSpring` returns an analytic, frame-rate-independent damped harmonic
-oscillator. Values and velocities use caller units per second. Seed a new
+oscillator. Values use caller units; velocities use those units per second.
+The defaults are `stiffness: 170`, `damping: 26`, `mass: 1`,
+`restSpeed: 0.01`, and `restDelta: 0.005`. A sample is `done` when both the
+absolute distance to the target is at most `restDelta` and the absolute
+velocity is at most `restSpeed`. A completed sample returns the exact target
+with zero velocity. The standalone sampler has no clock or 10-second cutoff;
+that safety limit belongs to the motion renderer. Seed a new
 `ChartSpringState` from the prior sample to preserve momentum across targets.
+
+## Observing motion and styling SVG
+
+`getPresentationPoints()` and `subscribePresentationPoints()` on a mounted
+surface report scene geometry for interaction alignment, not a general
+animation-complete event. When a scene run finishes, the motion renderer
+publishes the destination scene's `points` array. Once that scene is settled,
+`getPresentationPoints()` returns `undefined` because no temporary geometry is
+needed. A snap can also publish destination points without an animation.
+Cancellation does not mean the interrupted destination was reached, and a new
+render can immediately replace the run. Unsubscribe when the observer is no
+longer needed.
+
+These methods do not report completion of tooltip or focus-guide animations.
+There is currently no public callback for completion of every motion layer.
+For an application-owned animation, the standalone spring's `sample().done`
+reports completion of that sampler only.
+
+`data-ts-motion-state`, `data-ts-motion-progress`, and `data-ts-motion-role`
+are private renderer bookkeeping, not supported completion or CSS hooks.
+Their presence and removal differ across track types, snaps, and cancellation.
+Do not use them to decide when application CSS can take over a property the
+renderer is animating. Use mark states and definition-local motion for chart
+effects, or keep application-owned animation on a separate element.
+
+The same [compatibility policy](../compatibility.md#public-api) applies to
+undocumented `ts-chart__*` selectors and group nesting, including mark, axis,
+grid, focus-layer, focus-guide, and crosshair containers. Use authored
+`className` options where a mark documents them, or classes on nodes produced
+by your own [custom mark](./custom-extensions.md). Wrapping a built-in mark's
+public `initialize` method does not make its internal node nesting a stable
+styling API. Cartesian marks and guides without a documented `className`
+option do not currently provide an equivalent supported class hook.
 
 ## Compatibility
 
