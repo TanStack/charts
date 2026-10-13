@@ -143,7 +143,7 @@
     "conformance-app-build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @charts-poc/conformance-example build"
+        "command": "pnpm --filter @charts-internal/conformance-example build"
       }
     },
     "workspace-diff-check": {

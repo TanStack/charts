@@ -26,6 +26,10 @@
           "to": "stability"
         },
         {
+          "label": "Stable Compatibility",
+          "to": "compatibility"
+        },
+        {
           "label": "Quick Start",
           "to": "quick-start"
         }
@@ -154,6 +158,14 @@
     {
       "label": "Guides",
       "children": [
+        {
+          "label": "Coming from Recharts",
+          "to": "guides/coming-from-recharts"
+        },
+        {
+          "label": "Framework tick labels",
+          "to": "guides/framework-tick-labels"
+        },
         {
           "label": "Choosing a Chart",
           "to": "guides/choosing-a-chart"

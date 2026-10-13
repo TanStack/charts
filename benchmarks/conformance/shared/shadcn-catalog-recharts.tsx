@@ -28,6 +28,7 @@ import {
   shadcnBrowsers,
   shadcnColors,
   shadcnMonths,
+  shadcnRadarLines,
   type ShadcnCatalogSpec,
 } from './shadcn-catalog-data'
 import {
@@ -79,6 +80,41 @@ function renderRechartsChart(
 }
 
 function areaChart(spec: ShadcnCatalogSpec, width: number, height: number) {
+  if (spec.variant === 'stacked-expand') {
+    const data = shadcnMonths.map((row, index) => ({
+      ...row,
+      other: [45, 100, 150, 50, 100, 160][index],
+    }))
+    return (
+      <AreaChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={data}
+        stackOffset="expand"
+      >
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={shortMonth}
+        />
+        {(['other', 'mobile', 'desktop'] as const).map((key, index) => (
+          <Area
+            key={key}
+            dataKey={key}
+            type="natural"
+            stackId="visitors"
+            fill={`color-mix(in oklch, ${shadcnColors[2 - index]} ${key === 'other' ? 10 : 40}%, transparent)`}
+            fillOpacity={1}
+            stroke={shadcnColors[2 - index]}
+            isAnimationActive={false}
+          />
+        ))}
+      </AreaChart>
+    )
+  }
   const multi =
     spec.variant === 'axes' ||
     spec.variant === 'gradient' ||
@@ -227,9 +263,27 @@ function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
     spec.variant === 'mixed'
   const negativeData = shadcnMonths.map((row, index) => ({
     ...row,
-    desktop: index === 2 || index === 4 ? -row.desktop : row.desktop,
+    desktop: [186, 205, -207, 173, -209, 214][index] ?? row.desktop,
   }))
   const data = spec.variant === 'negative' ? negativeData : shadcnMonths
+  if (spec.variant === 'interactive') {
+    return (
+      <BarChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={interactiveLineData}
+      >
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="date" tickLine={false} axisLine={false} />
+        <Bar
+          dataKey="desktop"
+          fill={shadcnColors[1]}
+          isAnimationActive={false}
+        />
+      </BarChart>
+    )
+  }
   if (horizontal) {
     const customLabels = spec.variant === 'label-custom'
     return (
@@ -298,16 +352,23 @@ function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
         radius={4}
         isAnimationActive={false}
       >
-        {spec.variant === 'active'
+        {spec.variant === 'negative'
           ? data.map((row) => (
               <Cell
                 key={row.month}
-                fill={
-                  row.month === 'January' ? shadcnColors[1] : shadcnColors[0]
-                }
+                fill={shadcnColors[row.desktop < 0 ? 1 : 0]}
               />
             ))
-          : null}
+          : spec.variant === 'active'
+            ? data.map((row) => (
+                <Cell
+                  key={row.month}
+                  fill={
+                    row.month === 'January' ? shadcnColors[1] : shadcnColors[0]
+                  }
+                />
+              ))
+            : null}
         {spec.variant === 'label' ? (
           <LabelList dataKey="desktop" position="top" />
         ) : null}
@@ -327,6 +388,44 @@ function barChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 }
 
 function lineChart(spec: ShadcnCatalogSpec, width: number, height: number) {
+  if (spec.variant === 'dots-colors' || spec.variant === 'label-custom') {
+    return (
+      <LineChart
+        aria-label={spec.title}
+        width={width}
+        height={height}
+        data={shadcnBrowsers}
+      >
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="browser" tickLine={false} axisLine={false} />
+        <Line
+          dataKey="visitors"
+          type="natural"
+          stroke={shadcnColors[1]}
+          strokeWidth={2}
+          isAnimationActive={false}
+          dot={
+            spec.variant === 'dots-colors'
+              ? ({ cx, cy, index }) => (
+                  <circle
+                    className="recharts-dot"
+                    cx={cx}
+                    cy={cy}
+                    r={5}
+                    fill={shadcnColors[index]}
+                    stroke={shadcnColors[index]}
+                  />
+                )
+              : { fill: shadcnColors[1] }
+          }
+        >
+          {spec.variant === 'label-custom' ? (
+            <LabelList dataKey="browser" position="top" />
+          ) : null}
+        </Line>
+      </LineChart>
+    )
+  }
   const type =
     spec.variant === 'linear'
       ? 'linear'
@@ -433,13 +532,20 @@ function pieChart(spec: ShadcnCatalogSpec, width: number, height: number) {
 }
 
 function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
-  const multiple = spec.variant === 'multiple' || spec.variant === 'legend'
+  const multiple = [
+    'multiple',
+    'legend',
+    'icons',
+    'label-custom',
+    'lines-only',
+    'radius',
+  ].includes(spec.variant)
   return (
     <RadarChart
       aria-label={spec.title}
       width={width}
       height={height}
-      data={shadcnMonths}
+      data={spec.variant === 'lines-only' ? shadcnRadarLines : shadcnMonths}
     >
       {spec.variant === 'grid-none' ? null : (
         <PolarGrid
@@ -452,7 +558,13 @@ function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
       <Radar
         dataKey="desktop"
         fill={shadcnColors[0]}
-        fillOpacity={spec.variant === 'lines-only' ? 0 : 0.5}
+        fillOpacity={
+          spec.variant === 'lines-only'
+            ? 0
+            : ['icons', 'label-custom', 'radius'].includes(spec.variant)
+              ? 0.6
+              : 0.5
+        }
         stroke={shadcnColors[0]}
         isAnimationActive={false}
       />
@@ -460,7 +572,13 @@ function radarChart(spec: ShadcnCatalogSpec, width: number, height: number) {
         <Radar
           dataKey="mobile"
           fill={shadcnColors[1]}
-          fillOpacity={0.42}
+          fillOpacity={
+            spec.variant === 'lines-only'
+              ? 0
+              : ['icons', 'label-custom', 'radius'].includes(spec.variant)
+                ? 1
+                : 0.42
+          }
           stroke={shadcnColors[1]}
           isAnimationActive={false}
         />
@@ -522,9 +640,7 @@ function radialChart(spec: ShadcnCatalogSpec, width: number, height: number) {
   const centeredValue = shape || spec.variant === 'text'
   const data = centeredValue
     ? [{ browser: 'safari', visitors: shape ? 1260 : 200 }]
-    : spec.variant === 'simple'
-      ? shadcnBrowsers.slice(1, 2)
-      : shadcnBrowsers
+    : shadcnBrowsers
   const startAngle = centeredValue ? 0 : 200
   const endAngle = shape ? 100 : centeredValue ? 250 : -50
   return (
@@ -551,7 +667,9 @@ function radialChart(spec: ShadcnCatalogSpec, width: number, height: number) {
       <RadialBar
         dataKey="visitors"
         background={
-          centeredValue ? { fill: 'var(--muted)' } : spec.variant === 'grid'
+          centeredValue || spec.variant === 'label' || spec.variant === 'simple'
+            ? { fill: 'var(--muted)' }
+            : false
         }
         cornerRadius={spec.variant === 'shape' ? 0 : 10}
         isAnimationActive={false}

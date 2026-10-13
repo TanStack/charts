@@ -317,6 +317,21 @@ Set `tooltip.motion` to another transition to override both, or set it to
 motion renderer; a static renderer stays immediate and does not import spring
 physics. The renderer's reduced-motion policy also applies to the tooltip.
 
+For fast pointer inspection alongside slower data animation, set
+`tooltip: { use: tooltip, motion: false }`, or give the tooltip a short tween:
+
+```ts
+const tooltipOptions = {
+  use: tooltip,
+  motion: { transition: { type: 'tween', duration: 120 } },
+}
+```
+
+Inline mark `states` wait for active entrance and data motion to finish.
+Tooltips and separate focus marks continue updating during that time. See
+the [motion reference](../reference/motion.md#motion) for an immediate
+`whenFocused` dot example.
+
 ## Application-owned pointer timing
 
 Set definition `pointer: false` when the application decides when inspection

@@ -12,6 +12,7 @@ import {
   inferredKeyValues,
   isChartKey,
   isNonnegativeFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
@@ -24,6 +25,8 @@ import type {
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
+  ChartMarkState,
+  ChartAreaStateStyle,
   ChartNumericScale,
   ChartPoint,
   SceneNode,
@@ -56,6 +59,7 @@ export interface GeoShapeOptions<
 > extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
   projection: GeoProjectionInput<TDatum>
   key?: Channel<TDatum, ChartKey>
   color?: Channel<TDatum, ChartKey | null | undefined>
@@ -107,6 +111,7 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
 
       return {
         id,
+        states: markStates(data, options.states),
         channels: {
           color: {
             scale: 'color',

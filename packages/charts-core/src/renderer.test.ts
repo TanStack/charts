@@ -11,6 +11,7 @@ import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartHostControlExtension,
+  ChartHostControlExtensionContext,
   ChartRenderer,
   ChartRendererCapabilities,
   ChartSurface,
@@ -53,6 +54,171 @@ const definition = defineChart({
 })
 
 describe('renderer-neutral chart host', () => {
+  it('allows a focus callback to rebuild a definition without a feedback loop', () => {
+    const fake = createFakeRenderer()
+    const onFocusChange = vi.fn(() => {
+      if (onFocusChange.mock.calls.length > 3) throw new Error('Focus loop')
+      host.update(options())
+    })
+    const options = () => ({
+      definition: defineChart(definition, {}),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Reentrant focus',
+      onFocusChange,
+    })
+    const host = mountChartRenderer(document.createElement('div'), options())
+    host.interaction.setControlledFocus(host.getScene().points[0]!)
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    host.destroy()
+  })
+
+  it('notifies changed group members without repeating unchanged primary focus', () => {
+    const fake = createFakeRenderer()
+    const first = { id: 'first', x: 0, y: 4 }
+    let rows = [first]
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const options = () => ({
+      definition: defineChart({
+        ...definition,
+        focus: 'group-x' as const,
+        marks: rows.map((row) =>
+          lineY([row], { id: row.id, x: 'x', y: 'y', z: 'id', key: 'id' }),
+        ),
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Changing group',
+      onFocusChange,
+      onFocusGroupChange,
+    })
+    const host = mountChartRenderer(document.createElement('div'), options())
+    host.interaction.setControlledFocus(host.getScene().points[0]!)
+    rows = [first, { id: 'second', x: 0, y: 8 }]
+    host.update(options())
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    expect(onFocusGroupChange).toHaveBeenCalledTimes(2)
+    expect(onFocusGroupChange.mock.calls.at(-1)?.[0]).toHaveLength(2)
+    rows = [{ ...first, y: 5 }, rows[1]!]
+    host.update(options())
+    expect(onFocusChange).toHaveBeenCalledTimes(2)
+    expect(onFocusGroupChange).toHaveBeenCalledTimes(3)
+    host.destroy()
+  })
+
+  it.each([false, true])(
+    'does not notify unchanged focus on scene rebuilds (cursor: %s)',
+    (cursor) => {
+      const fake = createFakeRenderer()
+      const onFocusChange = vi.fn()
+      const onFocusGroupChange = vi.fn()
+      const cursorOptions = {
+        cursor: cursor
+          ? {
+              use: cursorHost,
+              mode: 'focus' as const,
+              match: 'x' as const,
+              controller: createChartCursor<number, number>(),
+            }
+          : undefined,
+      }
+      const options = () => ({
+        definition: defineChart(definition, cursorOptions),
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Stable focus',
+        onFocusChange,
+        onFocusGroupChange,
+      })
+      const host = mountChartRenderer(document.createElement('div'), options())
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      expect(onFocusChange).toHaveBeenCalledOnce()
+      expect(onFocusGroupChange).toHaveBeenCalledOnce()
+      for (let index = 0; index < 3; index++) host.update(options())
+      expect(onFocusChange).toHaveBeenCalledOnce()
+      expect(onFocusGroupChange).toHaveBeenCalledOnce()
+      expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary).toBe(
+        host.getScene().points[0],
+      )
+      host.interaction.setControlledFocus(null)
+      expect(onFocusChange).toHaveBeenLastCalledWith(null)
+      expect(onFocusGroupChange).toHaveBeenLastCalledWith([])
+      host.destroy()
+    },
+  )
+
+  it.each([false, true])(
+    'requires explicit independent-state-focus support from a custom renderer (%s)',
+    (supported) => {
+      const fake = createFakeRenderer()
+      if (supported) {
+        Object.defineProperty(fake.surface, 'supportsStateFocus', {
+          value: true,
+        })
+      }
+      let setStateFocus!: ChartHostControlExtensionContext<
+        Datum,
+        number,
+        number
+      >['setStateFocus']
+      const extension: ChartHostControlExtension<Datum, number, number> = {
+        id: 'state-focus-test',
+        create(context) {
+          setStateFocus = context.setStateFocus
+          return { update() {}, destroy() {} }
+        },
+      }
+      const onFocusChange = vi.fn()
+      const host = mountChartRenderer(document.createElement('div'), {
+        definition: defineChart(definition, {
+          controls: [
+            {
+              id: 'state-focus-control',
+              resolve: () => ({
+                nodes: [],
+                controls: [{ key: 'state-focus', extension }],
+              }),
+            },
+          ],
+        }),
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Custom renderer emphasis',
+        onFocusChange,
+      })
+      const point = host.getScene().points[0]!
+      const focus = {
+        primary: point,
+        group: [point],
+        source: 'legend' as const,
+        pinned: false,
+      }
+      fake.paintFocus.mockClear()
+      onFocusChange.mockClear()
+      if (supported) {
+        setStateFocus(focus)
+        expect(fake.paintFocus).toHaveBeenLastCalledWith(null, null, null, {
+          stateFocus: focus,
+        })
+      } else {
+        expect(() => setStateFocus(focus)).toThrow(
+          'Renderer does not support independent state focus',
+        )
+        expect(fake.paintFocus).not.toHaveBeenCalled()
+      }
+      expect(onFocusChange).not.toHaveBeenCalled()
+      setStateFocus(null)
+      expect(fake.paintFocus).toHaveBeenLastCalledWith(null, null)
+      host.destroy()
+      expect(fake.destroy).toHaveBeenCalledOnce()
+    },
+  )
+
   it('rejects tooltip extensions owned by another host', () => {
     const nativeTooltip: ChartTooltipExtensionToken<'react-native'> = {
       id: 'native-tooltip',
@@ -1491,6 +1657,49 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('lets custom tooltip bodies own their card styles and restores default styles', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const options = {
+      definition: defineChart(definition, { tooltip: tooltipExtension }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Tooltip card ownership',
+    }
+    const host = mountChartRenderer(container, options)
+    const focus = () =>
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+    focus()
+    const element = container.querySelector<HTMLElement>('.ts-chart-tooltip')!
+    const defaultStyles = [
+      'background',
+      'border',
+      'padding',
+      'boxShadow',
+      'borderRadius',
+      'maxWidth',
+      'font',
+      'color',
+    ] as const
+    const original = defaultStyles.map((key) => element.style[key])
+    host.update({
+      ...options,
+      onTooltipBodyChange(target) {
+        if (target) target.element.textContent = 'My own tooltip card'
+      },
+    })
+    focus()
+    expect(element.style.background).toBe('transparent')
+    expect(element.style.padding).toBe('0px')
+    expect(element.style.boxShadow).toBe('none')
+    expect(element.style.borderRadius).toBe('0px')
+    host.update(options)
+    focus()
+    expect(defaultStyles.map((key) => element.style[key])).toEqual(original)
+    host.destroy()
+  })
+
   it('does not repin when dismissing a tooltip unmounts the click target', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
@@ -2390,6 +2599,80 @@ describe('renderer-neutral chart host', () => {
     requestFrame.mockRestore()
     cancelFrame.mockRestore()
   })
+
+  it.each([false, true])(
+    'adopts observer precision without repainting an unchanged initial layout (transformed border box: %s)',
+    (transformed) => {
+      let resize: ResizeObserverCallback | undefined
+      class TestResizeObserver {
+        constructor(callback: ResizeObserverCallback) {
+          resize = callback
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+      }
+      const original = window.ResizeObserver
+      window.ResizeObserver = TestResizeObserver
+      const frames: FrameRequestCallback[] = []
+      const requestFrame = vi
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback)
+          return frames.length
+        })
+      const fake = createFakeRenderer()
+      const container = document.createElement('div')
+      container.style.width = '569.594px'
+      container.style.height = '200.016px'
+      const inset = transformed ? 24 : 0
+      if (transformed)
+        Object.assign(container.style, {
+          boxSizing: 'border-box',
+          padding: '10px',
+          border: '2px solid',
+          transform: 'scale(2)',
+        })
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(
+          0,
+          0,
+          569.59375 * (transformed ? 2 : 1),
+          200.015625 * (transformed ? 2 : 1),
+        ),
+      )
+      const host = mountChartRenderer(container, {
+        definition,
+        renderer: fake.renderer,
+        ariaLabel: 'Fractional chart',
+      })
+      const observe = (width: number) =>
+        resize?.(
+          [
+            {
+              target: container,
+              contentRect: new DOMRect(0, 0, width - inset, 200.015625 - inset),
+              borderBoxSize: [],
+              contentBoxSize: [],
+              devicePixelContentBoxSize: [],
+            },
+          ],
+          {} as ResizeObserver,
+        )
+      observe(569.59375)
+      expect(frames).toHaveLength(0)
+      expect(host.getScene().width).toBe(569.594 - inset)
+      observe(569.59375)
+      expect(frames).toHaveLength(0)
+      observe(569.71875)
+      expect(frames).toHaveLength(1)
+      frames.shift()?.(0)
+      expect(host.getScene().width).toBe(569.71875 - inset)
+      host.destroy()
+      requestFrame.mockRestore()
+      window.ResizeObserver = original
+    },
+  )
 
   it('keeps padding and borders out of container-owned scene dimensions', () => {
     let resize: ResizeObserverCallback | undefined
