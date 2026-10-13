@@ -1,3 +1,5 @@
+'use client'
+
 export { CanvasChart as Chart } from './CanvasChart'
 export type {
   CanvasChartCommonProps as ChartCommonProps,

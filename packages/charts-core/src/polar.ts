@@ -12,6 +12,7 @@ import {
   isChartValue,
   isFiniteNumber,
   isNonnegativeFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { resolveCompositeChildMotion } from './composite-motion-internal'
@@ -36,6 +37,11 @@ import type {
   ChartMark,
   ChartMarkRenderer,
   ChartMarkMotionOptions,
+  ChartMarkState,
+  ChartAreaStateStyle,
+  ChartDotStateStyle,
+  ChartLineStateStyle,
+  ChartTextStateStyle,
   ChartMotionContext,
   ChartMotionDefinition,
   ChartNumericScale,
@@ -220,6 +226,8 @@ export interface PolarOptions<
   id?: string
   className?: string
   marks: TMarks
+  /** Default focus states for child marks; an explicit child states array replaces them. */
+  states?: readonly ChartMarkState<PolarMarkDatum<TMarks[number]>>[]
   guides?: readonly PolarGuide[]
   scales: PolarScales<TMarks>
   startAngle?: number
@@ -249,6 +257,7 @@ export function polar(
         const initialized = mark.initialize({
           markIndex: polarMarkIndex,
           parentId: id,
+          states: options.states,
         })
         return {
           ...initialized,
@@ -324,7 +333,16 @@ export function polar(
           }
           for (const mark of marks) {
             const rendered = mark.render({ layout, color, theme })
-            for (const node of rendered.nodes) nodes.push(node)
+            if (mark.states) {
+              nodes.push({
+                kind: 'group',
+                key: `states:${mark.id}`,
+                children: rendered.nodes,
+                states: { ...mark.states, points: rendered.points ?? [] },
+              })
+            } else {
+              for (const node of rendered.nodes) nodes.push(node)
+            }
             for (const point of rendered.points ?? []) points.push(point)
           }
           for (const node of guideForeground) nodes.push(node)
@@ -354,6 +372,7 @@ export function polar(
 export interface RadialArcOptions<
   TDatum,
 > extends ChartMarkMotionOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
   id?: string
   className?: string
   startAngle?: Channel<TDatum, number | null | undefined>
@@ -387,7 +406,7 @@ export function radialArc<TDatum>(
 ): PolarMark<TDatum, number, number, never, never> {
   const data = asArray(source)
   return createPolarMark<TDatum, number, number, never, never>(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:arc-${markIndex}`
       const startAngles = channelValues(data, options.startAngle, (datum) =>
         numberProperty(datum, 'startAngle'),
@@ -409,6 +428,7 @@ export function radialArc<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         colorValues: colorValues.filter(isChartKey),
         angleValues: [],
         radiusValues: [],
@@ -545,6 +565,7 @@ export function radialArc<TDatum>(
 }
 
 interface RadialBarBaseOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
   id?: string
   className?: string
   /** Named angle scale. Omit to use the reserved `angle` scale. */
@@ -628,7 +649,7 @@ export function radialBarRadius<TDatum>(
 ): PolarMark<TDatum, any, number> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-bar-radius-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -666,6 +687,7 @@ export function radialBarRadius<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),
@@ -878,7 +900,7 @@ export function radialBarAngle<TDatum>(
 ): PolarMark<TDatum, number, any> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-bar-angle-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -916,6 +938,7 @@ export function radialBarAngle<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),
@@ -1085,6 +1108,7 @@ interface RadialPathOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
 }
 
 export interface RadialLineOptions<TDatum> extends RadialPathOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartLineStateStyle<TDatum>>[]
   curve?: CurveFactory | CurveFactoryLineOnly
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
@@ -1143,7 +1167,7 @@ export function radialLine<TDatum>(
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-line-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -1175,6 +1199,7 @@ export function radialLine<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),
@@ -1312,6 +1337,7 @@ export function radialLine<TDatum>(
 }
 
 export interface RadialAreaOptions<TDatum> extends RadialPathOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
   radius1?: number | Channel<TDatum, number | null | undefined>
   curve?: CurveFactory
   fill?: VisualChannel<TDatum, string>
@@ -1372,7 +1398,7 @@ export function radialArea<TDatum>(
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-area-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -1408,6 +1434,7 @@ export function radialArea<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),
@@ -1545,6 +1572,7 @@ export function radialArea<TDatum>(
 }
 
 export interface RadialDotOptions<TDatum> extends RadialPathOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartDotStateStyle<TDatum>>[]
   r?: number | Channel<TDatum, number | null | undefined>
   rScale?: ChartNumericScale
   fill?: VisualChannel<TDatum, string>
@@ -1556,6 +1584,7 @@ export interface RadialDotOptions<TDatum> extends RadialPathOptions<TDatum> {
 }
 
 export interface RadialTextOptions<TDatum> extends RadialPathOptions<TDatum> {
+  states?: readonly ChartMarkState<TDatum, ChartTextStateStyle<TDatum>>[]
   text?: Channel<TDatum, string | number | null | undefined>
   fill?: VisualChannel<TDatum, string>
   fontSize?: number
@@ -1618,7 +1647,7 @@ export function radialText<TDatum>(
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-text-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -1644,6 +1673,7 @@ export function radialText<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),
@@ -2056,7 +2086,7 @@ export function radialDot<TDatum>(
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
   return createPolarMark(
-    ({ markIndex, parentId }) => {
+    ({ markIndex, parentId, states: defaultStates }) => {
       const id = options.id ?? `${parentId}:radial-dot-${markIndex}`
       const angleScale = options.angleScale ?? 'angle'
       const radiusScale = options.radiusScale ?? 'radius'
@@ -2089,6 +2119,7 @@ export function radialDot<TDatum>(
 
       return {
         id,
+        states: markStates(data, options.states ?? defaultStates),
         angleScale,
         radiusScale,
         colorValues: colorValues.filter(isChartKey),

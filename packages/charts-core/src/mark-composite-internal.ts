@@ -428,7 +428,9 @@ function stripSceneInteractions(
         sceneNodeOwnedPoints(node, points, lookup, []))
     return owned.length === 1
       ? { ...decorative, pointOwner: owned[0] }
-      : decorative
+      : owned.length
+        ? { ...decorative, pointOwners: owned }
+        : decorative
   })
 }
 
@@ -444,6 +446,9 @@ function mapSceneNodes(
         ...node,
         key,
         ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+        ...(node.pointOwners
+          ? { pointOwners: node.pointOwners.map(mapPoint) }
+          : {}),
         children: mapSceneNodes(node.children, namespace, mapPoint),
         ...(node.focus
           ? {
@@ -483,12 +488,18 @@ function mapSceneNodes(
         ...node,
         key,
         ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+        ...(node.pointOwners
+          ? { pointOwners: node.pointOwners.map(mapPoint) }
+          : {}),
       }
     }
     return {
       ...node,
       key,
       ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+      ...(node.pointOwners
+        ? { pointOwners: node.pointOwners.map(mapPoint) }
+        : {}),
       interaction: node.interaction.point
         ? { ...node.interaction, point: mapPoint(node.interaction.point) }
         : {

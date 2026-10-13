@@ -140,7 +140,8 @@ the datum, index, data, point, focus, pointer, and matching helper. A
 can return any `ChartMarkStateValue`. `ChartMarkStateStyle` is the complete
 style vocabulary; `ChartDotStateStyle`, `ChartBarStateStyle`,
 `ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, and
-`ChartTextStateStyle` narrow it to properties each mark can render.
+`ChartTextStateStyle` narrow it to properties each mark can render. All six
+accept `strokeDasharray` for a state-driven dash pattern.
 
 ## Definitions
 
@@ -480,8 +481,8 @@ their behavior:
   and
   [Interactive categorical legend](./scales-guides-and-color.md#interactive-categorical-legend).
 - `@tanstack/charts/interaction/brush`: `BrushRange`, `BrushXChange`,
-  `BrushXSource`, `BrushXTarget`, `BrushXValuesOptions`, and
-  `BrushXContinuousOptions`. See
+  `BrushXFormatContext`, `BrushXSource`, `BrushXTarget`,
+  `BrushXValuesOptions`, and `BrushXContinuousOptions`. See
   [Horizontal brush](./focus-and-interaction.md#horizontal-brush).
 - `@tanstack/charts/interaction/cursor`: `ContinuousCursorValue`,
   `ContinuousCursorPosition`, `ContinuousCursorPointerSource`,

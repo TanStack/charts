@@ -39,6 +39,19 @@ describe('TanStack comparison source provenance', () => {
     commitAll(repository, 'Add measured source')
     const measuredRevision = runGit(repository, 'rev-parse', 'HEAD')
 
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'test source\n',
+    )
+    commitAll(repository, 'Add validation-only test')
+    expect(tanstackComparisonRevision(repository)).toBe(measuredRevision)
+
+    for (const name of ['decorative.type-test.ts', 'Chart.test.tsrx']) {
+      await writeFile(resolve(dirname(coreInput), name), 'validation source\n')
+      commitAll(repository, `Add ${name}`)
+      expect(tanstackComparisonRevision(repository)).toBe(measuredRevision)
+    }
+
     await writeFile(resolve(repository, 'README.md'), '# Documentation\n')
     commitAll(repository, 'Update documentation')
 
@@ -56,6 +69,26 @@ describe('TanStack comparison source provenance', () => {
     await writeFile(coreInput, 'export const value = 1\n')
 
     const inputDigest = tanstackComparisonInputDigest(repository, [inputPath])
+    for (const name of ['decorative.type-test.ts', 'Chart.test.tsrx']) {
+      await writeFile(resolve(dirname(coreInput), name), 'validation source\n')
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+        inputDigest,
+      )
+    }
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'test source\n',
+    )
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+      inputDigest,
+    )
+    await writeFile(
+      resolve(dirname(coreInput), 'adapter.test.ts'),
+      'updated test\n',
+    )
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+      inputDigest,
+    )
     expect(inputDigest).toMatch(/^sha256:[0-9a-f]{64}$/u)
     expect(
       tanstackComparisonSourceFailure(
@@ -73,6 +106,39 @@ describe('TanStack comparison source provenance', () => {
     expect(tanstackComparisonInputDigest(repository, [inputPath])).not.toBe(
       inputDigest,
     )
+  })
+
+  it('ignores checkout line endings but preserves source changes', async () => {
+    const repository = await mkdtemp(
+      resolve(tmpdir(), 'charts-comparison-newlines-'),
+    )
+    temporaryRepositories.push(repository)
+    const inputPath = tanstackComparisonInputPaths[1]
+    const input = resolve(repository, inputPath, 'index.ts')
+    await mkdir(dirname(input), { recursive: true })
+    const source = 'export const label = "café"\nexport const value = 1\n'
+    await writeFile(input, source)
+    const digest = tanstackComparisonInputDigest(repository, [inputPath])
+
+    for (const contents of [
+      source.replaceAll('\n', '\r\n'),
+      source.replace('\n', '\r\n'),
+    ]) {
+      await writeFile(input, contents)
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+        digest,
+      )
+    }
+    for (const contents of [
+      source.replace('value = 1', 'value = 2'),
+      source.replaceAll('\n', '\r'),
+      source.trimEnd(),
+    ]) {
+      await writeFile(input, contents)
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).not.toBe(
+        digest,
+      )
+    }
   })
 
   it('rejects a well-formed digest from different inputs', () => {

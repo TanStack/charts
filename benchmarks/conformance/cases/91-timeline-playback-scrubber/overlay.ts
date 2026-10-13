@@ -104,7 +104,7 @@ export function createPlaybackOverlay(
   playhead.style.position = 'absolute'
   playhead.style.width = '2px'
   playhead.style.borderRadius = '999px'
-  playhead.style.background = 'var(--ts-chart-2, #f97316)'
+  playhead.style.background = '#f97316'
 
   const range = document.createElement('input')
   range.className = 'ts-conformance-playback-range'
@@ -127,7 +127,7 @@ export function createPlaybackOverlay(
   handle.style.height = '20px'
   handle.style.border = '2px solid Canvas'
   handle.style.borderRadius = '999px'
-  handle.style.background = 'var(--ts-chart-2, #f97316)'
+  handle.style.background = '#f97316'
   handle.style.boxShadow = '0 1px 4px rgb(15 23 42 / 0.35)'
 
   const toolbar = document.createElement('div')

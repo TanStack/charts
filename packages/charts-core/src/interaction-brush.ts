@@ -48,13 +48,18 @@ interface BrushXChangeEvent<
   readonly target: BrushXTarget
 }
 
+export interface BrushXFormatContext {
+  /** The handle whose value is being formatted. */
+  readonly handle: 'start' | 'end'
+}
+
 interface BrushXBaseOptions<TValue extends ChartValue> {
   id?: string
   range: ControlledSignal<BrushRange<TValue>, BrushXChange<TValue>>
   ariaLabel?: string
   startAriaLabel?: string
   endAriaLabel?: string
-  format?: (value: TValue) => string
+  format?: (value: TValue, context: BrushXFormatContext) => string
   handleSize?: number
   selectionStyle?: SceneStyle
   handleStyle?: SceneStyle
@@ -86,7 +91,7 @@ interface BrushXControl<TValue extends ChartValue> extends ChartHostControl {
   readonly ariaLabel: string
   readonly startAriaLabel: string
   readonly endAriaLabel: string
-  readonly format: (value: TValue) => string
+  readonly format: (value: TValue, context: BrushXFormatContext) => string
   readonly handleSize: number
   readonly selectionStyle: SceneStyle
   readonly handleStyle: SceneStyle
@@ -308,6 +313,10 @@ function createBrushXControl({
       if (
         active &&
         gestureRange &&
+        origin &&
+        (!next.axis.values ||
+          (next.axis.indexOf(origin.start) >= 0 &&
+            next.axis.indexOf(origin.end) >= 0)) &&
         sameRange(next.axis, next.range, gestureRange)
       ) {
         decorate()
@@ -364,7 +373,7 @@ function createBrushXControl({
 
   function handleBrush(event: D3BrushEvent<unknown>) {
     if (moving || !active || !event.sourceEvent || !control || !origin) return
-    const next = selectionRange(event.selection, control.axis)
+    const next = gestureSelectionRange(event.selection)
     if (
       !next ||
       (gestureRange && sameRange(control.axis, next, gestureRange))
@@ -395,7 +404,7 @@ function createBrushXControl({
     }
     if (!origin) return
     active = false
-    let next = selectionRange(event.selection, control.axis)
+    let next = gestureSelectionRange(event.selection)
     if (!next) {
       const position = sourceSceneX(event.sourceEvent)
       if (position == null) return finishGesture()
@@ -415,6 +424,13 @@ function createBrushXControl({
     })
     moveToControlledRange()
     finishGesture()
+  }
+
+  function gestureSelectionRange(selection: BrushSelection | null) {
+    if (!control) return null
+    return target === 'selection' && origin
+      ? translatedSelectionRange(selection, control.axis, origin)
+      : selectionRange(selection, control.axis)
   }
 
   function cancelPointer(event: Event) {
@@ -568,7 +584,10 @@ function createBrushXControl({
       ),
     )
     element.setAttribute('aria-valuenow', String(index))
-    element.setAttribute('aria-valuetext', control.format(value))
+    element.setAttribute(
+      'aria-valuetext',
+      control.format(value, { handle: handleTarget }),
+    )
     element.setAttribute(
       'aria-keyshortcuts',
       'ArrowLeft ArrowRight ArrowUp ArrowDown Home End',
@@ -642,6 +661,48 @@ function selectionRange<TValue extends ChartValue>(
     start: axis.valueAt(selection[0]),
     end: axis.valueAt(selection[1]),
   })
+}
+
+function translatedSelectionRange<TValue extends ChartValue>(
+  selection: BrushSelection | null,
+  axis: InteractionAxis<TValue>,
+  origin: BrushRange<TValue>,
+): BrushRange<TValue> | null {
+  const snapped = selectionRange(selection, axis)
+  if (!snapped || !axis.values) return snapped
+  const startIndex = axis.indexOf(origin.start)
+  const endIndex = axis.indexOf(origin.end)
+  if (startIndex < 0 || endIndex < 0) return null
+  const positions = axis.positions!
+  const span = endIndex - startIndex
+  const last = positions.length - 1 - span
+  const direction = positions[0]! <= positions[positions.length - 1]! ? 1 : -1
+  const centerAt = (index: number) =>
+    (positions[index]! + positions[index + span]!) / 2
+  const center = (Number(selection![0]) + Number(selection![1])) / 2
+  let low = 0
+  let high = last + 1
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2)
+    if (direction * (centerAt(middle) - center) < 0) low = middle + 1
+    else high = middle
+  }
+  let index = Math.min(low, last)
+  if (
+    index > 0 &&
+    Math.abs(centerAt(index - 1) - center) <= Math.abs(centerAt(index) - center)
+  ) {
+    index--
+  }
+  // D3 clamps the original pixel width, which can differ from the width
+  // of an equally sized candidate interval near an uneven plot edge.
+  if (Number(selection![0]) <= axis.extent[0]) index = direction > 0 ? 0 : last
+  else if (Number(selection![1]) >= axis.extent[1])
+    index = direction > 0 ? last : 0
+  return {
+    start: axis.at(index),
+    end: axis.at(index + span),
+  }
 }
 
 function eventTarget<TValue extends ChartValue>(

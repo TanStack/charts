@@ -5,6 +5,100 @@ import { getShadcnCatalogSpec, shadcnColors } from './shadcn-catalog-data'
 
 describe('shadcn reference accessibility', () => {
   it.each([
+    [
+      'chart-bar-interactive',
+      '.recharts-bar-rectangle path',
+      91,
+      [shadcnColors[1]],
+    ],
+    [
+      'chart-bar-negative',
+      '.recharts-bar-rectangle path',
+      6,
+      [shadcnColors[0], shadcnColors[1]],
+    ],
+    ['chart-line-dots-colors', '.recharts-line-curve', 1, [shadcnColors[1]]],
+    ['chart-line-label-custom', '.recharts-line-curve', 1, [shadcnColors[1]]],
+    [
+      'chart-radar-icons',
+      '.recharts-radar-polygon .recharts-polygon',
+      2,
+      [shadcnColors[0], shadcnColors[1]],
+    ],
+    [
+      'chart-radar-label-custom',
+      '.recharts-radar-polygon .recharts-polygon',
+      2,
+      [shadcnColors[0], shadcnColors[1]],
+    ],
+    [
+      'chart-radar-lines-only',
+      '.recharts-radar-polygon .recharts-polygon',
+      2,
+      [shadcnColors[0], shadcnColors[1]],
+    ],
+    [
+      'chart-radar-radius',
+      '.recharts-radar-polygon .recharts-polygon',
+      2,
+      [shadcnColors[0], shadcnColors[1]],
+    ],
+    [
+      'chart-radial-simple',
+      'path.recharts-radial-bar-sector',
+      5,
+      [...shadcnColors],
+    ],
+    [
+      'chart-radial-label',
+      'path.recharts-radial-bar-sector',
+      5,
+      [...shadcnColors],
+    ],
+    [
+      'chart-radial-grid',
+      'path.recharts-radial-bar-sector',
+      5,
+      [...shadcnColors],
+    ],
+  ] as const)(
+    'keeps upstream data counts and paints on mount and revision: %s',
+    async (name, selector, count, colors) => {
+      const root = document.createElement('div')
+      document.body.append(root)
+      const handle = await act(async () =>
+        createShadcnRechartsExample(name).mount(root, {
+          width: 640,
+          height: 600,
+          revision: 0,
+        }),
+      )
+      try {
+        for (const revision of [0, 1]) {
+          if (revision)
+            await act(async () =>
+              handle.update({ width: 320, height: 600, revision }),
+            )
+          const marks = [...root.querySelectorAll(selector)]
+          expect(marks).toHaveLength(count)
+          const paints = marks.map((mark) =>
+            mark.getAttribute(
+              name.startsWith('chart-line') ? 'stroke' : 'fill',
+            ),
+          )
+          expect(new Set(paints)).toEqual(new Set(colors))
+          if (name === 'chart-radar-lines-only')
+            expect(
+              marks.every((mark) => mark.getAttribute('fill-opacity') === '0'),
+            ).toBe(true)
+        }
+      } finally {
+        await act(async () => handle.destroy())
+        root.remove()
+      }
+    },
+  )
+  it.each([
     ['chart-bar-active', '.recharts-bar-rectangle path', 5],
     ['chart-bar-mixed', '.recharts-bar-rectangle path', 5],
     ['chart-line-interactive', '.recharts-line-curve', 1],

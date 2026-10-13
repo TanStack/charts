@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "7ad38d3ca35ec4e7022db56ed5169aa24b5094771a3658ddcf0225bfc6dbe20e",
+  "sourceHash": "3666fe8e664b247d9c804cbe01e747c81a0364610fe7ef57dea77146a9e3d18b",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -371,8 +371,8 @@
     },
     {
       "id": "84-pinned-nested-chart-tooltip",
-      "sha256": "2458b1c8c258a78ea5cc51aecc9dc3f3de3dbadf375f79ec8eb1bc4385ec729f",
-      "bytes": 26449
+      "sha256": "6ca4ee9c817985b0168ba2c76e93daf44d52289286f06bf837bd3d7212900c5a",
+      "bytes": 26440
     },
     {
       "id": "85-scrollable-resource-lanes",

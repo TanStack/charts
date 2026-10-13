@@ -375,6 +375,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:SceneFocusGuideLabel', 'format'],
     ['@tanstack/charts:src/types.ts:SceneFocusGuideResolver', '$call'],
+    ['@tanstack/charts:src/types.ts:SceneLabel', 'focusOpacity'],
     ['@tanstack/charts:src/types.ts:ChartSpatialIndexFactory', '$call'],
     ['@tanstack/charts:src/types.ts:ChartSvgRenderer', '$call'],
     ['@tanstack/charts:src/types.ts:ChartTextMeasurer', '$call'],
@@ -602,7 +603,19 @@ const callbackInventory = {
   // Consumer-called handles and lifecycle/service protocols are methods, not
   // application callbacks.
   serviceMethod: [
-    ['@tanstack/angular-charts:src/Chart.ts:Chart', 'ngOnChanges ngOnDestroy'],
+    [
+      '@tanstack/charts:src/dom-types.ts:ChartHostControlExtensionContext',
+      'setStateFocus',
+    ],
+    ['@tanstack/charts:src/dom-types.ts:ChartHostControlExtension', 'create'],
+    [
+      '@tanstack/charts:src/dom-types.ts:ChartHostControlInstance',
+      'update contains destroy',
+    ],
+    [
+      '@tanstack/angular-charts:src/Chart.ts:Chart',
+      'ngAfterViewInit ngOnChanges ngOnDestroy',
+    ],
     [
       '@tanstack/angular-charts:src/ChartTooltipBody.ts:ChartTooltipBodyDirective',
       'ngTemplateContextGuard',

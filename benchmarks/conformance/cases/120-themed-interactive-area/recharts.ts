@@ -19,6 +19,7 @@ import {
   matchByDataKey,
 } from 'recharts'
 import { applyRechartsAccessibility } from '../../shared/recharts-mount'
+import './styles.css'
 import {
   createBoundedAnimationTracker,
   rechartsAreaAnimationDuration,
@@ -278,13 +279,6 @@ function ThemedAreaReference({
   const compact = input.width < 420
   const chartHeight = Math.max(120, input.height - (compact ? 96 : 76))
   const cardStyle: CSSProperties & Record<`--${string}`, string> = {
-    '--themed-area-surface': 'var(--chart-surface, Canvas)',
-    '--themed-area-foreground': 'var(--chart-foreground, CanvasText)',
-    '--themed-area-muted': 'var(--chart-muted, GrayText)',
-    '--themed-area-grid': 'var(--chart-grid, CanvasText)',
-    '--themed-area-border':
-      'var(--chart-border, color-mix(in srgb, CanvasText 11%, transparent))',
-    '--themed-area-accent': 'var(--chart-accent, light-dark(#2563eb, #60a5fa))',
     boxSizing: 'border-box',
     display: 'grid',
     gridTemplateRows: 'auto minmax(0, 1fr)',
@@ -304,6 +298,7 @@ function ThemedAreaReference({
   return createElement(
     'section',
     {
+      className: 'themed-area-card',
       'data-conformance-view': 'main',
       'data-range': range,
       'aria-label': 'Daily visitors with selectable date range',

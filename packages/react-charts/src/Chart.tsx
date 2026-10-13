@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import { renderChartSvg } from '@tanstack/charts/svg'
 import { createSvgChartRenderer } from '@tanstack/charts/svg/renderer'

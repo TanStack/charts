@@ -146,6 +146,9 @@ function mapScenePoints(
         ...node,
         key,
         ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+        ...(node.pointOwners
+          ? { pointOwners: node.pointOwners.map(mapPoint) }
+          : {}),
         children: mapScenePoints(
           node.children,
           mapPoint,
@@ -192,17 +195,24 @@ function mapScenePoints(
       }
     }
     if (node.kind === 'label' || !node.interaction) {
-      if (!shouldPrefixKeys && !node.pointOwner) return node
+      if (!shouldPrefixKeys && !node.pointOwner && !node.pointOwners)
+        return node
       return {
         ...node,
         key,
         ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+        ...(node.pointOwners
+          ? { pointOwners: node.pointOwners.map(mapPoint) }
+          : {}),
       }
     }
     return {
       ...node,
       key,
       ...(node.pointOwner ? { pointOwner: mapPoint(node.pointOwner) } : {}),
+      ...(node.pointOwners
+        ? { pointOwners: node.pointOwners.map(mapPoint) }
+        : {}),
       interaction: node.interaction.point
         ? { ...node.interaction, point: mapPoint(node.interaction.point) }
         : {

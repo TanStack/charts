@@ -49,6 +49,32 @@ function polar(options: PolarOptions): ChartMark
 | `radiusRatio` | `number`                | `1`           | Multiplier applied to the radius after inset                   |
 | `renderer`    | `ChartMarkRenderer`     | Host renderer | Renderer for the complete polar container                      |
 
+`polar.states` supplies default focus states for its child marks. Each child
+resolves those states against its own original data and interaction points;
+guides are unaffected. A child `states` array replaces the container defaults,
+and `states: []` opts out.
+
+`radialArc`, `radialBarRadius`, `radialBarAngle`, `radialArea`, `radialLine`,
+`radialDot`, and `radialText` also accept their own `states`, using the same
+selectors, callback context, and transitions as Cartesian marks. Arc and area
+states change paint; dot states can also change `r`, and text states can change
+typography and offsets. A state changes presentation without changing the
+interaction point or scale domain. Rules without interaction points do not
+match focus states.
+
+```ts
+radialArc(slices, {
+  states: [
+    { when: { focus: 'unmatched' }, style: { opacity: 0.25 } },
+    {
+      when: { focus: 'primary' },
+      style: { stroke: 'currentColor', strokeWidth: 2 },
+      transition: { type: 'tween', duration: 150 },
+    },
+  ],
+})
+```
+
 The default angular range is a complete circle. Angles use D3's radial
 convention: zero is at twelve o'clock and positive values move clockwise.
 
