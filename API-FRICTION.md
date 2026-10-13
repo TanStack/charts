@@ -6089,6 +6089,14 @@ Each entry records:
   dependency. All 24 focused provenance, classification, and boundary tests
   pass. Honest comparison artifact regeneration remains required before landing
   the updated provenance rule.
+- Windows follow-up: PR #155 reported that `core.autocrlf=true` changed the
+  digest for identical source. An independent regression confirms that LF and
+  CRLF checkouts currently hash differently. Normalize CRLF to LF before
+  hashing these text inputs, retaining UTF-8 byte lengths and path boundaries.
+  The regression covers mixed line endings and non-ASCII text, while code
+  changes, lone carriage returns, and removing a final newline still change
+  the digest. This completes the tooling portion of @nafasebra's contribution;
+  its adapter lifecycle tests already shipped in 1.0.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 

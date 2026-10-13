@@ -108,6 +108,39 @@ describe('TanStack comparison source provenance', () => {
     )
   })
 
+  it('ignores checkout line endings but preserves source changes', async () => {
+    const repository = await mkdtemp(
+      resolve(tmpdir(), 'charts-comparison-newlines-'),
+    )
+    temporaryRepositories.push(repository)
+    const inputPath = tanstackComparisonInputPaths[1]
+    const input = resolve(repository, inputPath, 'index.ts')
+    await mkdir(dirname(input), { recursive: true })
+    const source = 'export const label = "café"\nexport const value = 1\n'
+    await writeFile(input, source)
+    const digest = tanstackComparisonInputDigest(repository, [inputPath])
+
+    for (const contents of [
+      source.replaceAll('\n', '\r\n'),
+      source.replace('\n', '\r\n'),
+    ]) {
+      await writeFile(input, contents)
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).toBe(
+        digest,
+      )
+    }
+    for (const contents of [
+      source.replace('value = 1', 'value = 2'),
+      source.replaceAll('\n', '\r'),
+      source.trimEnd(),
+    ]) {
+      await writeFile(input, contents)
+      expect(tanstackComparisonInputDigest(repository, [inputPath])).not.toBe(
+        digest,
+      )
+    }
+  })
+
   it('rejects a well-formed digest from different inputs', () => {
     const expectedRevision = 'a'.repeat(40)
     const recordedRevision = 'b'.repeat(40)
