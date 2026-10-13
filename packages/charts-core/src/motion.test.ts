@@ -2741,6 +2741,53 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('scopes focus guide url(#id) paints with idPrefix', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          areaY(
+            [
+              { x: 0, y: 1 },
+              { x: 1, y: 3 },
+              { x: 2, y: 2 },
+            ],
+            { x: 'x', y: 'y', fill: 'url(#fade)' },
+          ),
+          crosshair({ y: false, stroke: 'url(#fade)' }),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+        },
+        gradients: [
+          {
+            id: 'fade',
+            stops: [
+              { offset: 0, color: '#2563eb', opacity: 0.6 },
+              { offset: 1, color: '#2563eb', opacity: 0 },
+            ],
+          },
+        ],
+      }),
+      { width: 320, height: 200 },
+    )
+    const el = document.createElement('div')
+    const surface = motion({ initial: false }).mount(el, () => {})
+    surface.render(scene, { ariaLabel: 'Scoped focus guide', idPrefix: 'a' })
+    const p = scene.points[0]!
+    surface.paintFocus({
+      primary: p,
+      group: [p],
+      source: 'pointer',
+      pinned: false,
+    })
+    const rule = el.querySelector(
+      '[data-ts-focus-guide-layer] [data-ts-key$=":x-rule"]',
+    )
+    expect(rule?.getAttribute('stroke')).toBe('url(#a-fade)')
+    surface.destroy()
+  })
+
   it('interpolates numeric tick-label typography and snaps categorical anchors', () => {
     const definition = (
       fontSize: number,

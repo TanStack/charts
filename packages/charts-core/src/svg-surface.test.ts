@@ -653,6 +653,61 @@ describe('SVG surface coordinates', () => {
     surface.destroy()
   })
 
+  it('scopes focus guide url(#id) paints with idPrefix', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(
+            [
+              { x: 1, y: 1 },
+              { x: 2, y: 2 },
+            ],
+            { x: 'x', y: 'y', fill: 'url(#cursor)' },
+          ),
+          crosshair({ y: false, stroke: 'url(#cursor)' }),
+        ],
+        gradients: [
+          {
+            id: 'cursor',
+            stops: [
+              { offset: 0, color: 'red' },
+              { offset: 1, color: 'blue' },
+            ],
+          },
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 4]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        },
+        guides: false,
+        margin: 20,
+      }),
+      { width: 320, height: 200 },
+    )
+    const [first] = scene.points
+    if (!first) throw new Error('Expected focus guide point')
+    const container = document.createElement('div')
+    const surface = createSvgChartRenderer().mount(container, () => {})
+    surface.render(scene, {
+      ariaLabel: 'Resource crosshair',
+      idPrefix: 'chart:one',
+    })
+    surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'pointer',
+      pinned: false,
+    })
+    const layer = container.querySelector<SVGGElement>(
+      '[data-ts-focus-guide-layer="over"]',
+    )
+    const xRule = layer?.querySelector<SVGLineElement>(
+      '[data-ts-key$=":x-rule"]',
+    )
+    expect(xRule?.getAttribute('stroke')).toBe('url(#chartone-cursor)')
+    surface.destroy()
+  })
+
   it('adds guide clipping when a custom serializer omits group resources', () => {
     const scene = createChartScene(
       defineChart({

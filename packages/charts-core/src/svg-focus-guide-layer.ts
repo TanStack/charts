@@ -1,8 +1,28 @@
+import { renderSvgClip, type ChartSvgRenderHooks } from './svg-renderer'
+import type { ChartScene } from './types'
+
 export type SvgFocusGuidePlacement = 'under' | 'over'
 
 export type SvgFocusGuideLayers = Partial<
   Record<SvgFocusGuidePlacement, SVGGElement>
 >
+
+export function createFocusGuideRenderHooks(
+  scene: ChartScene,
+): ChartSvgRenderHooks | undefined {
+  if (!scene.gradients.length) return undefined
+  const gradientIds = new Set(scene.gradients.map((gradient) => gradient.id))
+  return {
+    renderGroup: renderSvgClip,
+    resolvePaint: (value, idPrefix) => {
+      const match = /^url\(#([^)]+)\)$/.exec(value)
+      const id = match?.[1]
+      if (!id || !gradientIds.has(id)) return value
+      const sanitized = idPrefix.replaceAll(/[^a-zA-Z0-9_-]/g, '')
+      return `url(#${sanitized ? `${sanitized}-${id}` : id})`
+    },
+  }
+}
 
 export function detachSvgFocusGuideLayers(
   svg: SVGSVGElement | null,

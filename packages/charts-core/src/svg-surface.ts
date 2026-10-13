@@ -8,12 +8,13 @@ import {
 import { isDefaultFocusLayer } from './default-focus-internal'
 import { withSvgRenderChildren } from './svg-render-context-internal'
 import { resolveFocusGuides } from './focus-presentation'
-import { renderFocusGuideLayer } from './svg-renderer'
+import { renderFocusGuideLayer, type ChartSvgRenderHooks } from './svg-renderer'
 import {
   renderFocusGuideLayerWithRenderer,
   renderSvgFocusLayerWithRenderer,
 } from './svg-focus-guide-serializer'
 import {
+  createFocusGuideRenderHooks,
   detachSvgFocusGuideLayers,
   ensureSvgFocusGuideLayer,
   removeSvgFocusGuideLayer,
@@ -59,6 +60,7 @@ export function createSvgChartRenderer<
       let retargetedFocus = false
       let currentFocus: ChartFocusState | null = null
       let eagerFocus = false
+      let focusGuideHooks: ChartSvgRenderHooks | undefined
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -123,6 +125,7 @@ export function createSvgChartRenderer<
           }
           scene = nextScene
           renderOptions = options
+          focusGuideHooks = createFocusGuideRenderHooks(nextScene)
           stateTransition = undefined
           markStatePainted = false
           retargetedFocus = false
@@ -193,6 +196,7 @@ export function createSvgChartRenderer<
             cursor,
             renderOptions,
             renderSvg,
+            focusGuideHooks,
           )
           return resolved.scene
         },
@@ -307,6 +311,7 @@ function paintSvgFocusGuides<
   cursor: ChartCursorPresentation | null | undefined,
   renderOptions: ChartSurfaceRenderOptions,
   renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue>,
+  hooks?: ChartSvgRenderHooks,
 ) {
   const presentation = resolveFocusGuides(scene, focus, pointer, cursor)
   const cancellations: (() => void)[] = []
@@ -323,7 +328,12 @@ function paintSvgFocusGuides<
     }
     const markup =
       renderSvg === renderChartSvg
-        ? renderFocusGuideLayer(nodes, placement, renderOptions.idPrefix ?? '')
+        ? renderFocusGuideLayer(
+            nodes,
+            placement,
+            renderOptions.idPrefix ?? '',
+            hooks,
+          )
         : renderFocusGuideLayerWithRenderer(
             svg,
             scene,
