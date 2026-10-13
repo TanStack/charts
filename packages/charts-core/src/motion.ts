@@ -350,11 +350,10 @@ function createTooltipMotionController(
 ): ChartTooltipMotionController {
   const view = context.container.ownerDocument.defaultView
   let presenceAnimation: Animation | undefined
-  let presencePhase: 'enter' | 'exit' | undefined
+  let exiting = false
   let movementAnimation: Animation | undefined
   let movementFrame: number | undefined
   let springMovement: TooltipSpringMovement | undefined
-  let hideGeneration = 0
 
   const prefersReducedMotion = () =>
     policy.respectReducedMotion &&
@@ -476,6 +475,7 @@ function createTooltipMotionController(
         if (movementAnimation !== animation) return
         element.style.removeProperty('translate')
         movementAnimation = undefined
+        animation.cancel()
       }
       return
     }
@@ -522,7 +522,7 @@ function createTooltipMotionController(
   return {
     beforePaint(element) {
       const wasHidden = element.hasAttribute('hidden')
-      const resumingExit = presencePhase === 'exit'
+      const resumingExit = exiting
       const previousLeft = finiteStyleNumber(element.style.left)
       const previousTop = finiteStyleNumber(element.style.top)
       const movement = captureMovement(element)
@@ -532,9 +532,8 @@ function createTooltipMotionController(
       if (resumingExit) {
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
       }
-      hideGeneration += 1
       return {
         wasHidden,
         showPresence: wasHidden || resumingExit,
@@ -553,7 +552,7 @@ function createTooltipMotionController(
         stopMovement(element)
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return
@@ -578,7 +577,7 @@ function createTooltipMotionController(
       })
       if (!snapshot.showPresence) return
       presenceAnimation?.cancel()
-      presencePhase = 'enter'
+      exiting = false
       const animation = animatePresence(
         element,
         resolved,
@@ -587,7 +586,7 @@ function createTooltipMotionController(
       )
       presenceAnimation = animation
       if (!animation) {
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return
@@ -597,7 +596,8 @@ function createTooltipMotionController(
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
+        animation.cancel()
       }
     },
     hide(element, override, complete) {
@@ -606,41 +606,41 @@ function createTooltipMotionController(
         stopMovement(element)
         presenceAnimation?.cancel()
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         return false
       }
-      const generation = ++hideGeneration
+      if (exiting) return true
       const from = readTooltipPresenceState(element)
       presenceAnimation?.cancel()
-      presencePhase = 'exit'
+      exiting = true
       const animation = animatePresence(element, resolved, from, {
         opacity: 0,
         scale: 0.96,
       })
       presenceAnimation = animation
       if (!animation) {
-        presencePhase = undefined
+        exiting = false
         stopMovement(element)
         return false
       }
       animation.onfinish = () => {
-        if (generation !== hideGeneration) return
-        complete()
+        if (presenceAnimation !== animation) return
         element.style.removeProperty('opacity')
         element.style.removeProperty('transform')
         presenceAnimation = undefined
-        presencePhase = undefined
+        exiting = false
         stopMovement(element)
+        animation.cancel()
+        complete()
       }
       return true
     },
     destroy(element) {
-      hideGeneration += 1
       presenceAnimation?.cancel()
       presenceAnimation = undefined
-      presencePhase = undefined
+      exiting = false
       stopMovement(element)
       element?.style.removeProperty('opacity')
       element?.style.removeProperty('transform')
