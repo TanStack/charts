@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-10-13T23:37:46.512Z",
+  "generatedAt": "2026-10-14T00:02:00.663Z",
   "packageVersions": {
     "tanstack": "1.1.0",
     "chartjs": "4.5.1",
@@ -11,8 +11,8 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "cad4bc90aff2ca2de61dc15f0eb573d64f33b451",
-      "inputDigest": "sha256:b29a3bd6185c2ffd4c8d840dabc66096d2348d40d2b9ec3dd335fa957d453a58"
+      "revision": "3f579fd6a4057b444eb35baf7d3eb1d95347f66f",
+      "inputDigest": "sha256:a407dcfc0ad7cdda7e2869906d33cda8af55faa4a93d4a5512cd9b1ac1f1f337"
     },
     "chartjs": {
       "kind": "package",
