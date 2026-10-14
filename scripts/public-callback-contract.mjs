@@ -249,6 +249,10 @@ const callbackInventory = {
       'angle radius radius1 radius2',
     ],
     [
+      '@tanstack/charts:src/polar.ts:RadialLabelsOptions',
+      'fill priority stroke text',
+    ],
+    [
       '@tanstack/charts:src/polar.ts:RadialPathOptions',
       'angle color key radius z',
     ],

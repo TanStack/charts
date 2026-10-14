@@ -355,6 +355,7 @@ Each entry records:
 | F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
 | F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
 | F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | resolved   |
+| F-319 | Crowded pie labels overlapped                                  | API                   | resolved   |
 
 ## Findings
 
@@ -9471,3 +9472,21 @@ Each entry records:
   and destruction. All 146 bundle policies pass with the approved Stats gzip
   ceilings of 59.140 and 60.236 decimal kB. Numeric comparison records and the
   other budgets are unchanged.
+
+### F-319 - Crowded pie labels overlapped
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: a production pie with many small adjacent slices. The
+  `radialRule` plus `radialText` composition placed every label on its slice
+  angle, so neighboring labels overlapped. The application needed its own
+  pixel layout, connector paths, and hiding rules outside the polar mark.
+- Decision: add `radialLabels`, which stacks labels on each side of the
+  center, moves overlapping labels apart as little as possible, and hides the
+  lowest-priority labels when they do not fit. `maxShift` optionally hides
+  labels that would move too far from their slice.
+- Verification: unit tests cover ideal placement, minimal spreading, capacity
+  hiding by priority, `maxShift`, vertical bounds, and connector geometry. A
+  rendered chart test covers non-overlapping labels per side and hiding the
+  smallest slices on a short chart.

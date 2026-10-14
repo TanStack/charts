@@ -19,6 +19,7 @@ import { resolveCompositeChildMotion } from './composite-motion-internal'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { createPolarMark as createInternalPolarMark } from './polar-mark-internal'
 import { focusGroupAngle, withPolarFocusGeometry } from './polar-focus-internal'
+import { layoutRadialLabels } from './polar-label-layout-internal'
 import {
   resolvePolarSector,
   tracePolarArcBoundary,
@@ -1817,6 +1818,284 @@ export function radialText<TDatum>(
     options.motion,
     options.renderer,
   )
+}
+
+export interface RadialLabelsOptions<TDatum> extends RadialPathOptions<TDatum> {
+  text?: Channel<TDatum, string | number | null | undefined>
+  /**
+   * Labels with lower priority hide first when labels do not fit. Defaults to
+   * the numeric `value` field, so `pie()` rows keep their largest slices.
+   */
+  priority?: Channel<TDatum, number | null | undefined>
+  fill?: VisualChannel<TDatum, string>
+  fontSize?: number
+  fontWeight?: number
+  opacity?: number
+  /** Vertical pixel space for one label. Defaults to `fontSize * 1.4`. */
+  lineHeight?: number
+  /** Pixel gap between the mapped radius and the connector elbow. Defaults to 16. */
+  offset?: number
+  /** Horizontal connector length after the elbow. Defaults to 12. */
+  elbow?: number
+  /** Pixel gap between the connector and the text. Defaults to 4. */
+  padding?: number
+  /** Hides a label that would move more pixels than this from its slice. */
+  maxShift?: number
+  /** Connector color. Defaults to the label fill. */
+  stroke?: VisualChannel<TDatum, string>
+  strokeOpacity?: number
+  strokeWidth?: number
+}
+
+type RadialLabelsCallOptions<
+  TDatum,
+  TAngle extends RadialLabelsOptions<TDatum>['angle'],
+  TRadius extends RadialLabelsOptions<TDatum>['radius'],
+  TAngleScaleId extends string | undefined,
+  TRadiusScaleId extends string | undefined,
+> = Omit<
+  RadialLabelsOptions<TDatum>,
+  'angle' | 'radius' | 'angleScale' | 'radiusScale'
+> & {
+  angle?: TAngle | NoInfer<RadialLabelsOptions<TDatum>['angle']>
+  radius?: TRadius | NoInfer<RadialLabelsOptions<TDatum>['radius']>
+  angleScale?: TAngleScaleId | NoInfer<string>
+  radiusScale?: TRadiusScaleId | NoInfer<string>
+}
+
+/**
+ * Outside labels with connectors. Crowded labels are pushed apart vertically,
+ * and the lowest-priority labels are hidden when they still do not fit.
+ */
+export function radialLabels<TDatum>(
+  source: Iterable<TDatum>,
+): PolarMark<TDatum, number, number>
+export function radialLabels<
+  TDatum,
+  const TAngle extends RadialLabelsOptions<NoInfer<TDatum>>['angle'] = never,
+  const TRadius extends RadialLabelsOptions<NoInfer<TDatum>>['radius'] = never,
+  const TAngleScaleId extends string | undefined = undefined,
+  const TRadiusScaleId extends string | undefined = undefined,
+>(
+  source: Iterable<TDatum>,
+  options:
+    | RadialLabelsCallOptions<
+        NoInfer<TDatum>,
+        TAngle,
+        TRadius,
+        TAngleScaleId,
+        TRadiusScaleId
+      >
+    | undefined,
+): PolarMark<
+  TDatum,
+  InferredPolarChannelOutput<TDatum, TAngle>,
+  InferredPolarChannelOutput<TDatum, TRadius>,
+  InferredPolarScaleId<TAngleScaleId, 'angle'>,
+  InferredPolarScaleId<TRadiusScaleId, 'radius'>
+>
+export function radialLabels<TDatum>(
+  source: Iterable<TDatum>,
+  options: RadialLabelsOptions<NoInfer<TDatum>> = {},
+): PolarMark<TDatum, any, any> {
+  const data = asArray(source)
+  const lineHeight = options.lineHeight ?? (options.fontSize ?? 12) * 1.4
+  if (!isFiniteNumber(lineHeight) || lineHeight <= 0) {
+    throw new TypeError('radialLabels: lineHeight must be positive and finite')
+  }
+  return createPolarMark(
+    ({ markIndex, parentId, states: defaultStates }) => {
+      const id = options.id ?? `${parentId}:radial-labels-${markIndex}`
+      const angleScale = options.angleScale ?? 'angle'
+      const radiusScale = options.radiusScale ?? 'radius'
+      const angleValues =
+        typeof options.angle === 'number'
+          ? data.map(() => options.angle as number)
+          : channelValues(data, options.angle, (datum) =>
+              numericField(datum, 'angle'),
+            )
+      const radiusValues =
+        typeof options.radius === 'number'
+          ? data.map(() => options.radius as number)
+          : channelValues(data, options.radius, () => 1)
+      const textValues = channelValues(data, options.text, (datum) =>
+        datum == null ? '' : String(datum),
+      )
+      const priorityValues = channelValues(data, options.priority, (datum) =>
+        numericField(datum, 'value'),
+      )
+      const groups = channelValues(data, options.z, () => null)
+      const colorValues =
+        options.color === undefined
+          ? groups
+          : channelValues(data, options.color, () => null)
+      const keys = inferredKeyValues(data, options.key, { groups })
+
+      return {
+        id,
+        states: markStates(data, defaultStates),
+        angleScale,
+        radiusScale,
+        colorValues: colorValues.filter(isChartKey),
+        angleValues: angleValues.filter(isChartValue),
+        radiusValues: radiusValues.filter(isChartValue),
+        includeZeroRadius: false,
+        requiresAngleScale: true,
+        requiresRadiusScale: true,
+        render: ({ layout, color: resolveColor, theme }) => {
+          const angle = requiredPolarScale(
+            layout,
+            angleScale,
+            'angle',
+            `Polar mark "${id}"`,
+          )
+          const radius = requiredPolarScale(
+            layout,
+            radiusScale,
+            'radius',
+            `Polar mark "${id}"`,
+          )
+          const candidates = data.flatMap((_datum, datumIndex) => {
+            const anglePosition = mapPolarScale(angle, angleValues[datumIndex])
+            const radiusPosition = mapPolarScale(
+              radius,
+              radiusValues[datumIndex],
+            )
+            const text = textValues[datumIndex]
+            if (
+              text == null ||
+              text === '' ||
+              !isFiniteNumber(anglePosition) ||
+              !isFiniteNumber(radiusPosition)
+            ) {
+              return []
+            }
+            const priority = priorityValues[datumIndex]
+            return [
+              {
+                datumIndex,
+                angle: anglePosition,
+                radius: radiusPosition,
+                priority: isFiniteNumber(priority) ? priority : 0,
+              },
+            ]
+          })
+          const placements = layoutRadialLabels(candidates, {
+            radius: Math.max(0, ...candidates.map(({ radius }) => radius)),
+            offset: options.offset ?? 16,
+            elbow: options.elbow ?? 12,
+            padding: options.padding ?? 4,
+            lineHeight,
+            top: layout.chart.y - layout.centerY,
+            bottom: layout.chart.y + layout.chart.height - layout.centerY,
+            maxShift: options.maxShift ?? Infinity,
+          })
+          const connectors: SceneNode[] = []
+          const labels: SceneNode[] = []
+          const points: ChartPoint<TDatum>[] = []
+          candidates.forEach((candidate, candidateIndex) => {
+            const placement = placements[candidateIndex]
+            if (!placement?.visible) return
+            const { datumIndex } = candidate
+            const datum = data[datumIndex] as TDatum
+            const group = groups[datumIndex] ?? null
+            const colorValue = colorValues[datumIndex] ?? null
+            const fill = visualValue(
+              options.fill,
+              datum,
+              datumIndex,
+              data,
+              colorValue == null ? theme.foreground : resolveColor(colorValue),
+            )
+            const stroke = visualValue(
+              options.stroke,
+              datum,
+              datumIndex,
+              data,
+              fill,
+            )
+            const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+            const [start, ...rest] = placement.connector
+            connectors.push({
+              kind: 'polyline',
+              key: `${key}:connector`,
+              points: [],
+              path: `M${start!.join(',')}${rest.map((point) => `L${point.join(',')}`).join('')}`,
+              style: {
+                fill: 'none',
+                stroke,
+                strokeOpacity: options.strokeOpacity,
+                strokeWidth: options.strokeWidth ?? 1,
+                opacity: options.opacity,
+                lineCap: 'round',
+                lineJoin: 'round',
+              },
+            })
+            labels.push({
+              kind: 'label',
+              key,
+              x: placement.x,
+              y: placement.y,
+              text: String(textValues[datumIndex]),
+              anchor: physicalTextAnchor(
+                placement.side === 'left' ? 'right' : 'left',
+                layout.direction,
+              ),
+              baseline: 'middle',
+              fontSize: options.fontSize,
+              fontWeight: options.fontWeight,
+              style: { fill, opacity: options.opacity },
+            })
+            points.push(
+              withPolarFocusGeometry(
+                {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group == null ? id : String(group),
+                  datum,
+                  datumIndex,
+                  xValue: angleValues[datumIndex] as ChartValue,
+                  yValue: radiusValues[datumIndex] as ChartValue,
+                  x: layout.centerX + placement.x,
+                  y: layout.centerY + placement.y,
+                  color: fill,
+                },
+                layout,
+                candidate.angle,
+                candidate.radius,
+                placement.x,
+                placement.y,
+              ),
+            )
+          })
+          return {
+            nodes: [
+              {
+                kind: 'group',
+                key: id,
+                className: classes(
+                  'ts-chart__radial-labels ts-chart__text',
+                  options.className,
+                ),
+                ariaHidden: true,
+                children: [...connectors, ...labels],
+              },
+            ],
+            points,
+          }
+        },
+      }
+    },
+    options.motion,
+    options.renderer,
+  )
+}
+
+function numericField(datum: unknown, field: string): number | undefined {
+  if (datum == null || typeof datum !== 'object') return undefined
+  const value = (datum as Record<string, unknown>)[field]
+  return typeof value === 'number' ? value : undefined
 }
 
 export interface RadialRuleOptions<
