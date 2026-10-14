@@ -1036,8 +1036,9 @@ It is nearest-center lookup, not shape hit testing. Like any index, it
 replaces primitive containment and affinity ranking, so a pointer inside a
 wide bar can resolve to a neighboring bar whose anchor is closer. Use it for
 dots and other marks whose anchor is the useful target. Points packed into
-one cell are scanned in order, so a pointer inside a dense cluster costs about
-as much as the linear scan. See
+one cell are scanned in order, so a pointer inside a dense cluster can cost
+more than the linear scan. Measure your workload before choosing this
+opt-in index. See
 [Large Data](../guides/large-data.md#indexed-nearest-point-lookup) for
 measured costs.
 

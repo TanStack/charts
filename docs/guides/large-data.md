@@ -168,6 +168,12 @@ scan at 1,000 points, about 1.2× slower at 10,000, and about 2× faster at
 100,000. D3 quadtree handles that case better. The benchmark prints every
 layout, radius, and size.
 
+A [maintainer Chromium check](https://github.com/TanStack/charts/pull/165#issuecomment-6158225504)
+also found the grid slower than the scan for 10,000 tightly clustered points,
+while uniform points were much faster. These results depend on the point
+distribution and query pattern. Measure your workload before choosing this
+opt-in index.
+
 The grid keeps about 24 bytes per point, against about 90 for the quadtree.
 At a few hundred points the linear scan is already fast; measure before
 adding an index there.
