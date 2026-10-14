@@ -4,6 +4,7 @@ import { defineChart } from './index'
 import { createChartRuntime } from './runtime'
 import { estimateSceneText, measureSceneLabelBounds } from './guide-layout'
 import { pie, polar, radialArc, radialLabels } from './polar'
+import { renderChartSvg } from './svg'
 import type { SceneLabel, SceneNode, ScenePolyline } from './types'
 
 interface Row {
@@ -190,6 +191,20 @@ describe('radialLabels', () => {
       expect(
         first.connectors.some((node) => node.key === `${label.key}:connector`),
       ).toBe(true)
+    })
+  })
+})
+
+describe('radialLabels SVG output', () => {
+  it('serializes connectors as paths and labels as text', () => {
+    const { scene, labels, connectors } = render({ width: 640, height: 480 })
+    const svg = renderChartSvg(scene, { ariaLabel: 'Browser share' })
+
+    connectors.forEach((connector) => {
+      expect(svg).toContain(`d="${connector.path}"`)
+    })
+    labels.forEach((label) => {
+      expect(svg).toContain(`>${label.text}</text>`)
     })
   })
 })
