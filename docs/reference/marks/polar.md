@@ -388,14 +388,22 @@ largest mapped radius, bend at an elbow `offset` pixels outside it (default
 pixels after the connector (default 4).
 
 Labels form one vertical stack on each side of the center, in angular order.
-Each label gets `lineHeight` pixels (default `fontSize * 1.4`). When labels
-overlap, the mark moves them apart as little as possible, and keeps every
-label inside the polar container's chart bounds. When a side has more labels
-than fit, the labels with the lowest `priority` are hidden first. `priority`
-defaults to the numeric `value` field, so the smallest `pie()` slices are
+Each label gets `lineHeight` pixels (default `fontSize * 1.4`; `fontSize`
+defaults to 12). When labels overlap, the mark moves them apart as little as
+possible, and keeps every label inside the polar container's chart bounds.
+When a side has more labels than fit, the labels with the lowest `priority`
+are hidden first. `priority` defaults to the numeric `value` field, so the
+smallest `pie()` slices are hidden first. On equal priority, the later row is
 hidden first. Set `maxShift` to also hide labels that would move more than
 that many pixels from their slice; the mark hides the lowest-priority label
 in the crowded group and lays out again.
+
+The mark measures each label with the chart's text measurer. A label whose
+text would cross the left or right chart edge is hidden, and the remaining
+labels on that side are laid out again. Long labels and narrow charts
+therefore lose labels instead of overflowing; widen the chart, lower
+`radiusRatio`, or shorten `text` to keep more labels. Layout runs on every
+render, so a resized chart can show labels that a smaller size hid.
 
 The mark also accepts `angleScale`, `radiusScale`, `text`, `key`, `z`,
 `color`, fill, font size and weight, opacity, and connector `stroke`,
@@ -403,6 +411,12 @@ The mark also accepts `angleScale`, `radiusScale`, `text`, `key`, `z`,
 visible label emits one interaction point at its final text position. Hidden
 labels emit no nodes and no points, so pair the mark with a tooltip or legend
 when every slice name must stay available.
+
+The mark emits only label and polyline scene nodes, so SVG, Canvas, and React
+Native paint it the same way. Label keys come from `key`; each connector uses
+the label key with a `:connector` suffix. With the motion renderer, kept labels
+and connectors move to their new layout, and hidden or removed labels fade
+out.
 
 ```tsx
 radialLabels(slices, {

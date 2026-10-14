@@ -9355,6 +9355,9 @@ Each entry records:
   lowest-priority labels when they do not fit. `maxShift` optionally hides
   labels that would move too far from their slice.
 - Verification: unit tests cover ideal placement, minimal spreading, capacity
-  hiding by priority, `maxShift`, vertical bounds, and connector geometry. A
-  rendered chart test covers non-overlapping labels per side and hiding the
-  smallest slices on a short chart.
+  hiding by priority, equal-priority ties, `maxShift`, vertical and horizontal
+  bounds, long labels, and connector geometry. Rendered chart tests cover
+  non-overlapping labels per side, short, narrow, and resized charts, stable
+  keys, and SVG, Canvas, and React Native output. A motion test covers moving
+  kept labels and connectors and fading removed labels. Charts that do not
+  import `radialLabels` keep the same polar bundle size within 0.01 kB gzip.
