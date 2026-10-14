@@ -251,6 +251,12 @@ Measure three layers independently:
 This separation reveals whether an expensive chart needs a better encoding, a
 framework-memoized transform, fewer scene nodes, or a different renderer.
 
+When checking an optional renderer feature, include a matched workload that
+omits it. Use identical scenes and production builds, warm the contexts used
+for measurement, and alternate execution order. Repeat with browser-context
+creation order reversed and report paired timing differences. Small differences
+can depend on context order, so one pair of absolute medians is not enough.
+
 ## Choose a sane representation
 
 The fastest way to render too much data is to avoid rendering it:

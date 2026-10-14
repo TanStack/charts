@@ -8135,12 +8135,24 @@ Each entry records:
   `Pattern` resources and resolved native paint. The browser Canvas gate
   rasterizes exported SVG and compares rotated hatch and dot fills with
   Canvas output: the mean channel delta is about 1 of 255 with no divergent
-  pixels, and reversing the Canvas rotation fails the gate. Declaring no
-  patterns costs 7 to 8 gzip bytes in scene-only consumers and 123 to 139
-  bytes in static SVG, DOM, and React consumers, comparable to radial
-  gradients. The Canvas renderer entry grows by about
-  320 gzip bytes for tile rasterization. The
-  factories add about 0.27 KiB under an isolated 0.3 KiB budget.
+  pixels, and reversing the Canvas rotation fails the gate.
+- Proposed bundle increases: matched production builds against main
+  `5a34b7e1` measure 516 gzip bytes for the Canvas host, 646 for representative
+  marks with Canvas, and 619 for React line with Canvas. Static SVG adds 120
+  bytes, DOM 124, compact React 136, and scene-only consumers 7 to 8. These
+  are proposed increases pending maintainer approval. Decimal kB divides
+  bytes by 1000; the source ceilings use KiB (1024 bytes). The factories add
+  about 0.27 KiB under an isolated 0.3 KiB proposed budget.
+- Default-path performance: matched Chromium 151.0.7922.34 production builds
+  compare main `5a34b7e1` with pattern source `ec695a8b`. Each trial renders
+  one 960 by 540 scene of 1000 solid-color 6 by 6 rectangles 100 times at
+  pixel ratio one, with no patterns. Each of two fresh browsers reuses its
+  variant contexts for three warmups and seven paired trials. Execution order
+  alternates; the second browser reverses context creation order. Main/PR
+  medians are 51.8/48.0 ms and 48.7/47.9 ms; paired median PR-minus-main
+  differences are -0.7 and -0.1 ms. This bounded benchmark reproduces no
+  consistent slowdown. Other workloads and on-device React Native rendering
+  remain unverified.
 
 ### F-260 — Static guides cannot express stroke treatment
 
