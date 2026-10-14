@@ -307,6 +307,7 @@ function firstPathX(path: SVGPathElement) {
 }
 
 function installManagedFrames() {
+  const now = vi.spyOn(window.performance, 'now').mockReturnValue(0)
   const callbacks = new Map<number, FrameRequestCallback>()
   let handle = 0
   const request = vi
@@ -327,9 +328,11 @@ function installManagedFrames() {
         [number, FrameRequestCallback] | undefined
       if (!next) throw new Error(`No animation frame scheduled at ${time}ms`)
       callbacks.delete(next[0])
+      now.mockReturnValue(time)
       next[1](time)
     },
     restore() {
+      now.mockRestore()
       request.mockRestore()
       cancel.mockRestore()
     },
