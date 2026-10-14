@@ -3040,7 +3040,9 @@ async function clearBehaviorPointerTarget(page) {
 async function startBehaviorPrint(page, width) {
   await page.evaluate((printWidth) => {
     const behavior = globalThis.__conformanceBehavior
-    const held = []
+    // Negative IDs never collide with native frame handles.
+    const held = new Map()
+    let nextHeldFrame = 0
     const style = document.createElement('style')
     style.textContent = `@media print { [data-conformance-root] { width: ${printWidth}px !important; } }`
     document.head.append(style)
@@ -3048,9 +3050,19 @@ async function startBehaviorPrint(page, width) {
       held,
       style,
       requestAnimationFrame: window.requestAnimationFrame,
+      cancelAnimationFrame: window.cancelAnimationFrame,
       changed: printMediaChange(),
     }
-    window.requestAnimationFrame = (callback) => held.push(callback)
+    window.requestAnimationFrame = (callback) => {
+      const frame = --nextHeldFrame
+      held.set(frame, callback)
+      return frame
+    }
+    window.cancelAnimationFrame = (frame) => {
+      if (!held.delete(frame)) {
+        behavior.print.cancelAnimationFrame.call(window, frame)
+      }
+    }
 
     function printMediaChange() {
       return new Promise((resolveChange) => {
@@ -3079,12 +3091,21 @@ async function endBehaviorPrint(page) {
   await page.emulateMedia({ media: null })
   await page.evaluate(async () => {
     const behavior = globalThis.__conformanceBehavior
-    const { changed, held, style, requestAnimationFrame } = behavior.print
+    const {
+      changed,
+      held,
+      style,
+      requestAnimationFrame,
+      cancelAnimationFrame,
+    } = behavior.print
     await changed
     delete behavior.print
     style.remove()
     window.requestAnimationFrame = requestAnimationFrame
-    for (const callback of held) requestAnimationFrame.call(window, callback)
+    window.cancelAnimationFrame = cancelAnimationFrame
+    for (const callback of held.values()) {
+      requestAnimationFrame.call(window, callback)
+    }
   })
 }
 
