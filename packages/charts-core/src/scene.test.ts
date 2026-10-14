@@ -1169,6 +1169,31 @@ describe('native mark and channel scene', () => {
     expect(readUnrelated).not.toHaveBeenCalled()
   })
 
+  it('ignores non-enumerable axis channels when checking viewport ownership', () => {
+    const history = lineY([{ x: 0, y: 5 }], { x: 'x', y: 'y' })
+    const mark = createMark((context) => {
+      const initialized = history.initialize(context)
+      Object.defineProperty(initialized.channels, 'x', { enumerable: false })
+      return initialized
+    })
+    const resolved = createChartScene(
+      defineChart({
+        marks: [mark],
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+            viewport: { domain: [4, 6] },
+          },
+          y: linearAxes([0, 10], [0, 10]).scales.y,
+        },
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+    expect(resolved.points).toHaveLength(1)
+    expect(viewportInteractionPoints(resolved)).toBe(resolved.points)
+  })
+
   it('keeps fixed mark points interactive outside another mark viewport', () => {
     const fixed = createMark<never, number, number>(() => ({
       id: 'fixed-annotation',

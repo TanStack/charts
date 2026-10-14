@@ -767,7 +767,7 @@ function pointUsesViewportClip(scene: ChartScene, point: ChartPoint) {
     const ownership = mark.viewport?.[axis]
     if (ownership === 'fixed') return false
     if (ownership === 'content' && scene.scales[axis]?.viewport) return true
-    const channel = Object.hasOwn(mark.channels, axis)
+    const channel = Object.keys(mark.channels).includes(axis)
       ? mark.channels[axis]
       : undefined
     return (
