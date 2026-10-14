@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "82eecd6c1fbdca5e857b965e09bb53c550520b2e596fbc4e9850266f03fdb9b4",
+  "sourceHash": "013898ac4b2ba841b90b7dd0e2e3b494a050c308da7ec1567fe91e39f0b1a07a",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -943,6 +943,11 @@
       "id": "197-shadcn-tooltip-label-none",
       "sha256": "af6631dd0b4e88a936d9cff1ae28a90b549ef6c2d72513b90e9dadb80d4f437a",
       "bytes": 5019
+    },
+    {
+      "id": "198-gantt-dependencies",
+      "sha256": "44e6763558c1b1cda02e4b4ed8abb8f7eae83caf303aa78ce418854e3d3d2aaa",
+      "bytes": 11404
     }
   ]
 }

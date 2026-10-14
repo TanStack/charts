@@ -13,6 +13,7 @@ force intervals through a point-value channel.
 | Reader question                                               | Start with                                            |
 | ------------------------------------------------------------- | ----------------------------------------------------- |
 | How did each trading day move from open to close?             | Horizontal price interval                             |
+| Which tasks block which, and how far along is each phase?     | Gantt lanes with dependency arrows                    |
 | How uncertain is each point estimate?                         | Point plus low-high error bar                         |
 | What were open, high, low, and close for each period?         | Candlestick                                           |
 | How does a percentile range evolve over time?                 | Quantile ribbon plus median line                      |
@@ -34,6 +35,34 @@ losses, while the endpoints carry the price movement directly.
 Keep trading dates stable and lane order explicit. Date labels rely on automatic
 guide measurement; verify them at the smallest supported width with
 [Responsive Charts](../guides/responsive-charts.md).
+
+## Plan a project with dependencies
+
+A Gantt chart puts each task on its own lane and its start and end on a time
+axis. This plan groups ten tasks under three phase header lanes, fills each
+task's completed share, marks the go-live milestone, and draws the status date
+as a dashed rule.
+
+<!-- ::chart-example id=198-gantt-dependencies height=520 -->
+
+Derive the lane order, phase roll-ups, progress spans, and dependency
+endpoints in an ordinary module before the definition. Lanes are a
+`scaleBand` domain, so a phase lane and its task lanes keep their order; the
+y-axis `tickLabels` options indent task labels and bold the phase labels.
+
+Each finish-to-start dependency is a `link` from the predecessor's end to the
+successor's start. The link's `curve` receives the two resolved pixel points,
+so a small d3 curve factory passed through `d3Curve` draws right-angle
+segments and an arrowhead. It leaves the predecessor's right edge and enters
+the successor's left edge. When the successor starts too soon for a direct
+step, the connector runs back through the lane gutter first.
+
+Wrap connectors, progress fills, and the status rule in `decorative` so
+keyboard focus stops only on phases, tasks, and the milestone. Arrow keys
+step left to right by default; a `focus` strategy that spreads `focusNearestY`
+and sorts `navigation` by y, then x, walks the lane tree from top to bottom.
+Name each task's predecessors in its tooltip text, because the connectors
+themselves are not focusable.
 
 ## Preserve uncertainty bounds
 
