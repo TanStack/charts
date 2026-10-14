@@ -1,8 +1,13 @@
 export interface RadialLabelInput {
   /** Polar angle in radians, clockwise from 12 o'clock. */
   readonly angle: number
-  /** Labels with lower priority are hidden first when space runs out. */
+  /**
+   * Labels with lower priority are hidden first when space runs out. On equal
+   * priority, the later input label is hidden first.
+   */
   readonly priority: number
+  /** Measured text width in pixels. */
+  readonly width: number
 }
 
 export interface RadialLabelLayoutOptions {
@@ -16,9 +21,11 @@ export interface RadialLabelLayoutOptions {
   readonly padding: number
   /** Vertical pixel space reserved for one label. */
   readonly lineHeight: number
-  /** Center-relative top and bottom edges of the space for label boxes. */
+  /** Center-relative edges of the space for label boxes. */
   readonly top: number
   readonly bottom: number
+  readonly left: number
+  readonly right: number
   /** Largest vertical move from the ideal position before a label is hidden. */
   readonly maxShift: number
 }
@@ -44,7 +51,8 @@ interface Block {
 /**
  * Places labels in two vertical stacks beside a pie. Each side keeps labels in
  * angular order, pushes overlapping labels apart as little as possible, and
- * hides the lowest-priority labels until the rest fit.
+ * hides the lowest-priority labels until the rest fit. Labels whose text would
+ * cross the left or right edge are hidden too.
  */
 export function layoutRadialLabels(
   labels: readonly RadialLabelInput[],
@@ -63,23 +71,41 @@ export function layoutRadialLabels(
   for (const side of ['left', 'right'] as const) {
     const ideal = (index: number) =>
       -Math.cos(labels[index]!.angle) * elbowRadius
-    const ordered = [...sides[side]].sort((a, b) => ideal(a) - ideal(b))
-    const positions = placeSide(ordered, ideal, labels, options)
     const direction = side === 'left' ? -1 : 1
-    positions.forEach((y, index) => {
+    const place = (index: number, y: number) => {
       const angle = labels[index]!.angle
-      const edge = point(angle, options.radius)
       const elbow = point(angle, elbowRadius)
       const circleX = Math.sqrt(Math.max(elbowRadius ** 2 - y ** 2, 0))
       const end = Math.max(circleX, Math.abs(elbow[0])) + options.elbow
-      placements[index] = {
-        visible: true,
+      return {
+        visible: true as const,
         x: direction * (end + options.padding),
         y,
         side,
-        connector: [edge, elbow, [direction * end, y]],
+        connector: [point(angle, options.radius), elbow, [direction * end, y]],
+      } satisfies RadialLabelPlacement
+    }
+    const fits = (index: number, x: number) =>
+      side === 'left'
+        ? x - labels[index]!.width >= options.left
+        : x + labels[index]!.width <= options.right
+
+    let kept = [...sides[side]].sort((a, b) => ideal(a) - ideal(b) || a - b)
+    for (;;) {
+      const placed = [...placeSide(kept, ideal, labels, options)].map(
+        ([index, y]) => [index, place(index, y)] as const,
+      )
+      const overflow = new Set(
+        placed.flatMap(([index, label]) =>
+          fits(index, label.x) ? [] : [index],
+        ),
+      )
+      if (overflow.size === 0) {
+        for (const [index, label] of placed) placements[index] = label
+        break
       }
-    })
+      kept = kept.filter((index) => !overflow.has(index))
+    }
   }
 
   return placements
@@ -170,9 +196,12 @@ function withoutLowest(
   candidates: readonly number[],
   labels: readonly RadialLabelInput[],
 ): number[] {
-  const lowest = candidates.reduce((current, index) =>
-    labels[index]!.priority < labels[current]!.priority ? index : current,
-  )
+  const lowest = candidates.reduce((current, index) => {
+    const difference = labels[index]!.priority - labels[current]!.priority
+    return difference < 0 || (difference === 0 && index > current)
+      ? index
+      : current
+  })
   return kept.filter((index) => index !== lowest)
 }
 

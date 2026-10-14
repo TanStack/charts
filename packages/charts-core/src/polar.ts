@@ -26,7 +26,11 @@ import {
 } from './polar-sector-internal'
 import { resolveNumericScale, resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
-import { physicalTextAnchor } from './guide-layout'
+import {
+  estimateSceneText,
+  measureSceneLabelBounds,
+  physicalTextAnchor,
+} from './guide-layout'
 import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
 import type {
   Channel,
@@ -333,7 +337,12 @@ export function polar(
             }
           }
           for (const mark of marks) {
-            const rendered = mark.render({ layout, color, theme })
+            const rendered = mark.render({
+              layout,
+              color,
+              theme,
+              measureText: chartLayout.measureText,
+            })
             if (mark.states) {
               nodes.push({
                 kind: 'group',
@@ -1899,7 +1908,8 @@ export function radialLabels<TDatum>(
   options: RadialLabelsOptions<NoInfer<TDatum>> = {},
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
-  const lineHeight = options.lineHeight ?? (options.fontSize ?? 12) * 1.4
+  const fontSize = options.fontSize ?? 12
+  const lineHeight = options.lineHeight ?? fontSize * 1.4
   if (!isFiniteNumber(lineHeight) || lineHeight <= 0) {
     throw new TypeError('radialLabels: lineHeight must be positive and finite')
   }
@@ -1942,7 +1952,12 @@ export function radialLabels<TDatum>(
         includeZeroRadius: false,
         requiresAngleScale: true,
         requiresRadiusScale: true,
-        render: ({ layout, color: resolveColor, theme }) => {
+        render: ({
+          layout,
+          color: resolveColor,
+          theme,
+          measureText = estimateSceneText,
+        }) => {
           const angle = requiredPolarScale(
             layout,
             angleScale,
@@ -1977,6 +1992,20 @@ export function radialLabels<TDatum>(
                 angle: anglePosition,
                 radius: radiusPosition,
                 priority: isFiniteNumber(priority) ? priority : 0,
+                width: measureSceneLabelBounds(
+                  {
+                    kind: 'label',
+                    key: '',
+                    x: 0,
+                    y: 0,
+                    text: String(text),
+                    anchor: 'start',
+                    baseline: 'middle',
+                    fontSize,
+                    fontWeight: options.fontWeight,
+                  },
+                  measureText,
+                ).width,
               },
             ]
           })
@@ -1988,6 +2017,8 @@ export function radialLabels<TDatum>(
             lineHeight,
             top: layout.chart.y - layout.centerY,
             bottom: layout.chart.y + layout.chart.height - layout.centerY,
+            left: layout.chart.x - layout.centerX,
+            right: layout.chart.x + layout.chart.width - layout.centerX,
             maxShift: options.maxShift ?? Infinity,
           })
           const connectors: SceneNode[] = []
@@ -2042,7 +2073,7 @@ export function radialLabels<TDatum>(
                 layout.direction,
               ),
               baseline: 'middle',
-              fontSize: options.fontSize,
+              fontSize,
               fontWeight: options.fontWeight,
               style: { fill, opacity: options.opacity },
             })

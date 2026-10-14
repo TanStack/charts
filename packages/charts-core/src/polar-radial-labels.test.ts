@@ -2,10 +2,16 @@ import { scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { defineChart } from './index'
 import { createChartRuntime } from './runtime'
+import { estimateSceneText, measureSceneLabelBounds } from './guide-layout'
 import { pie, polar, radialArc, radialLabels } from './polar'
 import type { SceneLabel, SceneNode, ScenePolyline } from './types'
 
-const browsers = [
+interface Row {
+  name: string
+  share: number
+}
+
+const browsers: readonly Row[] = [
   { name: 'Chrome', share: 64.2 },
   { name: 'Safari', share: 18.9 },
   { name: 'Edge', share: 5.4 },
@@ -23,9 +29,10 @@ const lineHeight = 17
 
 function render(
   size: { width: number; height: number },
-  options: { maxShift?: number } = {},
+  options: { maxShift?: number; rows?: readonly Row[] } = {},
 ) {
-  const slices = pie(browsers, { value: 'share' })
+  const { rows = browsers, ...labelOptions } = options
+  const slices = pie(rows, { value: 'share' })
   const definition = defineChart({
     marks: [
       polar({
@@ -42,7 +49,7 @@ function render(
             key: 'name',
             color: 'name',
             lineHeight,
-            ...options,
+            ...labelOptions,
           }),
         ],
       }),
@@ -53,6 +60,7 @@ function render(
   const scene = createChartRuntime().render(definition, size)
   const nodes = flatten(scene.nodes)
   return {
+    scene,
     points: scene.points.filter((point) => point.markId === 'labels'),
     labels: nodes.filter(
       (node): node is SceneLabel =>
@@ -102,12 +110,87 @@ describe('radialLabels', () => {
     expect(shown).not.toContain('Other')
   })
 
-  it('hides labels that would move too far from their slice', () => {
-    const all = render({ width: 640, height: 480 }).labels
-    const limited = render({ width: 640, height: 480 }, { maxShift: 8 }).labels
+  it('keeps every visible label inside a narrow chart', () => {
+    const size = { width: 220, height: 480 }
+    const { scene, labels } = render(size)
+    const centerX = scene.chart.x + scene.chart.width / 2
 
-    expect(limited.length).toBeLessThan(all.length)
-    expect(limited.map((label) => label.text)).toContain('Chrome')
+    expect(labels.length).toBeLessThan(browsers.length)
+    labels.forEach((label) => {
+      const bounds = measureSceneLabelBounds(label, estimateSceneText)
+      expect(centerX + bounds.x).toBeGreaterThanOrEqual(-1e-9)
+      expect(centerX + bounds.x + bounds.width).toBeLessThanOrEqual(
+        size.width + 1e-9,
+      )
+    })
+  })
+
+  it('shows more labels again when a narrow chart grows', () => {
+    const narrow = render({ width: 220, height: 480 }).labels
+    const wide = render({ width: 640, height: 480 }).labels
+
+    expect(wide.length).toBeGreaterThan(narrow.length)
+    expect(narrow.map((label) => label.key)).toEqual(
+      wide
+        .filter((label) => narrow.some(({ key }) => key === label.key))
+        .map((label) => label.key),
+    )
+  })
+
+  it('hides a long label but keeps short labels on the same chart', () => {
+    const rows = browsers.map((row) =>
+      row.name === 'Safari'
+        ? { ...row, name: 'Safari (all Apple devices, desktop and mobile)' }
+        : row,
+    )
+    const shown = render({ width: 360, height: 480 }, { rows }).labels.map(
+      (label) => label.text,
+    )
+
+    expect(shown).not.toContain(rows[1]!.name)
+    expect(shown).toContain('Chrome')
+    expect(shown).toContain('Edge')
+  })
+
+  it('removes the label, connector, and point of a label hidden by maxShift', () => {
+    const all = render({ width: 640, height: 480 })
+    const limited = render({ width: 640, height: 480 }, { maxShift: 8 })
+    const hidden = all.labels
+      .map((label) => label.key)
+      .filter((key) => !limited.labels.some((label) => label.key === key))
+
+    expect(hidden.length).toBeGreaterThan(0)
+    expect(limited.labels.map((label) => label.text)).toContain('Chrome')
+    for (const key of hidden) {
+      expect(limited.connectors.some((node) => node.key.startsWith(key))).toBe(
+        false,
+      )
+      expect(limited.points.some((point) => point.key === key)).toBe(false)
+    }
+    expect(limited.connectors).toHaveLength(limited.labels.length)
+    expect(limited.points).toHaveLength(limited.labels.length)
+  })
+
+  it('keys labels and connectors by datum key across renders and data changes', () => {
+    const first = render({ width: 640, height: 480 })
+    const changed = render(
+      { width: 640, height: 480 },
+      {
+        rows: browsers.map((row) =>
+          row.name === 'Edge' ? { ...row, share: 9 } : row,
+        ),
+      },
+    )
+    const keys = (labels: readonly SceneLabel[]) =>
+      labels.map((label) => label.key).sort()
+
+    expect(keys(changed.labels)).toEqual(keys(first.labels))
+    first.labels.forEach((label) => {
+      expect(label.key).toMatch(/^labels:.+:.+$/)
+      expect(
+        first.connectors.some((node) => node.key === `${label.key}:connector`),
+      ).toBe(true)
+    })
   })
 })
 
