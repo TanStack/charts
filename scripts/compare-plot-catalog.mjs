@@ -2731,7 +2731,8 @@ async function runBehaviorImplementation(
       } finally {
         try {
           if (mounted) {
-            await endBehaviorPrint(page)
+            // The page is restored even when the media change times out.
+            await endBehaviorPrint(page).catch(() => {})
             await cancelActiveBehaviorPointer(page)
             await page.evaluate(() => {
               globalThis.__conformanceBehavior?.handle.destroy()
@@ -3040,6 +3041,7 @@ async function clearBehaviorPointerTarget(page) {
 async function startBehaviorPrint(page, width) {
   await page.evaluate((printWidth) => {
     const behavior = globalThis.__conformanceBehavior
+    if (behavior.print) throw new Error('printStart called while printing')
     // Negative IDs never collide with native frame handles.
     const held = new Map()
     let nextHeldFrame = 0
@@ -3051,7 +3053,8 @@ async function startBehaviorPrint(page, width) {
       style,
       requestAnimationFrame: window.requestAnimationFrame,
       cancelAnimationFrame: window.cancelAnimationFrame,
-      changed: printMediaChange(),
+      mediaChange,
+      changed: mediaChange(),
     }
     window.requestAnimationFrame = (callback) => {
       const frame = --nextHeldFrame
@@ -3064,49 +3067,66 @@ async function startBehaviorPrint(page, width) {
       }
     }
 
-    function printMediaChange() {
+    // Resolves false if the print media query does not change in time.
+    function mediaChange() {
       return new Promise((resolveChange) => {
-        matchMedia('print').addEventListener('change', resolveChange, {
-          once: true,
-        })
+        const media = matchMedia('print')
+        const timeout = setTimeout(() => {
+          media.removeEventListener('change', changed)
+          resolveChange(false)
+        }, 5_000)
+        function changed() {
+          clearTimeout(timeout)
+          resolveChange(true)
+        }
+        media.addEventListener('change', changed, { once: true })
       })
     }
   }, width)
   await page.emulateMedia({ media: 'print' })
-  await page.evaluate(() => globalThis.__conformanceBehavior.print.changed)
+  const changed = await page.evaluate(
+    () => globalThis.__conformanceBehavior.print.changed,
+  )
+  if (!changed) throw new Error('print media did not apply within 5 s')
 }
 
+// Always restores the page, even when print media never applied.
 async function endBehaviorPrint(page) {
   const printing = await page.evaluate(() => {
     const print = globalThis.__conformanceBehavior?.print
     if (!print) return false
-    print.changed = new Promise((resolveChange) => {
-      matchMedia('print').addEventListener('change', resolveChange, {
-        once: true,
-      })
-    })
+    print.changed = matchMedia('print').matches
+      ? print.mediaChange()
+      : Promise.resolve(true)
     return true
   })
   if (!printing) return
-  await page.emulateMedia({ media: null })
-  await page.evaluate(async () => {
-    const behavior = globalThis.__conformanceBehavior
-    const {
-      changed,
-      held,
-      style,
-      requestAnimationFrame,
-      cancelAnimationFrame,
-    } = behavior.print
-    await changed
-    delete behavior.print
-    style.remove()
-    window.requestAnimationFrame = requestAnimationFrame
-    window.cancelAnimationFrame = cancelAnimationFrame
-    for (const callback of held.values()) {
-      requestAnimationFrame.call(window, callback)
-    }
-  })
+  try {
+    await page.emulateMedia({ media: null })
+  } finally {
+    const changed = await page.evaluate(async () => {
+      const behavior = globalThis.__conformanceBehavior
+      const {
+        changed,
+        held,
+        style,
+        requestAnimationFrame,
+        cancelAnimationFrame,
+      } = behavior.print
+      try {
+        return await changed
+      } finally {
+        delete behavior.print
+        style.remove()
+        window.requestAnimationFrame = requestAnimationFrame
+        window.cancelAnimationFrame = cancelAnimationFrame
+        for (const callback of held.values()) {
+          requestAnimationFrame.call(window, callback)
+        }
+      }
+    })
+    if (!changed) throw new Error('screen media did not apply within 5 s')
+  }
 }
 
 async function cancelActiveBehaviorPointer(page) {
