@@ -3101,10 +3101,11 @@ async function endBehaviorPrint(page) {
     return true
   })
   if (!printing) return
+  let changed = true
   try {
     await page.emulateMedia({ media: null })
   } finally {
-    const changed = await page.evaluate(async () => {
+    changed = await page.evaluate(async () => {
       const behavior = globalThis.__conformanceBehavior
       const {
         changed,
@@ -3125,8 +3126,8 @@ async function endBehaviorPrint(page) {
         }
       }
     })
-    if (!changed) throw new Error('screen media did not apply within 5 s')
   }
+  if (!changed) throw new Error('screen media did not apply within 5 s')
 }
 
 async function cancelActiveBehaviorPointer(page) {
