@@ -224,6 +224,10 @@ const callbackInventory = {
       '@tanstack/charts:src/polar-mark-internal.ts:InitializedPolarMark',
       'motion',
     ],
+    [
+      '@tanstack/charts:src/polar-mark-internal.ts:PolarMarkRenderContext',
+      'measureText',
+    ],
     ['@tanstack/charts:src/polar-pie.ts:PieOptions', 'value'],
     [
       '@tanstack/charts:src/polar.ts:RadialArcOptions',
