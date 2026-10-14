@@ -41,6 +41,39 @@
           "assertions": [{ "path": "tooltip.visible", "equals": false }]
         }
       ]
+    },
+    {
+      "id": "print-width",
+      "renderers": ["tanstack"],
+      "steps": [
+        { "type": "printStart", "width": 420 },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "svg.ts-chart[viewBox^='0 0 420 ']" },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        },
+        { "type": "printEnd" },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "svg.ts-chart[viewBox^='0 0 420 ']" },
+              "property": "count",
+              "equals": 0
+            },
+            {
+              "target": { "selector": "svg.ts-chart" },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        }
+      ]
     }
   ],
   "source": {

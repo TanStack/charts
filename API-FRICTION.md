@@ -352,6 +352,7 @@ Each entry records:
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
 | F-315 | Printed charts kept their screen width                         | API                   | resolved   |
+| F-316 | Catalog previews depend on the local time zone                 | Tooling               | open       |
 
 ## Findings
 
@@ -9363,4 +9364,22 @@ Each entry records:
   and redraws in the same task when the print media changes, before any frame
   runs. Leaving print restores 972 despite a stale 420 observer size, unchanged
   sizes do not redraw, and `destroy` removes the listener. The test fails
-  without the change.
+  without the change. In Chromium, the `34-pointer-tooltip` first-party
+  conformance scenario `print-width` holds animation frames, enters print media
+  with a 420 pixel container, and requires a 420 pixel `viewBox`, then restores
+  the screen width after print. It passes in all 12 variants and fails in all
+  12 on the previous renderer.
+
+### F-316 - Catalog previews depend on the local time zone
+
+- Status: open
+- Severity: low
+- Owner: Tooling
+- Observed in: refreshing the preview fingerprint for the print redraw change.
+  `pnpm catalog:previews` in Europe/Warsaw, and again with `TZ=UTC`, shifted
+  the weekday labels of nine shadcn tooltip previews by one day. The committed
+  previews were generated west of UTC.
+- Workaround: keep the committed SVGs and their manifest records, and commit
+  only the new `sourceHash`.
+- Follow-up: generate previews with a fixed time zone, or format those labels
+  in UTC, so regeneration is reproducible on any machine.

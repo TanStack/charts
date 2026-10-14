@@ -327,6 +327,17 @@ export type ConformanceInteractionStep =
       durationMs: number
     }
   | {
+      /**
+       * Enters print media with the container at `width` CSS pixels. Animation
+       * frames are held until `printEnd`, as browsers print without them.
+       */
+      type: 'printStart'
+      width: number
+    }
+  | {
+      type: 'printEnd'
+    }
+  | {
       type: 'assert'
       assertions: readonly ConformanceStateAssertion[]
     }
@@ -342,6 +353,8 @@ export type ConformanceInteractionStep =
 
 export interface ConformanceInteractionScenario {
   id: string
+  /** Renderers that run this scenario. Omit to run it for every renderer. */
+  renderers?: readonly ConformanceRenderer[]
   steps: readonly ConformanceInteractionStep[]
 }
 
