@@ -237,6 +237,8 @@ ordinary bundles.
 - Optional grouped pointer focus from `@tanstack/charts/focus`
 - Optional native-focus suppression for application-owned gestures from
   `@tanstack/charts/focus/disabled`
+- Optional row-and-column keyboard focus for heatmaps and matrices from
+  `@tanstack/charts/focus/grid`
 - Optional gradients and clipping from `@tanstack/charts/svg/resources`
 
 Every built-in mark, renderer, and chart-owned optional capability has a

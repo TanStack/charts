@@ -351,6 +351,7 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Heatmap keyboard focus moved through one flat list             | API                   | open       |
 
 ## Findings
 
@@ -9317,3 +9318,34 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Heatmap keyboard focus moved through one flat list
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: PMDB, a consumer application, which renders its person-by-week
+  capacity heatmap as an HTML table with one button per cell instead of a
+  chart. Chart keyboard focus was one reason: every strategy exposes one
+  ordered `navigation` list, and the DOM host maps ArrowDown to ArrowRight and
+  ArrowUp to ArrowLeft over it.
+- Friction: in a matrix, a keyboard reader could not move to the same week for
+  the next person, or to the start of a row, without stepping through every
+  cell between. Reproducing grid movement meant leaving chart focus and
+  building an application-owned widget.
+- Decision (draft): add an optional `step(points, context)` method to
+  `ChartFocusStrategy` for directional keys, with `navigation` as the fallback
+  and the default for existing strategies. Ship `focusGrid` from the separate
+  `@tanstack/charts/focus/grid` entry point so charts that do not import it do
+  not grow. The rejected alternative was letting `navigation` return rows,
+  which changes a return type every host consumes. Two choices stay open for
+  maintainer review: (a) `key` is the raw `KeyboardEvent.key`, so only the DOM
+  host dispatches `step`; the D3 companion host and React Native call
+  `navigation` only and fall back to row-major linear order. A host-neutral
+  direction vocabulary (`right`, `left`, `up`, `down`, `rowStart`, `rowEnd`,
+  `first`, `last`) would let every host dispatch it. (b) `modifier` is one
+  boolean for Control or Command instead of explicit `ctrlKey` and `metaKey`.
+- Verification: unit tests cover row and column moves, sparse skips, row and
+  grid extremes, the row-major fallback order, and a mounted heatmap whose
+  tooltip names both the row and column after keyboard moves. The built-in
+  axis strategies have no `step` and keep their existing tests.

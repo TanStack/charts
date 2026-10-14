@@ -94,6 +94,10 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/focus.ts:axisFocus', 'group navigation resolve'],
     [
+      '@tanstack/charts:src/focus-grid.ts:UniversalGridFocusStrategy',
+      'group navigation resolve step',
+    ],
+    [
       '@tanstack/charts:src/polar-focus-internal.ts:focusGroupAngle',
       'group navigation resolve',
     ],
@@ -349,7 +353,7 @@ const callbackInventory = {
     ],
     [
       '@tanstack/charts:src/types.ts:ChartFocusStrategy',
-      'group navigation resolve',
+      'group navigation resolve step',
     ],
     ['@tanstack/charts:src/types.ts:ChartLayoutOptions', 'measureText'],
     ['@tanstack/charts:src/types.ts:ChartMark', 'initialize motion'],
