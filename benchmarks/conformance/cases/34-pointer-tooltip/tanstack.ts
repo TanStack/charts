@@ -34,7 +34,7 @@ export function mount(
   let focusedDates: string[] = []
   const options: ChartHostOptions<AaplRow> = {
     definition: createExampleChart(input),
-    width: input.width,
+    // The runner sizes the container, so its width also drives print layout.
     height: input.height,
     ariaLabel: exampleAriaLabel,
     onFocusGroupChange(points) {
@@ -87,7 +87,6 @@ export function mount(
       host.update({
         ...options,
         definition: createExampleChart(nextInput),
-        width: nextInput.width,
         height: nextInput.height,
       })
     },

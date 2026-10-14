@@ -407,6 +407,14 @@ function isValidGuideExpectation(expectation, referenceRenderer) {
 function isValidInteractionScenario(scenario) {
   return (
     typeof scenario?.id === 'string' &&
+    (scenario.renderers === undefined ||
+      (Array.isArray(scenario.renderers) &&
+        scenario.renderers.length > 0 &&
+        scenario.renderers.every(
+          (renderer) =>
+            renderer === targetRenderer ||
+            referenceRenderers.includes(renderer),
+        ))) &&
     Array.isArray(scenario.steps) &&
     scenario.steps.length > 0 &&
     scenario.steps.every(isValidInteractionStep)
@@ -461,6 +469,10 @@ function isValidInteractionStep(step) {
         (step.deltaMode === undefined ||
           ['pixel', 'line', 'page'].includes(step.deltaMode))
       )
+    case 'printStart':
+      return isPositiveInteger(step.width)
+    case 'printEnd':
+      return true
     case 'wait':
       return (
         Number.isInteger(step.durationMs) &&
@@ -2567,9 +2579,14 @@ async function runBehaviorImplementation(
   browser,
   serverUrl,
   implementation,
-  scenarios,
+  caseScenarios,
   variant,
 ) {
+  const scenarios = caseScenarios.filter(
+    (scenario) =>
+      !scenario.renderers ||
+      scenario.renderers.includes(implementation.renderer),
+  )
   const page = await browser.newPage({
     viewport: {
       width: Math.max(variant.width + 96, 480),
@@ -2714,6 +2731,7 @@ async function runBehaviorImplementation(
       } finally {
         try {
           if (mounted) {
+            await endBehaviorPrint(page)
             await cancelActiveBehaviorPointer(page)
             await page.evaluate(() => {
               globalThis.__conformanceBehavior?.handle.destroy()
@@ -2760,6 +2778,14 @@ async function performBehaviorStep(page, step, variant, context) {
       pass: assertions.every((assertion) => assertion.pass),
       state: await readBehaviorState(page),
       assertions,
+    }
+  }
+  if (step.type === 'printStart') {
+    await startBehaviorPrint(page, step.width)
+    return {
+      type: step.type,
+      pass: true,
+      state: await readBehaviorState(page),
     }
   }
   if (step.type === 'screenshot') {
@@ -2977,6 +3003,10 @@ async function performBehaviorStep(page, step, variant, context) {
       await page.waitForTimeout(step.durationMs)
       break
     }
+    case 'printEnd': {
+      await endBehaviorPrint(page)
+      break
+    }
   }
 
   await settleBehavior(page)
@@ -3001,6 +3031,60 @@ async function clearBehaviorPointerTarget(page) {
     if (globalThis.__conformanceBehavior) {
       globalThis.__conformanceBehavior.pointerTarget = null
     }
+  })
+}
+
+// Browsers lay out and paint print media without running animation frames.
+// Hold them while printing so only work done synchronously reaches the page.
+// The step skips settling, which would wait for a frame.
+async function startBehaviorPrint(page, width) {
+  await page.evaluate((printWidth) => {
+    const behavior = globalThis.__conformanceBehavior
+    const held = []
+    const style = document.createElement('style')
+    style.textContent = `@media print { [data-conformance-root] { width: ${printWidth}px !important; } }`
+    document.head.append(style)
+    behavior.print = {
+      held,
+      style,
+      requestAnimationFrame: window.requestAnimationFrame,
+      changed: printMediaChange(),
+    }
+    window.requestAnimationFrame = (callback) => held.push(callback)
+
+    function printMediaChange() {
+      return new Promise((resolveChange) => {
+        matchMedia('print').addEventListener('change', resolveChange, {
+          once: true,
+        })
+      })
+    }
+  }, width)
+  await page.emulateMedia({ media: 'print' })
+  await page.evaluate(() => globalThis.__conformanceBehavior.print.changed)
+}
+
+async function endBehaviorPrint(page) {
+  const printing = await page.evaluate(() => {
+    const print = globalThis.__conformanceBehavior?.print
+    if (!print) return false
+    print.changed = new Promise((resolveChange) => {
+      matchMedia('print').addEventListener('change', resolveChange, {
+        once: true,
+      })
+    })
+    return true
+  })
+  if (!printing) return
+  await page.emulateMedia({ media: null })
+  await page.evaluate(async () => {
+    const behavior = globalThis.__conformanceBehavior
+    const { changed, held, style, requestAnimationFrame } = behavior.print
+    await changed
+    delete behavior.print
+    style.remove()
+    window.requestAnimationFrame = requestAnimationFrame
+    for (const callback of held) requestAnimationFrame.call(window, callback)
   })
 }
 
