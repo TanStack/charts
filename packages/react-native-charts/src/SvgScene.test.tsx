@@ -2,6 +2,7 @@ import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
+import { dotPattern, linePattern } from '@tanstack/charts/pattern'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
 import {
@@ -28,6 +29,7 @@ vi.mock('react-native-svg', () => ({
   Line: 'line',
   LinearGradient: 'linearGradient',
   Path: 'path',
+  Pattern: 'pattern',
   RadialGradient: 'radialGradient',
   Rect: 'rect',
   Stop: 'stop',
@@ -460,6 +462,50 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('url(#native-one-_)')
     expect(markup).toContain('id="native-one-a_x29_b"')
     expect(markup).toContain('url(#native-one-a_x29_b)')
+  })
+
+  it('renders scoped pattern tiles with resolved native paint', () => {
+    const patternScene = scene()
+    patternScene.patterns = [
+      linePattern({
+        id: 'hatch.a',
+        color: 'var(--hatch, #123456)',
+        background: '#ffffff',
+        spacing: 8,
+        strokeWidth: 2,
+      }),
+      dotPattern({ id: 'grain', color: '#abcdef', radius: 9 }),
+    ]
+    patternScene.nodes = [
+      {
+        kind: 'rect',
+        key: 'hatched',
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 10,
+        style: { fill: 'url(#hatch.a)', stroke: 'url(#grain)' },
+      },
+    ]
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={patternScene}
+        color="#111827"
+        idPrefix="native-one"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain(
+      '<pattern id="native-one-hatch_x2e_a" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">',
+    )
+    expect(markup).toContain('<pattern id="native-one-grain" width="6"')
+    expect(markup).not.toContain('var(--hatch')
+    expect(markup).toMatch(/<rect[^>]*fill="#123456"[^>]*y="3"[^>]*height="2"/)
+    expect(markup).toMatch(/<circle[^>]*fill="#abcdef"[^>]*r="3"/)
+    expect(markup).toContain('fill="url(#native-one-hatch_x2e_a)"')
+    expect(markup).toContain('stroke="url(#native-one-grain)"')
   })
 
   it('renders only the resolved native retarget candidate', () => {

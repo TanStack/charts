@@ -23,6 +23,7 @@ import {
   type InteractiveColorLegendChange,
 } from './interactive-legend'
 import { dot } from './dot'
+import { linePattern } from './pattern'
 import { facet } from './facet'
 import { lineX, lineY } from './line'
 import { mountChart } from './dom'
@@ -52,6 +53,7 @@ interface FakeCanvasContext {
   fillStyles: Array<string | CanvasGradient>
   globalAlphas: number[]
   arcTos: Array<[number, number, number, number, number]>
+  patterns: Array<{ source: CanvasImageSource; transforms: DOMMatrix2DInit[] }>
   context: CanvasRenderingContext2D
 }
 
@@ -1068,6 +1070,211 @@ describe('Canvas renderer', () => {
     expect(surface.element).toBe(container.querySelector('.ts-chart-canvas'))
     surface.destroy()
   })
+
+  it('paints pattern tiles at device resolution with the SVG rotation', () => {
+    const readStyle = window.getComputedStyle.bind(window)
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element) =>
+      element instanceof HTMLSpanElement &&
+      element.style.color === 'var(--hatch)'
+        ? ({ color: 'rgb(1, 2, 3)' } as CSSStyleDeclaration)
+        : readStyle(element),
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer({ pixelRatio: 2 }).mount(
+      container,
+      () => {},
+    )
+    const patternScene: ChartScene = {
+      ...scene([
+        {
+          kind: 'rect',
+          key: 'hatched',
+          x: 10,
+          y: 20,
+          width: 40,
+          height: 20,
+          style: { fill: 'url(#hatch)', stroke: 'url(#hatch)' },
+        },
+        {
+          kind: 'label',
+          key: 'hatched-label',
+          x: 30,
+          y: 40,
+          text: 'Hatched',
+          style: { fill: 'url(#hatch)' },
+        },
+        {
+          kind: 'rect',
+          key: 'circular',
+          x: 60,
+          y: 0,
+          width: 10,
+          height: 10,
+          style: { fill: 'url(#loop)' },
+        },
+      ]),
+      patterns: [
+        linePattern({
+          id: 'hatch',
+          color: 'var(--hatch)',
+          background: 'rgb(255, 255, 255)',
+          spacing: 5,
+          strokeWidth: 2,
+          angle: 90,
+        }),
+        {
+          id: 'loop',
+          width: 4,
+          height: 4,
+          nodes: [
+            {
+              kind: 'rect',
+              key: 'loop-cell',
+              x: 0,
+              y: 0,
+              width: 4,
+              height: 4,
+              style: { fill: 'url(#loop)' },
+            },
+          ],
+        },
+      ],
+    }
+    surface.render(patternScene, renderOptions())
+
+    const painted = contexts.get(surface.sceneCanvas)
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    const [record, circular] = painted.patterns
+    if (!record) throw new Error('Expected one cached pattern tile')
+    expect(painted.patterns).toHaveLength(2)
+    expect(circular?.transforms).toHaveLength(1)
+    const tile = record.source as HTMLCanvasElement
+    expect([tile.width, tile.height]).toEqual([10, 10])
+    const tileOperations = contexts.get(tile)?.operations
+    expect(tileOperations?.[0]).toBe('scale:2,2')
+    expect(tileOperations).toEqual(
+      expect.arrayContaining([
+        'rect:0,0,5,5',
+        'fill:rgb(255, 255, 255):1',
+        'rect:0,1.5,5,2',
+        'fill:rgb(1, 2, 3):1',
+      ]),
+    )
+    expect(tileOperations?.indexOf('fill:rgb(255, 255, 255):1')).toBeLessThan(
+      tileOperations?.indexOf('fill:rgb(1, 2, 3):1') ?? -1,
+    )
+    expect(painted.operations).toContain('fill:pattern:0:1')
+    expect(painted.operations).toContain('stroke:pattern:0:1:1')
+    expect(painted.operations).toContain('fillText:Hatched,0,0')
+    const [rectFill, , labelFill] = record.transforms
+    expect(rectFill?.a).toBeCloseTo(0)
+    expect(rectFill?.b).toBeCloseTo(-0.5)
+    expect(rectFill?.c).toBeCloseTo(0.5)
+    expect(rectFill?.d).toBeCloseTo(0)
+    expect(Math.abs(rectFill?.e ?? 1) + Math.abs(rectFill?.f ?? 1)).toBe(0)
+    expect([labelFill?.e, labelFill?.f]).toEqual([-30, -40])
+    surface.destroy()
+  })
+
+  it('bounds fractional pattern cycles by dependency identity', () => {
+    const getContext = getContextSpy.getMockImplementation()
+    getContextSpy.mockImplementation(function (this: HTMLCanvasElement) {
+      if (contexts.size > 8) throw new Error('Repeated tile allocation')
+      const context = getContext?.call(this)
+      const fake = contexts.get(this)
+      if (context && fake) {
+        context.getTransform = () => {
+          const scale = [...fake.operations]
+            .reverse()
+            .find((op) => op.startsWith('scale:'))
+          const [a, d] = scale?.slice(6).split(',').map(Number) ?? [2, 2]
+          return { a, b: 0, c: 0, d, e: 0, f: 0 } as DOMMatrix
+        }
+      }
+      return context ?? null
+    })
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer({ pixelRatio: 2 }).mount(
+      container,
+      () => {},
+    )
+    const tile = (id: string, width: number, fill: string) => ({
+      id,
+      width,
+      height: width,
+      nodes: [
+        {
+          kind: 'rect' as const,
+          key: id,
+          x: 0,
+          y: 0,
+          width,
+          height: width,
+          style: { fill },
+        },
+      ],
+    })
+    const patternedScene = {
+      ...scene([
+        {
+          kind: 'rect',
+          key: 'paint',
+          x: 0,
+          y: 0,
+          width: 20,
+          height: 20,
+          style: { fill: 'url(#a)' },
+        },
+      ]),
+      patterns: [tile('a', 1.1, 'url(#b)'), tile('b', 1.3, 'url(#a)')],
+    }
+    expect(() => surface.render(patternedScene, renderOptions())).not.toThrow()
+    expect(
+      [...contexts.values()].flatMap((context) => context.patterns),
+    ).toHaveLength(2)
+    surface.destroy()
+  })
+
+  it.each([{ sizes: [4097] }, { sizes: [4096, 1] }])(
+    'rejects excessive pattern tile allocations for $sizes',
+    ({ sizes }) => {
+      const container = document.createElement('div')
+      const surface = createCanvasChartRenderer({ pixelRatio: 1 }).mount(
+        container,
+        () => {},
+      )
+      for (const context of contexts.values()) {
+        context.context.getTransform = () =>
+          ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) as DOMMatrix
+      }
+      const patternedScene = {
+        ...scene(
+          sizes.map((_, index) => ({
+            kind: 'rect' as const,
+            key: String(index),
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 20,
+            style: { fill: `url(#tile-${index})` },
+          })),
+        ),
+        patterns: sizes.map((size, index) => ({
+          id: `tile-${index}`,
+          width: size,
+          height: size,
+          nodes: [],
+        })),
+      }
+      expect(() => surface.render(patternedScene, renderOptions())).toThrow(
+        RangeError,
+      )
+      expect(
+        [...contexts.values()].flatMap((context) => context.patterns).length,
+      ).toBeLessThan(2)
+      surface.destroy()
+    },
+  )
 
   it('normalizes legacy linear coordinates and decreasing stops', () => {
     const container = document.createElement('div')
@@ -3309,6 +3516,7 @@ function fakeContext(): FakeCanvasContext {
   const fillStyles: Array<string | CanvasGradient> = []
   const globalAlphas: number[] = []
   const arcTos: Array<[number, number, number, number, number]> = []
+  const patterns: FakeCanvasContext['patterns'] = []
   let fillStyle: string | CanvasGradient = '#000000'
   let strokeStyle: string | CanvasGradient = '#000000'
   let lineWidth = 1
@@ -3347,6 +3555,21 @@ function fakeContext(): FakeCanvasContext {
     transform: (...values: number[]) =>
       operations.push(`transform:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
+    scale: (...values: number[]) =>
+      operations.push(`scale:${values.join(',')}`),
+    getTransform: () => ({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 }),
+    createPattern: (source: CanvasImageSource) => {
+      const record: FakeCanvasContext['patterns'][number] = {
+        source,
+        transforms: [],
+      }
+      patterns.push(record)
+      return {
+        setTransform: (transform: DOMMatrix2DInit) =>
+          record.transforms.push(transform),
+        toString: () => `pattern:${patterns.indexOf(record)}`,
+      } as unknown as CanvasPattern
+    },
     clip: (...values: unknown[]) => {
       operations.push('clip')
       const [pathOrRule, fillRule] = values
@@ -3470,6 +3693,7 @@ function fakeContext(): FakeCanvasContext {
     fillStyles,
     globalAlphas,
     arcTos,
+    patterns,
     context,
   }
 }

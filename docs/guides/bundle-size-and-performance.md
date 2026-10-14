@@ -168,14 +168,14 @@ const interactive = defineChart(definition, {
 })
 ```
 
-The locked compact React line consumer must remain at or below 31.03 KiB gzip.
+The locked compact React line consumer must remain at or below 31.16 KiB gzip.
 Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
 `d3-interpolate`, `d3-color`, transforms, and sibling compact-scale entries.
 Separate incremental gates limit tooltip and portal growth.
 
-The current locked fixtures measure the compact line scene at 12,726 gzip bytes
-versus 19,890 with D3 linear scales. The equivalent React consumers measure
-31,742 and 38,843 gzip bytes with React and React DOM external. These are
+The current locked fixtures measure the compact line scene at 12,733 gzip bytes
+versus 19,898 with D3 linear scales. The equivalent React consumers measure
+31,881 and 38,975 gzip bytes with React and React DOM external. These are
 fixture measurements, not universal savings claims; they show why the compact
 subset is the normal starting point.
 
@@ -250,6 +250,12 @@ Measure three layers independently:
 
 This separation reveals whether an expensive chart needs a better encoding, a
 framework-memoized transform, fewer scene nodes, or a different renderer.
+
+When checking an optional renderer feature, include a matched workload that
+omits it. Use identical scenes and production builds, warm the contexts used
+for measurement, and alternate execution order. Repeat with browser-context
+creation order reversed and report paired timing differences. Small differences
+can depend on context order, so one pair of absolute medians is not enough.
 
 ## Choose a sane representation
 

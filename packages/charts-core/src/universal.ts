@@ -42,6 +42,7 @@ export {
 } from './legend-static'
 export { createMark } from './mark'
 export { compositeMark } from './mark-composite'
+export { dotPattern, linePattern } from './pattern'
 export { cell, rect } from './rect'
 export { createChartRuntime, isResponsiveChartDefinition } from './runtime'
 export {

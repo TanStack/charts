@@ -163,6 +163,7 @@
     "./mark/composite": "./src/mark-composite.ts",
     "./mark/decorative": "./src/mark-decorative.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
+    "./pattern": "./src/pattern.ts",
     "./polar": "./src/polar.ts",
     "./preact": "./src/preact.ts",
     "./react": "./src/react.ts",
@@ -477,6 +478,10 @@
       "./mark/scale-values": {
         "types": "./dist/mark-with-scale-values.d.ts",
         "import": "./dist/mark-with-scale-values.js"
+      },
+      "./pattern": {
+        "types": "./dist/pattern.d.ts",
+        "import": "./dist/pattern.js"
       },
       "./polar": {
         "types": "./dist/polar.d.ts",

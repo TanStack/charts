@@ -583,6 +583,7 @@ function createChartSceneWithScaleResolver<
     scales,
     colors,
     gradients: definition.gradients ?? [],
+    patterns: definition.patterns,
     theme,
     ...(layoutOptions.typography?.direction === undefined
       ? {}

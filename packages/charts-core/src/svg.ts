@@ -1,6 +1,7 @@
 import { number, escapeAttribute } from './markup-internal'
 import {
   renderChartSvgWithHooks,
+  renderSceneNodes,
   renderSvgClip,
   type ChartSvgRenderHooks,
 } from './svg-renderer'
@@ -10,21 +11,27 @@ export function renderChartSvg(
   scene: ChartScene,
   options: RenderChartSvgOptions,
 ): string {
-  const gradientIds = new Set(scene.gradients.map((gradient) => gradient.id))
-  return renderChartSvgWithHooks(scene, options, {
+  const resourceIds = new Set(
+    [...scene.gradients, ...(scene.patterns ?? [])].map(
+      (resource) => resource.id,
+    ),
+  )
+  const hooks: ChartSvgRenderHooks = {
     renderDefinitions: (currentScene, idPrefix) =>
-      renderGradients(currentScene, sanitizeId(idPrefix)),
+      renderGradients(currentScene, sanitizeId(idPrefix)) +
+      renderPatterns(currentScene, sanitizeId(idPrefix), hooks),
     renderGroup: renderSvgClip,
-    resolvePaint: gradientIds.size
+    resolvePaint: resourceIds.size
       ? (value, idPrefix) => {
           const match = /^url\(#([^)]+)\)$/.exec(value)
           const id = match?.[1]
-          return id && gradientIds.has(id)
+          return id && resourceIds.has(id)
             ? `url(#${scopedId(sanitizeId(idPrefix), id)})`
             : value
         }
       : undefined,
-  } satisfies ChartSvgRenderHooks)
+  }
+  return renderChartSvgWithHooks(scene, options, hooks)
 }
 
 function renderGradients(scene: ChartScene, idPrefix: string) {
@@ -46,6 +53,20 @@ function renderGradients(scene: ChartScene, idPrefix: string) {
       }
       return `<linearGradient data-ts-key="gradient:${escapeAttribute(gradient.id)}" id="${escapeAttribute(scopedId(idPrefix, gradient.id))}" x1="${percent(gradient.x1 ?? 0)}" y1="${percent(gradient.y1 ?? 1)}" x2="${percent(gradient.x2 ?? 0)}" y2="${percent(gradient.y2 ?? 0)}">${stops}</linearGradient>`
     })
+    .join('')}</defs>`
+}
+
+function renderPatterns(
+  scene: ChartScene,
+  idPrefix: string,
+  hooks: ChartSvgRenderHooks,
+) {
+  if (!scene.patterns?.length) return ''
+  return `<defs data-ts-key="patterns">${scene.patterns
+    .map(
+      (pattern) =>
+        `<pattern data-ts-key="pattern:${escapeAttribute(pattern.id)}" id="${escapeAttribute(scopedId(idPrefix, pattern.id))}" width="${number(pattern.width)}" height="${number(pattern.height)}" patternUnits="userSpaceOnUse"${pattern.angle ? ` patternTransform="rotate(${number(-pattern.angle)})"` : ''}>${renderSceneNodes(pattern.nodes, idPrefix, hooks)}</pattern>`,
+    )
     .join('')}</defs>`
 }
 

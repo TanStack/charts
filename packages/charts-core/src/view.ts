@@ -89,9 +89,10 @@ export type ComposableStaticChartDefinition<
   TYValue extends ChartValue = ChartValue,
 > = Omit<
   WithoutEmbeddedHostOptions<StaticChartDefinition<TDatum, TXValue, TYValue>>,
-  'gradients' | 'theme'
+  'gradients' | 'patterns' | 'theme'
 > & {
   gradients?: readonly []
+  patterns?: readonly []
   theme?: ComposableChartTheme
 }
 
@@ -783,9 +784,9 @@ function assertChildDefinition(
     )
   }
   if ('chart' in definition) return
-  if (definition.gradients?.length) {
+  if (definition.gradients?.length || definition.patterns?.length) {
     throw new TypeError(
-      `View "${id}" cannot embed gradients until child scene resources can be adopted by the outer scene`,
+      `View "${id}" cannot embed gradients or patterns until child scene resources can be adopted by the outer scene`,
     )
   }
   if (definition.theme?.background !== undefined) {

@@ -22,11 +22,15 @@ const bundle = await build({
       import { arrow } from '@tanstack/charts/arrow'
       import { barY } from '@tanstack/charts/bar'
       import { dot } from '@tanstack/charts/dot'
-      import { renderChartImage } from '@tanstack/charts/export'
+      import {
+        renderChartImage,
+        serializeChartSvg,
+      } from '@tanstack/charts/export'
       import { facet } from '@tanstack/charts/facet'
       import { hexagon } from '@tanstack/charts/hexagon'
       import { lineY } from '@tanstack/charts/line'
       import { link } from '@tanstack/charts/link'
+      import { dotPattern, linePattern } from '@tanstack/charts/pattern'
       import { mountChart } from '@tanstack/charts/dom'
       import { polar, radialDot, radialLine } from '@tanstack/charts/polar'
       import { rect } from '@tanstack/charts/rect'
@@ -366,6 +370,120 @@ const bundle = await build({
           delta: channelDelta(decreasingCanvasSample, decreasingSvgSample),
         }
         radialSurface.destroy()
+
+        const patternContainer = document.querySelector('#pattern')
+        patternContainer.style.setProperty('--pattern-ink', '#1d4ed8')
+        const patternScene = {
+          ...makeScene(200, 104),
+          nodes: [
+            {
+              kind: 'rect',
+              key: 'hatch',
+              x: 12,
+              y: 12,
+              width: 84,
+              height: 80,
+              style: { fill: 'url(#hatch)' },
+            },
+            {
+              kind: 'rect',
+              key: 'grain',
+              x: 104,
+              y: 12,
+              width: 84,
+              height: 80,
+              style: { fill: 'url(#grain)' },
+            },
+          ],
+          points: [],
+          patterns: [
+            linePattern({
+              id: 'hatch',
+              color: 'var(--pattern-ink)',
+              background: '#ffffff',
+              spacing: 7,
+              strokeWidth: 2.5,
+              angle: 30,
+            }),
+            dotPattern({
+              id: 'grain',
+              color: 'var(--pattern-ink)',
+              background: '#ffffff',
+              spacing: 8,
+              radius: 2.5,
+              angle: 45,
+            }),
+          ],
+        }
+        const patternSurface = createCanvasChartRenderer().mount(
+          patternContainer,
+          () => {},
+        )
+        patternSurface.render(patternScene, {
+          ariaLabel: 'Canvas pattern parity check',
+          tabIndex: -1,
+        })
+        const patternCanvasContext = patternSurface.canvas.getContext('2d')
+        // Resolve CSS variables through the standalone export path.
+        const patternSvgHost = document.createElement('div')
+        patternContainer.append(patternSvgHost)
+        patternSvgHost.innerHTML = renderChartSvg(patternScene, {
+          ariaLabel: 'SVG pattern parity check',
+          tabIndex: -1,
+          idPrefix: 'pattern-parity-check',
+        })
+        const patternMarkup = serializeChartSvg(patternSvgHost)
+        patternSvgHost.remove()
+        const patternImage = new Image()
+        patternImage.src =
+          'data:image/svg+xml;charset=utf-8,' +
+          encodeURIComponent(patternMarkup)
+        await patternImage.decode()
+        const patternSvgCanvas = document.createElement('canvas')
+        patternSvgCanvas.width = patternScene.width * ratio
+        patternSvgCanvas.height = patternScene.height * ratio
+        const patternSvgContext = patternSvgCanvas.getContext('2d')
+        patternSvgContext.scale(ratio, ratio)
+        patternSvgContext.drawImage(
+          patternImage,
+          0,
+          0,
+          patternScene.width,
+          patternScene.height,
+        )
+        const comparePatternRegion = (x, y, width, height) => {
+          const read = (context) =>
+            context.getImageData(x * ratio, y * ratio, width * ratio, height * ratio)
+              .data
+          const canvasPixels = read(patternCanvasContext)
+          const svgPixels = read(patternSvgContext)
+          let totalDelta = 0
+          let divergent = 0
+          let inked = 0
+          const pixels = canvasPixels.length / 4
+          for (let index = 0; index < canvasPixels.length; index += 4) {
+            let pixelDelta = 0
+            for (let channel = 0; channel < 4; channel += 1) {
+              pixelDelta = Math.max(
+                pixelDelta,
+                Math.abs(canvasPixels[index + channel] - svgPixels[index + channel]),
+              )
+            }
+            totalDelta += pixelDelta
+            if (pixelDelta > 96) divergent += 1
+            if (canvasPixels[index] < 128) inked += 1
+          }
+          return {
+            meanDelta: totalDelta / pixels,
+            divergentShare: divergent / pixels,
+            inkShare: inked / pixels,
+          }
+        }
+        const patternResult = {
+          lines: comparePatternRegion(16, 16, 76, 72),
+          dots: comparePatternRegion(108, 16, 76, 72),
+        }
+        patternSurface.destroy()
 
         const data = [
           { id: 'a', x: 0, y: 1 },
@@ -858,6 +976,7 @@ const bundle = await build({
         return {
           surface: surfaceResult,
           radial: radialResult,
+          pattern: patternResult,
           export: { type: exported.type, size: exported.size },
           interaction: {
             focused,
@@ -886,7 +1005,7 @@ try {
   })
   const page = await context.newPage()
   await page.setContent(
-    '<div id="surface" style="width:160px;height:90px"></div><div id="radial" style="width:200px;height:104px"></div><div id="interaction" style="width:320px;height:180px"></div><div id="mixed"></div>',
+    '<div id="surface" style="width:160px;height:90px"></div><div id="radial" style="width:200px;height:104px"></div><div id="pattern" style="width:200px;height:104px"></div><div id="interaction" style="width:320px;height:180px"></div><div id="mixed"></div>',
   )
   await page.addScriptTag({ content: bundle.outputFiles[0].text })
   const result = await page.evaluate(() => window.runCanvasRendererCheck())
@@ -929,6 +1048,18 @@ try {
       JSON.stringify(result.radial),
   )
   assert.ok(result.radial.decreasingStops.canvas[0] >= 240)
+  for (const [name, region] of Object.entries(result.pattern)) {
+    assert.ok(
+      region.inkShare > 0.1 && region.inkShare < 0.9,
+      `Canvas ${name} pattern did not paint a two-tone tile: ` +
+        JSON.stringify(result.pattern),
+    )
+    assert.ok(
+      region.meanDelta <= 12 && region.divergentShare <= 0.03,
+      `Canvas ${name} pattern diverged from rasterized SVG: ` +
+        JSON.stringify(result.pattern),
+    )
+  }
   assert.ok(result.radial.decreasingStops.canvas[2] <= 15)
   assert.equal(result.radial.decreasingStops.canvas[3], 255)
   assert.equal(result.export.type, 'image/png')

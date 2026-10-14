@@ -26,7 +26,7 @@ compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
 scene has a 12.46 KiB gzip ceiling. The React compact-scale line consumer has a
-31.03 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
+31.16 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
 allowed only in the compact linear path; categorical compact-scale kernels
 reject every D3 runtime input. All compact fixtures reject `d3-scale`,
 `d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
@@ -59,6 +59,34 @@ consumer measures 30.33 KiB after guide styling, with a 30.36 KiB ceiling.
 Radial resources add 112
 gzip bytes to the static SVG consumer and 124 bytes to the DOM host. Scene-only
 consumers remain unchanged apart from one byte of compression variation.
+
+Pattern resources are part of the default scene and SVG contracts. Matched
+production builds against main `5a34b7e1` measure the following proposed gzip
+increases, pending maintainer approval:
+
+| Consumer                         | Added bytes | Decimal kB |
+| -------------------------------- | ----------: | ---------: |
+| Canvas host                      |         516 |      0.516 |
+| Representative marks with Canvas |         646 |      0.646 |
+| React line with Canvas           |         619 |      0.619 |
+| Static SVG line                  |         120 |      0.120 |
+| DOM host                         |         124 |      0.124 |
+| Compact React line               |         136 |      0.136 |
+
+Scene-only consumers add 7 to 8 bytes. Decimal kB uses 1000 bytes; the source
+ceilings use KiB (1024 bytes). Proposed ceilings retain the existing upstream
+headroom. The `linePattern()` and `dotPattern()` vocabulary stays in its own
+subpath: its static SVG fixture adds about 0.27 KiB under a proposed 0.3 KiB
+incremental cap, and the ordinary line consumer forbids it.
+
+For the no-pattern default path, matched Chromium 151.0.7922.34 production
+builds rendered 1000 solid-color rectangles in a 960 by 540 scene 100 times
+per trial at pixel ratio one. Two fresh browsers each ran three warmups and
+seven paired trials in reused variant contexts. Trial execution alternated;
+context creation order reversed between browsers. Main/PR medians were
+51.8/48.0 ms and 48.7/47.9 ms. Paired median PR-minus-main differences were
+-0.7 and -0.1 ms. No consistent slowdown was reproduced in this fixture; it
+does not establish performance for other workloads or devices.
 
 Every public transform family has an isolated budget and retained-input
 allowlist. Numeric and 2D bins may retain `d3-array`, and row stacks may retain
