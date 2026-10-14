@@ -128,11 +128,12 @@ describe('catalog previews', () => {
     ).toThrow('did not render a TanStack chart SVG')
   })
 
-  it('pins the browser locale used to render checked previews', () => {
+  it('pins the browser locale and timezone used to render checked previews', () => {
     const newContext = vi.fn((options) => options)
 
     expect(createCatalogPreviewContext({ newContext })).toMatchObject({
       locale: 'en-US',
+      timezoneId: 'UTC',
     })
     expect(newContext).toHaveBeenCalledOnce()
   })

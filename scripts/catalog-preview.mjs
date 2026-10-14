@@ -943,6 +943,7 @@ export function createCatalogPreviewContext(browser) {
     colorScheme: 'light',
     deviceScaleFactor: 1,
     locale: 'en-US',
+    timezoneId: 'UTC',
     reducedMotion: 'reduce',
     viewport: {
       width: catalogPreviewWidth,
