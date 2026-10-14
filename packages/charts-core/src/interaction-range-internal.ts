@@ -40,3 +40,20 @@ export function cloneInteractionValue<TValue extends ChartValue>(
 ): TValue {
   return (value instanceof Date ? new Date(value.getTime()) : value) as TValue
 }
+
+/**
+ * Whether idle pointer hover over a first-party host control reaches chart
+ * point focus and tooltips. `capture` keeps hover inside the control;
+ * `passthrough` forwards idle hover while presses, drags, wheel, clicks, and
+ * keyboard input stay with the control.
+ */
+export type ChartControlHover = 'capture' | 'passthrough'
+
+export function resolveControlHover(
+  hover: ChartControlHover | undefined,
+  owner: string,
+): ChartControlHover {
+  if (hover === undefined || hover === 'capture') return 'capture'
+  if (hover === 'passthrough') return hover
+  throw new TypeError(`${owner} hover must be "capture" or "passthrough"`)
+}

@@ -481,8 +481,8 @@ their behavior:
   and
   [Interactive categorical legend](./scales-guides-and-color.md#interactive-categorical-legend).
 - `@tanstack/charts/interaction/brush`: `BrushRange`, `BrushXChange`,
-  `BrushXFormatContext`, `BrushXSource`, `BrushXTarget`,
-  `BrushXValuesOptions`, and `BrushXContinuousOptions`. See
+  `BrushXFormatContext`, `BrushXSource`, `BrushXTarget`, `BrushXValuesOptions`,
+  `BrushXContinuousOptions`, and `ChartControlHover`. See
   [Horizontal brush](./focus-and-interaction.md#horizontal-brush).
 - `@tanstack/charts/interaction/cursor`: `ContinuousCursorValue`,
   `ContinuousCursorPosition`, `ContinuousCursorPointerSource`,
@@ -491,8 +491,8 @@ their behavior:
   `ContinuousCursorLabelOptions`, and `ContinuousCursorOptions`. See
   [Continuous cursor](./focus-and-interaction.md#continuous-cursor).
 - `@tanstack/charts/interaction/zoom`: `ZoomXValue`, `ZoomXWindow`,
-  `ZoomXSource`, `ZoomXAction`, `ZoomXWheelActivation`, `ZoomXChange`, and
-  `ZoomXOptions`. See
+  `ZoomXSource`, `ZoomXAction`, `ZoomXWheelActivation`, `ZoomXChange`,
+  `ZoomXOptions`, and `ChartControlHover`. See
   [Horizontal zoom](./focus-and-interaction.md#horizontal-zoom).
 - `@tanstack/charts/polar`: `PolarOptions`, `PolarScales`, `PolarMark`,
   `PolarGuide`, `PolarGuideScene`, `PolarAngleOptions`,

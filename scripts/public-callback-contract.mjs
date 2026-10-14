@@ -606,7 +606,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/dom-types.ts:ChartHostControlExtension', 'create'],
     [
       '@tanstack/charts:src/dom-types.ts:ChartHostControlInstance',
-      'update contains destroy',
+      'update contains passesHover destroy',
     ],
     [
       '@tanstack/angular-charts:src/Chart.ts:Chart',
