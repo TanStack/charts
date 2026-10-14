@@ -17,6 +17,7 @@ import {
   radialBarRadius,
   radialDot,
   radialGrid,
+  radialLabels,
   radialLine,
   radialRule,
   radialText,
@@ -368,6 +369,50 @@ Use it for arc labels, donut-center values, and gauge readouts without leaving
 the polar coordinate system. Its interaction point follows the final radial
 offset plus `dx`/`dy` while retaining the original semantic radius value. Its
 key defaults to a unique top-level or nested `data.id`, then row index.
+
+## `radialLabels`
+
+```ts
+function radialLabels<TDatum>(
+  source: Iterable<TDatum>,
+  options?: RadialLabelsOptions<TDatum>,
+): PolarMark<TDatum>
+```
+
+`radialLabels` draws outside labels with connectors for pie and donut slices,
+and keeps crowded labels readable. `angle` defaults to the numeric `angle`
+field of each row, so `pie()` output needs no angle channel. `radius` defaults
+to `1`, the outer edge of a `[0, 1]` radius scale. Connectors start at the
+largest mapped radius, bend at an elbow `offset` pixels outside it (default
+16), and run `elbow` pixels horizontally (default 12). The text sits `padding`
+pixels after the connector (default 4).
+
+Labels form one vertical stack on each side of the center, in angular order.
+Each label gets `lineHeight` pixels (default `fontSize * 1.4`). When labels
+overlap, the mark moves them apart as little as possible, and keeps every
+label inside the polar container's chart bounds. When a side has more labels
+than fit, the labels with the lowest `priority` are hidden first. `priority`
+defaults to the numeric `value` field, so the smallest `pie()` slices are
+hidden first. Set `maxShift` to also hide labels that would move more than
+that many pixels from their slice; the mark hides the lowest-priority label
+in the crowded group and lays out again.
+
+The mark also accepts `angleScale`, `radiusScale`, `text`, `key`, `z`,
+`color`, fill, font size and weight, opacity, and connector `stroke`,
+`strokeOpacity`, and `strokeWidth`. `stroke` defaults to the label fill. Each
+visible label emits one interaction point at its final text position. Hidden
+labels emit no nodes and no points, so pair the mark with a tooltip or legend
+when every slice name must stay available.
+
+```tsx
+radialLabels(slices, {
+  text: (row) => `${row.name} ${row.share}%`,
+  key: 'name',
+  color: 'name',
+  fontSize: 12,
+  maxShift: 24,
+})
+```
 
 ## `radialRule`
 

@@ -351,6 +351,7 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Crowded pie labels overlapped                                  | API                   | resolved   |
 
 ## Findings
 
@@ -9339,3 +9340,21 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Crowded pie labels overlapped
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: a production pie with many small adjacent slices. The
+  `radialRule` plus `radialText` composition placed every label on its slice
+  angle, so neighboring labels overlapped. The application needed its own
+  pixel layout, connector paths, and hiding rules outside the polar mark.
+- Decision: add `radialLabels`, which stacks labels on each side of the
+  center, moves overlapping labels apart as little as possible, and hides the
+  lowest-priority labels when they do not fit. `maxShift` optionally hides
+  labels that would move too far from their slice.
+- Verification: unit tests cover ideal placement, minimal spreading, capacity
+  hiding by priority, `maxShift`, vertical bounds, and connector geometry. A
+  rendered chart test covers non-overlapping labels per side and hiding the
+  smallest slices on a short chart.
