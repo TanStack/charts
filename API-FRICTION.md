@@ -351,6 +351,7 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Dense point charts had no shipped spatial index                | API                   | resolved   |
 
 ## Findings
 
@@ -9317,3 +9318,32 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Dense point charts had no shipped spatial index
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: measuring nearest-point lookup for 1k to 100k dot anchors
+- Friction: the large-data guide told dense charts to supply a measured
+  `spatialIndex`, but core shipped none. The only grid lived privately in
+  `charts-core-d3`, and it did not keep the linear scan's earliest-point tie
+  when equidistant points fell in different cells. Each application had to
+  write and verify its own index or bring D3 quadtree, which built 4 to 18
+  times slower than a grid on the same 1k to 100k points.
+- Decision: publish `gridSpatialIndex` at the exact
+  `@tanstack/charts/spatial/grid-index` subpath. It returns the linear anchor scan's
+  result, including ties, radius rules, and non-finite anchors, and documents
+  that it is nearest-center lookup, not shape hit testing.
+- Verification: seeded property tests compare it with `nearestPoint` across
+  uniform, lattice, clustered, collinear, vertical-strip, thin-strip,
+  single-point, and non-finite layouts, with half-step queries that force
+  cross-cell ties. Maintainer-reported exact-anchor regressions cover finite
+  extents that overflow, singleton axes with opposite extreme queries, and
+  tiny extents whose scale overflows. Unpartitionable axes collapse to one
+  cell, and infinite squared-distance ties retain scene order. A cell-visit counter bounds strip queries; the first
+  version averaged 878 to 6,973 cells per query there because its ring sweep
+  and distance bound ignored the grid's shape. `pnpm performance:pointer`
+  checks identical results before timing four layouts at three sizes.
+  `pnpm bundle:check` budgets the subpath at 1.2 KiB gzip and forbids it from
+  the default DOM host.
