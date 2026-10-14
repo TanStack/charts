@@ -2398,6 +2398,74 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('advances the crosshair spring during repeated data-frame repaints', () => {
+    const frames = installManagedFrames()
+    const makeScene = (offset: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            lineY(
+              Array.from({ length: 20 }, (_, x) => ({ x, y: x + offset })),
+              { x: 'x', y: 'y', key: 'x' },
+            ),
+            crosshair({ x: true, y: false }),
+          ],
+          scales: {
+            x: { scale: scaleLinear().domain([0, 19]) },
+            y: { scale: scaleLinear().domain([0, 40]) },
+          },
+          guides: false,
+        }),
+        { width: 400, height: 200 },
+      )
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'spring', stiffness: 170, damping: 18 },
+    }).mount(container, () => {})
+    let unsubscribe = () => {}
+    try {
+      surface.render(makeScene(0), { ariaLabel: 'Crosshair repaint' })
+      const next = makeScene(5)
+      surface.render(next, { ariaLabel: 'Crosshair repaint' })
+      const paint = (index: number) => {
+        const point = next.points[index]!
+        surface.paintFocus({
+          primary: point,
+          group: [point],
+          source: 'pointer',
+          pinned: false,
+        })
+      }
+      paint(2)
+      paint(15)
+      const line = container.querySelector<SVGLineElement>(
+        '.ts-chart__focus-guide-layer line',
+      )!
+      const start = Number(line.getAttribute('x1'))
+      let repaints = 0
+      if (!surface.subscribePresentationPoints) {
+        throw new Error('Expected motion presentation subscriptions')
+      }
+      unsubscribe = surface.subscribePresentationPoints(() => {
+        repaints += 1
+        paint(15)
+      })
+      for (let time = 16; time <= 128; time += 16) frames.runAll(time)
+      expect(repaints).toBe(8)
+      expect(Number(line.getAttribute('x1'))).toBeGreaterThan(start + 100)
+      expect(Number(line.getAttribute('x1'))).toBeLessThan(next.points[15]!.x)
+      expect(container.querySelector('.ts-chart__focus-guide-layer line')).toBe(
+        line,
+      )
+    } finally {
+      unsubscribe()
+      surface.destroy()
+      expect(frames.pending()).toBe(0)
+      frames.restore()
+    }
+  })
+
   it('retargets a persistent crosshair spring without replacing guide elements', () => {
     const transition = {
       type: 'spring' as const,
