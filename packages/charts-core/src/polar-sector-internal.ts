@@ -29,12 +29,10 @@ export function projectPolarSector(sector: PolarSectorGeometry) {
   ) {
     return undefined
   }
-  const generator = (polarSectorArc ??= createArc<PolarSectorGeometry>()
-    .startAngle((value) => value.startAngle)
-    .endAngle((value) => value.endAngle)
-    .innerRadius((value) => value.innerRadius)
-    .outerRadius((value) => value.outerRadius)
-    .cornerRadius((value) => value.cornerRadius))
+  const generator = (polarSectorArc ??=
+    createArc<PolarSectorGeometry>().cornerRadius(
+      (value) => value.cornerRadius,
+    ))
   return generator(sector) || undefined
 }
 
