@@ -155,6 +155,7 @@
     "./lit": "./src/lit.ts",
     "./motion": "./src/motion.ts",
     "./motion/definition": "./src/motion-definition.ts",
+    "./motion/lite": "./src/motion-lite.ts",
     "./network/force": "./src/network-force.ts",
     "./network/sankey": "./src/network-sankey.ts",
     "./octane": "./src/octane.ts",
@@ -410,6 +411,10 @@
       "./motion/definition": {
         "types": "./dist/motion-definition.d.ts",
         "import": "./dist/motion-definition.js"
+      },
+      "./motion/lite": {
+        "types": "./dist/motion-lite.d.ts",
+        "import": "./dist/motion-lite.js"
       },
       "./network/force": {
         "types": "./dist/network-force.d.ts",
