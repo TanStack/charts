@@ -431,6 +431,15 @@ export function mountChartRenderer<
     })
   }
 
+  // Print layout can resize the container and paint without running an
+  // animation frame or delivering observer sizes, so measure it directly.
+  const handlePrintChange = () => {
+    observedContentSize = undefined
+    if (responsiveSizeChanged()) render(true, 'layout')
+  }
+
+  const printMedia = view?.matchMedia?.('print')
+
   const handleFontLoad = () => {
     if (destroyed || options.measureText) return
     domText.invalidate()
@@ -971,6 +980,7 @@ export function mountChartRenderer<
   configureCursorController()
   render()
   configureObserver()
+  printMedia?.addEventListener?.('change', handlePrintChange)
   container.ownerDocument.addEventListener(
     'pointerdown',
     dismissPinnedInteractionOutside,
@@ -1051,6 +1061,7 @@ export function mountChartRenderer<
       cursorMatch = undefined
       cursorExtension = undefined
       fontSet?.removeEventListener?.('loadingdone', handleFontLoad)
+      printMedia?.removeEventListener?.('change', handlePrintChange)
       if (renderFrame !== undefined) {
         view?.cancelAnimationFrame?.(renderFrame)
       }

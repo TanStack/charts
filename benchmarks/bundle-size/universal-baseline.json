@@ -15,24 +15,24 @@
       "gzip": 30414
     },
     "TanStack DOM host": {
-      "bytes": 82994,
-      "gzip": 29119
+      "bytes": 83137,
+      "gzip": 29176
     },
     "React adapter": {
-      "bytes": 85319,
-      "gzip": 30074
+      "bytes": 85462,
+      "gzip": 30122
     },
     "React line consumer": {
-      "bytes": 108978,
-      "gzip": 39424
+      "bytes": 109121,
+      "gzip": 39446
     },
     "Compact-scale line scene": {
       "bytes": 35859,
       "gzip": 12797
     },
     "React compact-scale line consumer": {
-      "bytes": 91476,
-      "gzip": 32307
+      "bytes": 91619,
+      "gzip": 32356
     },
     "Custom-scale line scene": {
       "bytes": 34043,
