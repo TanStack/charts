@@ -19,10 +19,7 @@ export interface ResolvedPolarSector {
 
 let polarSectorArc: Arc<any, PolarSectorGeometry> | undefined
 
-/** Resolves one D3 sector and samples its painted interaction boundary. */
-export function resolvePolarSector(
-  sector: PolarSectorGeometry,
-): ResolvedPolarSector | undefined {
+export function projectPolarSector(sector: PolarSectorGeometry) {
   if (
     !isFiniteNumber(sector.startAngle) ||
     !isFiniteNumber(sector.endAngle) ||
@@ -32,17 +29,22 @@ export function resolvePolarSector(
   ) {
     return undefined
   }
-  const generator = (polarSectorArc ??= createArc<PolarSectorGeometry>()
-    .startAngle((value) => value.startAngle)
-    .endAngle((value) => value.endAngle)
-    .innerRadius((value) => value.innerRadius)
-    .outerRadius((value) => value.outerRadius)
-    .cornerRadius((value) => value.cornerRadius))
-  const path = generator(sector)
-  if (typeof path !== 'string' || !path) return undefined
+  const generator = (polarSectorArc ??=
+    createArc<PolarSectorGeometry>().cornerRadius(
+      (value) => value.cornerRadius,
+    ))
+  return generator(sector) || undefined
+}
+
+/** Resolves one D3 sector and samples its painted interaction boundary. */
+export function resolvePolarSector(
+  sector: PolarSectorGeometry,
+): ResolvedPolarSector | undefined {
+  const path = projectPolarSector(sector)
+  if (!path) return undefined
   return {
     path,
-    points: tracePolarArcBoundary(generator, sector, 0, [sector]),
+    points: tracePolarArcBoundary(polarSectorArc!, sector, 0, [sector]),
   }
 }
 

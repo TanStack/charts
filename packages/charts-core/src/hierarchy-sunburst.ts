@@ -10,7 +10,7 @@ import {
 } from './hierarchy-flat-internal'
 import { channelValues, isChartKey, isFiniteNumber, visualValue } from './mark'
 import { createPolarMark } from './polar-mark-internal'
-import { resolvePolarSector } from './polar-sector-internal'
+import { projectPolarSector, resolvePolarSector } from './polar-sector-internal'
 import {
   sceneMotionNode,
   type SceneMotionMetadata,
@@ -340,22 +340,13 @@ export function sunburst<TDatum>(
 }
 
 function projectSunburstSectorPath(values: readonly number[]) {
-  const [startAngle, endAngle, innerRadius, outerRadius] = values
-  if (
-    startAngle === undefined ||
-    endAngle === undefined ||
-    innerRadius === undefined ||
-    outerRadius === undefined
-  ) {
-    return undefined
-  }
-  return resolvePolarSector({
-    startAngle,
-    endAngle,
-    innerRadius,
-    outerRadius,
+  return projectPolarSector({
+    startAngle: values[0]!,
+    endAngle: values[1]!,
+    innerRadius: values[2]!,
+    outerRadius: values[3]!,
     cornerRadius: 0,
-  })?.path
+  })
 }
 
 function sunburstNodeContext<TDatum>(
