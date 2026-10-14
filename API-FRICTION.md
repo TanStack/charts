@@ -5865,6 +5865,19 @@ Each entry records:
   integration test mounts a definition containing both legacy `animate` and a
   conflicting definition-level motion duration, then verifies that the
   host-level motion renderer owns the transition timing.
+- Follow-up from #205: an entrance/basic-update consumer retained the complete
+  motion engine. After measuring a private prototype, the owner approved a
+  separate opt-in `motionLite()` entry, not a change to `motion()`. It reuses
+  the existing SVG reconciler, owns only duration/easing/entrance/resize policy,
+  and documents destination-based interaction during updates. Definition-local
+  timing and tooltip spring inheritance remain exclusive to full motion.
+- Follow-up verification: focused tests cover static prerender parity,
+  hydration without replay, keyed interruption, resize policy, reduced motion,
+  zero duration, invalid durations, and cleanup. Packed imports and declarations
+  pass, excluding full motion, springs, tooltip implementation, and D3. Three
+  browsers pass interrupted exits, hydration, reduced motion, line/pie endpoints,
+  and authored opacity. All 114 existing consumer outputs are byte-identical to
+  main. Full validation remains the publication gate.
 
 ### F-190 — Static conformance sampled active motion
 
