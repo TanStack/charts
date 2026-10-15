@@ -201,4 +201,61 @@ describe('layoutRadialLabels', () => {
       x: expect.closeTo(-134, 8),
     })
   })
+
+  it('keeps the same labels as removing the lowest priority one at a time', () => {
+    const tight = { ...options, top: -40, bottom: 40 }
+    const capacity = Math.floor((tight.bottom - tight.top) / tight.lineHeight)
+    for (let seed = 1; seed <= 50; seed += 1) {
+      const labels = Array.from({ length: 30 }, (_, index) =>
+        label(10 + ((index * 37 + seed * 11) % 160), {
+          priority: (index * seed) % 4,
+        }),
+      )
+      let expected = labels.map((_, index) => index)
+      while (expected.length > capacity) {
+        const lowest = expected.reduce((current, index) => {
+          const difference = labels[index]!.priority - labels[current]!.priority
+          return difference < 0 || (difference === 0 && index > current)
+            ? index
+            : current
+        })
+        expected = expected.filter((index) => index !== lowest)
+      }
+
+      const shown = visible(layoutRadialLabels(labels, tight))
+      expect(shown.map(({ index }) => index).sort((a, b) => a - b)).toEqual(
+        expected,
+      )
+    }
+  })
+
+  it('keeps visible labels in angular order after capacity selection', () => {
+    const labels = Array.from({ length: 40 }, (_, index) =>
+      label(5 + index * 4, { priority: (index * 7) % 5 }),
+    )
+    const shown = visible(
+      layoutRadialLabels(labels, { ...options, top: -60, bottom: 60 }),
+    )
+    const byHeight = [...shown].sort((a, b) => a.y - b.y)
+
+    expect(byHeight.map(({ index }) => index)).toEqual(
+      [...shown]
+        .sort((a, b) => labels[a.index]!.angle - labels[b.index]!.angle)
+        .map(({ index }) => index),
+    )
+  })
+
+  it('selects capacity labels from thousands of candidates', () => {
+    const labels = Array.from({ length: 5000 }, (_, index) =>
+      label(1 + (index / 5000) * 170, { priority: index % 97 }),
+    )
+    const shown = visible(
+      layoutRadialLabels(labels, { ...options, top: -200, bottom: 200 }),
+    )
+
+    expect(shown).toHaveLength(25)
+    expect(
+      Math.min(...shown.map(({ index }) => labels[index]!.priority)),
+    ).toBeGreaterThanOrEqual(96)
+  })
 })
