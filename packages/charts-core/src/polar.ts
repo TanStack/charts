@@ -1829,6 +1829,9 @@ export function radialText<TDatum>(
   )
 }
 
+// Connector and text spacing in pixels.
+const radialLabelSpacing = { offset: 16, elbow: 12, padding: 4 }
+
 export interface RadialLabelsOptions<TDatum> extends RadialPathOptions<TDatum> {
   text?: Channel<TDatum, string | number | null | undefined>
   /**
@@ -1840,14 +1843,6 @@ export interface RadialLabelsOptions<TDatum> extends RadialPathOptions<TDatum> {
   fontSize?: number
   fontWeight?: number
   opacity?: number
-  /** Vertical pixel space for one label. Defaults to `fontSize * 1.4`. */
-  lineHeight?: number
-  /** Pixel gap between the mapped radius and the connector elbow. Defaults to 16. */
-  offset?: number
-  /** Horizontal connector length after the elbow. Defaults to 12. */
-  elbow?: number
-  /** Pixel gap between the connector and the text. Defaults to 4. */
-  padding?: number
   /** Hides a label that would move more pixels than this from its slice. */
   maxShift?: number
   /** Connector color. Defaults to the label fill. */
@@ -1909,9 +1904,8 @@ export function radialLabels<TDatum>(
 ): PolarMark<TDatum, any, any> {
   const data = asArray(source)
   const fontSize = options.fontSize ?? 12
-  const lineHeight = options.lineHeight ?? fontSize * 1.4
-  if (!isFiniteNumber(lineHeight) || lineHeight <= 0) {
-    throw new TypeError('radialLabels: lineHeight must be positive and finite')
+  if (!isFiniteNumber(fontSize) || fontSize <= 0) {
+    throw new TypeError('radialLabels: fontSize must be positive and finite')
   }
   return createPolarMark(
     ({ markIndex, parentId, states: defaultStates }) => {
@@ -2011,10 +2005,8 @@ export function radialLabels<TDatum>(
           })
           const placements = layoutRadialLabels(candidates, {
             radius: Math.max(0, ...candidates.map(({ radius }) => radius)),
-            offset: options.offset ?? 16,
-            elbow: options.elbow ?? 12,
-            padding: options.padding ?? 4,
-            lineHeight,
+            ...radialLabelSpacing,
+            lineHeight: fontSize * 1.4,
             top: layout.chart.y - layout.centerY,
             bottom: layout.chart.y + layout.chart.height - layout.centerY,
             left: layout.chart.x - layout.centerX,
