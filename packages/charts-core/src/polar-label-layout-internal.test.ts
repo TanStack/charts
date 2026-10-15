@@ -258,4 +258,53 @@ describe('layoutRadialLabels', () => {
       Math.min(...shown.map(({ index }) => labels[index]!.priority)),
     ).toBeGreaterThanOrEqual(96)
   })
+
+  it('keeps every connector on the inner side of its text column', () => {
+    const labels = Array.from({ length: 24 }, (_, index) =>
+      label(3 + index * 15, { width: 20 + (index % 5) * 10 }),
+    )
+    const shown = visible(
+      layoutRadialLabels(labels, { ...options, top: -150, bottom: 150 }),
+    )
+
+    expect(shown.length).toBeGreaterThan(0)
+    for (const side of ['left', 'right'] as const) {
+      const column = shown.filter((placement) => placement.side === side)
+      const textStart = Math.min(...column.map(({ x }) => Math.abs(x)))
+      expect(new Set(column.map(({ x }) => x)).size).toBeLessThanOrEqual(1)
+      column.forEach(({ connector }) => {
+        connector.forEach(([x]) => {
+          expect(Math.abs(x)).toBeLessThanOrEqual(
+            textStart - options.padding + 1e-9,
+          )
+        })
+      })
+    }
+  })
+
+  it('hides the outermost-elbow label first when the column does not fit', () => {
+    const placements = layoutRadialLabels(
+      [label(10, { width: 60 }), label(20), label(90)],
+      { ...options, right: 180 },
+    )
+
+    expect(placements.map((placement) => placement.visible)).toEqual([
+      true,
+      true,
+      false,
+    ])
+  })
+
+  it('hides the widest label instead when the outermost label has higher priority', () => {
+    const placements = layoutRadialLabels(
+      [label(10, { width: 60 }), label(20), label(90, { priority: 5 })],
+      { ...options, right: 180 },
+    )
+
+    expect(placements.map((placement) => placement.visible)).toEqual([
+      false,
+      true,
+      true,
+    ])
+  })
 })

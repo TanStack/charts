@@ -383,9 +383,10 @@ function radialLabels<TDatum>(
 and keeps crowded labels readable. `angle` defaults to the numeric `angle`
 field of each row, so `pie()` output needs no angle channel. `radius` defaults
 to `1`, the outer edge of a `[0, 1]` radius scale. Connectors start at the
-largest mapped radius, bend at an elbow `offset` pixels outside it (default
-16), and run `elbow` pixels horizontally (default 12). The text sits `padding`
-pixels after the connector (default 4).
+largest mapped radius, bend at an elbow `offset` pixels outside it (default 16) on the slice angle, and run horizontally to a text column `elbow` pixels
+beyond the outermost visible elbow on that side (default 12). The text sits
+`padding` pixels after the column (default 4). Every connector stays on the
+inner side of the column, so no connector crosses another label's text.
 
 Labels form one vertical stack on each side of the center, in angular order.
 Each label gets `lineHeight` pixels (default `fontSize * 1.4`; `fontSize`
@@ -398,11 +399,14 @@ hidden first. Set `maxShift` to also hide labels that would move more than
 that many pixels from their slice; the mark hides the lowest-priority label
 in the crowded group and lays out again.
 
-The mark measures each label with the chart's text measurer. A label whose
-text would cross the left or right chart edge is hidden, and the remaining
-labels on that side are laid out again. Long labels and narrow charts
-therefore lose labels instead of overflowing; widen the chart, lower
-`radiusRatio`, or shorten `text` to keep more labels. Layout runs on every
+The mark measures each label with the chart's text measurer and keeps every
+label inside the left and right chart edges. A label that does not fit even
+beside its own elbow is hidden first. While the widest remaining label still
+does not fit beside the column, the mark hides the lower-priority one of that
+label and the label with the outermost elbow; on equal priority it hides the
+outermost-elbow label, because that label sets the column. Long labels and
+narrow charts therefore lose labels instead of overflowing; widen the chart,
+lower `radiusRatio`, or shorten `text` to keep more labels. Layout runs on every
 render, so a resized chart can show labels that a smaller size hid.
 
 The mark also accepts `angleScale`, `radiusScale`, `text`, `key`, `z`,

@@ -52,7 +52,7 @@ interface Block {
  * Places labels in two vertical stacks beside a pie. Each side keeps labels in
  * angular order, pushes overlapping labels apart as little as possible, and
  * hides the lowest-priority labels until the rest fit. Labels whose text would
- * cross the left or right edge are hidden too.
+ * cross the left or right edge are hidden first.
  */
 export function layoutRadialLabels(
   labels: readonly RadialLabelInput[],
@@ -71,44 +71,73 @@ export function layoutRadialLabels(
   for (const side of ['left', 'right'] as const) {
     const ideal = (index: number) =>
       -Math.cos(labels[index]!.angle) * elbowRadius
+    const elbowX = (index: number) =>
+      Math.abs(Math.sin(labels[index]!.angle)) * elbowRadius
+    // Text starts outside the outermost elbow, so no connector crosses other labels' text.
+    const columnFor = (indexes: readonly number[]) =>
+      Math.max(0, ...indexes.map(elbowX)) + options.elbow
+    const room =
+      (side === 'left' ? -options.left : options.right) -
+      options.elbow -
+      options.padding
+    const candidates = fitColumn(sides[side], elbowX, room, labels)
+    const ordered = [...candidates].sort((a, b) => ideal(a) - ideal(b) || a - b)
+    const positions = placeSide(ordered, ideal, labels, options)
+    const column = columnFor([...positions.keys()])
     const direction = side === 'left' ? -1 : 1
-    const place = (index: number, y: number) => {
+    for (const [index, y] of positions) {
       const angle = labels[index]!.angle
-      const elbow = point(angle, elbowRadius)
-      const circleX = Math.sqrt(Math.max(elbowRadius ** 2 - y ** 2, 0))
-      const end = Math.max(circleX, Math.abs(elbow[0])) + options.elbow
-      return {
-        visible: true as const,
-        x: direction * (end + options.padding),
+      placements[index] = {
+        visible: true,
+        x: direction * (column + options.padding),
         y,
         side,
-        connector: [point(angle, options.radius), elbow, [direction * end, y]],
-      } satisfies RadialLabelPlacement
-    }
-    const fits = (index: number, x: number) =>
-      side === 'left'
-        ? x - labels[index]!.width >= options.left
-        : x + labels[index]!.width <= options.right
-
-    let kept = [...sides[side]].sort((a, b) => ideal(a) - ideal(b) || a - b)
-    for (;;) {
-      const placed = [...placeSide(kept, ideal, labels, options)].map(
-        ([index, y]) => [index, place(index, y)] as const,
-      )
-      const overflow = new Set(
-        placed.flatMap(([index, label]) =>
-          fits(index, label.x) ? [] : [index],
-        ),
-      )
-      if (overflow.size === 0) {
-        for (const [index, label] of placed) placements[index] = label
-        break
+        connector: [
+          point(angle, options.radius),
+          point(angle, elbowRadius),
+          [direction * column, y],
+        ],
       }
-      kept = kept.filter((index) => !overflow.has(index))
     }
   }
 
   return placements
+}
+
+/**
+ * Hides labels until the widest text fits beside the outermost elbow. Each step
+ * hides the lower-priority one of the outermost-elbow label and the widest
+ * label; on equal priority, the outermost-elbow label, which moves the column.
+ * Labels that do not fit even beside their own elbow are hidden first.
+ */
+function fitColumn(
+  indexes: readonly number[],
+  elbowX: (index: number) => number,
+  room: number,
+  labels: readonly RadialLabelInput[],
+): number[] {
+  const fitting = indexes.filter(
+    (index) => elbowX(index) + labels[index]!.width <= room,
+  )
+  const byElbow = [...fitting].sort((a, b) => elbowX(b) - elbowX(a) || a - b)
+  const byWidth = [...fitting].sort(
+    (a, b) => labels[b]!.width - labels[a]!.width || a - b,
+  )
+  const hidden = new Set<number>()
+  let elbowIndex = 0
+  let widthIndex = 0
+  for (;;) {
+    while (hidden.has(byElbow[elbowIndex]!)) elbowIndex += 1
+    while (hidden.has(byWidth[widthIndex]!)) widthIndex += 1
+    const outer = byElbow[elbowIndex]
+    const widest = byWidth[widthIndex]
+    if (outer === undefined || widest === undefined) break
+    if (elbowX(outer) + labels[widest]!.width <= room) break
+    hidden.add(
+      labels[widest]!.priority < labels[outer]!.priority ? widest : outer,
+    )
+  }
+  return fitting.filter((index) => !hidden.has(index))
 }
 
 function placeSide(

@@ -9356,8 +9356,9 @@ Each entry records:
   labels that would move too far from their slice.
 - Verification: unit tests cover ideal placement, minimal spreading, capacity
   hiding by priority, equal-priority ties, `maxShift`, vertical and horizontal
-  bounds, long labels, and connector geometry. Rendered chart tests cover
-  non-overlapping labels per side, short, narrow, and resized charts, stable
+  bounds, long labels, connector geometry, and connectors on the inner side
+  of each text column. Rendered chart tests cover connectors clear of other
+  labels' text boxes, non-overlapping labels per side, short, narrow, and resized charts, stable
   keys, and SVG, Canvas, and React Native output. A motion test covers moving
   kept labels and connectors and fading removed labels. Charts that do not
   import `radialLabels` keep the same polar bundle size within 0.01 kB gzip.
