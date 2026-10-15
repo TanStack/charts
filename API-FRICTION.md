@@ -9346,19 +9346,11 @@ Each entry records:
 - Status: resolved
 - Severity: medium
 - Owner: API
-- Observed in: a production pie with many small adjacent slices. The
-  `radialRule` plus `radialText` composition placed every label on its slice
-  angle, so neighboring labels overlapped. The application needed its own
-  pixel layout, connector paths, and hiding rules outside the polar mark.
-- Decision: add `radialLabels`, which stacks labels on each side of the
-  center, moves overlapping labels apart as little as possible, and hides the
-  lowest-priority labels when they do not fit. `maxShift` optionally hides
-  labels that would move too far from their slice.
-- Verification: unit tests cover ideal placement, minimal spreading, capacity
-  hiding by priority, equal-priority ties, `maxShift`, vertical and horizontal
-  bounds, long labels, connector geometry, and connectors on the inner side
-  of each text column. Rendered chart tests cover connectors clear of other
-  labels' text boxes, non-overlapping labels per side, short, narrow, and resized charts, stable
-  keys, and SVG, Canvas, and React Native output. A motion test covers moving
-  kept labels and connectors and fading removed labels. Charts that do not
-  import `radialLabels` keep the same polar bundle size within 0.01 kB gzip.
+- Observed in: issue #227, `radialRule` plus `radialText` labels of small
+  adjacent slices overlapped, so the application owned its own label layout
+- Decision: add `radialLabels`, which stacks labels in one column per side,
+  moves overlapping labels apart, and hides lower-priority labels that do not
+  fit the chart height, width, or optional `maxShift`.
+- Verification: layout and rendered tests cover spacing, bounds, priority
+  ties, connectors clear of other labels, stable keys, motion, and SVG,
+  Canvas, and React Native output.
