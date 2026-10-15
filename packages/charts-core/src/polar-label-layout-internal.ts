@@ -121,8 +121,10 @@ function placeSide(
     0,
     Math.floor((options.bottom - options.top) / options.lineHeight),
   )
-  let kept = ordered
-  while (kept.length > capacity) kept = withoutLowest(kept, kept, labels)
+  let kept =
+    ordered.length > capacity
+      ? withHighestPriority(ordered, capacity, labels)
+      : ordered
 
   for (;;) {
     const blocks = spread(kept, ideal, options)
@@ -189,6 +191,20 @@ function createBlock(
   const latestStart = last - (members.length - 1) * lineHeight
   const start = Math.min(Math.max(sum / members.length, first), latestStart)
   return { members, sum, start }
+}
+
+/** Keeps the `count` highest-priority labels in angular order; ties keep the earlier input. */
+function withHighestPriority(
+  ordered: readonly number[],
+  count: number,
+  labels: readonly RadialLabelInput[],
+): number[] {
+  const selected = new Set(
+    [...ordered]
+      .sort((a, b) => labels[b]!.priority - labels[a]!.priority || a - b)
+      .slice(0, count),
+  )
+  return ordered.filter((index) => selected.has(index))
 }
 
 function withoutLowest(
