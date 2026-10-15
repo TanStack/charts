@@ -1836,7 +1836,7 @@ export interface RadialLabelsOptions<TDatum> extends RadialPathOptions<TDatum> {
   text?: Channel<TDatum, string | number | null | undefined>
   /**
    * Labels with lower priority hide first when labels do not fit. Defaults to
-   * the numeric `value` field, so `pie()` rows keep their largest slices.
+   * datum `value`, so `pie()` rows keep their largest slices.
    */
   priority?: Channel<TDatum, number | null | undefined>
   fill?: VisualChannel<TDatum, string>
@@ -1916,7 +1916,7 @@ export function radialLabels<TDatum>(
         typeof options.angle === 'number'
           ? data.map(() => options.angle as number)
           : channelValues(data, options.angle, (datum) =>
-              numericField(datum, 'angle'),
+              numberProperty(datum, 'angle'),
             )
       const radiusValues =
         typeof options.radius === 'number'
@@ -1926,7 +1926,7 @@ export function radialLabels<TDatum>(
         datum == null ? '' : String(datum),
       )
       const priorityValues = channelValues(data, options.priority, (datum) =>
-        numericField(datum, 'value'),
+        numberProperty(datum, 'value'),
       )
       const groups = channelValues(data, options.z, () => null)
       const colorValues =
@@ -2113,12 +2113,6 @@ export function radialLabels<TDatum>(
     options.motion,
     options.renderer,
   )
-}
-
-function numericField(datum: unknown, field: string): number | undefined {
-  if (datum == null || typeof datum !== 'object') return undefined
-  const value = (datum as Record<string, unknown>)[field]
-  return typeof value === 'number' ? value : undefined
 }
 
 export interface RadialRuleOptions<

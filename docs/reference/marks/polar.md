@@ -379,59 +379,43 @@ function radialLabels<TDatum>(
 ): PolarMark<TDatum>
 ```
 
-`radialLabels` draws outside labels with connectors for pie and donut slices,
-and keeps crowded labels readable. `angle` defaults to the numeric `angle`
-field of each row, so `pie()` output needs no angle channel. `radius` defaults
-to `1`, the outer edge of a `[0, 1]` radius scale. Connectors start at the
-largest mapped radius, bend at an elbow 16 pixels outside it on the slice
-angle, and run horizontally to a text column 12 pixels beyond the outermost
-visible elbow on that side. The text starts 4 pixels after the column. Every
-connector stays on the inner side of the column, so no connector crosses
-another label's text.
+`radialLabels` renders outside slice labels with elbow connectors and keeps
+crowded labels readable.
 
-Labels form one vertical stack on each side of the center, in angular order.
-Each label gets `fontSize * 1.4` pixels of height (`fontSize` defaults to
-12). When labels overlap, the mark moves them apart as little as
-possible, and keeps every label inside the polar container's chart bounds.
-When a side has more labels than fit, the labels with the lowest `priority`
-are hidden first. `priority` defaults to the numeric `value` field, so the
-smallest `pie()` slices are hidden first. On equal priority, the later row is
-hidden first. Set `maxShift` to also hide labels that would move more than
-that many pixels from their slice; the mark hides the lowest-priority label
-in the crowded group and lays out again.
+| Option                         | Meaning                                                        |
+| ------------------------------ | -------------------------------------------------------------- |
+| `id`, `className`              | Stable layer ID and optional class                             |
+| `angle`                        | Angle channel; defaults to datum `angle`                       |
+| `radius`                       | Connector start radius; defaults to `1`                        |
+| `text`                         | Label text                                                     |
+| `priority`                     | Lower priority hides first; defaults to datum `value`          |
+| `maxShift`                     | Hides a label that would move more pixels from its slice       |
+| `key`                          | Stable label identity; defaults to top/nested `id`, then index |
+| `z`                            | Interaction group                                              |
+| `color`                        | Color-scale value; defaults to `z`                             |
+| `fill`                         | Final constant or datum-derived text paint                     |
+| `fontSize`, `fontWeight`       | Text size, default 12, and weight                              |
+| `opacity`                      | Label and connector opacity                                    |
+| `stroke`                       | Connector paint; defaults to the label fill                    |
+| `strokeOpacity`, `strokeWidth` | Connector opacity and width                                    |
 
-The mark measures each label with the chart's text measurer and keeps every
-label inside the left and right chart edges. A label that does not fit even
-beside its own elbow is hidden first. While the widest remaining label still
-does not fit beside the column, the mark hides the lower-priority one of that
-label and the label with the outermost elbow; on equal priority it hides the
-outermost-elbow label, because that label sets the column. Long labels and
-narrow charts therefore lose labels instead of overflowing; widen the chart,
-lower `radiusRatio`, or shorten `text` to keep more labels. Layout runs on every
-render, so a resized chart can show labels that a smaller size hid.
+Labels stack on each side of the center in angular order, `fontSize * 1.4`
+pixels apart. Overlapping labels move apart as little as possible and stay
+inside the chart bounds. Each side places its text in one column outside its
+outermost visible connector elbow, so no connector crosses another label.
 
-The mark also accepts `angleScale`, `radiusScale`, `text`, `key`, `z`,
-`color`, fill, font size and weight, opacity, and connector `stroke`,
-`strokeOpacity`, and `strokeWidth`. `stroke` defaults to the label fill. Each
-visible label emits one interaction point at its final text position. Hidden
-labels emit no nodes and no points, so pair the mark with a tooltip or legend
-when every slice name must stay available.
+A label is hidden when its side runs out of height, when its text would cross
+the left or right chart edge, or when it would move more than `maxShift`
+pixels. Lower-priority labels hide first; on equal priority, the later row
+hides first, except that the width check hides the outermost-elbow label
+first because it sets the column. Hidden labels emit no nodes or interaction
+points, so pair the mark with a tooltip or legend when every slice name must
+stay available.
 
-The mark emits only label and polyline scene nodes, so SVG, Canvas, and React
-Native paint it the same way. Label keys come from `key`; each connector uses
-the label key with a `:connector` suffix. With the motion renderer, kept labels
-and connectors move to their new layout, and hidden or removed labels fade
-out.
-
-```tsx
-radialLabels(slices, {
-  text: (row) => `${row.name} ${row.share}%`,
-  key: 'name',
-  color: 'name',
-  fontSize: 12,
-  maxShift: 24,
-})
-```
+The mark emits label and polyline scene nodes, so SVG, Canvas, and React
+Native paint it the same way. Connector keys add `:connector` to the label
+key. With the motion renderer, kept labels and connectors move to their new
+layout, and hidden labels fade out.
 
 ## `radialRule`
 
