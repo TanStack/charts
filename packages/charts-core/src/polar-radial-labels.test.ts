@@ -30,7 +30,11 @@ const lineHeight = 17
 
 function render(
   size: { width: number; height: number },
-  options: { maxShift?: number; rows?: readonly Row[] } = {},
+  options: {
+    maxShift?: number
+    lineHeight?: number
+    rows?: readonly Row[]
+  } = {},
 ) {
   const { rows = browsers, ...labelOptions } = options
   const slices = pie(rows, { value: 'share' })
@@ -193,6 +197,47 @@ describe('radialLabels', () => {
       ).toBe(true)
     })
   })
+
+  it('keeps connectors clear of other labels in a crowded fixture', () => {
+    const rows = Array.from({ length: 20 }, (_, index) => ({
+      name: index === 1 ? 'Slice 1 with a much longer name' : `Slice ${index}`,
+      share: index === 0 ? 50 : 1,
+    }))
+    const grow = 2
+
+    for (const size of [
+      { width: 640, height: 320 },
+      { width: 220, height: 320 },
+      { width: 640, height: 100 },
+    ]) {
+      const { labels, connectors } = render(size, {
+        rows,
+        lineHeight: undefined,
+      })
+      expect(labels.length).toBeGreaterThan(0)
+      for (const connector of connectors) {
+        const points = [
+          ...connector.path!.matchAll(/(-?[\d.e]+),(-?[\d.e]+)/g),
+        ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }))
+        for (const label of labels) {
+          if (connector.key === `${label.key}:connector`) continue
+          const box = measureSceneLabelBounds(label, estimateSceneText)
+          const rect = {
+            x1: box.x - grow,
+            y1: box.y - grow,
+            x2: box.x + box.width + grow,
+            y2: box.y + box.height + grow,
+          }
+          points.slice(1).forEach((end, index) => {
+            expect(
+              segmentHitsRect(points[index]!, end, rect),
+              `${connector.key} crosses ${label.text} at ${size.width}x${size.height}`,
+            ).toBe(false)
+          })
+        }
+      }
+    }
+  })
 })
 
 describe('radialLabels SVG output', () => {
@@ -208,6 +253,33 @@ describe('radialLabels SVG output', () => {
     })
   })
 })
+
+function segmentHitsRect(
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  rect: { x1: number; y1: number; x2: number; y2: number },
+): boolean {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  let low = 0
+  let high = 1
+  for (const [p, q] of [
+    [-dx, start.x - rect.x1],
+    [dx, rect.x2 - start.x],
+    [-dy, start.y - rect.y1],
+    [dy, rect.y2 - start.y],
+  ] as const) {
+    if (p === 0) {
+      if (q < 0) return false
+      continue
+    }
+    const t = q / p
+    if (p < 0) low = Math.max(low, t)
+    else high = Math.min(high, t)
+    if (low > high) return false
+  }
+  return true
+}
 
 function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
