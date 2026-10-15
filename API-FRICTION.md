@@ -352,7 +352,7 @@ Each entry records:
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
 | F-315 | Printed charts kept their screen width                         | API                   | resolved   |
-| F-316 | Catalog previews depend on the local time zone                 | Tooling               | open       |
+| F-316 | Catalog previews depend on the local time zone                 | Tooling               | resolved   |
 
 ## Findings
 
@@ -9372,14 +9372,17 @@ Each entry records:
 
 ### F-316 - Catalog previews depend on the local time zone
 
-- Status: open
+- Status: resolved
 - Severity: low
 - Owner: Tooling
 - Observed in: refreshing the preview fingerprint for the print redraw change.
   `pnpm catalog:previews` in Europe/Warsaw, and again with `TZ=UTC`, shifted
   the weekday labels of nine shadcn tooltip previews by one day. The committed
-  previews were generated west of UTC.
+  previews had been generated west of UTC.
 - Workaround: keep the committed SVGs and their manifest records, and commit
   only the new `sourceHash`.
-- Follow-up: generate previews with a fixed time zone, or format those labels
-  in UTC, so regeneration is reproducible on any machine.
+- Decision: #230 pins preview generation to UTC and regenerates the affected
+  previews.
+- Verification: on top of #230, `pnpm catalog:previews` in Europe/Warsaw
+  reproduced all 188 SVGs from `main` byte for byte. Only `sourceHash` changed,
+  and `pnpm catalog:previews:check` passes.
