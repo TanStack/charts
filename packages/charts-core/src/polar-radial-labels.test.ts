@@ -26,13 +26,13 @@ const browsers: readonly Row[] = [
   { name: 'Other', share: 0.6 },
 ]
 
-const lineHeight = 17
+// Default 12px font with 1.4 line spacing.
+const lineHeight = 16.8
 
 function render(
   size: { width: number; height: number },
   options: {
     maxShift?: number
-    lineHeight?: number
     rows?: readonly Row[]
   } = {},
 ) {
@@ -53,7 +53,6 @@ function render(
             text: 'name',
             key: 'name',
             color: 'name',
-            lineHeight,
             ...labelOptions,
           }),
         ],
@@ -210,10 +209,7 @@ describe('radialLabels', () => {
       { width: 220, height: 320 },
       { width: 640, height: 100 },
     ]) {
-      const { labels, connectors } = render(size, {
-        rows,
-        lineHeight: undefined,
-      })
+      const { labels, connectors } = render(size, { rows })
       expect(labels.length).toBeGreaterThan(0)
       for (const connector of connectors) {
         const points = [

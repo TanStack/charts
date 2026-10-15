@@ -383,14 +383,15 @@ function radialLabels<TDatum>(
 and keeps crowded labels readable. `angle` defaults to the numeric `angle`
 field of each row, so `pie()` output needs no angle channel. `radius` defaults
 to `1`, the outer edge of a `[0, 1]` radius scale. Connectors start at the
-largest mapped radius, bend at an elbow `offset` pixels outside it (default 16) on the slice angle, and run horizontally to a text column `elbow` pixels
-beyond the outermost visible elbow on that side (default 12). The text sits
-`padding` pixels after the column (default 4). Every connector stays on the
-inner side of the column, so no connector crosses another label's text.
+largest mapped radius, bend at an elbow 16 pixels outside it on the slice
+angle, and run horizontally to a text column 12 pixels beyond the outermost
+visible elbow on that side. The text starts 4 pixels after the column. Every
+connector stays on the inner side of the column, so no connector crosses
+another label's text.
 
 Labels form one vertical stack on each side of the center, in angular order.
-Each label gets `lineHeight` pixels (default `fontSize * 1.4`; `fontSize`
-defaults to 12). When labels overlap, the mark moves them apart as little as
+Each label gets `fontSize * 1.4` pixels of height (`fontSize` defaults to
+12). When labels overlap, the mark moves them apart as little as
 possible, and keeps every label inside the polar container's chart bounds.
 When a side has more labels than fit, the labels with the lowest `priority`
 are hidden first. `priority` defaults to the numeric `value` field, so the
