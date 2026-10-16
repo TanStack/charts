@@ -26,7 +26,14 @@ import { dot } from './dot'
 import { facet } from './facet'
 import { lineX, lineY } from './line'
 import { mountChart } from './dom'
-import { pie, polar, radialArc, radialDot, radialLine } from './polar'
+import {
+  pie,
+  polar,
+  radialArc,
+  radialDot,
+  radialLabels,
+  radialLine,
+} from './polar'
 import { resolveCrosshairGuide } from './crosshair-resolver'
 import { createChartScene, defineChart } from './scene'
 import { createSvgChartRenderer } from './svg-surface'
@@ -3290,6 +3297,56 @@ function scene(
     },
   }
 }
+
+describe('Canvas radialLabels', () => {
+  it('paints each visible label and its connector', () => {
+    const slices = pie(
+      [
+        { name: 'Large', value: 80 },
+        { name: 'Small', value: 3 },
+        { name: 'Tiny', value: 2 },
+      ],
+      { value: 'value' },
+    )
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            radiusRatio: 0.5,
+            scales: {
+              angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+              radius: { scale: scaleLinear().domain([0, 1]) },
+            },
+            marks: [
+              radialArc(slices, { key: 'name' }),
+              radialLabels(slices, { text: 'name', key: 'name' }),
+            ],
+          }),
+        ],
+        scales: { x: null, y: null },
+      }),
+      { width: 400, height: 300 },
+    )
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    surface.render(scene, renderOptions())
+
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+    if (!painted) throw new Error('Expected a painted scene canvas')
+    expect(painted.textPaints.map(({ text }) => text)).toEqual(
+      expect.arrayContaining(['Large', 'Small', 'Tiny']),
+    )
+    expect(
+      painted.operations.filter((operation) => operation === 'stroke:path'),
+    ).toHaveLength(3)
+
+    surface.destroy()
+  })
+})
 
 function renderOptions(): ChartSurfaceRenderOptions {
   return {

@@ -17,6 +17,7 @@ import {
   radialBarRadius,
   radialDot,
   radialGrid,
+  radialLabels,
   radialLine,
   radialRule,
   radialText,
@@ -368,6 +369,54 @@ Use it for arc labels, donut-center values, and gauge readouts without leaving
 the polar coordinate system. Its interaction point follows the final radial
 offset plus `dx`/`dy` while retaining the original semantic radius value. Its
 key defaults to a unique top-level or nested `data.id`, then row index.
+
+## `radialLabels`
+
+```ts
+function radialLabels<TDatum>(
+  source: Iterable<TDatum>,
+  options?: RadialLabelsOptions<TDatum>,
+): PolarMark<TDatum>
+```
+
+`radialLabels` renders outside slice labels with elbow connectors and keeps
+crowded labels readable.
+
+| Option                         | Meaning                                                        |
+| ------------------------------ | -------------------------------------------------------------- |
+| `id`, `className`              | Stable layer ID and optional class                             |
+| `angle`                        | Angle channel; defaults to datum `angle`                       |
+| `radius`                       | Connector start radius; defaults to `1`                        |
+| `text`                         | Label text                                                     |
+| `priority`                     | Lower priority hides first; defaults to datum `value`          |
+| `maxShift`                     | Hides a label that would move more pixels from its slice       |
+| `key`                          | Stable label identity; defaults to top/nested `id`, then index |
+| `z`                            | Interaction group                                              |
+| `color`                        | Color-scale value; defaults to `z`                             |
+| `fill`                         | Final constant or datum-derived text paint                     |
+| `fontSize`, `fontWeight`       | Text size, default 12, and weight                              |
+| `opacity`                      | Label and connector opacity                                    |
+| `stroke`                       | Connector paint; defaults to the label fill                    |
+| `strokeOpacity`, `strokeWidth` | Connector opacity and width                                    |
+
+Labels stack on each side of the center in angular order, `fontSize * 1.4`
+pixels apart. Overlapping labels move apart as little as possible and stay
+inside the chart bounds. Each side places its text in one column outside its
+outermost visible connector elbow, so no connector crosses another label.
+
+A label is hidden when its side runs out of height, when its text would cross
+the left or right chart edge, or when it would move more than `maxShift`
+pixels. Lower-priority labels hide first; on equal priority, the later row
+hides first, except that the width check hides the outermost-elbow label
+first because it sets the column. Text widths come from the built-in text
+estimate used by static SVG, so unusual fonts can differ by a few pixels.
+Hidden labels emit no nodes or interaction points, so pair the mark with a
+tooltip or legend when every slice name must stay available.
+
+The mark emits label and polyline scene nodes, so SVG, Canvas, and React
+Native paint it the same way. Connector keys add `:connector` to the label
+key. With the motion renderer, kept labels and connectors move to their new
+layout, and hidden labels fade out.
 
 ## `radialRule`
 
