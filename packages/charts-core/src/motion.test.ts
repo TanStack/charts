@@ -31,6 +31,83 @@ const rows = [
   { id: 'b', category: 'B', value: 80 },
 ]
 
+describe('presentation subscriber re-entry', () => {
+  it.each(['snap', 'initial', 'mid', 'finish', 'cancel'])(
+    'keeps the newest render after %s notification re-entry',
+    (phase) => {
+      const frames = installManagedFrames()
+      const makeScene = (revision: number) =>
+        createChartScene(
+          defineChart({
+            marks: [dot([{ x: 1, y: revision, revision }], { x: 'x', y: 'y' })],
+            scales: {
+              x: { scale: scaleLinear().domain([0, 2]) },
+              y: { scale: scaleLinear().domain([0, 4]) },
+            },
+            guides: false,
+          }),
+          { width: 400, height: 200 },
+        )
+      const container = document.createElement('div')
+      const surface = motion<{ x: number; y: number; revision: number }>({
+        initial: false,
+        transition: {
+          type: 'tween',
+          duration: phase === 'snap' ? 0 : 100,
+          easing: 'linear',
+        },
+      }).mount(container, () => {})
+      const third = makeScene(3)
+      let armed = phase === 'snap' || phase === 'initial'
+      let reentered = false
+      const observations: number[] = []
+      try {
+        surface.render(makeScene(1), { ariaLabel: 'one' })
+        surface.subscribePresentationPoints?.((points) => {
+          if (armed && !reentered && points[0]?.datum.revision === 2) {
+            reentered = true
+            surface.render(third, { ariaLabel: 'three' })
+          }
+        })
+        surface.subscribePresentationPoints?.((points) => {
+          observations.push(points[0]!.datum.revision)
+        })
+        surface.render(makeScene(2), { ariaLabel: 'two' })
+        if (phase === 'cancel') {
+          armed = true
+          surface.render(makeScene(4), { ariaLabel: 'four' })
+        }
+        if (phase !== 'snap') {
+          frames.run(0)
+          if (phase === 'mid') armed = true
+          frames.run(50)
+          armed = true
+          frames.run(100)
+          if (frames.pending()) frames.run(200)
+          if (frames.pending()) frames.run(400)
+        }
+        const expected = phase === 'cancel' ? 4 : 3
+        expect(reentered).toBe(phase !== 'cancel')
+        expect(observations).toContain(expected)
+        expect(
+          observations.slice(observations.indexOf(expected)),
+        ).not.toContain(2)
+        expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe(
+          phase === 'cancel' ? 'four' : 'three',
+        )
+        expect(surface.getPresentationPoints?.()).toBeUndefined()
+        expect(
+          Number(container.querySelector('circle')?.getAttribute('cy')),
+        ).toBeCloseTo(makeScene(expected).points[0]!.y)
+      } finally {
+        surface.destroy()
+        expect(frames.pending()).toBe(0)
+        frames.restore()
+      }
+    },
+  )
+})
+
 describe('motion resize policy', () => {
   it.each([false, true])(
     'handles a resize during entrance with resize: %s',

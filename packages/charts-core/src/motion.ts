@@ -828,6 +828,7 @@ function createMotionSvgChartRenderer<
       let stateTransitions:
         Readonly<Record<string, ChartMarkStateTransition>> | undefined
       let stateScene: ChartScene<TDatum, TXValue, TYValue> | undefined
+      let rendering = false
       let dataMotionRevision = 0
       let dataMotionActive = false
       let stateFlushQueued = false
@@ -861,7 +862,12 @@ function createMotionSvgChartRenderer<
         points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
       ) => {
         presentationPoints = points
-        for (const listener of presentationListeners) listener(points)
+        if (rendering) return
+        const revision = dataMotionRevision
+        for (const listener of presentationListeners) {
+          if (revision !== dataMotionRevision) break
+          listener(points)
+        }
       }
       const queuePendingStateFocus = () => {
         if (stateFlushQueued || !pendingStateFocus) return
@@ -953,105 +959,116 @@ function createMotionSvgChartRenderer<
         })
         return presented.scene
       }
+      function renderScene(
+        nextScene: ChartScene<TDatum, TXValue, TYValue>,
+        options: ChartSurfaceRenderOptions,
+      ) {
+        const previousScene = scene
+        const initial = previousScene === undefined
+        const resized = Boolean(
+          previousScene &&
+          (previousScene.width !== nextScene.width ||
+            previousScene.height !== nextScene.height),
+        )
+        const reduced =
+          motion.respectReducedMotion &&
+          (container.ownerDocument.defaultView?.matchMedia?.(
+            '(prefers-reduced-motion: reduce)',
+          ).matches ??
+            false)
+        const animate =
+          !reduced &&
+          (initial
+            ? motion.initial && (!adoptedRoot || motion.initial === 'always')
+            : motion.resize || !resized)
+        const viewportMoved = Boolean(
+          previousScene && viewportTranslationChanged(previousScene, nextScene),
+        )
+        const markup = renderSvg(nextScene, options)
+        cancelAnimation()
+        const previousPresentation =
+          presentationPoints ?? previousScene?.points ?? []
+        cancelFocusAnimation()
+        cancelFocusAnimation = () => {}
+        const retainsFocusGuideLayers = Boolean(
+          previousScene?.focusGuides?.length,
+        )
+        const focusGuideLayers = retainsFocusGuideLayers
+          ? detachSvgFocusGuideLayers(svgElement())
+          : {}
+        for (const placement of visibleFocusGuides) {
+          if (
+            !nextScene.focusGuides?.some(
+              (guide) => guide.placement === placement,
+            )
+          ) {
+            visibleFocusGuides.delete(placement)
+          }
+        }
+        const revision = ++dataMotionRevision
+        stateScene = undefined
+        stateTransition = undefined
+        scene = nextScene
+        renderOptions = options
+        dataMotionActive = animate && !viewportMoved
+        pendingStateFocus = dataMotionActive ? desiredStateFocus : undefined
+        if (animate && !viewportMoved) {
+          if (initial) reconcileChartSvg(container, markup)
+          cancelAnimation = motion.animateSvg({
+            container,
+            scene: nextScene as ChartScene<TDatum>,
+            previousScene: previousScene as ChartScene<TDatum> | undefined,
+            presentationPoints:
+              previousPresentation as readonly ChartPoint<TDatum>[],
+            markup,
+            phase: initial ? 'initial' : 'update',
+            setPresentationPoints(points) {
+              publishPresentationPoints(
+                points as readonly ChartPoint<TDatum, TXValue, TYValue>[],
+              )
+              if (
+                revision === dataMotionRevision &&
+                points === nextScene.points
+              ) {
+                dataMotionActive = false
+                queuePendingStateFocus()
+              }
+            },
+          })
+        } else {
+          reconcileChartSvg(container, markup)
+          publishPresentationPoints(nextScene.points)
+          dataMotionActive = false
+        }
+        if (retainsFocusGuideLayers) {
+          restoreSvgFocusGuideLayers(
+            svgElement(),
+            focusGuideLayers,
+            (placement) =>
+              nextScene.focusGuides?.some(
+                (guide) => guide.placement === placement,
+              ) === true,
+          )
+        }
+        scene = nextScene
+        stateScene = undefined
+        renderOptions = options
+        stateTransition = undefined
+        stateTransitions = undefined
+      }
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
         renderer: ownerRenderer ?? renderer,
         get element() {
           return svgElement()
         },
         render(nextScene, options) {
-          const previousScene = scene
-          const initial = previousScene === undefined
-          const resized = Boolean(
-            previousScene &&
-            (previousScene.width !== nextScene.width ||
-              previousScene.height !== nextScene.height),
-          )
-          const reduced =
-            motion.respectReducedMotion &&
-            (container.ownerDocument.defaultView?.matchMedia?.(
-              '(prefers-reduced-motion: reduce)',
-            ).matches ??
-              false)
-          const animate =
-            !reduced &&
-            (initial
-              ? motion.initial && (!adoptedRoot || motion.initial === 'always')
-              : motion.resize || !resized)
-          const viewportMoved = Boolean(
-            previousScene &&
-            viewportTranslationChanged(previousScene, nextScene),
-          )
-          const markup = renderSvg(nextScene, options)
-          cancelAnimation()
-          const previousPresentation =
-            presentationPoints ?? previousScene?.points ?? []
-          cancelFocusAnimation()
-          cancelFocusAnimation = () => {}
-          const retainsFocusGuideLayers = Boolean(
-            previousScene?.focusGuides?.length,
-          )
-          const focusGuideLayers = retainsFocusGuideLayers
-            ? detachSvgFocusGuideLayers(svgElement())
-            : {}
-          for (const placement of visibleFocusGuides) {
-            if (
-              !nextScene.focusGuides?.some(
-                (guide) => guide.placement === placement,
-              )
-            ) {
-              visibleFocusGuides.delete(placement)
-            }
+          rendering = true
+          try {
+            renderScene(nextScene, options)
+          } finally {
+            rendering = false
           }
-          const revision = ++dataMotionRevision
-          stateScene = undefined
-          stateTransition = undefined
-          scene = nextScene
-          renderOptions = options
-          dataMotionActive = animate && !viewportMoved
-          pendingStateFocus = dataMotionActive ? desiredStateFocus : undefined
-          if (animate && !viewportMoved) {
-            if (initial) reconcileChartSvg(container, markup)
-            cancelAnimation = motion.animateSvg({
-              container,
-              scene: nextScene as ChartScene<TDatum>,
-              previousScene: previousScene as ChartScene<TDatum> | undefined,
-              presentationPoints:
-                previousPresentation as readonly ChartPoint<TDatum>[],
-              markup,
-              phase: initial ? 'initial' : 'update',
-              setPresentationPoints(points) {
-                publishPresentationPoints(
-                  points as readonly ChartPoint<TDatum, TXValue, TYValue>[],
-                )
-                if (
-                  revision === dataMotionRevision &&
-                  points === nextScene.points
-                ) {
-                  dataMotionActive = false
-                  queuePendingStateFocus()
-                }
-              },
-            })
-          } else {
-            reconcileChartSvg(container, markup)
-            publishPresentationPoints(nextScene.points)
-            dataMotionActive = false
-          }
-          if (retainsFocusGuideLayers) {
-            restoreSvgFocusGuideLayers(
-              svgElement(),
-              focusGuideLayers,
-              (placement) =>
-                nextScene.focusGuides?.some(
-                  (guide) => guide.placement === placement,
-                ) === true,
-            )
-          }
-          scene = nextScene
-          stateScene = undefined
-          renderOptions = options
-          stateTransition = undefined
-          stateTransitions = undefined
+          if (presentationPoints) publishPresentationPoints(presentationPoints)
         },
         clientToScene(currentScene, clientX, clientY) {
           return svgClientToScene(svgElement(), currentScene, clientX, clientY)
@@ -3994,6 +4011,7 @@ function runTracks(
       }
     }
     lifecycle.publish?.()
+    if (cancelled) return
     root.dataset.tsMotionProgress = String(finished.size / activeTracks.length)
     if (finished.size < activeTracks.length && elapsed < safetyLimit) {
       frame = view.requestAnimationFrame(tick)
@@ -4003,6 +4021,7 @@ function runTracks(
       if (!finished.has(track)) completeMotionTrack(track)
     }
     lifecycle.finish?.()
+    if (cancelled) return
     root.dataset.tsMotionState = 'finished'
     root.dataset.tsMotionProgress = '1'
   }
