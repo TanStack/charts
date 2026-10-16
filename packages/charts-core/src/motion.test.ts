@@ -4749,3 +4749,249 @@ function installManagedFrames() {
     },
   }
 }
+
+describe('returning keyed points during exit', () => {
+  it.each([false, true])(
+    'keeps opacity, geometry and presentation aligned, moving: %s',
+    (moving) => {
+      const frames = installManagedFrames()
+      const container = document.createElement('div')
+      const surface = motion({
+        initial: false,
+        transition: { type: 'tween', duration: 1000, easing: 'linear' },
+      }).mount(container, () => {})
+      const makeScene = (present: boolean, radius = 20) =>
+        createChartScene(
+          defineChart({
+            marks: [
+              dot(
+                [
+                  { id: 'b', x: 0.7 },
+                  ...(present
+                    ? [{ id: 'a', x: moving && radius === 40 ? 0.8 : 0.3 }]
+                    : []),
+                ],
+                { id: 'points', key: 'id', x: 'x', y: () => 0.5, r: radius },
+              ),
+            ],
+            scales: {
+              x: { scale: scaleLinear().domain([0, 1]) },
+              y: { scale: scaleLinear().domain([0, 1]) },
+            },
+            guides: false,
+          }),
+          { width: 300, height: 200 },
+        )
+      try {
+        const first = makeScene(true)
+        const point = first.points.find((point) => point.datum.id === 'a')
+        if (!point) throw new Error('Missing returning point')
+        const find = () =>
+          [...container.querySelectorAll('circle')].find(
+            (element) => element.getAttribute('data-ts-key') === point.key,
+          )
+        surface.render(first, { ariaLabel: 'Returning point' })
+        const element = find()
+        surface.render(makeScene(false), { ariaLabel: 'Exiting point' })
+        frames.run(250)
+        expect(Number(element?.getAttribute('opacity'))).toBe(0.75)
+        surface.render(makeScene(true, 40), { ariaLabel: 'Returned point' })
+        expect(find()).toBe(element)
+        expect(Number(find()?.getAttribute('opacity'))).toBe(0.75)
+        expect(Number(find()?.getAttribute('r'))).toBe(20)
+        expect(
+          surface
+            .getPresentationPoints?.()
+            ?.find((candidate) => candidate.key === point.key)?.x,
+        ).toBeCloseTo(Number(find()?.getAttribute('cx')))
+        frames.run(750)
+        expect(Number(find()?.getAttribute('r'))).toBe(30)
+        expect(
+          surface
+            .getPresentationPoints?.()
+            ?.find((candidate) => candidate.key === point.key)?.x,
+        ).toBeCloseTo(Number(find()?.getAttribute('cx')))
+        frames.run(1250)
+        expect(Number(find()?.getAttribute('r'))).toBe(40)
+        surface.render(makeScene(false), { ariaLabel: 'Removed point' })
+        frames.run(2250)
+        expect(find()).toBeUndefined()
+        expect(frames.pending()).toBe(0)
+      } finally {
+        surface.destroy()
+        frames.restore()
+      }
+    },
+  )
+})
+
+describe('returning exit lifecycle', () => {
+  it.each(['nested', 'subset', 'incompatible', 'resize', 'absent'] as const)(
+    'finishes a %s return without stale nodes',
+    (scenario) => {
+      const frames = installManagedFrames()
+      const container = document.createElement('div')
+      const surface = motion({
+        initial: false,
+        transition: { type: 'tween', duration: 1000, easing: 'linear' },
+      }).mount(container, () => {})
+      const base = createChartScene(
+        defineChart({
+          marks: [dot([{ x: 0, y: 0 }], { x: 'x', y: 'y' })],
+          guides: false,
+          scales: {
+            x: { scale: scaleLinear().domain([0, 1]) },
+            y: { scale: scaleLinear().domain([0, 1]) },
+          },
+        }),
+        { width: 300, height: 200 },
+      )
+      const scene = (phase: 'initial' | 'exit' | 'return'): ChartScene => ({
+        ...base,
+        points: [],
+        width: phase === 'return' && scenario === 'resize' ? 400 : 300,
+        nodes: [
+          {
+            kind: 'group',
+            key: 'marks',
+            className: 'ts-chart__marks',
+            children:
+              phase === 'exit'
+                ? []
+                : [
+                    {
+                      kind: 'group',
+                      key: 'outer',
+                      children: [
+                        {
+                          kind: 'group',
+                          key: 'inner',
+                          children: [
+                            phase === 'return' && scenario === 'incompatible'
+                              ? {
+                                  kind: 'rect',
+                                  key: 'a',
+                                  x: 30,
+                                  y: 40,
+                                  width: 20,
+                                  height: 20,
+                                }
+                              : {
+                                  kind: 'dot',
+                                  key: 'a',
+                                  x: 40,
+                                  y: 50,
+                                  radius: 10,
+                                },
+                            ...(phase === 'return' && scenario === 'subset'
+                              ? []
+                              : [
+                                  {
+                                    kind: 'dot' as const,
+                                    key: 'b',
+                                    x: 80,
+                                    y: 50,
+                                    radius: 10,
+                                  },
+                                ]),
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+          },
+        ],
+      })
+      const find = (key: string) =>
+        container.querySelector(`[data-ts-key="${key}"]`)
+      try {
+        surface.render(scene('initial'), { ariaLabel: 'Nested return' })
+        const outer = find('outer'),
+          leaf = find('a')
+        surface.render(scene('exit'), { ariaLabel: 'Nested exit' })
+        frames.run(250)
+        expect(Number(outer?.getAttribute('opacity'))).toBe(0.75)
+        if (scenario !== 'absent') {
+          surface.render(scene('return'), { ariaLabel: 'Nested return' })
+          expect(find('outer')).toBe(outer)
+          if (scenario !== 'incompatible') expect(find('a')).toBe(leaf)
+        }
+        if (scenario !== 'resize') frames.run(1250)
+        else expect(frames.pending()).toBe(0)
+        expect(container.querySelectorAll('[data-ts-key="a"]')).toHaveLength(
+          scenario === 'absent' ? 0 : 1,
+        )
+        if (scenario === 'incompatible')
+          expect(find('a')?.localName).toBe('rect')
+        if (scenario === 'subset') expect(find('b')).toBeNull()
+        if (scenario !== 'absent')
+          expect(Number(find('outer')?.getAttribute('opacity') ?? 1)).toBe(1)
+      } finally {
+        surface.destroy()
+        expect(frames.pending()).toBe(0)
+        frames.restore()
+      }
+    },
+  )
+
+  it.each([false, true])(
+    'retains a rolling exit when normal keyed updates resume, dots: %s',
+    (points) => {
+      const frames = installManagedFrames()
+      const container = document.createElement('div')
+      const surface = motion<{ id: string; time: number; value: number }>({
+        initial: false,
+      }).mount(container, () => {})
+      const data = Array.from({ length: 7 }, (_, index) => ({
+        id: String(index),
+        time: index,
+        value: 20 + index * 5,
+      }))
+      const scene = (start: number, rolling = true) =>
+        createChartScene(
+          defineChart({
+            motion: {
+              path: rolling ? { update: 'rolling', x: 'shift' } : undefined,
+              transition: { type: 'tween', duration: 1000, easing: 'linear' },
+            },
+            marks: [
+              lineY(data.slice(start, start + 5), {
+                id: 'stream',
+                x: 'time',
+                y: 'value',
+                key: 'id',
+                points,
+              }),
+            ],
+            scales: {
+              x: { scale: scaleLinear().domain([start + 1, start + 4]) },
+              y: { scale: scaleLinear().domain([0, 100]) },
+            },
+            guides: false,
+            clip: true,
+          }),
+          { width: 300, height: 200 },
+        )
+      try {
+        surface.render(scene(0), { ariaLabel: 'Rolling return' })
+        surface.render(scene(1), { ariaLabel: 'Rolling exit' })
+        frames.run(250)
+        const before = surface
+          .getPresentationPoints?.()
+          ?.find((point) => point.datum.id === '0')
+        expect(before?.x).toBe(-125)
+        surface.render(scene(0, false), { ariaLabel: 'Keyed return' })
+        const after = surface
+          .getPresentationPoints?.()
+          ?.find((point) => point.datum.id === '0')
+        expect(after?.x).toBe(before?.x)
+        frames.run(1250)
+        expect(surface.getPresentationPoints?.()).toBeUndefined()
+      } finally {
+        surface.destroy()
+        expect(frames.pending()).toBe(0)
+        frames.restore()
+      }
+    },
+  )
+})

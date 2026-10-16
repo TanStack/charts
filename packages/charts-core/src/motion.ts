@@ -144,7 +144,7 @@ interface MotionTrack {
   values: MotionValueBinding[]
   apply: (values: readonly number[]) => void
   finish: () => void
-  cancel?: () => void
+  cancel?: (nextScene?: ChartScene, nextPoints?: ReadonlySet<string>) => void
 }
 
 interface MotionAttribute {
@@ -814,7 +814,7 @@ function createMotionSvgChartRenderer<
     mount(container) {
       const adoptedRoot =
         container.firstElementChild?.matches('svg.ts-chart') ?? false
-      let cancelAnimation = () => {}
+      let cancelAnimation: (nextScene?: ChartScene) => void = () => {}
       let cancelFocusAnimation = () => {}
       const visibleFocusGuides = new Set<'under' | 'over'>()
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
@@ -982,7 +982,7 @@ function createMotionSvgChartRenderer<
             viewportTranslationChanged(previousScene, nextScene),
           )
           const markup = renderSvg(nextScene, options)
-          cancelAnimation()
+          cancelAnimation(nextScene)
           const previousPresentation =
             presentationPoints ?? previousScene?.points ?? []
           cancelFocusAnimation()
@@ -2647,7 +2647,9 @@ function addExitMotionTrack(
   const retargetLayer = element.closest<SVGGElement>(
     'g[data-ts-focus-retarget]',
   )
-  const cleanup = () => {
+  const cleanup = (nextScene?: ChartScene) => {
+    if (nextScene && sceneNodeContext(nextScene, timingContext?.key ?? ''))
+      return
     element.remove()
     if (retargetLayer && !retargetLayer.children.length) {
       retargetLayer.setAttribute('visibility', 'hidden')
@@ -3452,8 +3454,12 @@ function createPresentationTracks(
         }
       }
       apply(from)
-      const cleanupExiting = () => {
+      const cleanupExiting = (
+        _nextScene?: ChartScene,
+        nextPoints?: ReadonlySet<string>,
+      ) => {
         for (const entry of exiting) {
+          if (nextPoints?.has(entry.identity)) continue
           presented.delete(entry.identity)
           if (runtime.points.get(entry.identity) === entry.state) {
             runtime.points.delete(entry.identity)
@@ -3569,7 +3575,11 @@ function createPresentationTracks(
             ? markMotionRole(element, element)
             : 'mark'
     const state = runtime.points.get(identity)
-    const cleanup = () => {
+    const cleanup = (
+      _nextScene?: ChartScene,
+      nextPoints?: ReadonlySet<string>,
+    ) => {
+      if (nextPoints?.has(identity)) return
       presented.delete(identity)
       if (runtime.points.get(identity) === state) {
         runtime.points.delete(identity)
@@ -4008,12 +4018,13 @@ function runTracks(
   }
   frame = view.requestAnimationFrame(tick)
 
-  return () => {
+  return (nextScene?: ChartScene) => {
     if (cancelled) return
     cancelled = true
     view.cancelAnimationFrame(frame)
+    const nextPoints = nextScene && new Set(nextScene.points.map(pointIdentity))
     activeTracks.forEach((track) => {
-      if (!finished.has(track)) track.cancel?.()
+      if (!finished.has(track)) track.cancel?.(nextScene, nextPoints)
     })
     lifecycle.publish?.()
     root.dataset.tsMotionState = 'cancelled'
