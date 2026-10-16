@@ -408,9 +408,10 @@ A label is hidden when its side runs out of height, when its text would cross
 the left or right chart edge, or when it would move more than `maxShift`
 pixels. Lower-priority labels hide first; on equal priority, the later row
 hides first, except that the width check hides the outermost-elbow label
-first because it sets the column. Hidden labels emit no nodes or interaction
-points, so pair the mark with a tooltip or legend when every slice name must
-stay available.
+first because it sets the column. Text widths come from the built-in text
+estimate used by static SVG, so unusual fonts can differ by a few pixels.
+Hidden labels emit no nodes or interaction points, so pair the mark with a
+tooltip or legend when every slice name must stay available.
 
 The mark emits label and polyline scene nodes, so SVG, Canvas, and React
 Native paint it the same way. Connector keys add `:connector` to the label
