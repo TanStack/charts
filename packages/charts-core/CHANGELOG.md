@@ -1,5 +1,21 @@
 # @tanstack/charts
 
+## 1.2.0
+
+### Minor Changes
+
+- [#232](https://github.com/TanStack/charts/pull/232) [`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e) - Add the opt-in `motionLite()` renderer from `@tanstack/charts/motion/lite` for whole-chart fade entrances and keyed SVG transitions without the full motion engine. Existing `motion()` behavior is unchanged.
+
+### Patch Changes
+
+- [#225](https://github.com/TanStack/charts/pull/225) [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95) - Speed up viewport interaction filtering by skipping ownership lookups for visible points and checking axis channels directly for offscreen points.
+
+- [#218](https://github.com/TanStack/charts/pull/218) [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4) - Let tooltip exits finish when hide is requested repeatedly, and release finished tooltip animations so their effects do not linger.
+
+- [#222](https://github.com/TanStack/charts/pull/222) [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811) - Measure animation elapsed time from when an update is scheduled, so early or delayed first frames do not shift its timing.
+
+- [#224](https://github.com/TanStack/charts/pull/224) [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023) - Avoid rebuilding sunburst hit-test boundaries when projecting animation frames.
+
 ## 1.1.0
 
 ### Minor Changes
