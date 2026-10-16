@@ -3821,6 +3821,15 @@ Each entry records:
   A direct Preact SSR-to-hydration regression additionally checks SVG and path
   identity, immutable label updates, a single surface, and empty-host teardown.
 
+- Oct16 React tooltip follow-up (#187): custom body targets lived above the
+  chart host, causing three adapter updates for three keyboard target changes
+  even though the scene did not redraw. A tooltip-owned state boundary now
+  retains the chart child between target updates, while parent prop changes
+  still update it. Strict Mode and ordinary regression tests observe zero
+  adapter updates and correct body values; the current-main negative control
+  observes three updates. Existing 25 React lifecycle tests also pass.
+  Packed and full-workspace validation remain required before publication.
+
 ### F-124 — Name-only inventories masked undocumented contracts
 
 - Status: resolved

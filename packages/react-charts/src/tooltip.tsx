@@ -90,15 +90,12 @@ export function Chart<
   TYValue extends ChartValue = ChartValue,
 >(props: ChartProps<TDatum, TXValue, TYValue>) {
   const { renderTooltipBody, ...chartProps } = props
-  const tooltipBody = useTooltipBody(renderTooltipBody)
   return (
-    <>
-      <ChartImplementation
-        {...chartProps}
-        onTooltipBodyChange={tooltipBody.onChange}
-      />
-      {tooltipBody.portal}
-    </>
+    <TooltipBody renderTooltipBody={renderTooltipBody}>
+      {(onChange) => (
+        <ChartImplementation {...chartProps} onTooltipBodyChange={onChange} />
+      )}
+    </TooltipBody>
   )
 }
 
@@ -108,15 +105,15 @@ export function RendererChart<
   TYValue extends ChartValue = ChartValue,
 >(props: RendererChartProps<TDatum, TXValue, TYValue>) {
   const { renderTooltipBody, ...chartProps } = props
-  const tooltipBody = useTooltipBody(renderTooltipBody)
   return (
-    <>
-      <RendererChartImplementation
-        {...chartProps}
-        onTooltipBodyChange={tooltipBody.onChange}
-      />
-      {tooltipBody.portal}
-    </>
+    <TooltipBody renderTooltipBody={renderTooltipBody}>
+      {(onChange) => (
+        <RendererChartImplementation
+          {...chartProps}
+          onTooltipBodyChange={onChange}
+        />
+      )}
+    </TooltipBody>
   )
 }
 
@@ -126,29 +123,39 @@ export function CanvasChart<
   TYValue extends ChartValue = ChartValue,
 >(props: CanvasChartProps<TDatum, TXValue, TYValue>) {
   const { renderTooltipBody, ...chartProps } = props
-  const tooltipBody = useTooltipBody(renderTooltipBody)
   return (
-    <>
-      <CanvasChartImplementation
-        {...chartProps}
-        onTooltipBodyChange={tooltipBody.onChange}
-      />
-      {tooltipBody.portal}
-    </>
+    <TooltipBody renderTooltipBody={renderTooltipBody}>
+      {(onChange) => (
+        <CanvasChartImplementation
+          {...chartProps}
+          onTooltipBodyChange={onChange}
+        />
+      )}
+    </TooltipBody>
   )
 }
 
-function useTooltipBody<
+function TooltipBody<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
->(
+>({
+  renderTooltipBody,
+  children,
+}: {
+  children: (
+    onChange:
+      | ((
+          target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,
+        ) => void)
+      | undefined,
+  ) => React.ReactNode
   renderTooltipBody:
     | ((
         context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
       ) => React.ReactNode)
-    | undefined,
-) {
+    | undefined
+}) {
   const [target, setTarget] = React.useState<ChartTooltipBodyTarget<
     TDatum,
     TXValue,
@@ -160,10 +167,14 @@ function useTooltipBody<
     },
     [],
   )
-  return {
-    onChange: renderTooltipBody ? onChange : undefined,
-    portal:
-      renderTooltipBody && target
+  const notify = renderTooltipBody ? onChange : undefined
+  // Target updates belong to the body, not the chart host. Parent prop
+  // changes supply new children and still update the host normally.
+  const chart = React.useMemo(() => children(notify), [children, notify])
+  return (
+    <>
+      {chart}
+      {renderTooltipBody && target
         ? createPortal(
             renderTooltipBody({
               primaryPoint: target.primaryPoint,
@@ -175,8 +186,9 @@ function useTooltipBody<
             }),
             target.element,
           )
-        : null,
-  }
+        : null}
+    </>
+  )
 }
 
 function DefaultTooltipBody({
