@@ -224,10 +224,6 @@ const callbackInventory = {
       '@tanstack/charts:src/polar-mark-internal.ts:InitializedPolarMark',
       'motion',
     ],
-    [
-      '@tanstack/charts:src/polar-mark-internal.ts:PolarMarkRenderContext',
-      'measureText',
-    ],
     ['@tanstack/charts:src/polar-pie.ts:PieOptions', 'value'],
     [
       '@tanstack/charts:src/polar.ts:RadialArcOptions',
@@ -253,11 +249,11 @@ const callbackInventory = {
       'angle radius radius1 radius2',
     ],
     [
-      '@tanstack/charts:src/polar.ts:RadialLabelsOptions',
+      '@tanstack/charts:src/polar-labels.ts:RadialLabelsOptions',
       'fill priority stroke text',
     ],
     [
-      '@tanstack/charts:src/polar.ts:RadialPathOptions',
+      '@tanstack/charts:src/polar-types-internal.ts:RadialPathOptions',
       'angle color key radius z',
     ],
     [

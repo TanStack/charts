@@ -6,7 +6,6 @@ import type {
   ChartMarkState,
   InitializedMark,
   ChartTheme,
-  ChartTextMeasurer,
   ChartTextTypography,
   ChartValue,
   MarkScene,
@@ -63,8 +62,6 @@ export interface PolarMarkRenderContext {
   layout: PolarLayoutContext
   color: (value: ChartKey | null | undefined) => string
   theme: ChartTheme
-  /** Typography-aware text measurer from the chart layout. */
-  measureText?: ChartTextMeasurer
 }
 
 export interface PolarMark<
