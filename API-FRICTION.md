@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-14
 
 ## Triage rule
 
@@ -351,6 +351,8 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Printed charts kept their screen width                         | API                   | resolved   |
+| F-316 | Catalog previews depend on the local time zone                 | Tooling               | resolved   |
 
 ## Findings
 
@@ -9339,3 +9341,48 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Printed charts kept their screen width
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: a production React application that prints reports and exports
+  them with Playwright `page.pdf()`. The print layout narrowed the container,
+  but the resize redraw waited for an animation frame that print never runs.
+  The browser scaled the screen drawing down, shrinking text and strokes and
+  letterboxing fixed-height charts.
+- Workaround: each application listened for the `print` media change, measured
+  the container, and passed it as a fixed `width` inside React `flushSync`, then
+  removed `width` when print ended.
+- Decision: the shared DOM host listens for the `print` media change, discards
+  the last observer size, measures the container, and redraws synchronously
+  without motion when a container-owned dimension changed. A pending resize
+  frame later finds the size unchanged and skips. All adapters inherit it. No
+  public `resize()` was added; no task has needed one yet.
+- Verification: a host regression narrows the container from 972 to 420 pixels
+  and redraws in the same task when the print media changes, before any frame
+  runs. Leaving print restores 972 despite a stale 420 observer size, unchanged
+  sizes do not redraw, and `destroy` removes the listener. The test fails
+  without the change. In Chromium, the `34-pointer-tooltip` first-party
+  conformance scenario `print-width` holds animation frames, enters print media
+  with a 420 pixel container, and requires a 420 pixel `viewBox`, then restores
+  the screen width after print. It passes in all 12 variants and fails in all
+  12 on the previous renderer.
+
+### F-316 - Catalog previews depend on the local time zone
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: refreshing the preview fingerprint for the print redraw change.
+  `pnpm catalog:previews` in Europe/Warsaw, and again with `TZ=UTC`, shifted
+  the weekday labels of nine shadcn tooltip previews by one day. The committed
+  previews had been generated west of UTC.
+- Workaround: keep the committed SVGs and their manifest records, and commit
+  only the new `sourceHash`.
+- Decision: #230 pins preview generation to UTC and regenerates the affected
+  previews.
+- Verification: on top of #230, `pnpm catalog:previews` in Europe/Warsaw
+  reproduced all 188 SVGs from `main` byte for byte. Only `sourceHash` changed,
+  and `pnpm catalog:previews:check` passes.

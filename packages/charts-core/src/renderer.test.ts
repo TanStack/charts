@@ -2600,6 +2600,91 @@ describe('renderer-neutral chart host', () => {
     cancelFrame.mockRestore()
   })
 
+  it('redraws at the print container width without waiting for a frame', () => {
+    let resize: ResizeObserverCallback | undefined
+    let width = 972
+    const frames: FrameRequestCallback[] = []
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const printMedia = new EventTarget() as MediaQueryList
+    const originalResizeObserver = window.ResizeObserver
+    const originalMatchMedia = window.matchMedia
+    window.ResizeObserver = TestResizeObserver
+    window.matchMedia = vi.fn((query: string) =>
+      query === 'print' ? printMedia : ({ matches: false } as MediaQueryList),
+    )
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const addListener = vi.spyOn(printMedia, 'addEventListener')
+    const removeListener = vi.spyOn(printMedia, 'removeEventListener')
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    vi.spyOn(container, 'getBoundingClientRect').mockImplementation(
+      () => new DOMRect(0, 0, width, 320),
+    )
+    const observe = () =>
+      resize?.(
+        [
+          {
+            target: container,
+            contentRect: new DOMRect(0, 0, width, 320),
+            borderBoxSize: [],
+            contentBoxSize: [],
+            devicePixelContentBoxSize: [],
+          },
+        ],
+        {} as ResizeObserver,
+      )
+    const host = mountChartRenderer(container, {
+      definition,
+      renderer: fake.renderer,
+      height: 320,
+      ariaLabel: 'Printed chart',
+    })
+    expect(host.getScene().width).toBe(972)
+
+    // The observer reports the print width, but no frame runs before paint.
+    width = 420
+    observe()
+    expect(frames).toHaveLength(1)
+    printMedia.dispatchEvent(new Event('change'))
+    expect(host.getScene().width).toBe(420)
+    expect(fake.render).toHaveBeenCalledTimes(2)
+    frames.shift()?.(0)
+    expect(fake.render).toHaveBeenCalledTimes(2)
+
+    // A stale observer size must not hide the restored screen width.
+    observe()
+    expect(frames).toHaveLength(0)
+    width = 972
+    printMedia.dispatchEvent(new Event('change'))
+    expect(host.getScene().width).toBe(972)
+    expect(fake.render).toHaveBeenCalledTimes(3)
+
+    printMedia.dispatchEvent(new Event('change'))
+    expect(fake.render).toHaveBeenCalledTimes(3)
+
+    host.destroy()
+    expect(removeListener).toHaveBeenCalledWith(
+      'change',
+      addListener.mock.calls[0]?.[1],
+    )
+
+    window.ResizeObserver = originalResizeObserver
+    window.matchMedia = originalMatchMedia
+    requestFrame.mockRestore()
+  })
+
   it.each([false, true])(
     'adopts observer precision without repainting an unchanged initial layout (transformed border box: %s)',
     (transformed) => {

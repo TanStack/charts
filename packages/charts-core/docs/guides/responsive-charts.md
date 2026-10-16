@@ -41,6 +41,12 @@ the common requirement is `min-width: 0` on the grid or flex child:
 Supply `width` only when an application deliberately owns fixed geometry, such
 as an export frame or a benchmark.
 
+Container resizes normally redraw on the next animation frame. Printing, and
+headless exports such as Playwright's `page.pdf()`, lay out and paint the page
+without running one. The DOM host therefore listens for the `print` media
+change, measures the container, and redraws immediately when its size changed.
+Printed charts use the print container width without application code.
+
 ## Height and aspect ratio
 
 Use one of these policies:
