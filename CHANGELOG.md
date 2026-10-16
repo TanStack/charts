@@ -1,5 +1,95 @@
 # Changelog
 
+## 1.2.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#232](https://github.com/TanStack/charts/pull/232) [`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e) - Add the opt-in `motionLite()` renderer from `@tanstack/charts/motion/lite` for whole-chart fade entrances and keyed SVG transitions without the full motion engine. Existing `motion()` behavior is unchanged.
+
+#### Patch Changes
+
+- [#225](https://github.com/TanStack/charts/pull/225) [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95) - Speed up viewport interaction filtering by skipping ownership lookups for visible points and checking axis channels directly for offscreen points.
+
+- [#218](https://github.com/TanStack/charts/pull/218) [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4) - Let tooltip exits finish when hide is requested repeatedly, and release finished tooltip animations so their effects do not linger.
+
+- [#222](https://github.com/TanStack/charts/pull/222) [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811) - Measure animation elapsed time from when an update is scheduled, so early or delayed first frames do not shift its timing.
+
+- [#224](https://github.com/TanStack/charts/pull/224) [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023) - Avoid rebuilding sunburst hit-test boundaries when projecting animation frames.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- [#234](https://github.com/TanStack/charts/pull/234) [`f8f8ed7`](https://github.com/TanStack/charts/commit/f8f8ed7a326471e61faa0129688679f3eca9e388) - Keep custom tooltip target updates from rerendering the React chart host.
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
 ## 1.1.0
 
 ### @tanstack/charts

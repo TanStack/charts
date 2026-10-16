@@ -1,5 +1,12 @@
 # @tanstack/lit-charts
 
+## 1.2.0
+
+### Patch Changes
+
+- Updated dependencies [[`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e), [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95), [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4), [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811), [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023)]:
+  - @tanstack/charts@1.2.0
+
 ## 1.1.0
 
 ### Patch Changes
