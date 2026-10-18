@@ -5238,6 +5238,21 @@ Each entry records:
   renders its chart under Hermes; the packed artifact has not been run on that
   simulator.
 
+- Expo 58 follow-up (issue #236): both the standalone native adapter and the
+  unified package rejected React Native 0.88 because their peer range stopped
+  at 0.86.x. Both now accept 0.86.x or 0.88.x. The existing Expo consumer uses
+  SDK 58, React 19.3, React Native 0.88, and SVG 15.16, while the bare consumer
+  stays on 0.86.2. Manifest regression coverage checks both supported sets and
+  rejects unverified native minor versions. Source typechecks and the packed
+  iOS/Android Metro gates pass for both consumers. This does not establish
+  on-device rendering for Expo 58.
+- The same upgrade exposed implicit optional React/React DOM ownership in the
+  Octane fixtures: pnpm selected React 19.3 for their renderer while retaining
+  React 19.2.3 for Octane. Each fixture now declares its matching React pair,
+  and Expo declares React DOM 19.3 for its optional web peer. The installed
+  Octane dependency graphs resolve React 19.2.3 on both sides again. Regression
+  coverage keeps those fixture peers aligned with the workspace pair.
+
 ### F-172 — Metro skipped the fixture-owned Babel runtime
 
 - Status: resolved

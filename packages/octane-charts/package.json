@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "@types/d3-scale": "^4.0.9",
-    "d3-scale": "4.0.2"
+    "d3-scale": "4.0.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "peerDependencies": {
     "octane": "^0.1.13"
