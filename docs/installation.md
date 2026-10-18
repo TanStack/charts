@@ -90,18 +90,18 @@ D3 dependency.
 
 ## Framework compatibility
 
-| Adapter subpath                 | Framework peers                                                                 |
-| ------------------------------- | ------------------------------------------------------------------------------- |
-| `@tanstack/charts/react`        | React and React DOM 18 or 19                                                    |
-| `@tanstack/charts/react-native` | React `^19.2.3`, React Native `^0.86.0`, and `react-native-svg` `>=15.15.4 <16` |
-| `@tanstack/charts/preact`       | Preact `>=10`                                                                   |
-| `@tanstack/charts/vue`          | Vue `>=3.5`                                                                     |
-| `@tanstack/charts/solid`        | Solid `>=1.8`                                                                   |
-| `@tanstack/charts/svelte`       | Svelte `^5.20.0`                                                                |
-| `@tanstack/charts/angular`      | Angular core and platform browser `>=19`                                        |
-| `@tanstack/charts/lit`          | Lit `>=3.1.3`                                                                   |
-| `@tanstack/charts/alpine`       | Alpine `>=3.15`                                                                 |
-| `@tanstack/charts/octane`       | Octane `^0.1.13`                                                                |
+| Adapter subpath                 | Framework peers                                                                              |
+| ------------------------------- | -------------------------------------------------------------------------------------------- |
+| `@tanstack/charts/react`        | React and React DOM 18 or 19                                                                 |
+| `@tanstack/charts/react-native` | React `^19.2.3`, React Native `^0.86.0` or `^0.88.0`, and `react-native-svg` `>=15.15.4 <16` |
+| `@tanstack/charts/preact`       | Preact `>=10`                                                                                |
+| `@tanstack/charts/vue`          | Vue `>=3.5`                                                                                  |
+| `@tanstack/charts/solid`        | Solid `>=1.8`                                                                                |
+| `@tanstack/charts/svelte`       | Svelte `^5.20.0`                                                                             |
+| `@tanstack/charts/angular`      | Angular core and platform browser `>=19`                                                     |
+| `@tanstack/charts/lit`          | Lit `>=3.1.3`                                                                                |
+| `@tanstack/charts/alpine`       | Alpine `>=3.15`                                                                              |
+| `@tanstack/charts/octane`       | Octane `^0.1.13`                                                                             |
 
 Framework peers are optional at the package level because package managers
 cannot scope peers to individual export subpaths. Install only the peers for
@@ -111,7 +111,7 @@ package when the application needs browser mounting or server rendering.
 ## React Native and Expo
 
 The React Native adapter is experimental and renders through
-`react-native-svg`. Expo 57 applications can install the package and the SVG
+`react-native-svg`. Expo 57 and 58 applications can install the package and the SVG
 version selected by Expo:
 
 ```sh
@@ -119,7 +119,7 @@ pnpm add @tanstack/charts
 pnpm exec expo install react-native-svg
 ```
 
-Bare React Native 0.86 applications install the renderer directly:
+Bare React Native 0.86 and 0.88 applications install the renderer directly:
 
 ```sh
 pnpm add @tanstack/charts react react-native react-native-svg@^15.15.4
@@ -137,8 +137,10 @@ import { tooltip } from '@tanstack/charts/react-native/tooltip'
 ```
 
 Packed tarballs are typechecked and bundled through default bare React Native
-and Expo Metro configurations on iOS and Android. The workspace Expo 57
-fixture also renders in Expo Go on an iOS simulator. Native responder and
+and Expo Metro configurations on iOS and Android. The current fixtures cover
+bare React Native 0.86.2 and Expo 58 with React Native 0.88.0. The earlier Expo
+57 fixture rendered in Expo Go on an iOS simulator; Expo 58 has not yet been
+verified on a simulator or device. Native responder and
 accessibility cursor behavior has component regression coverage. Bare-native
 and Android simulator runs, physical devices, visual parity, and screen-reader
 verification are not currently part of the release gate.
