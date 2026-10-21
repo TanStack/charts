@@ -477,9 +477,12 @@ async function verifyUnifiedBundles(fixtureRoot) {
         input.includes(`/@tanstack/charts/dist/${namespace}/`),
       )?.namespace
       if (retainedNamespace === undefined) continue
-      assert.equal(
-        retainedNamespace,
-        namespace,
+      // The city preset authors a definition with the compact linear scale.
+      // Other adapter entries must still retain only their own namespace.
+      assert.ok(
+        retainedNamespace === namespace ||
+          (specifier === '@tanstack/charts/react/city' &&
+            retainedNamespace === 'scales'),
         `${label} retained the ${retainedNamespace} adapter tree`,
       )
     }
