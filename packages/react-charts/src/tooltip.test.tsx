@@ -183,4 +183,70 @@ describe('tooltip state ownership', () => {
       container.remove()
     }
   })
+
+  it.each(['layout', 'passive'])(
+    'accepts a dismissal from the body %s effect',
+    async (phase) => {
+      const definition = defineChart({
+        marks: [
+          dot(
+            [
+              { x: 0, y: 1 },
+              { x: 1, y: 2 },
+            ],
+            { x: 'x', y: 'y' },
+          ),
+        ],
+        scales: {
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 3]) },
+        },
+        tooltip: { use: tooltip },
+      })
+      const useEffect =
+        phase === 'layout' ? React.useLayoutEffect : React.useEffect
+      function Body({ y, dismiss }: { y: unknown; dismiss: () => void }) {
+        useEffect(() => {
+          if (y === 2) dismiss()
+        }, [y, dismiss])
+        return <span data-body>{String(y)}</span>
+      }
+      const container = document.createElement('div')
+      document.body.append(container)
+      const root = createRoot(container)
+      const errors = vi.spyOn(console, 'error')
+      try {
+        await act(async () =>
+          root.render(
+            <Chart
+              definition={definition}
+              width={480}
+              height={260}
+              ariaLabel="chart"
+              renderTooltipBody={({ primaryPoint, dismiss }) => (
+                <Body y={primaryPoint?.datum.y} dismiss={dismiss} />
+              )}
+            />,
+          ),
+        )
+        const svg = container.querySelector('svg')
+        if (!svg) throw new Error('Missing SVG')
+        await act(async () =>
+          svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true })),
+        )
+        expect(container.querySelector('[data-body]')?.textContent).toBe('1')
+        await act(async () =>
+          svg.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+          ),
+        )
+        expect(container.querySelector('[data-body]')).toBeNull()
+        expect(errors).not.toHaveBeenCalled()
+      } finally {
+        errors.mockRestore()
+        await act(async () => root.unmount())
+        container.remove()
+      }
+    },
+  )
 })

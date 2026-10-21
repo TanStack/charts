@@ -136,6 +136,29 @@ export function CanvasChart<
   )
 }
 
+let bodyCommits = 0
+
+function BodyCommitStart() {
+  const enter = () => {
+    bodyCommits += 1
+    queueMicrotask(() => {
+      bodyCommits = 0
+    })
+  }
+  React.useLayoutEffect(enter)
+  React.useEffect(enter)
+  return null
+}
+
+function BodyCommitEnd() {
+  const leave = () => {
+    bodyCommits = Math.max(0, bodyCommits - 1)
+  }
+  React.useLayoutEffect(leave)
+  React.useEffect(leave)
+  return null
+}
+
 function TooltipBody<
   TDatum,
   TXValue extends ChartValue,
@@ -164,7 +187,7 @@ function TooltipBody<
   > | null>(null)
   const onChange = React.useCallback(
     (nextTarget: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null) => {
-      if (isInHostCommit()) setTarget(nextTarget)
+      if (isInHostCommit() || bodyCommits > 0) setTarget(nextTarget)
       else flushSync(() => setTarget(nextTarget))
     },
     [],
@@ -178,14 +201,18 @@ function TooltipBody<
       {chart}
       {renderTooltipBody && target
         ? createPortal(
-            renderTooltipBody({
-              primaryPoint: target.primaryPoint,
-              points: target.points,
-              content: target.content,
-              pinned: target.pinned,
-              dismiss: target.dismiss,
-              defaultBody: <DefaultTooltipBody content={target.content} />,
-            }),
+            <>
+              <BodyCommitStart />
+              {renderTooltipBody({
+                primaryPoint: target.primaryPoint,
+                points: target.points,
+                content: target.content,
+                pinned: target.pinned,
+                dismiss: target.dismiss,
+                defaultBody: <DefaultTooltipBody content={target.content} />,
+              })}
+              <BodyCommitEnd />
+            </>,
             target.element,
           )
         : null}
