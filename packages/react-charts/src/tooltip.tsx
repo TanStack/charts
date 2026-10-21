@@ -135,17 +135,20 @@ export function CanvasChart<
   )
 }
 
+const useIsomorphicLayoutEffect =
+  typeof document === 'undefined' ? React.useEffect : React.useLayoutEffect
+
 let hostCommit = false
 
 function HostCommitStart() {
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     hostCommit = true
   })
   return null
 }
 
 function HostCommitEnd() {
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     hostCommit = false
   })
   return null
