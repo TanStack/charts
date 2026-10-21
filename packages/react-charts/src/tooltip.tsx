@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import type {
   ChartTooltipBodyContext,
   ChartTooltipBodyTarget,
@@ -19,6 +19,7 @@ import {
   type CanvasChartProps as BaseCanvasChartProps,
 } from './CanvasChart'
 import {
+  isInHostCommit,
   RendererChartImplementation,
   type RendererChartCommonProps as BaseRendererChartCommonProps,
   type RendererChartProps as BaseRendererChartProps,
@@ -163,7 +164,8 @@ function TooltipBody<
   > | null>(null)
   const onChange = React.useCallback(
     (nextTarget: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null) => {
-      setTarget(nextTarget)
+      if (isInHostCommit()) setTarget(nextTarget)
+      else flushSync(() => setTarget(nextTarget))
     },
     [],
   )

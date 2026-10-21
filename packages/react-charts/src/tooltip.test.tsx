@@ -121,4 +121,66 @@ describe('tooltip state ownership', () => {
       }
     },
   )
+
+  it('commits the body before the browser paints an interaction', async () => {
+    const definition = defineChart({
+      marks: [
+        dot(
+          [
+            { x: 0, y: 1 },
+            { x: 1, y: 2 },
+          ],
+          { x: 'x', y: 'y' },
+        ),
+      ],
+      scales: {
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 3]) },
+      },
+      tooltip: { use: tooltip },
+    })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const root = createRoot(container)
+    const errors = vi.spyOn(console, 'error')
+    const render = (width: number) =>
+      act(async () =>
+        root.render(
+          <Chart
+            definition={definition}
+            width={width}
+            height={260}
+            ariaLabel="chart"
+            renderTooltipBody={({ primaryPoint }) => (
+              <span data-body>{primaryPoint?.datum.y}</span>
+            )}
+          />,
+        ),
+      )
+    try {
+      await render(480)
+      const svg = container.querySelector('svg')
+      if (!svg) throw new Error('Missing SVG')
+      await act(async () =>
+        svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true })),
+      )
+      expect(container.querySelector('[data-body]')?.textContent).toBe('1')
+      Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: false })
+      try {
+        svg.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+        )
+      } finally {
+        Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+      }
+      expect(container.querySelector('[data-body]')?.textContent).toBe('2')
+      await render(520)
+      expect(container.querySelector('[data-body]')?.textContent).toBe('2')
+      expect(errors).not.toHaveBeenCalled()
+    } finally {
+      errors.mockRestore()
+      await act(async () => root.unmount())
+      container.remove()
+    }
+  })
 })
