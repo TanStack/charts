@@ -12,6 +12,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/quick-start.md: Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md: React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 - docs/framework/react/adapter.md: React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
+- docs/framework/react/city.md: 3D city map: Render metric-driven buildings with categorical districts, selection, camera controls, lighting, and weather in React.
 - docs/framework/preact/adapter.md: Preact Adapter: Render and hydrate TanStack Charts with Preact.
 - docs/framework/vue/adapter.md: Vue Adapter: Render and hydrate TanStack Charts with Vue 3.
 - docs/framework/solid/adapter.md: Solid Adapter: Render and hydrate TanStack Charts with Solid.

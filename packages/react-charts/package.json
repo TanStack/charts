@@ -9,7 +9,9 @@
     "directory": "packages/react-charts"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
     "LICENSE",
@@ -19,7 +21,11 @@
     ".": "./src/index.ts",
     "./canvas": "./src/canvas.ts",
     "./core": "./src/core.ts",
-    "./tooltip": "./src/tooltip.tsx"
+    "./tooltip": "./src/tooltip.tsx",
+    "./city": "./src/city.ts",
+    "./city/styles.css": "./src/city/styles.css",
+    "./city/theme-default.css": "./src/city/theme-default.css",
+    "./city/theme-tailwind.css": "./src/city/theme-tailwind.css"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
@@ -30,7 +36,8 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "three": "^0.180.0"
   },
   "publishConfig": {
     "access": "public",
@@ -51,7 +58,25 @@
       "./tooltip": {
         "types": "./dist/tooltip.d.ts",
         "import": "./dist/tooltip.js"
+      },
+      "./city": {
+        "types": "./dist/city.d.ts",
+        "import": "./dist/city.js"
+      },
+      "./city/styles.css": {
+        "default": "./dist/city/styles.css"
+      },
+      "./city/theme-default.css": {
+        "default": "./dist/city/theme-default.css"
+      },
+      "./city/theme-tailwind.css": {
+        "default": "./dist/city/theme-tailwind.css"
       }
+    }
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
     }
   }
 }

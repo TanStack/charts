@@ -14,6 +14,22 @@ const callbackInventory = {
   // Application callbacks: zero or one primary value, plus an optional object
   // named `context` or `options`.
   callback: [
+    [
+      '@tanstack/react-charts:src/city/types.ts:CityMapProps',
+      'onAutoRotateChange onDistrictLabelsChange onEffectsChange onFocusChange onLifeChange onSelect onViewChange',
+    ],
+    [
+      '@tanstack/react-charts:src/city/types.ts:CityChartProps',
+      'children onFocusChange onSelect',
+    ],
+    [
+      '@tanstack/react-charts:src/city/types.ts:CityRendererOptions',
+      'frame hover onData onDestroy onError onMount projection',
+    ],
+    [
+      '@tanstack/react-charts:src/city/types.ts:EnvironmentControlsProps',
+      'onLightingChange onWeatherChange',
+    ],
     ['@tanstack/alpine-charts:src/index.ts:ChartOptions', 'renderTooltipBody'],
     [
       '@tanstack/charts:src/canvas.ts:CanvasChartRenderer',
@@ -523,6 +539,9 @@ const callbackInventory = {
   ],
   // Exact D3-compatible protocols retain their upstream positional shape.
   upstreamProtocol: [
+    // React callback refs follow React's externally owned Ref protocol.
+    ['@tanstack/react-charts:src/city/types.ts:CityMapProps', 'ref'],
+    ['@tanstack/react-charts:src/city/types.ts:CityChartProps', 'chartRef'],
     [
       '@tanstack/alpine-charts:src/index.ts:AlpineDirectiveUtilities',
       'cleanup cleanup.callback effect effect.callback evaluateLater evaluateLater.$return evaluateLater.receiver',
@@ -599,6 +618,14 @@ const callbackInventory = {
   // Consumer-called handles and lifecycle/service protocols are methods, not
   // application callbacks.
   serviceMethod: [
+    [
+      '@tanstack/react-charts:src/city/types.ts:CityChartHandle',
+      'cancel capture deselect play scrollIntoView select stats view zoom',
+    ],
+    [
+      '@tanstack/react-charts:src/city/types.ts:CityEngine',
+      'dispose focus select setActivity setAutoRotate setLightingMode setWeather view zoom',
+    ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartHostControlExtensionContext',
       'setStateFocus',

@@ -197,10 +197,10 @@ function validateManifest(packageInfo) {
   const { manifest } = packageInfo
   assert.equal(manifest.private, false, `${manifest.name} must be publishable`)
   assert.equal(manifest.type, 'module', `${manifest.name} must publish ESM`)
-  assert.equal(
-    manifest.sideEffects,
-    false,
-    `${manifest.name} must remain tree-shakeable`,
+  assert.ok(
+    manifest.sideEffects === false ||
+      JSON.stringify(manifest.sideEffects) === JSON.stringify(['**/*.css']),
+    `${manifest.name} must keep JavaScript tree-shakeable`,
   )
   assert.ok(
     manifest.files?.includes('dist'),
@@ -236,6 +236,10 @@ function validateManifest(packageInfo) {
       typeof published === 'object' && published !== null,
       `${manifest.name} published export ${key} must use conditions`,
     )
+    if (sourceTarget.endsWith('.css')) {
+      assert.ok(published.default?.startsWith('./dist/'))
+      continue
+    }
     assert.ok(
       published.types?.startsWith('./dist/'),
       `${manifest.name} published export ${key} requires declarations`,
@@ -299,6 +303,11 @@ async function buildRuntime(packageInfo) {
     logLevel: 'silent',
   })
 
+  for (const file of await walk(sourceRoot)) {
+    if (!file.endsWith('.css') || wrapperEntries.has(file)) continue
+    await cp(file, resolve(outputRoot, relative(sourceRoot, file)))
+  }
+
   if (packageInfo.kind !== 'octane') return
 
   for (const name of ['Chart', 'RendererChart', 'CanvasChart']) {
@@ -332,9 +341,9 @@ async function buildRuntime(packageInfo) {
 }
 
 function isRuntimeSource(file) {
-  if (!/\.(?:ts|tsx)$/.test(file)) return false
+  if (!/\.(?:ts|tsx|js|jsx)$/.test(file)) return false
   if (/\.d\.ts$/.test(file)) return false
-  if (/\.(?:test|type-test)\.(?:ts|tsx)$/.test(file)) return false
+  if (/\.(?:test|type-test)\.(?:ts|tsx|js|jsx)$/.test(file)) return false
   return !file.endsWith(`${sep}test-scales.ts`)
 }
 
@@ -372,7 +381,9 @@ async function buildDeclarations(packageInfo) {
     ...new Set(
       Object.entries(packageInfo.manifest.exports)
         .filter(
-          ([key]) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key),
+          ([key, entry]) =>
+            !entry.endsWith('.css') &&
+            (packageInfo.kind !== 'core' || !isUnifiedCoreExport(key)),
         )
         .map(([, entry]) => resolve(packageInfo.sourceDirectory, entry)),
     ),
@@ -460,8 +471,8 @@ async function rewriteGeneratedSpecifiers(directory) {
 
 function toJavaScriptSpecifier(specifier) {
   if (/\.(?:[cm]?js|json|css|wasm)$/.test(specifier)) return specifier
-  if (/\.(?:ts|tsx|tsrx)$/.test(specifier)) {
-    return specifier.replace(/\.(?:ts|tsx|tsrx)$/, '.js')
+  if (/\.(?:ts|tsx|tsrx|jsx)$/.test(specifier)) {
+    return specifier.replace(/\.(?:ts|tsx|tsrx|jsx)$/, '.js')
   }
   return `${specifier}.js`
 }
@@ -470,7 +481,7 @@ async function validatePublishedTargets(packageInfo) {
   const exports = packageInfo.manifest.publishConfig.exports
   for (const [key, conditions] of Object.entries(exports)) {
     for (const [condition, target] of Object.entries(conditions)) {
-      if (condition === 'default') continue
+      if (condition === 'default' && !target.endsWith('.css')) continue
       const targetPath = resolve(packageInfo.stageDirectory, target)
       assert.ok(
         await isFile(targetPath),
@@ -580,6 +591,7 @@ async function installFixture(tarballs) {
     react: installedDependency('react'),
     'react-dom': installedDependency('react-dom'),
     tslib: installedPackageDependency('angular-charts', 'tslib'),
+    three: installedDependency('three'),
   }
   const manifest = {
     name: 'tanstack-charts-packed-consumer',
@@ -673,6 +685,7 @@ async function verifyReact18PackedConsumer(tarballs) {
     '@types/react-dom': installedReact18Dependency('@types/react-dom'),
     react: installedReact18Dependency('react'),
     'react-dom': installedReact18Dependency('react-dom'),
+    three: installedDependency('three'),
   }
 
   await mkdir(react18FixtureDirectory, { recursive: true })
@@ -781,6 +794,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 const originalConsoleError = console.error
 console.error = (...values) => serverWarnings.push(values.map(String).join(' '))
 try {
+  const cityMarkup = renderToStaticMarkup(createElement(CityMap, { data: [], ariaLabel: 'React 18 city' }))
+  assert.match(cityMarkup, /data-city-surface/)
+  assert.doesNotMatch(cityMarkup, /<canvas/)
   for (const Chart of [CompatibilityChart, UnifiedChart]) {
     const chart = createElement(Chart, {
       definition,
@@ -797,11 +813,13 @@ try {
   console.error = originalConsoleError
 }
 assert.deepEqual(serverWarnings, [])`
-      : `export const compatibilityChart = <CompatibilityChart definition={definition} width={320} height={180} ariaLabel="React 18 compatibility chart" />
+      : `export const cityMap = <CityMap data={[]} ariaLabel="React 18 city" />
+export const compatibilityChart = <CompatibilityChart definition={definition} width={320} height={180} ariaLabel="React 18 compatibility chart" />
 export const unifiedChart = <UnifiedChart definition={definition} width={320} height={180} ariaLabel="React 18 unified chart" />`
   return `
 ${runtimeImports}
 import { Chart as CompatibilityChart } from '@tanstack/react-charts'
+import { CityMap } from '@tanstack/react-charts/city'
 import { defineChart, lineY } from '@tanstack/charts'
 import { Chart as UnifiedChart } from '@tanstack/charts/react'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
@@ -855,7 +873,11 @@ function installedReact18Dependency(name) {
 
 function publishedSpecifiers(packageInfo) {
   return Object.keys(packageInfo.manifest.publishConfig.exports)
-    .filter((key) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key))
+    .filter(
+      (key) =>
+        !key.endsWith('.css') &&
+        (packageInfo.kind !== 'core' || !isUnifiedCoreExport(key)),
+    )
     .sort()
     .map((key) => `${packageInfo.name}${key === '.' ? '' : key.slice(1)}`)
 }
@@ -899,6 +921,7 @@ async function verifyEsmRuntime() {
     import { createElement } from 'react'
     import { renderToStaticMarkup } from 'react-dom/server'
     import { renderToString } from 'octane/server'
+    import { CityMap, defineCityChart, createCityRenderer } from '@tanstack/react-charts/city'
     import { scaleBand, scaleLinear, scalePoint } from 'd3-scale'
     import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
     import { scaleLinear as compactScaleLinear } from '@tanstack/charts-scales/linear'
@@ -960,6 +983,14 @@ async function verifyEsmRuntime() {
       '@tanstack/charts/types',
       '@tanstack/charts/types/core',
     ])
+    const cityRows = [{ id: 1, name: 'Packed store', metric: { label: 'Orders', value: 42 }, categories: [{ value: 'retail', label: 'Retail' }], status: 'healthy' }]
+    const cityHtml = renderToStaticMarkup(createElement(CityMap, { data: cityRows, ariaLabel: 'Packed city' }))
+    assert.match(cityHtml, /data-city-surface/)
+    assert.match(cityHtml, /Packed city/)
+    assert.doesNotMatch(cityHtml, /<canvas/)
+    assert.ok(defineCityChart(cityRows))
+    assert.equal(createCityRenderer().id, 'atlas-city-3d')
+
     const publishedSpecifiers = ${JSON.stringify(publishedSubpaths)}
     for (const specifier of publishedSpecifiers) {
       const resolved = import.meta.resolve(specifier)

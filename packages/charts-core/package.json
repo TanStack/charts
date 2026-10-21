@@ -12,7 +12,9 @@
     "directory": "packages/charts-core"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
     "docs",
@@ -55,7 +57,8 @@
     "react-native-svg": ">=15.15.4 <16",
     "solid-js": ">=1.8",
     "svelte": "^5.20.0",
-    "vue": ">=3.5"
+    "vue": ">=3.5",
+    "three": "^0.180.0"
   },
   "peerDependenciesMeta": {
     "@angular/core": {
@@ -95,6 +98,9 @@
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "three": {
       "optional": true
     }
   },
@@ -225,7 +231,11 @@
     "./violin": "./src/violin.ts",
     "./view": "./src/view.ts",
     "./vue": "./src/vue.ts",
-    "./waffle": "./src/waffle.ts"
+    "./waffle": "./src/waffle.ts",
+    "./react/city": "./src/react-city.ts",
+    "./react/city/styles.css": "./src/react-city/styles.css",
+    "./react/city/theme-default.css": "./src/react-city/theme-default.css",
+    "./react/city/theme-tailwind.css": "./src/react-city/theme-tailwind.css"
   },
   "publishConfig": {
     "access": "public",
@@ -706,6 +716,19 @@
       "./waffle": {
         "types": "./dist/waffle.d.ts",
         "import": "./dist/waffle.js"
+      },
+      "./react/city": {
+        "types": "./dist/react/city.d.ts",
+        "import": "./dist/react/city.js"
+      },
+      "./react/city/styles.css": {
+        "default": "./dist/react/city/styles.css"
+      },
+      "./react/city/theme-default.css": {
+        "default": "./dist/react/city/theme-default.css"
+      },
+      "./react/city/theme-tailwind.css": {
+        "default": "./dist/react/city/theme-tailwind.css"
       }
     }
   }

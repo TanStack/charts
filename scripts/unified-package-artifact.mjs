@@ -363,6 +363,7 @@ async function verifyUnifiedBundles(fixtureRoot) {
     ['Compact band scale', '@tanstack/charts/scales/band'],
     ['React adapter', '@tanstack/charts/react'],
     ['React tooltip adapter', '@tanstack/charts/react/tooltip'],
+    ['React city map', '@tanstack/charts/react/city'],
     [
       'React Native adapter',
       '@tanstack/charts/react-native',
@@ -408,8 +409,27 @@ async function verifyUnifiedBundles(fixtureRoot) {
     'svelte',
     'svelte/*',
     'tslib',
+    'three',
+    'three/*',
     'vue',
   ]
+
+  const cityStyles = await build({
+    stdin: {
+      contents: '@import "@tanstack/charts/react/city/styles.css";',
+      loader: 'css',
+      resolveDir: fixtureRoot,
+    },
+    bundle: true,
+    write: false,
+    logLevel: 'silent',
+  })
+  assert.ok(
+    cityStyles.outputFiles.some((file) =>
+      file.text.includes('.atlas-city-map'),
+    ),
+    'Unified city stylesheet was not bundled',
+  )
 
   for (const [label, specifier, conditions] of entries) {
     const namespace = specifier.slice('@tanstack/charts/'.length).split('/')[0]

@@ -45,6 +45,10 @@
             {
               "label": "React Adapter",
               "to": "framework/react/adapter"
+            },
+            {
+              "label": "3D City Map",
+              "to": "framework/react/city"
             }
           ]
         },

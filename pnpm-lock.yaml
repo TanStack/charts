@@ -217,6 +217,9 @@ importers:
       svelte:
         specifier: ^5.56.2
         version: 5.56.8
+      three:
+        specifier: 0.180.0
+        version: 0.180.0
       topojson-client:
         specifier: 3.1.0
         version: 3.1.0
@@ -627,6 +630,9 @@ importers:
       svelte:
         specifier: ^5.20.0
         version: 5.56.8
+      three:
+        specifier: ^0.180.0
+        version: 0.180.0
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -779,6 +785,9 @@ importers:
       react-dom:
         specifier: ^18.0.0 || ^19.0.0
         version: 19.2.3(react@19.2.3)
+      three:
+        specifier: ^0.180.0
+        version: 0.180.0
     devDependencies:
       '@types/d3-scale':
         specifier: ^4.0.9
@@ -9265,6 +9274,12 @@ packages:
     engines: { node: '>=10' }
     hasBin: true
 
+  three@0.180.0:
+    resolution:
+      {
+        integrity: sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==,
+      }
+
   throat@5.0.0:
     resolution:
       {
@@ -15753,6 +15768,8 @@ snapshots:
       acorn: 8.17.0
       commander: 2.20.3
       source-map-support: 0.5.21
+
+  three@0.180.0: {}
 
   throat@5.0.0: {}
 
