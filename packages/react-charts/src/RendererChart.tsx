@@ -21,21 +21,6 @@ const serverSnapshot = () => true
 const useIsomorphicLayoutEffect =
   typeof document === 'undefined' ? React.useEffect : React.useLayoutEffect
 
-let hostCommits = 0
-
-function inHostCommit(run: () => void) {
-  hostCommits += 1
-  try {
-    run()
-  } finally {
-    hostCommits -= 1
-  }
-}
-
-export function isInHostCommit() {
-  return hostCommits > 0
-}
-
 interface ChartSurfaceProps {
   markup: string
 }
@@ -194,18 +179,16 @@ export function RendererChartImplementation<
   useIsomorphicLayoutEffect(() => {
     const container = containerRef.current
     if (!container) return
-    inHostCommit(() => {
-      adapter.update(hostOptions)
-      if (!mountedRef.current) {
-        adapter.mount(container)
-        mountedRef.current = true
-      }
-    })
+    adapter.update(hostOptions)
+    if (!mountedRef.current) {
+      adapter.mount(container)
+      mountedRef.current = true
+    }
   }, [adapter, hostOptions])
 
   useIsomorphicLayoutEffect(
     () => () => {
-      inHostCommit(() => adapter.destroy())
+      adapter.destroy()
       mountedRef.current = false
     },
     [adapter],

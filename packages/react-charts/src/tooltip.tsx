@@ -19,7 +19,6 @@ import {
   type CanvasChartProps as BaseCanvasChartProps,
 } from './CanvasChart'
 import {
-  isInHostCommit,
   RendererChartImplementation,
   type RendererChartCommonProps as BaseRendererChartCommonProps,
   type RendererChartProps as BaseRendererChartProps,
@@ -136,26 +135,19 @@ export function CanvasChart<
   )
 }
 
-let bodyCommits = 0
+let hostCommit = false
 
-function BodyCommitStart() {
-  const enter = () => {
-    bodyCommits += 1
-    queueMicrotask(() => {
-      bodyCommits = 0
-    })
-  }
-  React.useLayoutEffect(enter)
-  React.useEffect(enter)
+function HostCommitStart() {
+  React.useLayoutEffect(() => {
+    hostCommit = true
+  })
   return null
 }
 
-function BodyCommitEnd() {
-  const leave = () => {
-    bodyCommits = Math.max(0, bodyCommits - 1)
-  }
-  React.useLayoutEffect(leave)
-  React.useEffect(leave)
+function HostCommitEnd() {
+  React.useLayoutEffect(() => {
+    hostCommit = false
+  })
   return null
 }
 
@@ -187,7 +179,7 @@ function TooltipBody<
   > | null>(null)
   const onChange = React.useCallback(
     (nextTarget: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null) => {
-      if (isInHostCommit() || bodyCommits > 0) setTarget(nextTarget)
+      if (nextTarget === null || hostCommit) setTarget(nextTarget)
       else flushSync(() => setTarget(nextTarget))
     },
     [],
@@ -198,21 +190,19 @@ function TooltipBody<
   const chart = React.useMemo(() => children(notify), [children, notify])
   return (
     <>
+      <HostCommitStart />
       {chart}
+      <HostCommitEnd />
       {renderTooltipBody && target
         ? createPortal(
-            <>
-              <BodyCommitStart />
-              {renderTooltipBody({
-                primaryPoint: target.primaryPoint,
-                points: target.points,
-                content: target.content,
-                pinned: target.pinned,
-                dismiss: target.dismiss,
-                defaultBody: <DefaultTooltipBody content={target.content} />,
-              })}
-              <BodyCommitEnd />
-            </>,
+            renderTooltipBody({
+              primaryPoint: target.primaryPoint,
+              points: target.points,
+              content: target.content,
+              pinned: target.pinned,
+              dismiss: target.dismiss,
+              defaultBody: <DefaultTooltipBody content={target.content} />,
+            }),
             target.element,
           )
         : null}

@@ -187,9 +187,14 @@ describe('tooltip state ownership', () => {
     }
   })
 
-  it.each(['layout', 'passive'])(
-    'accepts a dismissal from the body %s effect',
-    async (phase) => {
+  it.each([
+    ['layout', 'setup'],
+    ['layout', 'cleanup'],
+    ['passive', 'setup'],
+    ['passive', 'cleanup'],
+  ] as const)(
+    'accepts a dismissal from the body %s effect %s',
+    async (phase, step) => {
       const definition = defineChart({
         marks: [
           dot(
@@ -208,11 +213,17 @@ describe('tooltip state ownership', () => {
       })
       const useEffect =
         phase === 'layout' ? React.useLayoutEffect : React.useEffect
-      function Body({ y, dismiss }: { y: unknown; dismiss: () => void }) {
+      function Body({ dismiss }: { dismiss: () => void }) {
+        const [armed, setArmed] = React.useState(false)
         useEffect(() => {
-          if (y === 2) dismiss()
-        }, [y, dismiss])
-        return <span data-body>{String(y)}</span>
+          if (step === 'setup' && armed) dismiss()
+          if (step === 'cleanup' && !armed) return () => dismiss()
+        }, [armed, dismiss])
+        return (
+          <button data-body type="button" onClick={() => setArmed(true)}>
+            dismiss
+          </button>
+        )
       }
       const container = document.createElement('div')
       document.body.append(container)
@@ -226,9 +237,7 @@ describe('tooltip state ownership', () => {
               width={480}
               height={260}
               ariaLabel="chart"
-              renderTooltipBody={({ primaryPoint, dismiss }) => (
-                <Body y={primaryPoint?.datum.y} dismiss={dismiss} />
-              )}
+              renderTooltipBody={({ dismiss }) => <Body dismiss={dismiss} />}
             />,
           ),
         )
@@ -237,12 +246,9 @@ describe('tooltip state ownership', () => {
         await act(async () =>
           svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true })),
         )
-        expect(container.querySelector('[data-body]')?.textContent).toBe('1')
-        await act(async () =>
-          svg.dispatchEvent(
-            new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
-          ),
-        )
+        const button = container.querySelector<HTMLElement>('[data-body]')
+        if (!button) throw new Error('Missing tooltip body')
+        await act(async () => button.click())
         expect(container.querySelector('[data-body]')).toBeNull()
       } finally {
         try {
