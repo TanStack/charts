@@ -12410,6 +12410,7 @@
     },
     {
       "schemaVersion": 1,
+      "collections": ["shadcn"],
       "height": 720,
       "order": 1990,
       "id": "city-map",

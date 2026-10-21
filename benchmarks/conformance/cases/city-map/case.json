@@ -29,5 +29,6 @@
   "ai": {
     "create": "Render store metrics as buildings in category-intersection districts using the city renderer and the existing React chart contracts.",
     "maintain": "Preserve datum identity, metric heights, category districts, keyboard selection, camera controls, renderer disposal, and the source-backed catalog entry."
-  }
+  },
+  "collections": ["shadcn"]
 }
