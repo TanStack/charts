@@ -176,11 +176,14 @@ describe('tooltip state ownership', () => {
       expect(container.querySelector('[data-body]')?.textContent).toBe('2')
       await render(520)
       expect(container.querySelector('[data-body]')?.textContent).toBe('2')
-      expect(errors).not.toHaveBeenCalled()
     } finally {
-      errors.mockRestore()
-      await act(async () => root.unmount())
-      container.remove()
+      try {
+        await act(async () => root.unmount())
+        expect(errors).not.toHaveBeenCalled()
+      } finally {
+        errors.mockRestore()
+        container.remove()
+      }
     }
   })
 
@@ -241,11 +244,14 @@ describe('tooltip state ownership', () => {
           ),
         )
         expect(container.querySelector('[data-body]')).toBeNull()
-        expect(errors).not.toHaveBeenCalled()
       } finally {
-        errors.mockRestore()
-        await act(async () => root.unmount())
-        container.remove()
+        try {
+          await act(async () => root.unmount())
+          expect(errors).not.toHaveBeenCalled()
+        } finally {
+          errors.mockRestore()
+          container.remove()
+        }
       }
     },
   )
