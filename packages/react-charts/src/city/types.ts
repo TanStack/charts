@@ -33,6 +33,8 @@ export interface CityLayout<T extends CityDatum = CityDatum> {
   roadBounds: { x1: number; x2: number; z1: number; z2: number }
   bounds: Record<string, { x1: number; x2: number; z1: number; z2: number }>
   anchors: Record<number, [number, number, number]>
+  /** Shared metric extent; omit to derive it from the layout's companies. */
+  metricDomain?: [number, number]
   center: [number, number]
 }
 export type CityDefinitionOptions<T extends CityDatum = CityDatum> =

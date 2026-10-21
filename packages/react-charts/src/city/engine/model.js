@@ -131,14 +131,27 @@ export function demoCompanies(count = 1400) {
     }
   })
 }
-export function sizeForValue(value) {
-  return value < 90
-    ? { height: 0.95, floors: 1, house: true }
-    : value < 550
-      ? { height: 2.4, floors: 2, house: false }
-      : value < 1800
-        ? { height: 4.3, floors: 4, house: false }
-        : { height: 7.2, floors: 6, house: false }
+// Share one domain across the complete dataset, including filtered/paginated rows.
+export function metricDomainFor(records) {
+  let min = Infinity,
+    max = -Infinity
+  for (const record of records) {
+    const value = metricFor(record).value
+    min = Math.min(min, value)
+    max = Math.max(max, value)
+  }
+  return records.length ? [min, max] : [0, 0]
+}
+
+// Standalone legacy callers can omit the domain; cities always supply their data domain.
+export function sizeForValue(value, [min, max] = [0, 4200]) {
+  const ratio =
+    max === min
+      ? 0.5
+      : Math.sqrt(Math.max(0, Math.min(1, (value - min) / (max - min))))
+  const height = 0.95 + ratio * (16.8 - 0.95)
+  const floors = Math.min(14, Math.ceil(height / 1.2))
+  return { height, floors, house: floors === 1 }
 }
 // Compatibility for integrations using the previous helper name.
 export const sizeForUsers = sizeForValue
@@ -405,6 +418,7 @@ export function layoutCity(records) {
   }
   return {
     companies: placed,
+    metricDomain: metricDomainFor(records),
     bounds,
     roadBounds,
     anchors,

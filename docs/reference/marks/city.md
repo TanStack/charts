@@ -52,6 +52,28 @@ Alternatively, supply a district `mask` from 1 to 7. Empty data is supported.
 Optional `updatedAt` and `statusChangedAt` fields accept ISO 8601 timestamps with
 a timezone. Rows are never mutated; selection returns the original datum.
 
+## Building height
+
+Buildings use a continuous square-root scale adapted to the dataset's metric
+values. The smallest value maps to a one-floor house and the largest to a
+14-floor building (0.95–16.8 scene units). Intermediate heights use
+`sqrt((value - min) / (max - min))`, clamped to 0–1, to interpolate between those
+heights. This gives smaller and intermediate values more presence than a linear
+scale when large values dominate. Height is not proportional to the metric:
+twice the height does not mean twice the value.
+
+Equal values always produce equal heights. If all values are equal, including a
+single record or all zeros, buildings use the midpoint height (8.875 scene units).
+The scale is shared across districts and recalculated when the data changes.
+Search and selection preserve the scale. Separate datasets have independent
+scales, so heights should be compared within the same dataset.
+
+When supplying a precomputed `CityLayout`, set its optional `metricDomain` to the
+full dataset's `[min, max]` to keep heights stable across application-owned
+filters or pagination. Otherwise, the domain is derived from the layout's rows.
+Changes to this domain rebuild heights even if the visible metric values have
+not changed. Exact metric values remain available in tooltips and details.
+
 ## Composition
 
 `CityMap` includes the controls, search, details, and critical-record monitor.

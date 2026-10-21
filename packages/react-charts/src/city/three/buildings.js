@@ -1,5 +1,10 @@
 import * as THREE from 'three'
-import { random, metricFor, sizeForValue } from '../engine/model.js'
+import {
+  random,
+  metricFor,
+  metricDomainFor,
+  sizeForValue,
+} from '../engine/model.js'
 import { facadeWindows, windowEmitters } from '../engine/plumes.js'
 import { createCriticalBlink } from '../engine/critical-blink.js'
 import { instances, material } from './primitives.js'
@@ -12,10 +17,11 @@ export function buildBuildings(city, companies) {
     windows = [],
     glows = []
   const rng = random(712)
+  const domain = city.layout?.metricDomain ?? metricDomainFor(companies)
   city.emitters = []
   city.warningSources = []
   for (const c of companies) {
-    const size = sizeForValue(metricFor(c).value)
+    const size = sizeForValue(metricFor(c).value, domain)
     c.height = size.height
     c.house = size.house
     const shade = 0.88 + rng() * 0.22

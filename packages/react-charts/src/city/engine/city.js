@@ -176,11 +176,14 @@ export class City {
       this.setCompanies(next, layout, { colors })
       return true
     }
-    const buildingsChanged = next.some(
-      (c, i) =>
-        metricFor(c).value !== metricFor(this.companies[i]).value ||
-        c.status !== this.companies[i].status,
-    )
+    const buildingsChanged =
+      JSON.stringify(layout.metricDomain) !==
+        JSON.stringify(this.layout.metricDomain) ||
+      next.some(
+        (c, i) =>
+          metricFor(c).value !== metricFor(this.companies[i]).value ||
+          c.status !== this.companies[i].status,
+      )
     for (const [mask, color] of colors)
       this.palettes.set(mask, new THREE.Color(color))
     if (buildingsChanged) {
@@ -188,6 +191,7 @@ export class City {
       this.renderer.renderLists.dispose()
       this.warningTexture = null
       this.companies = next
+      this.layout = layout
       buildBuildings(this, next)
       this.buildEffects()
     } else {
