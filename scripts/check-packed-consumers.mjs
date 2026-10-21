@@ -197,10 +197,10 @@ function validateManifest(packageInfo) {
   const { manifest } = packageInfo
   assert.equal(manifest.private, false, `${manifest.name} must be publishable`)
   assert.equal(manifest.type, 'module', `${manifest.name} must publish ESM`)
-  assert.ok(
-    manifest.sideEffects === false ||
-      JSON.stringify(manifest.sideEffects) === JSON.stringify(['**/*.css']),
-    `${manifest.name} must keep JavaScript tree-shakeable`,
+  assert.equal(
+    manifest.sideEffects,
+    false,
+    `${manifest.name} must remain tree-shakeable`,
   )
   assert.ok(
     manifest.files?.includes('dist'),
@@ -236,10 +236,6 @@ function validateManifest(packageInfo) {
       typeof published === 'object' && published !== null,
       `${manifest.name} published export ${key} must use conditions`,
     )
-    if (sourceTarget.endsWith('.css')) {
-      assert.ok(published.default?.startsWith('./dist/'))
-      continue
-    }
     assert.ok(
       published.types?.startsWith('./dist/'),
       `${manifest.name} published export ${key} requires declarations`,
@@ -302,11 +298,6 @@ async function buildRuntime(packageInfo) {
     legalComments: 'none',
     logLevel: 'silent',
   })
-
-  for (const file of await walk(sourceRoot)) {
-    if (!file.endsWith('.css') || wrapperEntries.has(file)) continue
-    await cp(file, resolve(outputRoot, relative(sourceRoot, file)))
-  }
 
   if (packageInfo.kind !== 'octane') return
 
@@ -381,9 +372,7 @@ async function buildDeclarations(packageInfo) {
     ...new Set(
       Object.entries(packageInfo.manifest.exports)
         .filter(
-          ([key, entry]) =>
-            !entry.endsWith('.css') &&
-            (packageInfo.kind !== 'core' || !isUnifiedCoreExport(key)),
+          ([key]) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key),
         )
         .map(([, entry]) => resolve(packageInfo.sourceDirectory, entry)),
     ),
@@ -481,7 +470,7 @@ async function validatePublishedTargets(packageInfo) {
   const exports = packageInfo.manifest.publishConfig.exports
   for (const [key, conditions] of Object.entries(exports)) {
     for (const [condition, target] of Object.entries(conditions)) {
-      if (condition === 'default' && !target.endsWith('.css')) continue
+      if (condition === 'default') continue
       const targetPath = resolve(packageInfo.stageDirectory, target)
       assert.ok(
         await isFile(targetPath),
@@ -873,11 +862,7 @@ function installedReact18Dependency(name) {
 
 function publishedSpecifiers(packageInfo) {
   return Object.keys(packageInfo.manifest.publishConfig.exports)
-    .filter(
-      (key) =>
-        !key.endsWith('.css') &&
-        (packageInfo.kind !== 'core' || !isUnifiedCoreExport(key)),
-    )
+    .filter((key) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key))
     .sort()
     .map((key) => `${packageInfo.name}${key === '.' ? '' : key.slice(1)}`)
 }

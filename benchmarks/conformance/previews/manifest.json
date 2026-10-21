@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "4c9a63949cbf9511cf8abd901c2bb8224ea959d284456a9b90e1b87745400ef9",
+  "sourceHash": "4a24c517bcaabf672520a8fa8cc7a0f76236293f2b525bca2b75de728a040e4a",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -943,6 +943,11 @@
       "id": "197-shadcn-tooltip-label-none",
       "sha256": "4968486648c607560e8b47274b3fcd628134c2f9453a0d09d9362861e0d011bf",
       "bytes": 5019
+    },
+    {
+      "id": "city-map",
+      "sha256": "37634ee03b48edd668ac6c1732d7d29c3ffa985edd873d6aa0df6fbac48750c5",
+      "bytes": 19593
     }
   ]
 }

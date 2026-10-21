@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { createCriticalBlink } from '../../packages/react-charts/src/city/engine/critical-blink.js'
+import { createCriticalBlink } from './engine/critical-blink.js'
 
 test('critical companies have distinct rhythms and irregular intervals without gradual transitions', () => {
   const patterns = []

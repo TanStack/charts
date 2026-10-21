@@ -12,9 +12,7 @@
     "directory": "packages/charts-core"
   },
   "type": "module",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "files": [
     "dist",
     "docs",
@@ -232,10 +230,7 @@
     "./view": "./src/view.ts",
     "./vue": "./src/vue.ts",
     "./waffle": "./src/waffle.ts",
-    "./react/city": "./src/react-city.ts",
-    "./react/city/styles.css": "./src/react-city/styles.css",
-    "./react/city/theme-default.css": "./src/react-city/theme-default.css",
-    "./react/city/theme-tailwind.css": "./src/react-city/theme-tailwind.css"
+    "./react/city": "./src/react-city.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -720,15 +715,6 @@
       "./react/city": {
         "types": "./dist/react/city.d.ts",
         "import": "./dist/react/city.js"
-      },
-      "./react/city/styles.css": {
-        "default": "./dist/react/city/styles.css"
-      },
-      "./react/city/theme-default.css": {
-        "default": "./dist/react/city/theme-default.css"
-      },
-      "./react/city/theme-tailwind.css": {
-        "default": "./dist/react/city/theme-tailwind.css"
       }
     }
   }

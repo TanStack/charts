@@ -46,7 +46,21 @@ export declare function cityMark<T extends CityDatum>(
   data: readonly T[],
   options?: { id?: string; layout?: CityLayout<T> },
 ): ChartMark<T, number, number>
-export declare const cityFocus: ChartFocusStrategy
+export declare const cityFocus: {
+  resolve<TDatum>(
+    points: readonly ChartPoint<TDatum, number, number>[],
+    context: Parameters<
+      ChartFocusStrategy<TDatum, number, number>['resolve']
+    >[1],
+  ): readonly ChartPoint<TDatum, number, number>[]
+  group<TDatum>(
+    points: readonly ChartPoint<TDatum, number, number>[],
+    context: Parameters<ChartFocusStrategy<TDatum, number, number>['group']>[1],
+  ): readonly ChartPoint<TDatum, number, number>[]
+  navigation<TDatum>(
+    points: readonly ChartPoint<TDatum, number, number>[],
+  ): readonly ChartPoint<TDatum, number, number>[]
+}
 export interface CityEngine<T extends CityDatum = CityDatum> {
   setActivity(options: { life?: boolean; effects?: boolean }): void
   setAutoRotate(enabled: boolean): void
@@ -107,7 +121,7 @@ export interface CityMapProps<T extends CityDatum = CityDatum> {
   ref?: Ref<CityChartHandle<T>>
   className?: string
   /** "default" applies default CSS variables; null uses only the host theme. */
-  theme?: 'default' | 'tailwind' | null
+  theme?: 'default' | null
   title?: string
   ariaLabel?: string
   busy?: boolean
@@ -150,7 +164,7 @@ export interface CityChartProps<T extends CityDatum = CityDatum> {
   id?: string
   viewportId?: string
   className?: string
-  theme?: 'default' | 'tailwind' | null
+  theme?: 'default' | null
   ariaLabel?: string
   view?: CityView
   life?: boolean

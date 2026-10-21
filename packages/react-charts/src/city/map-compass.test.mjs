@@ -1,7 +1,7 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
-import { mapNorthAngle } from '../../packages/react-charts/src/city/engine/lib/map-compass.js'
+import { mapNorthAngle } from './engine/lib/map-compass.js'
 
 test('north follows the projected ground direction at every camera heading and elevation', () => {
   const camera = new THREE.OrthographicCamera(-160, 160, 100, -100, 0.1, 800)

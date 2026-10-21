@@ -2,7 +2,7 @@ import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { City } from '../../packages/react-charts/src/city/engine/city.js'
+import { City } from './engine/city.js'
 
 test('isometric view keeps a fixed tilt when rotating, recentering and returning from the top view', () => {
   const camera = new THREE.OrthographicCamera(-100, 100, 100, -100, 0.1, 800)

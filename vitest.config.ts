@@ -9,6 +9,7 @@ export default defineConfig({
       'benchmarks/conformance/**/*.test.ts',
       'packages/**/*.test.ts',
       'packages/**/*.test.tsx',
+      'packages/**/*.test.mjs',
       'examples/conformance/**/*.test.ts',
       'examples/sandbox/**/*.test.ts',
       'scripts/**/*.test.mjs',

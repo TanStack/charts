@@ -21,6 +21,8 @@ describe('React city integration', () => {
     const map = renderToString(<CityMap data={rows} ariaLabel="Store health" />)
     expect(map).toContain('Store health')
     expect(map).toContain('data-city-surface')
+    expect(map).toContain('data-city-fallback')
+    expect(map).toContain('ts-chart__rect')
     expect(map).toContain('Camera controls')
     expect(map).not.toContain('<canvas')
     const chart = renderToString(

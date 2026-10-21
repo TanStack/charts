@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { CitySlider } from '../../packages/react-charts/src/city/engine/city-slider.js'
+import { CitySlider } from './engine/city-slider.js'
 
 function setup(t) {
   const originalWindow = globalThis.window,

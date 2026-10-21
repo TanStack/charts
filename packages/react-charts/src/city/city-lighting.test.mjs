@@ -7,10 +7,10 @@ import {
   LIGHTING_TRANSITION_MS,
   lightingPeriod,
   updateLighting,
-} from '../../packages/react-charts/src/city/three/lighting.js'
-import { buildBuildings } from '../../packages/react-charts/src/city/three/buildings.js'
-import { updateEffects } from '../../packages/react-charts/src/city/three/effects.js'
-import { disposeSceneGroups } from '../../packages/react-charts/src/city/engine/scene-resources.js'
+} from './three/lighting.js'
+import { buildBuildings } from './three/buildings.js'
+import { updateEffects } from './three/effects.js'
+import { disposeSceneGroups } from './engine/scene-resources.js'
 
 const localTime = (hour, minute = 0) => new Date(2026, 9, 18, hour, minute)
 const settleLighting = (city, date) => {

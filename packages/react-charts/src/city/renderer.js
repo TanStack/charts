@@ -1,3 +1,4 @@
+import { renderChartSvg } from '@tanstack/charts/svg'
 import { getBrowserMapLocale, getMapI18n } from './i18n.js'
 import { City } from './engine/city.js'
 import { readCityLayout } from './layout.js'
@@ -36,8 +37,8 @@ export function createCityRenderer({
 } = {}) {
   const renderer = {
     id: 'atlas-city-3d',
-    prerender(_scene, options) {
-      return `<div data-city-surface role="group" aria-roledescription="${getMapI18n('en-US').t('chartRole')}" aria-label="${escapeAttribute(options.ariaLabel)}" style="width:100%;height:100%"></div>`
+    prerender(scene, options) {
+      return `<div data-city-surface role="group" aria-roledescription="${getMapI18n('en-US').t('chartRole')}" aria-label="${escapeAttribute(options.ariaLabel)}" style="position:relative;width:100%;height:100%"><div data-city-fallback style="position:absolute;inset:0;pointer-events:none">${renderChartSvg(scene, { ...options, tabIndex: -1 })}</div></div>`
     },
     mount(container) {
       const element =
@@ -46,6 +47,17 @@ export function createCityRenderer({
       element.dataset.citySurface = ''
       element.style.width = '100%'
       element.style.height = '100%'
+      element.style.position = 'relative'
+      const fallback =
+        element.querySelector('[data-city-fallback]') ||
+        container.ownerDocument.createElement('div')
+      fallback.dataset.cityFallback = ''
+      Object.assign(fallback.style, {
+        position: 'absolute',
+        inset: '0',
+        pointerEvents: 'none',
+      })
+      if (!fallback.parentNode) element.prepend(fallback)
       if (!element.parentNode) container.append(element)
       let city
       let scene
@@ -142,6 +154,10 @@ export function createCityRenderer({
             callbacks.frame?.(value)
           },
         })
+        Object.assign(city.renderer.domElement.style, {
+          position: 'relative',
+          zIndex: '1',
+        })
         city.setActivity({ life, effects })
         city.setAutoRotate(autoRotate)
         onMount?.(city)
@@ -160,6 +176,12 @@ export function createCityRenderer({
         render(nextScene, options) {
           scene = nextScene
           sourcePoints = scene.points
+          // Keep the standard semantic SVG for SSR, accessibility and WebGL failure.
+          // The opaque WebGL canvas paints above it when available.
+          fallback.innerHTML = renderChartSvg(scene, {
+            ...options,
+            tabIndex: -1,
+          })
           if (new Set(sourcePoints.map((point) => point.markId)).size > 1)
             throw new TypeError(
               'CityRenderer aceita uma cityMark por superfície.',

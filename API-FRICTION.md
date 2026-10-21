@@ -9365,9 +9365,15 @@ Each entry records:
 - Friction: the packed consumer builder accepted only TypeScript runtime files,
   required declarations for stylesheet exports, and required sideEffects to be
   false even for explicitly imported stylesheets.
-- Decision: accept JavaScript runtime modules alongside a checked TypeScript
-  public contract, copy CSS assets, and permit CSS-only side effects. Keep the
-  renderer behind an optional entry and Three.js behind an optional peer.
-- Verification: tracked by the city integration tests and packed package gate.
+- Decision: keep the renderer behind an optional entry and Three.js behind an
+  optional peer. Own scoped styles in the renderer, as existing React examples
+  do, and retain the package's sideEffects: false contract. JavaScript runtime
+  modules currently use an explicit TypeScript public contract.
+- Verification: city integration tests and the packed package gate pass.
+- Application correction: the first port added a standalone `/city/` route and
+  browser-check script. The repository already has source-backed catalog cases,
+  React mounting helpers, definition-only previews, and interaction scenarios.
+  Move the city example into that existing flow, colocate its regressions with
+  the package, and remove the separate route, runner, and stylesheet exports.
 - Follow-up: consider migrating the private JavaScript engine to TypeScript
   independently of the public React API.

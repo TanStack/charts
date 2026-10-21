@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { mapTooltipAnchor } from '../../packages/react-charts/src/city/engine/lib/map-tooltip.js'
+import { mapTooltipAnchor } from './engine/lib/map-tooltip.js'
 
 test('the anchor keeps the roof projection inside the map', () => {
   assert.deepEqual(mapTooltipAnchor({ x: 0.5, y: -0.5 }, 800, 600), {

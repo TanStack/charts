@@ -5,7 +5,7 @@ import {
   TrafficSimulation,
   signalState,
   roadTileParts,
-} from '../../packages/react-charts/src/city/engine/traffic.js'
+} from './engine/traffic.js'
 
 const pointInCar = (car, x, z, padding = 0) => {
   const dx = x - car.x,

@@ -68,10 +68,10 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(175)
+    expect(classification.static).toBe(176)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
     expect(classification.indirect.sort()).toEqual(indirectDefinitions)
-    expect(classification.staticFiles).toHaveLength(170)
+    expect(classification.staticFiles).toHaveLength(171)
     expect(
       new Set([
         ...classification.staticFiles,

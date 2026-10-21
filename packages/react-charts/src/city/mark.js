@@ -42,6 +42,8 @@ export function cityMark(data, { id = 'companies', layout } = {}) {
         nodes: [
           {
             kind: 'group',
+            className: 'ts-chart__rect',
+            ariaHidden: true,
             key: `${id}:layout`,
             [cityLayout]: layout,
             children: points.map((point) => ({

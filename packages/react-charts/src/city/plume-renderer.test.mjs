@@ -1,12 +1,9 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
-import { WindowPlumes } from '../../packages/react-charts/src/city/engine/plume-renderer.js'
-import {
-  facadeWindows,
-  windowEmitters,
-} from '../../packages/react-charts/src/city/engine/plumes.js'
-import { sizeForUsers } from '../../packages/react-charts/src/city/engine/model.js'
+import { WindowPlumes } from './engine/plume-renderer.js'
+import { facadeWindows, windowEmitters } from './engine/plumes.js'
+import { sizeForUsers } from './engine/model.js'
 
 test('Three.js volumes remain valid, respect selection and can be hidden', () => {
   const c = {

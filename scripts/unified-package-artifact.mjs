@@ -414,23 +414,6 @@ async function verifyUnifiedBundles(fixtureRoot) {
     'vue',
   ]
 
-  const cityStyles = await build({
-    stdin: {
-      contents: '@import "@tanstack/charts/react/city/styles.css";',
-      loader: 'css',
-      resolveDir: fixtureRoot,
-    },
-    bundle: true,
-    write: false,
-    logLevel: 'silent',
-  })
-  assert.ok(
-    cityStyles.outputFiles.some((file) =>
-      file.text.includes('.atlas-city-map'),
-    ),
-    'Unified city stylesheet was not bundled',
-  )
-
   for (const [label, specifier, conditions] of entries) {
     const namespace = specifier.slice('@tanstack/charts/'.length).split('/')[0]
     const entry = resolve(

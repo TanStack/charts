@@ -5,7 +5,7 @@ import {
   resolveMapLocale,
   getMapI18n,
   getBrowserMapLocale,
-} from '../../packages/react-charts/src/city/i18n.js'
+} from './i18n.js'
 
 test('the map accepts both locales and uses English for unsupported languages', () => {
   assert.equal(resolveMapLocale('pt-BR'), 'pt-BR')

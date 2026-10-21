@@ -1,13 +1,13 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { greenLots } from '../../packages/react-charts/src/city/engine/landscape.js'
+import { greenLots } from './engine/landscape.js'
 import {
   demoCompanies,
   layoutCity,
   paginateCompanies,
   PAGE_SIZES,
   ROAD_EVERY,
-} from '../../packages/react-charts/src/city/engine/model.js'
+} from './engine/model.js'
 
 test('every area without a company receives a garden without occupying streets for every filter and page', () => {
   const records = demoCompanies()

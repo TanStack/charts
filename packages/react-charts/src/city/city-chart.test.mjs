@@ -8,11 +8,11 @@ import {
   defineCityChart,
   createCityRenderer,
   cityFocus,
-} from '../../packages/react-charts/src/city/index.js'
-import { bindCityPoints } from '../../packages/react-charts/src/city/interaction.js'
+} from './index.js'
+import { bindCityPoints } from './interaction.js'
 
-import { readCityLayout } from '../../packages/react-charts/src/city/layout.js'
-import { layoutCity } from '../../packages/react-charts/src/city/engine/model.js'
+import { readCityLayout } from './layout.js'
+import { layoutCity } from './engine/model.js'
 
 const data = Object.freeze([
   Object.freeze({

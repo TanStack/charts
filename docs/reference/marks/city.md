@@ -1,5 +1,5 @@
 ---
-title: 3D city map
+title: City Map Renderer
 description: Render metric-driven buildings with categorical districts, selection, camera controls, lighting, and weather in React.
 ---
 
@@ -10,13 +10,12 @@ district labels, day/night lighting, rain, snow, and reduced motion.
 
 The city module is optional. Ordinary chart imports do not load Three.js or city
 styles. Install `three@^0.180.0` alongside React and TanStack Charts, then import
-the city entry and its stylesheet in your client component:
+the city entry in your client component:
 
 ```tsx
 'use client'
 
 import { CityMap, type CityDatum } from '@tanstack/charts/react/city'
-import '@tanstack/charts/react/city/styles.css'
 
 const records: CityDatum[] = [
   {
@@ -42,8 +41,8 @@ export default function Stores() {
 }
 ```
 
-The compatibility entry is `@tanstack/react-charts/city`; its styles are at
-`@tanstack/react-charts/city/styles.css`.
+The compatibility entry is `@tanstack/react-charts/city`. The component owns its
+scoped styles, following the renderer pattern used by the other chart examples.
 
 Each row needs a unique string or numeric `id`, a `name`, a metric with a nonempty
 label and a finite nonnegative value, and a `status` of `healthy`, `warning`, or
@@ -81,16 +80,15 @@ Pass a `CityChartHandle` ref for `zoom`, `view`, `select`, `deselect`, `cancel`,
 `capture`, `play`, `scrollIntoView`, and `stats`. Selection accepts an options bag:
 `ref.current?.select(record, { focus: true, maxZoom: true })`.
 
-The stylesheet supplies default theme variables. Override `--atlas-city-*`
-properties in your own CSS, or import `city/theme-tailwind.css` and set
-`theme="tailwind"` to use host Tailwind theme variables. Set `theme={null}` to
-provide all variables yourself. The map needs a container with a measurable width
-and reserves at least 520 pixels of height.
+The renderer supplies scoped theme variables. Override `--atlas-city-*` properties
+in your own CSS, or set `theme={null}` to provide all variables yourself. The map
+needs a measurable container width and reserves at least 520 pixels of height.
 
 ## Rendering and accessibility
 
-Use a client boundary for React Server Components. Server rendering outputs an
-accessible placeholder; WebGL is allocated only when the chart mounts in a browser.
+Use a client boundary for React Server Components. Server rendering outputs the
+standard semantic SVG top view; WebGL paints above it after mounting in a browser.
+The SVG remains available when WebGL cannot initialize.
 WebGL initialization or context loss produces a visible error message. The map
 honors reduced motion, exposes keyboard focus/selection through the chart host,
 and supports `+`/`-` for zoom, `0` for the isometric view, and Escape to clear
@@ -99,12 +97,6 @@ selection. Controls and descriptions follow the browser language (`en-US` and
 
 Dispose charts by unmounting them. Unmounting releases observers, listeners,
 animations, geometry, materials, textures, and the WebGL renderer.
-
-## Local example
-
-Run `pnpm dev:charts-react` from the repository root and open `/city/` to try
-the complete map, including search, selection, weather, and mount/unmount controls.
-Run `node scripts/check-city-map.mjs` for the Chromium interaction check.
 
 ## Component and engine contracts
 
@@ -128,7 +120,12 @@ the full map. Its callbacks receive the next mode. `CityRendererOptions.onData`
 receives the mounted engine and `{ resetView }`; `hover` receives the datum and an
 optional `{ event }` context. Other lifecycle callbacks receive one engine or error.
 
-Stylesheet entry points are
-`@tanstack/charts/react/city/styles.css`,
-`@tanstack/charts/react/city/theme-default.css`, and
-`@tanstack/charts/react/city/theme-tailwind.css`.
+## Catalog example
+
+See the [3D city map](https://tanstack.com/charts/catalog/charts/city-map/) for the live example
+and its complete source. Run `pnpm dev:conformance` to use the catalog locally.
+The compact preview shows the same definition as a semantic top view.
+
+The shared conformance runner checks the SVG district layout against an isolated
+Plot reference. The live catalog mounts the full WebGL map. Both paths use the
+same source data and standard case metadata.

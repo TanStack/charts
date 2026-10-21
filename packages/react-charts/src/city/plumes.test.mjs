@@ -5,8 +5,8 @@ import {
   windowEmitters,
   samplePlume,
   makeParticles,
-} from '../../packages/react-charts/src/city/engine/plumes.js'
-import { sizeForUsers } from '../../packages/react-charts/src/city/engine/model.js'
+} from './engine/plumes.js'
+import { sizeForUsers } from './engine/model.js'
 
 function sources(status = 'critical') {
   const c = { id: 'test', x: 10, z: 20, users: 2200, status }

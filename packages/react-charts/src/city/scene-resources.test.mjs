@@ -1,7 +1,7 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
-import { disposeSceneGroups } from '../../packages/react-charts/src/city/engine/scene-resources.js'
+import { disposeSceneGroups } from './engine/scene-resources.js'
 
 test('removed cities release shared resources once and all instance buffers', () => {
   for (let page = 0; page < 20; page++) {

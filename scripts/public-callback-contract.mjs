@@ -15,6 +15,10 @@ const callbackInventory = {
   // named `context` or `options`.
   callback: [
     [
+      '@tanstack/react-charts:src/city/types.ts:cityFocus',
+      'group navigation resolve',
+    ],
+    [
       '@tanstack/react-charts:src/city/types.ts:CityMapProps',
       'onAutoRotateChange onDistrictLabelsChange onEffectsChange onFocusChange onLifeChange onSelect onViewChange',
     ],

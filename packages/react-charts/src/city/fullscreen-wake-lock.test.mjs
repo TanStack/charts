@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { maintainFullscreenWakeLock } from '../../packages/react-charts/src/city/engine/lib/fullscreen-wake-lock.js'
+import { maintainFullscreenWakeLock } from './engine/lib/fullscreen-wake-lock.js'
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 function setup(request) {

@@ -9,9 +9,7 @@
     "directory": "packages/react-charts"
   },
   "type": "module",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "files": [
     "dist",
     "LICENSE",
@@ -22,10 +20,7 @@
     "./canvas": "./src/canvas.ts",
     "./core": "./src/core.ts",
     "./tooltip": "./src/tooltip.tsx",
-    "./city": "./src/city.ts",
-    "./city/styles.css": "./src/city/styles.css",
-    "./city/theme-default.css": "./src/city/theme-default.css",
-    "./city/theme-tailwind.css": "./src/city/theme-tailwind.css"
+    "./city": "./src/city.ts"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
@@ -62,15 +57,6 @@
       "./city": {
         "types": "./dist/city.d.ts",
         "import": "./dist/city.js"
-      },
-      "./city/styles.css": {
-        "default": "./dist/city/styles.css"
-      },
-      "./city/theme-default.css": {
-        "default": "./dist/city/theme-default.css"
-      },
-      "./city/theme-tailwind.css": {
-        "default": "./dist/city/theme-tailwind.css"
       }
     }
   },

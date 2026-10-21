@@ -1,3 +1,4 @@
+import { cityStyles } from './styles'
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect.js'
 import { useMapI18n } from './use-map-i18n.js'
 import { useId, useRef, useState } from 'react'
@@ -210,6 +211,7 @@ export function CityChart({
       data-atlas-city-instance={instanceId}
       aria-busy={busy || !ready}
     >
+      <style>{cityStyles}</style>
       <div
         ref={viewportRef}
         id={viewportId}

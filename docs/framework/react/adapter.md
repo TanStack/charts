@@ -278,4 +278,4 @@ boundary and the [core reference](../../reference/index.md) for those APIs.
 
 ## 3D city map
 
-See the [optional city map](./city.md) for metric-driven buildings, categorical districts, and React controls.
+See the [optional city map](../../reference/marks/city.md) for metric-driven buildings, categorical districts, and React controls.

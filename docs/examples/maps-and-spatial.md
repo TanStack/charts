@@ -272,3 +272,12 @@ the controlled gesture loop.
 - Verify labels and legends at narrow widths.
 - Provide a non-spatial exact-value path through
   [Accessibility](../guides/accessibility.md).
+
+## Category districts and metric-driven buildings
+
+The city renderer encodes records as buildings: height follows a nonnegative
+metric and districts represent category intersections. The example includes
+camera controls, selection, lighting, and weather. See the
+[City Map Renderer reference](../reference/marks/city.md).
+
+<!-- ::chart-example id=city-map height=720 -->
