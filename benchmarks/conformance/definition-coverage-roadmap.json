@@ -6315,6 +6315,37 @@
           "summary": "Feed model rows directly to a native dot mark with color and radius channels plus ordinary legends and scales."
         }
       ]
+    },
+    {
+      "id": "city-map",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/city-map/example.tsx",
+        "cases/city-map/tanstack.test.ts",
+        "cases/city-map/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["example.tsx"],
+          "summary": "Compose the city mark with explicit scales, district color, and the existing renderer and semantic scene contracts."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["example.tsx"],
+          "summary": "Mount the public React city example through the shared catalog lifecycle and interaction helpers."
+        }
+      ]
     }
   ],
   "overview": "DEFINITION-COVERAGE-OVERVIEW.md"

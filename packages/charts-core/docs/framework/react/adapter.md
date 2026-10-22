@@ -275,3 +275,7 @@ The adapter does not redefine:
 
 Use [Scales](../../concepts/scales-and-d3.md) for the injected primitive
 boundary and the [core reference](../../reference/index.md) for those APIs.
+
+## 3D city map
+
+See the [optional city map](../../reference/marks/city.md) for metric-driven buildings, categorical districts, and React controls.

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "order": 1990,
+  "id": "city-map",
+  "title": "3D city map",
+  "family": "geography",
+  "height": 720,
+  "intent": "Represent store metrics as building heights and category intersections as districts, with an interactive 3D surface and a semantic top-view preview.",
+  "support": "composed",
+  "features": [
+    "custom renderer",
+    "Three.js city",
+    "metric-driven building height",
+    "category intersections",
+    "camera controls",
+    "selection",
+    "lighting and weather"
+  ],
+  "geometry": [
+    {
+      "role": "rect",
+      "count": 140
+    }
+  ],
+  "source": {
+    "title": "Three.js WebGL renderer",
+    "url": "https://threejs.org/docs/#api/en/renderers/WebGLRenderer"
+  },
+  "ai": {
+    "create": "Render store metrics as buildings in category-intersection districts using the city renderer and the existing React chart contracts.",
+    "maintain": "Preserve datum identity, metric heights, category districts, keyboard selection, camera controls, renderer disposal, and the source-backed catalog entry."
+  },
+  "collections": ["shadcn"]
+}

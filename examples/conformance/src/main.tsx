@@ -204,7 +204,7 @@ function ShadcnCollectionPage({
   )
   useDocumentMeta(
     'shadcn charts · TanStack Charts',
-    'TanStack Charts implementations of the official shadcn chart catalog.',
+    'Charts styled with shadcn/ui, including the official chart examples.',
   )
 
   useEffect(() => {
@@ -219,7 +219,10 @@ function ShadcnCollectionPage({
         <header className="shadcn-gallery-header">
           <div>
             <h1>shadcn charts</h1>
-            <p>{allEntries.length} examples, rebuilt with TanStack Charts.</p>
+            <p>
+              {allEntries.length} examples styled with shadcn/ui and TanStack
+              Charts.
+            </p>
           </div>
           <div className="shadcn-install">
             <code>npm install @tanstack/charts</code>
@@ -1309,6 +1312,7 @@ function collectionCases(collectionId: string): ConformanceCaseMeta[] {
     'radar',
     'radial',
     'tooltip',
+    'geography',
   ]
   return conformanceCases
     .filter((entry) => entry.collections?.includes(collectionId))

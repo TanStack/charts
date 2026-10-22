@@ -55,7 +55,8 @@
     "react-native-svg": ">=15.15.4 <16",
     "solid-js": ">=1.8",
     "svelte": "^5.20.0",
-    "vue": ">=3.5"
+    "vue": ">=3.5",
+    "three": "^0.180.0"
   },
   "peerDependenciesMeta": {
     "@angular/core": {
@@ -95,6 +96,9 @@
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "three": {
       "optional": true
     }
   },
@@ -225,7 +229,8 @@
     "./violin": "./src/violin.ts",
     "./view": "./src/view.ts",
     "./vue": "./src/vue.ts",
-    "./waffle": "./src/waffle.ts"
+    "./waffle": "./src/waffle.ts",
+    "./react/city": "./src/react-city.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -706,6 +711,10 @@
       "./waffle": {
         "types": "./dist/waffle.d.ts",
         "import": "./dist/waffle.js"
+      },
+      "./react/city": {
+        "types": "./dist/react/city.d.ts",
+        "import": "./dist/react/city.js"
       }
     }
   }

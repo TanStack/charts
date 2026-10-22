@@ -19,7 +19,8 @@
     ".": "./src/index.ts",
     "./canvas": "./src/canvas.ts",
     "./core": "./src/core.ts",
-    "./tooltip": "./src/tooltip.tsx"
+    "./tooltip": "./src/tooltip.tsx",
+    "./city": "./src/city.ts"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
@@ -30,7 +31,8 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "three": "^0.180.0"
   },
   "publishConfig": {
     "access": "public",
@@ -51,7 +53,16 @@
       "./tooltip": {
         "types": "./dist/tooltip.d.ts",
         "import": "./dist/tooltip.js"
+      },
+      "./city": {
+        "types": "./dist/city.d.ts",
+        "import": "./dist/city.js"
       }
+    }
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
     }
   }
 }

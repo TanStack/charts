@@ -2,19 +2,19 @@
 
 Date: 2026-08-10
 
-The catalog has 188 case directories. 185 visualizations now use
+The catalog has 189 case directories. 186 visualizations now use
 normal chart definitions. Cases 85 and 86 retain application shells, and Case
 116 retains one deliberately bespoke inline mark. No other case-owned layout
 or renderer is an accepted endpoint.
 
 | Disposition           |   Cases | Result                                            |
 | --------------------- | ------: | ------------------------------------------------- |
-| Definition now        |     135 | Normal definition                                 |
+| Definition now        |     136 | Normal definition                                 |
 | First-party primitive |      35 | Normal definition                                 |
 | Optional primitive    |      15 | Normal definition                                 |
 | Application boundary  |       2 | Accepted boundary                                 |
 | Inline custom mark    |       1 | Accepted boundary                                 |
-| **Total**             | **188** | **185 normal definitions; 3 accepted boundaries** |
+| **Total**             | **189** | **186 normal definitions; 3 accepted boundaries** |
 
 ## Shared decisions
 
@@ -63,7 +63,7 @@ presentation policy.
 
 ## Verification
 
-- The roadmap validator compares all 188 roadmap and audit IDs with the live
+- The roadmap validator compares all 189 roadmap and audit IDs with the live
   catalog directories, requires unique IDs, validates the capability DAG, and
   requires every verified or accepted case to cite evidence under its own
   directory.
@@ -268,3 +268,4 @@ presentation policy.
 | [heatmap-labeled — Labeled ordinal heatmap](./cases/heatmap-labeled/example.tsx)                                                          | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |
 | [histogram — Histogram](./cases/histogram/example.tsx)                                                                                    | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |
 | [scatter-bubble — Bubble scatterplot](./cases/scatter-bubble/example.tsx)                                                                 | Definition now        | `current-definition-api`                                                         | `example.tsx`                                      |
+| [city-map — 3D city map](./cases/city-map/example.tsx)                                                                                    | Definition now        | `current-definition-api`                                                         | `example.tsx`, `case.json`, `tanstack.test.ts`     |

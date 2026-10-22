@@ -7,6 +7,7 @@ import packageJson from '../package.json'
 describe('React package exports', () => {
   it.each([
     'index.ts',
+    'city.ts',
     'core.ts',
     'canvas.ts',
     'tooltip.tsx',

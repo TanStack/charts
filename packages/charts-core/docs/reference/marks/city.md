@@ -1,0 +1,153 @@
+---
+title: City Map Renderer
+description: Render metric-driven buildings with categorical districts, selection, camera controls, lighting, and weather in React.
+---
+
+The city map represents records as buildings. Building height encodes a nonnegative
+metric, districts encode intersections of up to three categories, and health status
+controls the building effects. It supports orbit, pan, zoom, selection, search,
+district labels, day/night lighting, rain, snow, and reduced motion.
+
+The city module is optional. Ordinary chart imports do not load Three.js or city
+styles. Install `three@^0.180.0` alongside React and TanStack Charts, then import
+the city entry in your client component:
+
+```tsx
+'use client'
+
+import { CityMap, type CityDatum } from '@tanstack/charts/react/city'
+
+const records: CityDatum[] = [
+  {
+    id: 'store-1',
+    name: 'North store',
+    metric: { label: 'Orders', value: 1200 },
+    categories: [{ label: 'Retail', value: 'retail' }],
+    status: 'healthy',
+  },
+  {
+    id: 'store-2',
+    name: 'South store',
+    metric: { label: 'Orders', value: 700 },
+    categories: [{ label: 'Retail', value: 'retail' }],
+    status: 'critical',
+  },
+]
+
+export default function Stores() {
+  return (
+    <CityMap data={records} ariaLabel="Store health" onSelect={console.log} />
+  )
+}
+```
+
+The compatibility entry is `@tanstack/react-charts/city`. The component owns its
+scoped styles, following the renderer pattern used by the other chart examples.
+
+Each row needs a unique string or numeric `id`, a `name`, a metric with a nonempty
+label and a finite nonnegative value, and a `status` of `healthy`, `warning`, or
+`critical`. Supply one to three `{ value, label }` categories per row, with consistent
+labels across rows. There may be at most three distinct categories in the dataset.
+Alternatively, supply a district `mask` from 1 to 7. Empty data is supported.
+Optional `updatedAt` and `statusChangedAt` fields accept ISO 8601 timestamps with
+a timezone. Rows are never mutated; selection returns the original datum.
+
+## Building height
+
+Buildings use a continuous square-root scale adapted to the dataset's metric
+values. The smallest value maps to a one-floor house and the largest to a
+14-floor building (0.95–16.8 scene units). Intermediate heights use
+`sqrt((value - min) / (max - min))`, clamped to 0–1, to interpolate between those
+heights. This gives smaller and intermediate values more presence than a linear
+scale when large values dominate. Height is not proportional to the metric:
+twice the height does not mean twice the value.
+
+Equal values always produce equal heights. If all values are equal, including a
+single record or all zeros, buildings use the midpoint height (8.875 scene units).
+The scale is shared across districts and recalculated when the data changes.
+Search and selection preserve the scale. Separate datasets have independent
+scales, so heights should be compared within the same dataset.
+
+When supplying a precomputed `CityLayout`, set its optional `metricDomain` to the
+full dataset's `[min, max]` to keep heights stable across application-owned
+filters or pagination. Otherwise, the domain is derived from the layout's rows.
+Changes to this domain rebuild heights even if the visible metric values have
+not changed. Exact metric values remain available in tooltips and details.
+
+## Composition
+
+`CityMap` includes the controls, search, details, and critical-record monitor.
+`CityChart` accepts a memoized `defineCityChart(data)` definition and renders the
+surface, tooltip, and optional district labels. Its selection callback uses the
+usual TanStack `ChartPoint`; `CityMap.onSelect` receives the datum instead.
+`cityMark`, `cityFocus`, and `createCityRenderer` are also exported for composition
+with the existing custom renderer host. Use one city mark per renderer surface.
+Definitions can be shared across mounted charts; each mount owns its camera,
+WebGL context, focus resolver, and resource lifetime.
+
+## Controls and appearance
+
+Use `view="iso"` or `view="top"`, `weather="none" | "rain" | "snow"`, and
+`lightingMode="auto" | "day" | "twilight" | "night"`. Automatic lighting follows
+the local clock. Weather is supplied by the application; the package makes no
+weather or data requests.
+
+`life`, `effects`, `autoRotate`, and `showDistrictLabels` have optional change
+callbacks for controlled use. `showControls`, `showSearch`, `showDetails`,
+`showMonitor`, `showCompass`, and `showInstructions` control the included UI.
+`showEnvironmentControls` enables the lighting and weather selectors.
+`busy` disables interactions while the application updates its data.
+
+Pass a `CityChartHandle` ref for `zoom`, `view`, `select`, `deselect`, `cancel`,
+`capture`, `play`, `scrollIntoView`, and `stats`. Selection accepts an options bag:
+`ref.current?.select(record, { focus: true, maxZoom: true })`.
+
+The renderer supplies scoped theme variables. Override `--atlas-city-*` properties
+in your own CSS, or set `theme={null}` to provide all variables yourself. The map
+needs a measurable container width and reserves at least 520 pixels of height.
+
+## Rendering and accessibility
+
+Use a client boundary for React Server Components. Server rendering outputs the
+standard semantic SVG top view; WebGL paints above it after mounting in a browser.
+The SVG remains available when WebGL cannot initialize.
+WebGL initialization or context loss produces a visible error message. The map
+honors reduced motion, exposes keyboard focus/selection through the chart host,
+and supports `+`/`-` for zoom, `0` for the isometric view, and Escape to clear
+selection. Controls and descriptions follow the browser language (`en-US` and
+`pt-BR`; other languages use English).
+
+Dispose charts by unmounting them. Unmounting releases observers, listeners,
+animations, geometry, materials, textures, and the WebGL renderer.
+
+## Component and engine contracts
+
+| Type                       | Contract                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `CityMapProps<T>`          | Full-map data, controlled settings, visibility flags, datum selection, and ref.                                          |
+| `CityChartProps<T>`        | Definition, selected datum, renderer settings, callbacks, and render-prop children.                                      |
+| `CityChartState`           | Render-prop state containing readiness, localized error, environment controls, and weather override.                     |
+| `CityDefinitionOptions<T>` | Definition options plus an optional precomputed city layout.                                                             |
+| `CityLayout<T>`            | Positioned copies of the input rows, district bounds and anchors, road bounds, and city center.                          |
+| `CityEngine<T>`            | Mounted renderer service passed to lifecycle callbacks; owns activity, view, zoom, focus, selection, data, and disposal. |
+| `CityRendererOptions<T>`   | Initial view/activity settings and mount, data, destroy, error, hover, projection, and frame callbacks.                  |
+| `CityStats`                | Draw calls, triangles, point count, lighting, and weather diagnostics returned by the handle.                            |
+| `CityView`                 | Isometric (`iso`) or overhead (`top`) camera view.                                                                       |
+| `CityWeather`              | Application-supplied `none`, `rain`, or `snow` effect.                                                                   |
+| `CityLighting`             | Local-clock `auto` mode, or fixed `day`, `twilight`, or `night`.                                                         |
+| `EnvironmentControlsProps` | Controlled lighting/weather values, change callbacks, and an optional disabled state.                                    |
+
+`EnvironmentControls` renders the lighting and weather selectors independently of
+the full map. Its callbacks receive the next mode. `CityRendererOptions.onData`
+receives the mounted engine and `{ resetView }`; `hover` receives the datum and an
+optional `{ event }` context. Other lifecycle callbacks receive one engine or error.
+
+## Catalog example
+
+See the [3D city map](https://tanstack.com/charts/catalog/charts/city-map/) for the live example
+and its complete source. Run `pnpm dev:conformance` to use the catalog locally.
+The compact preview shows the same definition as a semantic top view.
+
+The shared conformance runner checks the SVG district layout against an isolated
+Plot reference. The live catalog mounts the full WebGL map. Both paths use the
+same source data and standard case metadata.

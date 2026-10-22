@@ -363,6 +363,7 @@ async function verifyUnifiedBundles(fixtureRoot) {
     ['Compact band scale', '@tanstack/charts/scales/band'],
     ['React adapter', '@tanstack/charts/react'],
     ['React tooltip adapter', '@tanstack/charts/react/tooltip'],
+    ['React city map', '@tanstack/charts/react/city'],
     [
       'React Native adapter',
       '@tanstack/charts/react-native',
@@ -408,6 +409,8 @@ async function verifyUnifiedBundles(fixtureRoot) {
     'svelte',
     'svelte/*',
     'tslib',
+    'three',
+    'three/*',
     'vue',
   ]
 
@@ -457,9 +460,12 @@ async function verifyUnifiedBundles(fixtureRoot) {
         input.includes(`/@tanstack/charts/dist/${namespace}/`),
       )?.namespace
       if (retainedNamespace === undefined) continue
-      assert.equal(
-        retainedNamespace,
-        namespace,
+      // The city preset authors a definition with the compact linear scale.
+      // Other adapter entries must still retain only their own namespace.
+      assert.ok(
+        retainedNamespace === namespace ||
+          (specifier === '@tanstack/charts/react/city' &&
+            retainedNamespace === 'scales'),
         `${label} retained the ${retainedNamespace} adapter tree`,
       )
     }

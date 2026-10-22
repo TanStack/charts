@@ -351,6 +351,7 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Optional React city assets needed packaging support            | Tooling               | monitoring |
 
 ## Findings
 
@@ -9354,3 +9355,25 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Optional React renderers could not ship JavaScript and CSS assets
+
+- Status: monitoring
+- Severity: medium
+- Owner: Tooling
+- Observed in: porting the Atlas city renderer to the React package
+- Friction: the packed consumer builder accepted only TypeScript runtime files,
+  required declarations for stylesheet exports, and required sideEffects to be
+  false even for explicitly imported stylesheets.
+- Decision: keep the renderer behind an optional entry and Three.js behind an
+  optional peer. Own scoped styles in the renderer, as existing React examples
+  do, and retain the package's sideEffects: false contract. JavaScript runtime
+  modules currently use an explicit TypeScript public contract.
+- Verification: city integration tests and the packed package gate pass.
+- Application correction: the first port added a standalone `/city/` route and
+  browser-check script. The repository already has source-backed catalog cases,
+  React mounting helpers, definition-only previews, and interaction scenarios.
+  Move the city example into that existing flow, colocate its regressions with
+  the package, and remove the separate route, runner, and stylesheet exports.
+- Follow-up: consider migrating the private JavaScript engine to TypeScript
+  independently of the public React API.

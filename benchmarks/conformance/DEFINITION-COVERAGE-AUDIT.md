@@ -2,7 +2,7 @@
 
 Date: 2026-08-10
 
-Scope: all 188 catalog directories. The 67 cases previously classified as
+Scope: all 189 catalog directories. The 67 cases previously classified as
 strict custom authoring, preparation review, or shell-only are reviewed beside
 the former 42-case definition-native control group from
 [the custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md). That audit remains
@@ -31,12 +31,12 @@ work:
 
 | Disposition           |   Cases | Meaning                                                                  |
 | --------------------- | ------: | ------------------------------------------------------------------------ |
-| Definition now        |     135 | Current marks and eager transforms are sufficient                        |
+| Definition now        |     136 | Current marks and eager transforms are sufficient                        |
 | First-party primitive |      35 | Add a reusable mark, transform, layout, guide, or controlled signal      |
 | Optional primitive    |      15 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
 | Application boundary  |       2 | The remaining work is product state, DOM layout, or data arrival         |
 | Inline custom mark    |       1 | The geometry is intentionally case-specific                              |
-| **Total**             | **188** |                                                                          |
+| **Total**             | **189** |                                                                          |
 
 A normal definition does not require every implementation algorithm to live
 in Charts core. D3 may implement an optional `sankeyDiagram`, `densityContour`,
@@ -161,6 +161,7 @@ ownership boundary.
 | [Labeled heatmap](./cases/heatmap-labeled/example.tsx)                                 | Definition now        | Native cells and text share explicit category and color scales.                                                                                      |
 | [Histogram](./cases/histogram/example.tsx)                                             | Definition now        | Public `binX` output feeds native semantic rectangle intervals.                                                                                      |
 | [Bubble scatter](./cases/scatter-bubble/example.tsx)                                   | Definition now        | Native dot color and radius channels consume model rows directly.                                                                                    |
+| [3D city map](./cases/city-map/example.tsx)                                            | Definition now        | City marks retain a semantic SVG scene while the React renderer paints the interactive WebGL surface.                                                |
 
 ## Statistical and prepared-data cases
 
@@ -353,8 +354,8 @@ bundle.
 
 ## Delivery result
 
-All 188 catalog directories now have one roadmap record and case-local
-evidence. All 185 normal-definition cases are verified against their current
+All 189 catalog directories now have one roadmap record and case-local
+evidence. All 186 normal-definition cases are verified against their current
 boundary; only cases 85, 86, and 116 retain accepted application or bespoke
 geometry work. The roadmap validator compares its IDs with the live catalog
 directories so a new case cannot silently remain outside this review.

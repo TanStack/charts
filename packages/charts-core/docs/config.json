@@ -1071,6 +1071,10 @@
         {
           "label": "shadcn Tooltip - No Label",
           "to": "/charts/catalog/charts/197-shadcn-tooltip-label-none/"
+        },
+        {
+          "label": "3D city map",
+          "to": "/charts/catalog/charts/city-map/"
         }
       ]
     },
@@ -1310,6 +1314,10 @@
         {
           "label": "Geo Shape Mark",
           "to": "reference/marks/geo"
+        },
+        {
+          "label": "City Map Renderer",
+          "to": "reference/marks/city"
         },
         {
           "label": "Polar Marks",

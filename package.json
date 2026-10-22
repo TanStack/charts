@@ -145,6 +145,7 @@
     "vite": "^8.0.16",
     "vite-plugin-solid": "^2.11.12",
     "vitest": "^4.1.9",
-    "world-atlas": "2.0.2"
+    "world-atlas": "2.0.2",
+    "three": "0.180.0"
   }
 }
