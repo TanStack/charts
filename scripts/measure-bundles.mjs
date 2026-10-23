@@ -555,7 +555,7 @@ const entries = [
     'Hierarchy treemap mark',
     'benchmarks/entries/charts-hierarchy-treemap.ts',
     'D3 hierarchy treemap kernel',
-    3.86,
+    4022 / 1024,
     {
       inputBoundary: {
         require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
