@@ -12,7 +12,7 @@
     "tanstack": {
       "kind": "workspace",
       "revision": "69d70960dd6b29f3706a173d348f2fc8271b0dcc",
-      "inputDigest": "sha256:80f5c5447f39757715be5def33eed28b12869946936369671243436701fb7964"
+      "inputDigest": "sha256:8115665ae3c573649f47d236836e28c8cf14d513be1117a8e5c720e3a618680c"
     },
     "chartjs": {
       "kind": "package",

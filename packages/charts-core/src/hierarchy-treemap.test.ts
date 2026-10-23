@@ -60,6 +60,63 @@ function allNodes(nodes: readonly SceneNode[]): SceneNode[] {
 }
 
 describe('treemap', () => {
+  it.each(['non-finite', 'out-of-bounds'])(
+    'still rejects %s custom layouts',
+    (kind) => {
+      const method: TreemapTile<PathRow> = (node, x0, y0, x1, y1) => {
+        treemapDice(node, x0, y0, x1, y1)
+        const child = node.children?.[0]
+        if (!child)
+          throw new Error('Expected a child in the custom tile fixture')
+        if (kind === 'non-finite') child.x1 = Infinity
+        else child.x1 = x1 + 1
+      }
+      expect(() =>
+        scene(
+          treemap(rows, {
+            path: 'path',
+            delimiter: '.',
+            value: 'value',
+            method,
+          }),
+        ),
+      ).toThrow(`layout produced ${kind} coordinates`)
+    },
+  )
+
+  it.each([
+    [361, [50, 30, 20, 10, 5, 1], 0, 6],
+    [593, [7, 5, 3, 2, 1], 0, 5],
+    [804, [90, 7, 5, 4, 2, 1], 0, 6],
+    [600, [1000, 1], 3, 1],
+  ])(
+    'keeps rounded and collapsed tiles in bounds at width %s',
+    (width, values, paddingInner, count) => {
+      const result = scene(
+        treemap(
+          values.map((value, i) => ({
+            path: `root.${i}`,
+            value,
+            family: 'root',
+          })),
+          { path: 'path', delimiter: '.', value: 'value', paddingInner },
+        ),
+        width,
+        300,
+      )
+      const rects = allNodes(result.nodes).filter(
+        (node) => node.kind === 'rect',
+      )
+      expect(rects).toHaveLength(count)
+      for (const rect of rects) {
+        expect(rect.x).toBeGreaterThanOrEqual(0)
+        expect(rect.y).toBeGreaterThanOrEqual(0)
+        expect(rect.x + rect.width).toBeLessThanOrEqual(width)
+        expect(rect.y + rect.height).toBeLessThanOrEqual(300)
+      }
+    },
+  )
+
   it('renders path leaves in final chart bounds with exact metadata and lineage', () => {
     const source = Object.freeze(rows.map((row) => Object.freeze({ ...row })))
     const before = JSON.stringify(source)
