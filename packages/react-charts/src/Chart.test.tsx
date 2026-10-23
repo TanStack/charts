@@ -343,15 +343,24 @@ describe('React adapter', () => {
     })
     const scene = createChartScene(definition, { width: 480, height: 260 })
     for (const point of scene.points) {
-      await act(async () =>
+      const move = () =>
         svg.dispatchEvent(
           new MouseEvent('pointermove', {
             bubbles: true,
             clientX: point.x,
             clientY: point.y,
           }),
-        ),
+        )
+      Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: false })
+      try {
+        move()
+      } finally {
+        Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+      }
+      expect(target.querySelector('[data-testid="primary"]')?.textContent).toBe(
+        point.groupLabel,
       )
+      await act(async () => move())
       expect(target.querySelector('[data-testid="primary"]')?.textContent).toBe(
         point.groupLabel,
       )
