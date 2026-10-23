@@ -19,6 +19,11 @@ import { resolveCompositeChildMotion } from './composite-motion-internal'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { createPolarMark as createInternalPolarMark } from './polar-mark-internal'
 import { focusGroupAngle, withPolarFocusGeometry } from './polar-focus-internal'
+import type {
+  InferredPolarChannelOutput,
+  InferredPolarScaleId,
+  RadialPathOptions,
+} from './polar-types-internal'
 import {
   resolvePolarSector,
   tracePolarArcBoundary,
@@ -30,7 +35,6 @@ import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
 import type {
   Channel,
   ChannelAccessor,
-  ChannelOutput,
   ChartAxisValue,
   ChartBounds,
   ChartKey,
@@ -64,6 +68,7 @@ import type {
 export { pie } from './polar-pie'
 export { focusGroupAngle }
 export type { PieDatum, PieOptions } from './polar-pie'
+export { radialLabels, type RadialLabelsOptions } from './polar-labels'
 
 const tau = Math.PI * 2
 
@@ -585,16 +590,6 @@ interface RadialBarBaseOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   opacity?: number
 }
 
-type InferredPolarChannelOutput<TDatum, TChannel> = [TChannel] extends [never]
-  ? number
-  : ChannelOutput<TDatum, TChannel, number>
-
-type InferredPolarScaleId<TScaleId, TFallback extends string> = [
-  NonNullable<TScaleId>,
-] extends [never]
-  ? TFallback
-  : Extract<NonNullable<TScaleId>, string>
-
 export interface RadialBarRadiusOptions<
   TDatum,
 > extends RadialBarBaseOptions<TDatum> {
@@ -1091,20 +1086,6 @@ export function radialBarAngle<TDatum>(
     options.motion,
     options.renderer,
   )
-}
-
-interface RadialPathOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
-  id?: string
-  className?: string
-  /** Named angle scale. Omit to use the reserved `angle` scale. */
-  angleScale?: string
-  /** Named radius scale. Omit to use the reserved `radius` scale. */
-  radiusScale?: string
-  angle?: number | Channel<TDatum, ChartValue | null | undefined>
-  radius?: number | Channel<TDatum, number | null | undefined>
-  key?: Channel<TDatum, ChartKey>
-  z?: Channel<TDatum, ChartKey | null | undefined>
-  color?: Channel<TDatum, ChartKey | null | undefined>
 }
 
 export interface RadialLineOptions<TDatum> extends RadialPathOptions<TDatum> {

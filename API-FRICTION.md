@@ -351,6 +351,7 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Crowded pie labels overlapped                                  | API                   | resolved   |
 
 ## Findings
 
@@ -9354,3 +9355,17 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Crowded pie labels overlapped
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: issue #227, `radialRule` plus `radialText` labels of small
+  adjacent slices overlapped, so the application owned its own label layout
+- Decision: add `radialLabels`, which stacks labels in one column per side,
+  moves overlapping labels apart, and hides lower-priority labels that do not
+  fit the chart height, width, or optional `maxShift`.
+- Verification: layout and rendered tests cover spacing, bounds, priority
+  ties, connectors clear of other labels, stable keys, motion, and SVG,
+  Canvas, and React Native output.
