@@ -404,12 +404,14 @@ pixels apart. Overlapping labels move apart as little as possible and stay
 inside the chart bounds. Each side places its text in one column outside its
 outermost visible connector elbow, so no connector crosses another label.
 
-A label is hidden when its side runs out of height, when its text would cross
-the left or right chart edge, or when it would move more than `maxShift`
-pixels. Lower-priority labels hide first; on equal priority, the later row
+A label is hidden when its side runs out of height, when its estimated text
+width would cross the left or right chart edge, or when it would move more
+than `maxShift` pixels. Lower-priority labels hide first; on equal priority, the later row
 hides first, except that the width check hides the outermost-elbow label
-first because it sets the column. Text widths come from the built-in text
-estimate used by static SVG, so unusual fonts can differ by a few pixels.
+first because it sets the column. Edge containment is estimated, not
+guaranteed: widths come from the built-in text estimate used by static SVG,
+so rendered text, including common fonts, can extend a few pixels past the
+chart edge. Leave chart margin when that matters.
 Hidden labels emit no nodes or interaction points, so pair the mark with a
 tooltip or legend when every slice name must stay available.
 
