@@ -10,7 +10,7 @@ import { lineY } from './line'
 import { createMark } from './mark'
 import { compositeMark } from './mark-composite'
 import { motion, stagger } from './motion'
-import { polar, radialArea, radialBarRadius } from './polar'
+import { pie, polar, radialArea, radialBarRadius, radialLabels } from './polar'
 import { mountChartRenderer } from './renderer'
 import { createChartScene, defineChart } from './scene'
 import { chartSceneSource } from './scene-source'
@@ -4637,6 +4637,91 @@ describe('SVG motion', () => {
     expect(area?.getAttribute('transform')).toBe('scale(0.5)')
     frames.run(100)
     expect(area?.hasAttribute('transform')).toBe(false)
+
+    surface.destroy()
+    frames.restore()
+  })
+})
+
+describe('radialLabels motion', () => {
+  it('moves keyed labels and connectors and fades removed labels', () => {
+    const makeScene = (rows: readonly { name: string; value: number }[]) => {
+      const slices = pie(rows, { value: 'value' })
+      return createChartScene(
+        defineChart({
+          marks: [
+            polar({
+              radiusRatio: 0.5,
+              scales: {
+                angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+                radius: { scale: scaleLinear().domain([0, 1]) },
+              },
+              marks: [
+                radialLabels(slices, {
+                  id: 'labels',
+                  text: 'name',
+                  key: 'name',
+                }),
+              ],
+            }),
+          ],
+          scales: { x: null, y: null },
+          margin: 0,
+        }),
+        { width: 400, height: 300 },
+      )
+    }
+    const first = makeScene([
+      { name: 'Large', value: 70 },
+      { name: 'Small', value: 20 },
+      { name: 'Gone', value: 10 },
+    ])
+    const next = makeScene([
+      { name: 'Large', value: 40 },
+      { name: 'Small', value: 60 },
+    ])
+    const container = document.createElement('div')
+    const frames = installFrames()
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    const label = (name: string) =>
+      container.querySelector<SVGTextElement>(`text[data-ts-key$=":${name}"]`)
+    const connector = (name: string) =>
+      container.querySelector<SVGPathElement>(
+        `path[data-ts-key$=":${name}:connector"]`,
+      )
+
+    surface.render(first, { ariaLabel: 'Labels' })
+    const smallLabel = label('Small')
+    const smallConnector = connector('Small')
+    const from = {
+      y: Number(smallLabel?.getAttribute('y')),
+      d: smallConnector?.getAttribute('d'),
+    }
+
+    surface.render(next, { ariaLabel: 'Labels' })
+    frames.run(0)
+    frames.run(50)
+    expect(label('Small')).toBe(smallLabel)
+    expect(connector('Small')).toBe(smallConnector)
+    const middleY = Number(smallLabel?.getAttribute('y'))
+    const middleD = smallConnector?.getAttribute('d')
+    const gone = label('Gone')
+    expect(gone).not.toBeNull()
+    expect(Number(gone?.getAttribute('opacity'))).toBeLessThan(1)
+
+    frames.run(100)
+    const toY = Number(smallLabel?.getAttribute('y'))
+    const toD = smallConnector?.getAttribute('d')
+    expect(toY).not.toBeCloseTo(from.y, 3)
+    expect(Math.min(from.y, toY)).toBeLessThan(middleY)
+    expect(middleY).toBeLessThan(Math.max(from.y, toY))
+    expect(middleD).not.toBe(from.d)
+    expect(middleD).not.toBe(toD)
+    expect(label('Gone')).toBeNull()
+    expect(connector('Gone')).toBeNull()
 
     surface.destroy()
     frames.restore()
