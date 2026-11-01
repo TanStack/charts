@@ -1090,6 +1090,110 @@ describe('native mark and channel scene', () => {
     expect(viewport.translateX).toBe(20)
   })
 
+  it('skips mark ownership lookup for points inside the viewport bounds', () => {
+    const resolved = createChartScene(
+      defineChart({
+        marks: [lineY([{ x: 5, y: 5 }], { x: 'x', y: 'y' })],
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+            viewport: { domain: [4, 6] },
+          },
+          y: linearAxes([0, 10], [0, 10]).scales.y,
+        },
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+    const point = resolved.points[0]
+    if (!point) throw new Error('Expected viewport point')
+    const readMarkId = vi.fn(() => point.markId)
+    const { x, y, width, height } = resolved.chart
+    const points = [
+      { x, y },
+      { x: x + width, y },
+      { x, y: y + height },
+      { x: x + width, y: y + height },
+      { x: x + width / 2, y: y + height / 2 },
+    ].map((position) => ({
+      ...point,
+      ...position,
+      get markId() {
+        return readMarkId()
+      },
+    }))
+
+    expect(viewportInteractionPoints(resolved, points)).toBe(points)
+    expect(readMarkId).not.toHaveBeenCalled()
+    expect(
+      viewportInteractionPoints(resolved, [
+        { ...point, markId: 'unknown', x: x - 1 },
+        { ...point, markId: 'unknown', x: Number.NaN },
+        { ...point, markId: 'unknown', y: Infinity },
+      ]),
+    ).toEqual([])
+  })
+
+  it('does not enumerate unrelated channels while checking viewport ownership', () => {
+    const readUnrelated = vi.fn(() => ({ values: [1] }))
+    const history = lineY([{ x: 0, y: 5 }], { x: 'x', y: 'y' })
+    const mark = createMark((context) => {
+      const initialized = history.initialize(context)
+      return {
+        ...initialized,
+        channels: {
+          ...initialized.channels,
+          get unrelated() {
+            return readUnrelated()
+          },
+        },
+      }
+    })
+    const resolved = createChartScene(
+      defineChart({
+        marks: [mark],
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+            viewport: { domain: [4, 6] },
+          },
+          y: linearAxes([0, 10], [0, 10]).scales.y,
+        },
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+    readUnrelated.mockClear()
+
+    expect(viewportInteractionPoints(resolved)).toEqual([])
+    expect(readUnrelated).not.toHaveBeenCalled()
+  })
+
+  it('ignores non-enumerable axis channels when checking viewport ownership', () => {
+    const history = lineY([{ x: 0, y: 5 }], { x: 'x', y: 'y' })
+    const mark = createMark((context) => {
+      const initialized = history.initialize(context)
+      Object.defineProperty(initialized.channels, 'x', { enumerable: false })
+      return initialized
+    })
+    const resolved = createChartScene(
+      defineChart({
+        marks: [mark],
+        scales: {
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).scales.x.scale,
+            viewport: { domain: [4, 6] },
+          },
+          y: linearAxes([0, 10], [0, 10]).scales.y,
+        },
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+    expect(resolved.points).toHaveLength(1)
+    expect(viewportInteractionPoints(resolved)).toBe(resolved.points)
+  })
+
   it('keeps fixed mark points interactive outside another mark viewport', () => {
     const fixed = createMark<never, number, number>(() => ({
       id: 'fixed-annotation',

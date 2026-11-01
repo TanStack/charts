@@ -144,7 +144,7 @@ export const comparisonCapabilityCoverage = [
     capability: 'Canvas output',
     measured: 'documented renderer',
     implementations: {
-      tanstack: firstParty('Optional renderer'),
+      tanstack: firstParty('Optional Canvas 2D; no WebGL renderer'),
       chartjs: firstParty('Default'),
       echarts: firstParty('Default'),
       recharts: unavailable('No first-party renderer'),

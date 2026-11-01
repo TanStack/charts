@@ -3,7 +3,7 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-The latest published TanStack Charts release is `1.1.0`, while this page
+The latest published TanStack Charts release is `1.2.0`, while this page
 measures unreleased workspace source against pinned competitor packages. This
 comparison records architectural differences and reproducible evidence without
 turning untested behavior into a checkmark.
@@ -12,14 +12,14 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `a691036` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `69d7096` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `a691036`.
+at page render time. The measured TanStack workspace revision is `69d7096`.
 
 ## Capability matrix
 
@@ -60,25 +60,25 @@ License color:
 - 🟠 Commercial use is conditional or revenue-limited
 - 🔴 Paid license required for commercial use
 
-| Library                                                                                | SVG output           | Canvas or WebGL output     | Framework-neutral core | License / paid tier                                                                                 |
-| -------------------------------------------------------------------------------------- | -------------------- | -------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------- |
-| [TanStack Charts](./overview.md)                                                       | ✅ Default           | ✅ Optional renderer       | ✅ Core + adapters     | 🟢 MIT                                                                                              |
-| [D3](./concepts/scales-and-d3.md)                                                      | ✅ Yes               | ✅ Yes                     | ✅ Yes                 | 🟢 ISC                                                                                              |
-| [Chart.js](https://www.chartjs.org/docs/latest/)                                       | 🔴 Canvas only       | ✅ Default                 | ✅ Yes                 | 🟢 MIT                                                                                              |
-| [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | ✅ Optional renderer | ✅ Default                 | ✅ Yes                 | 🟢 Apache-2.0                                                                                       |
-| [Recharts](https://recharts.github.io/en-US/)                                          | ✅ Default           | 🔴 No first-party renderer | 🔴 React only          | 🟢 MIT                                                                                              |
-| [visx](https://github.com/airbnb/visx)                                                 | ✅ Default           | 🔴 No renderer             | 🔴 React only          | 🟢 MIT                                                                                              |
-| [Plotly.js](https://plotly.com/javascript/)                                            | ✅ Common traces     | ✅ WebGL traces            | ✅ Yes                 | 🟢 MIT                                                                                              |
-| [Lightweight Charts](https://tradingview.github.io/lightweight-charts/)                | 🔴 No renderer       | ✅ Default                 | ✅ Yes                 | 🟢 Apache-2.0                                                                                       |
-| [ApexCharts](https://apexcharts.com/docs/installation/)                                | ✅ Default           | 🔴 No renderer             | ✅ Yes                 | 🟠 [Free under $2M revenue; commercial or OEM otherwise](https://apexcharts.com/license/community/) |
-| [Nivo](https://nivo.rocks/about/)                                                      | ✅ Default           | ✅ Selected charts         | 🔴 React only          | 🟢 MIT                                                                                              |
-| [Highcharts](https://www.highcharts.com/docs/getting-started/system-requirements)      | ✅ Default           | ✅ Boost WebGL             | ✅ Yes                 | 🔴 [Commercial; separate non-commercial terms](https://shop.highcharts.com/license-16.0.pdf)        |
-| [Victory](https://commerce.nearform.com/open-source/victory/)                          | ✅ Web               | ✅ Native Skia             | 🔴 React only          | 🟢 MIT                                                                                              |
-| [uPlot](https://github.com/leeoniya/uPlot)                                             | 🔴 No renderer       | ✅ Default                 | ✅ Yes                 | 🟢 MIT                                                                                              |
-| [Vega-Lite](https://vega.github.io/vega-lite/)                                         | ✅ Yes               | ✅ Canvas                  | ✅ Yes                 | 🟢 BSD-3-Clause                                                                                     |
-| [Observable Plot](https://observablehq.com/plot/features/plots)                        | ✅ Default           | 🔴 No first-party renderer | ✅ Yes                 | 🟢 ISC                                                                                              |
-| [Bklit UI](https://bklit.com/docs/installation)                                        | ✅ Default           | 🔴 No renderer             | 🔴 React only          | 🟡 [MIT components; proprietary Studio](https://github.com/bklit/bklit-ui#license)                  |
-| [AG Charts](https://www.ag-grid.com/charts/javascript/installation/)                   | 🔴 No renderer       | ✅ Default                 | ✅ Yes                 | 🟡 [MIT Community; paid Enterprise](https://www.ag-grid.com/charts/javascript/licensing/)           |
+| Library                                                                                | SVG output           | Canvas or WebGL output                   | Framework-neutral core | License / paid tier                                                                                 |
+| -------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------- |
+| [TanStack Charts](./overview.md)                                                       | ✅ Default           | ✅ Optional Canvas 2D; no WebGL renderer | ✅ Core + adapters     | 🟢 MIT                                                                                              |
+| [D3](./concepts/scales-and-d3.md)                                                      | ✅ Yes               | ✅ Yes                                   | ✅ Yes                 | 🟢 ISC                                                                                              |
+| [Chart.js](https://www.chartjs.org/docs/latest/)                                       | 🔴 Canvas only       | ✅ Default                               | ✅ Yes                 | 🟢 MIT                                                                                              |
+| [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | ✅ Optional renderer | ✅ Default                               | ✅ Yes                 | 🟢 Apache-2.0                                                                                       |
+| [Recharts](https://recharts.github.io/en-US/)                                          | ✅ Default           | 🔴 No first-party renderer               | 🔴 React only          | 🟢 MIT                                                                                              |
+| [visx](https://github.com/airbnb/visx)                                                 | ✅ Default           | 🔴 No renderer                           | 🔴 React only          | 🟢 MIT                                                                                              |
+| [Plotly.js](https://plotly.com/javascript/)                                            | ✅ Common traces     | ✅ WebGL traces                          | ✅ Yes                 | 🟢 MIT                                                                                              |
+| [Lightweight Charts](https://tradingview.github.io/lightweight-charts/)                | 🔴 No renderer       | ✅ Default                               | ✅ Yes                 | 🟢 Apache-2.0                                                                                       |
+| [ApexCharts](https://apexcharts.com/docs/installation/)                                | ✅ Default           | 🔴 No renderer                           | ✅ Yes                 | 🟠 [Free under $2M revenue; commercial or OEM otherwise](https://apexcharts.com/license/community/) |
+| [Nivo](https://nivo.rocks/about/)                                                      | ✅ Default           | ✅ Selected charts                       | 🔴 React only          | 🟢 MIT                                                                                              |
+| [Highcharts](https://www.highcharts.com/docs/getting-started/system-requirements)      | ✅ Default           | ✅ Boost WebGL                           | ✅ Yes                 | 🔴 [Commercial; separate non-commercial terms](https://shop.highcharts.com/license-16.0.pdf)        |
+| [Victory](https://commerce.nearform.com/open-source/victory/)                          | ✅ Web               | ✅ Native Skia                           | 🔴 React only          | 🟢 MIT                                                                                              |
+| [uPlot](https://github.com/leeoniya/uPlot)                                             | 🔴 No renderer       | ✅ Default                               | ✅ Yes                 | 🟢 MIT                                                                                              |
+| [Vega-Lite](https://vega.github.io/vega-lite/)                                         | ✅ Yes               | ✅ Canvas                                | ✅ Yes                 | 🟢 BSD-3-Clause                                                                                     |
+| [Observable Plot](https://observablehq.com/plot/features/plots)                        | ✅ Default           | 🔴 No first-party renderer               | ✅ Yes                 | 🟢 ISC                                                                                              |
+| [Bklit UI](https://bklit.com/docs/installation)                                        | ✅ Default           | 🔴 No renderer                           | 🔴 React only          | 🟡 [MIT components; proprietary Studio](https://github.com/bklit/bklit-ui#license)                  |
+| [AG Charts](https://www.ag-grid.com/charts/javascript/installation/)                   | 🔴 No renderer       | ✅ Default                               | ✅ Yes                 | 🟡 [MIT Community; paid Enterprise](https://www.ag-grid.com/charts/javascript/licensing/)           |
 
 A checkmark means the named path exists; it does not claim identical defaults,
 accessibility, output, or performance.
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-10-13`.
+Baseline date: `2026-10-14`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -170,11 +170,11 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v1.1.0/benchmarks/comparison/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v1.2.0/benchmarks/comparison/README.md)
 - [Current tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/v1.1.0/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v1.1.0/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v1.1.0/benchmarks/conformance/README.md)
+- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/v1.2.0/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v1.2.0/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v1.2.0/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

@@ -936,6 +936,7 @@ async function verifyEsmRuntime() {
     import { interactiveColorLegend } from '@tanstack/charts/legend'
     import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
     import { motion } from '@tanstack/charts/motion'
+    import { motionLite } from '@tanstack/charts/motion/lite'
     import { createChartSpring } from '@tanstack/charts/spring'
     import {
       polar,
@@ -978,6 +979,7 @@ async function verifyEsmRuntime() {
     assert.equal(tooltip.id, 'tooltip')
     assert.equal(portal.id, 'portal')
     assert.equal(motion().id, 'svg:svg-motion')
+    assert.equal(motionLite().id, 'svg-motion-lite')
     assert.equal(createChartSpring().sample(0).value, 0)
     const packedBrushChanges = []
     const packedBrush = brushX({
@@ -1898,6 +1900,7 @@ async function verifyDeclarations() {
       type InteractiveColorLegendItemContext,
     } from '@tanstack/charts/legend'
     import { motion, type ChartMotionOptions } from '@tanstack/charts/motion'
+    import { motionLite, type ChartMotionLiteOptions } from '@tanstack/charts/motion/lite'
     import {
       createChartSpring,
       type ChartSpringOptions,
@@ -2121,6 +2124,12 @@ async function verifyDeclarations() {
       },
     }
     const motionRenderer = motion<Row, number, number>(motionOptions)
+    const liteOptions: ChartMotionLiteOptions = { initial: false, duration: 200, easing: 'linear' }
+    const liteRenderer = motionLite(liteOptions)
+    const typedLiteSurface = liteRenderer.mount<Row, string, number>(document.createElement('div'), () => {})
+    void typedLiteSurface
+    // @ts-expect-error the lightweight renderer does not accept spring timing
+    motionLite({ transition: { type: 'spring' } })
     const springOptions: ChartSpringOptions = { stiffness: 170, damping: 14 }
     const spring = createChartSpring(springOptions)
     void [motionRenderer, spring]
@@ -3880,6 +3889,7 @@ async function verifyProductionBundles() {
     tooltipExtension: ['/@tanstack/charts/dist/tooltip.js'],
     tooltipPortal: ['/@tanstack/charts/dist/tooltip-portal.js'],
     motion: ['/@tanstack/charts/dist/motion.js'],
+    motionLite: ['/@tanstack/charts/dist/motion-lite.js'],
     spring: ['/@tanstack/charts/dist/spring.js'],
     focusGuide: ['/@tanstack/charts/dist/focus-guide.js'],
     focusMark: ['/@tanstack/charts/dist/focus-mark.js'],
@@ -5594,6 +5604,25 @@ async function verifyProductionBundles() {
       },
       source: `
         export { motion } from '@tanstack/charts/motion'
+      `,
+    },
+    {
+      label: 'Lightweight motion SVG renderer',
+      filename: 'motion-lite.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['motionLite'],
+        forbid: [
+          'motion',
+          'spring',
+          'tooltipExtension',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+      source: `
+        export { motionLite } from '@tanstack/charts/motion/lite'
       `,
     },
     {

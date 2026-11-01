@@ -3824,6 +3824,15 @@ Each entry records:
   A direct Preact SSR-to-hydration regression additionally checks SVG and path
   identity, immutable label updates, a single surface, and empty-host teardown.
 
+- Oct16 React tooltip follow-up (#187): custom body targets lived above the
+  chart host, causing three adapter updates for three keyboard target changes
+  even though the scene did not redraw. A tooltip-owned state boundary now
+  retains the chart child between target updates, while parent prop changes
+  still update it. Strict Mode and ordinary regression tests observe zero
+  adapter updates and correct body values; the current-main negative control
+  observes three updates. Existing 25 React lifecycle tests also pass.
+  Packed and full-workspace validation remain required before publication.
+
 ### F-124 — Name-only inventories masked undocumented contracts
 
 - Status: resolved
@@ -5232,6 +5241,21 @@ Each entry records:
   renders its chart under Hermes; the packed artifact has not been run on that
   simulator.
 
+- Expo 58 follow-up (issue #236): both the standalone native adapter and the
+  unified package rejected React Native 0.88 because their peer range stopped
+  at 0.86.x. Both now accept 0.86.x or 0.88.x. The existing Expo consumer uses
+  SDK 58, React 19.3, React Native 0.88, and SVG 15.16, while the bare consumer
+  stays on 0.86.2. Manifest regression coverage checks both supported sets and
+  rejects unverified native minor versions. Source typechecks and the packed
+  iOS/Android Metro gates pass for both consumers. This does not establish
+  on-device rendering for Expo 58.
+- The same upgrade exposed implicit optional React/React DOM ownership in the
+  Octane fixtures: pnpm selected React 19.3 for their renderer while retaining
+  React 19.2.3 for Octane. Each fixture now declares its matching React pair,
+  and Expo declares React DOM 19.3 for its optional web peer. The installed
+  Octane dependency graphs resolve React 19.2.3 on both sides again. Regression
+  coverage keeps those fixture peers aligned with the workspace pair.
+
 ### F-172 — Metro skipped the fixture-owned Babel runtime
 
 - Status: resolved
@@ -5868,6 +5892,19 @@ Each entry records:
   integration test mounts a definition containing both legacy `animate` and a
   conflicting definition-level motion duration, then verifies that the
   host-level motion renderer owns the transition timing.
+- Follow-up from #205: an entrance/basic-update consumer retained the complete
+  motion engine. After measuring a private prototype, the owner approved a
+  separate opt-in `motionLite()` entry, not a change to `motion()`. It reuses
+  the existing SVG reconciler, owns only duration/easing/entrance/resize policy,
+  and documents destination-based interaction during updates. Definition-local
+  timing and tooltip spring inheritance remain exclusive to full motion.
+- Follow-up verification: focused tests cover static prerender parity,
+  hydration without replay, keyed interruption, resize policy, reduced motion,
+  zero duration, invalid durations, and cleanup. Packed imports and declarations
+  pass, excluding full motion, springs, tooltip implementation, and D3. Three
+  browsers pass interrupted exits, hydration, reduced motion, line/pie endpoints,
+  and authored opacity. All 114 existing consumer outputs are byte-identical to
+  main. Full validation remains the publication gate.
 
 ### F-190 — Static conformance sampled active motion
 
