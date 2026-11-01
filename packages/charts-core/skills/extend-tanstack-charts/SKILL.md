@@ -7,7 +7,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '1.1.0'
+  library_version: '1.2.0'
 requires:
   - compose-marks-and-views
 sources:
