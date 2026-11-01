@@ -407,6 +407,14 @@ function isValidGuideExpectation(expectation, referenceRenderer) {
 function isValidInteractionScenario(scenario) {
   return (
     typeof scenario?.id === 'string' &&
+    (scenario.renderers === undefined ||
+      (Array.isArray(scenario.renderers) &&
+        scenario.renderers.length > 0 &&
+        scenario.renderers.every(
+          (renderer) =>
+            renderer === targetRenderer ||
+            referenceRenderers.includes(renderer),
+        ))) &&
     Array.isArray(scenario.steps) &&
     scenario.steps.length > 0 &&
     scenario.steps.every(isValidInteractionStep)
@@ -461,6 +469,10 @@ function isValidInteractionStep(step) {
         (step.deltaMode === undefined ||
           ['pixel', 'line', 'page'].includes(step.deltaMode))
       )
+    case 'printStart':
+      return isPositiveInteger(step.width)
+    case 'printEnd':
+      return true
     case 'wait':
       return (
         Number.isInteger(step.durationMs) &&
@@ -2567,9 +2579,14 @@ async function runBehaviorImplementation(
   browser,
   serverUrl,
   implementation,
-  scenarios,
+  caseScenarios,
   variant,
 ) {
+  const scenarios = caseScenarios.filter(
+    (scenario) =>
+      !scenario.renderers ||
+      scenario.renderers.includes(implementation.renderer),
+  )
   const page = await browser.newPage({
     viewport: {
       width: Math.max(variant.width + 96, 480),
@@ -2714,6 +2731,8 @@ async function runBehaviorImplementation(
       } finally {
         try {
           if (mounted) {
+            // The page is restored even when the media change times out.
+            await endBehaviorPrint(page).catch(() => {})
             await cancelActiveBehaviorPointer(page)
             await page.evaluate(() => {
               globalThis.__conformanceBehavior?.handle.destroy()
@@ -2760,6 +2779,14 @@ async function performBehaviorStep(page, step, variant, context) {
       pass: assertions.every((assertion) => assertion.pass),
       state: await readBehaviorState(page),
       assertions,
+    }
+  }
+  if (step.type === 'printStart') {
+    await startBehaviorPrint(page, step.width)
+    return {
+      type: step.type,
+      pass: true,
+      state: await readBehaviorState(page),
     }
   }
   if (step.type === 'screenshot') {
@@ -2977,6 +3004,10 @@ async function performBehaviorStep(page, step, variant, context) {
       await page.waitForTimeout(step.durationMs)
       break
     }
+    case 'printEnd': {
+      await endBehaviorPrint(page)
+      break
+    }
   }
 
   await settleBehavior(page)
@@ -3002,6 +3033,101 @@ async function clearBehaviorPointerTarget(page) {
       globalThis.__conformanceBehavior.pointerTarget = null
     }
   })
+}
+
+// Browsers lay out and paint print media without running animation frames.
+// Hold them while printing so only work done synchronously reaches the page.
+// The step skips settling, which would wait for a frame.
+async function startBehaviorPrint(page, width) {
+  await page.evaluate((printWidth) => {
+    const behavior = globalThis.__conformanceBehavior
+    if (behavior.print) throw new Error('printStart called while printing')
+    // Negative IDs never collide with native frame handles.
+    const held = new Map()
+    let nextHeldFrame = 0
+    const style = document.createElement('style')
+    style.textContent = `@media print { [data-conformance-root] { width: ${printWidth}px !important; } }`
+    document.head.append(style)
+    behavior.print = {
+      held,
+      style,
+      requestAnimationFrame: window.requestAnimationFrame,
+      cancelAnimationFrame: window.cancelAnimationFrame,
+      mediaChange,
+      changed: mediaChange(),
+    }
+    window.requestAnimationFrame = (callback) => {
+      const frame = --nextHeldFrame
+      held.set(frame, callback)
+      return frame
+    }
+    window.cancelAnimationFrame = (frame) => {
+      if (!held.delete(frame)) {
+        behavior.print.cancelAnimationFrame.call(window, frame)
+      }
+    }
+
+    // Resolves false if the print media query does not change in time.
+    function mediaChange() {
+      return new Promise((resolveChange) => {
+        const media = matchMedia('print')
+        const timeout = setTimeout(() => {
+          media.removeEventListener('change', changed)
+          resolveChange(false)
+        }, 5_000)
+        function changed() {
+          clearTimeout(timeout)
+          resolveChange(true)
+        }
+        media.addEventListener('change', changed, { once: true })
+      })
+    }
+  }, width)
+  await page.emulateMedia({ media: 'print' })
+  const changed = await page.evaluate(
+    () => globalThis.__conformanceBehavior.print.changed,
+  )
+  if (!changed) throw new Error('print media did not apply within 5 s')
+}
+
+// Always restores the page, even when print media never applied.
+async function endBehaviorPrint(page) {
+  const printing = await page.evaluate(() => {
+    const print = globalThis.__conformanceBehavior?.print
+    if (!print) return false
+    print.changed = matchMedia('print').matches
+      ? print.mediaChange()
+      : Promise.resolve(true)
+    return true
+  })
+  if (!printing) return
+  let changed = true
+  try {
+    await page.emulateMedia({ media: null })
+  } finally {
+    changed = await page.evaluate(async () => {
+      const behavior = globalThis.__conformanceBehavior
+      const {
+        changed,
+        held,
+        style,
+        requestAnimationFrame,
+        cancelAnimationFrame,
+      } = behavior.print
+      try {
+        return await changed
+      } finally {
+        delete behavior.print
+        style.remove()
+        window.requestAnimationFrame = requestAnimationFrame
+        window.cancelAnimationFrame = cancelAnimationFrame
+        for (const callback of held.values()) {
+          requestAnimationFrame.call(window, callback)
+        }
+      }
+    })
+  }
+  if (!changed) throw new Error('screen media did not apply within 5 s')
 }
 
 async function cancelActiveBehaviorPointer(page) {
