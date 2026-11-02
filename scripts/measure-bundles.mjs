@@ -558,7 +558,7 @@ const entries = [
     'Hierarchy treemap mark',
     'benchmarks/entries/charts-hierarchy-treemap.ts',
     'D3 hierarchy treemap kernel',
-    3.86,
+    4022 / 1024,
     {
       inputBoundary: {
         require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
@@ -1170,7 +1170,7 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    22.4925546875,
+    22.4931640625,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
@@ -1209,7 +1209,7 @@ const entries = [
   budgeted(
     'Radial labels + static SVG',
     'benchmarks/entries/charts-radial-label-svg.ts',
-    23.74225,
+    23.7431640625,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   budgeted(
@@ -1632,7 +1632,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    45.547984375,
+    45.548828125,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',
@@ -1731,7 +1731,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    31.547984375,
+    31.5498046875,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1959,12 +1959,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    39.847984375,
+    39.853515625,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    45.1320546875,
+    45.1396484375,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -2168,7 +2168,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    58.46075,
+    58.4619140625,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot minimal line', 'benchmarks/entries/minimal-line.ts'),

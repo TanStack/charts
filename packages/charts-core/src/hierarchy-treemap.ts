@@ -448,6 +448,7 @@ function assertLayoutCoordinates<TDatum>(
   width: number,
   height: number,
 ): void {
+  const tolerance = Math.max(width, height) * Number.EPSILON * 32
   nodes.forEach((node) => {
     const coordinates = [node.x0, node.y0, node.x1, node.y1]
     if (!coordinates.every(Number.isFinite)) {
@@ -460,11 +461,22 @@ function assertLayoutCoordinates<TDatum>(
         `treemap: layout produced reversed coordinates for node "${node.data.id}"`,
       )
     }
-    if (node.x0 < 0 || node.y0 < 0 || node.x1 > width || node.y1 > height) {
+    // D3 can collapse a padded tile outside the plot. Empty cells are omitted.
+    if (node.x0 === node.x1 || node.y0 === node.y1) return
+    if (
+      node.x0 < -tolerance ||
+      node.y0 < -tolerance ||
+      node.x1 > width + tolerance ||
+      node.y1 > height + tolerance
+    ) {
       throw new TypeError(
         `treemap: layout produced out-of-bounds coordinates for node "${node.data.id}"`,
       )
     }
+    node.x0 = Math.max(0, node.x0)
+    node.y0 = Math.max(0, node.y0)
+    node.x1 = Math.min(width, node.x1)
+    node.y1 = Math.min(height, node.y1)
   })
 }
 

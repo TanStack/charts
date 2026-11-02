@@ -327,7 +327,7 @@ describe('SVG surface coordinates', () => {
     surface.destroy()
   })
 
-  it('maps client coordinates through the rendered SVG transform', () => {
+  it('refreshes the rendered SVG transform between coordinate samples', () => {
     const scene = createChartScene(
       defineChart({
         marks: [dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' })],
@@ -352,6 +352,8 @@ describe('SVG surface coordinates', () => {
     const renderedHeight = 480
     const scale = renderedWidth / scene.width
     const verticalInset = (renderedHeight - scene.height * scale) / 2
+    let translationX = 0
+    let translationY = 0
 
     vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(
       DOMRect.fromRect({
@@ -363,16 +365,17 @@ describe('SVG surface coordinates', () => {
     )
     Object.defineProperty(svg, 'getScreenCTM', {
       configurable: true,
-      value: vi.fn(() => ({
-        inverse: () => ({
+      value: vi.fn(() => {
+        const inverse = {
           a: 1 / scale,
           b: 0,
           c: 0,
           d: 1 / scale,
-          e: -left / scale,
-          f: -(top + verticalInset) / scale,
-        }),
-      })),
+          e: -(left + translationX) / scale,
+          f: -(top + verticalInset + translationY) / scale,
+        }
+        return { inverse: () => inverse }
+      }),
     })
 
     const expected = { x: 603.84, y: 28.76 }
@@ -384,6 +387,24 @@ describe('SVG surface coordinates', () => {
 
     expect(resolved?.x).toBeCloseTo(expected.x)
     expect(resolved?.y).toBeCloseTo(expected.y)
+
+    // Ancestor transforms, preceding layout and scroll can move the SVG
+    // without resizing it or rendering another chart scene.
+    for (const { x, y } of [
+      { x: 40, y: 30 },
+      { x: 0, y: 75 },
+      { x: 0, y: -50 },
+    ]) {
+      translationX = x
+      translationY = y
+      const moved = surface.clientToScene?.(
+        scene,
+        left + translationX + expected.x * scale,
+        top + verticalInset + translationY + expected.y * scale,
+      )
+      expect(moved?.x).toBeCloseTo(expected.x)
+      expect(moved?.y).toBeCloseTo(expected.y)
+    }
 
     surface.destroy()
   })

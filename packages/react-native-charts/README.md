@@ -91,9 +91,3 @@ than the native bundle floor.
 default CSS-variable fill and for line-dot legend centers when the chart
 background is transparent. Set it to the host background in dark themes. A
 literal `definition.focusRing.fill` takes precedence.
-
-The bare fixture uses React Native 0.86.2 with `react-native-svg` 15.15.5. The
-Expo 57 fixture uses `react-native-svg` 15.15.4 and renders in Expo Go on an iOS
-simulator. It remains experimental: bare-native and Android simulators,
-physical devices, gestures, accessibility, release builds, and performance
-still need validation.

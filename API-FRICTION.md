@@ -351,7 +351,10 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
-| F-315 | Dense point charts had no shipped spatial index                | API                   | resolved   |
+| F-315 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
+| F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
+| F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
+| F-318 | Dense point charts had no shipped spatial index                | API                   | monitoring |
 
 ## Findings
 
@@ -3822,6 +3825,15 @@ Each entry records:
   A direct Preact SSR-to-hydration regression additionally checks SVG and path
   identity, immutable label updates, a single surface, and empty-host teardown.
 
+- Oct16 React tooltip follow-up (#187): custom body targets lived above the
+  chart host, causing three adapter updates for three keyboard target changes
+  even though the scene did not redraw. A tooltip-owned state boundary now
+  retains the chart child between target updates, while parent prop changes
+  still update it. Strict Mode and ordinary regression tests observe zero
+  adapter updates and correct body values; the current-main negative control
+  observes three updates. Existing 25 React lifecycle tests also pass.
+  Packed and full-workspace validation remain required before publication.
+
 ### F-124 — Name-only inventories masked undocumented contracts
 
 - Status: resolved
@@ -5230,6 +5242,21 @@ Each entry records:
   renders its chart under Hermes; the packed artifact has not been run on that
   simulator.
 
+- Expo 58 follow-up (issue #236): both the standalone native adapter and the
+  unified package rejected React Native 0.88 because their peer range stopped
+  at 0.86.x. Both now accept 0.86.x or 0.88.x. The existing Expo consumer uses
+  SDK 58, React 19.3, React Native 0.88, and SVG 15.16, while the bare consumer
+  stays on 0.86.2. Manifest regression coverage checks both supported sets and
+  rejects unverified native minor versions. Source typechecks and the packed
+  iOS/Android Metro gates pass for both consumers. This does not establish
+  on-device rendering for Expo 58.
+- The same upgrade exposed implicit optional React/React DOM ownership in the
+  Octane fixtures: pnpm selected React 19.3 for their renderer while retaining
+  React 19.2.3 for Octane. Each fixture now declares its matching React pair,
+  and Expo declares React DOM 19.3 for its optional web peer. The installed
+  Octane dependency graphs resolve React 19.2.3 on both sides again. Regression
+  coverage keeps those fixture peers aligned with the workspace pair.
+
 ### F-172 — Metro skipped the fixture-owned Babel runtime
 
 - Status: resolved
@@ -5866,6 +5893,19 @@ Each entry records:
   integration test mounts a definition containing both legacy `animate` and a
   conflicting definition-level motion duration, then verifies that the
   host-level motion renderer owns the transition timing.
+- Follow-up from #205: an entrance/basic-update consumer retained the complete
+  motion engine. After measuring a private prototype, the owner approved a
+  separate opt-in `motionLite()` entry, not a change to `motion()`. It reuses
+  the existing SVG reconciler, owns only duration/easing/entrance/resize policy,
+  and documents destination-based interaction during updates. Definition-local
+  timing and tooltip spring inheritance remain exclusive to full motion.
+- Follow-up verification: focused tests cover static prerender parity,
+  hydration without replay, keyed interruption, resize policy, reduced motion,
+  zero duration, invalid durations, and cleanup. Packed imports and declarations
+  pass, excluding full motion, springs, tooltip implementation, and D3. Three
+  browsers pass interrupted exits, hydration, reduced motion, line/pie endpoints,
+  and authored opacity. All 114 existing consumer outputs are byte-identical to
+  main. Full validation remains the publication gate.
 
 ### F-190 — Static conformance sampled active motion
 
@@ -9319,9 +9359,76 @@ Each entry records:
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
 
-### F-315 - Dense point charts had no shipped spatial index
+### F-315 - Orthogonal dependency connectors need a hand-built curve
 
-- Status: resolved
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: `link` draws a straight segment and `arrow` draws a straight
+  arrow. A right-angle connector that leaves the predecessor's right edge,
+  steps, and enters the successor's left edge, plus its arrowhead, had to be
+  written as a d3 `CurveFactory` passed to the link's `curve` through
+  `d3Curve`. The curve sees only the two endpoint pixels. It cannot read the
+  resolved band step, so the definition estimates the lane gutter for backward
+  detours from the outer chart height. It cannot tell a bar from a milestone,
+  so dependencies into the milestone need a second link mark with a larger end
+  gap.
+- Decision: keep the recipe. The public curve hook is enough and adds no bytes
+  to other charts. Consider a connector primitive with resolved band geometry
+  and target-aware end gaps only if a second timeline or network case repeats
+  this routing.
+- Verification: case 198 passes the standard 320, 640, and 960 px light and
+  dark conformance matrix, before and after its revision update, with 13
+  right-angle connectors in both renderers. The same curve factory drives the
+  Observable Plot reference.
+
+### F-316 - Keyboard focus cannot follow a dependency
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: default keyboard navigation steps through focusable points by x
+  center, then y, so phase summaries interleave with tasks instead of
+  following the lane tree. Changing only the order requires a complete focus
+  strategy. Its `resolve` receives points but not the scene, so the default
+  geometry-aware pointer hit test (`findNearestPoint` needs the scene) cannot
+  be reused; the recipe spreads `focusNearestY` and replaces `navigation` with
+  a y-then-x sort. Decorative connectors correctly add no focus stops, but no
+  key moves from a task to its predecessor or successor. The recipe names each
+  task's predecessors in its tooltip text instead.
+- Decision: accept the lane-order strategy and text description for this
+  recipe. Graph navigation would add interaction state to the default host,
+  which is outside the current stop boundary. Revisit with a second dependency
+  or network case.
+- Verification: the case 198 unit tests confirm one focus stop per phase,
+  task, and milestone, none for connectors or progress fills, and a
+  navigation order that matches the lane order.
+
+### F-317 - Time-ranged bars cannot inset only their lane edges
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with phase summary bars
+- Friction: `rect` `inset` removes pixels from all four edges, so a thinner
+  phase summary bar inside its band lane would also shorten its time extent.
+  `barX` `inset` trims only the categorical edges, but `barX` rejects `Date`
+  fields for `x1` and `x2` on a UTC axis (TS2322). The recipe uses
+  full-height bars and band padding instead of thinner summary bars.
+- Decision: keep full-height bars for now. Consider either `Date` endpoints
+  on `barX` or an axis-specific `rect` inset if another timeline case needs
+  bars thinner than their lane.
+- Verification: a strict compile probe of `barX(rows, { x1: 'start', x2:
+'end', y: 'lane' })` with `Date` fields fails with TS2322. Case 198 uses
+  `rect` with `inset: 0`.
+
+### F-318 - Dense point charts had no shipped spatial index
+
+- Status: monitoring
 - Severity: medium
 - Owner: API
 - Observed in: measuring nearest-point lookup for 1k to 100k dot anchors

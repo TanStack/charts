@@ -746,8 +746,8 @@ export function viewportInteractionPoints<
   const bottom = y + height
   const visible = points.filter(
     (point) =>
-      !pointUsesViewportClip(scene, point) ||
-      (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom),
+      (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom) ||
+      !pointUsesViewportClip(scene, point),
   )
   return visible.length === points.length ? points : visible
 }
@@ -767,11 +767,12 @@ function pointUsesViewportClip(scene: ChartScene, point: ChartPoint) {
     const ownership = mark.viewport?.[axis]
     if (ownership === 'fixed') return false
     if (ownership === 'content' && scene.scales[axis]?.viewport) return true
-    return Object.entries(mark.channels).some(
-      ([channelName, channel]) =>
-        channelName === axis &&
-        channel.scale !== undefined &&
-        scene.scales[channel.scale]?.viewport !== undefined,
+    const channel = Object.keys(mark.channels).includes(axis)
+      ? mark.channels[axis]
+      : undefined
+    return (
+      channel?.scale !== undefined &&
+      scene.scales[channel.scale]?.viewport !== undefined
     )
   })
 }
