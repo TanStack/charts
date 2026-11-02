@@ -27,5 +27,10 @@
     "scripts/**/*.mjs",
     "vitest.config.ts"
   ],
-  "exclude": ["node_modules", "packages/*/dist"]
+  "exclude": [
+    "node_modules",
+    "packages/*/dist",
+    "packages/solid-charts/src/solid2",
+    "packages/charts-core/src/solid-solid2.ts"
+  ]
 }

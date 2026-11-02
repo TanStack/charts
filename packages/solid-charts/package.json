@@ -19,13 +19,23 @@
     ".": {
       "solid": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./solid2": {
+      "solid": "./src/solid2/index.ts",
+      "import": "./src/solid2/index.ts"
     }
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
   },
   "peerDependencies": {
-    "solid-js": ">=1.8"
+    "@solidjs/web": ">=2.0.0-rc.19 <3.0.0",
+    "solid-js": "^1.8 || >=2.0.0-rc.19 <3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@solidjs/web": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "solid-js": "^1.9.13",
@@ -39,6 +49,11 @@
         "types": "./dist/index.d.ts",
         "solid": "./dist/index.js",
         "import": "./dist/index.js"
+      },
+      "./solid2": {
+        "types": "./dist/solid2/index.d.ts",
+        "solid": "./dist/solid2/index.js",
+        "import": "./dist/solid2/index.js"
       }
     }
   }

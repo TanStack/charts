@@ -74,5 +74,23 @@ Read the context through `tooltip` instead of destructuring it so Solid tracks
 focused points and pinned state. The shared host owns focus, placement,
 portaling, and dismissal; Solid owns the returned component lifecycle.
 
+## Solid 2
+
+Solid 2 applications import the same component from the `solid2` subpath:
+
+```sh
+pnpm add @tanstack/charts solid-js@next @solidjs/web@next
+```
+
+```tsx
+import { Chart } from '@tanstack/charts/solid/solid2'
+```
+
+It takes the same props and exports the same types. `style` uses
+`JSX.CSSProperties` from `@solidjs/web`, and `ChartTooltipBodyRenderContext`
+types `defaultBody` as Solid 2's `Element`. Props flow through a split
+`createEffect` and the host mounts in `onSettled`. `tooltip.dismiss` is a
+stable function, so `onClick={tooltip.dismiss}` needs no tracking.
+
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

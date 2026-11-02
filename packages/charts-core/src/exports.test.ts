@@ -39,6 +39,8 @@ const specializedLoaderSpecifiers = new Set([
   '@tanstack/charts/octane/core',
   '@tanstack/charts/react-native',
   '@tanstack/charts/react-native/tooltip',
+  // Solid 2 resolves from @charts-internal/solid-2-compat (vitest.solid2*).
+  '@tanstack/charts/solid/solid2',
   '@tanstack/charts/svelte',
 ])
 

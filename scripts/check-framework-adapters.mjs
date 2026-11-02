@@ -18,6 +18,11 @@ import { build as viteBuild } from 'vite'
 import solid from 'vite-plugin-solid'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
+import {
+  loadSolid2VitePlugin,
+  solid2CompatRoot,
+  solid2SourceRoot,
+} from './solid-2-compat.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -122,7 +127,61 @@ async function buildSolidPackage() {
     },
   })
   await buildDeclarations(packageRoot)
+  await buildSolid2Entry(packageRoot)
   await rewriteGeneratedSpecifiers(outputRoot)
+}
+
+async function buildSolid2Entry(packageRoot) {
+  const outputRoot = resolve(packageRoot, 'dist', 'solid2')
+  const solid2 = await loadSolid2VitePlugin()
+  await viteBuild({
+    configFile: false,
+    logLevel: 'silent',
+    root: solid2CompatRoot,
+    plugins: [solid2()],
+    build: {
+      emptyOutDir: false,
+      lib: {
+        entry: resolve(solid2SourceRoot, 'index.ts'),
+        formats: ['es'],
+      },
+      outDir: outputRoot,
+      rollupOptions: {
+        external: (id) =>
+          id.startsWith('@tanstack/charts') ||
+          /^(?:solid-js|@solidjs\/web)(?:\/|$)/u.test(id),
+        output: {
+          entryFileNames: 'index.js',
+        },
+      },
+    },
+  })
+  const typesConfig = ts.getParsedCommandLineOfConfigFile(
+    resolve(packageRoot, 'tsconfig.solid2.json'),
+    {},
+    { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => {} },
+  )
+  const program = ts.createProgram([resolve(solid2SourceRoot, 'index.ts')], {
+    ...typesConfig.options,
+    declaration: true,
+    emitDeclarationOnly: true,
+    noEmit: false,
+    noEmitOnError: true,
+    incremental: false,
+    allowImportingTsExtensions: false,
+    outDir: outputRoot,
+    rootDir: solid2SourceRoot,
+    skipLibCheck: true,
+  })
+  const diagnostics = ts.getPreEmitDiagnostics(program)
+  if (diagnostics.length) {
+    throw new Error(
+      `Declaration build failed for ${solid2SourceRoot}:\n${formatDiagnostics(
+        diagnostics,
+      )}`,
+    )
+  }
+  assert.equal(program.emit().emitSkipped, false)
 }
 
 async function buildSveltePackage() {

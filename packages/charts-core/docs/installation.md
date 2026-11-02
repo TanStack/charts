@@ -96,7 +96,8 @@ D3 dependency.
 | `@tanstack/charts/react-native` | React `^19.2.3`, React Native `^0.86.0` or `^0.88.0`, and `react-native-svg` `>=15.15.4 <16` |
 | `@tanstack/charts/preact`       | Preact `>=10`                                                                                |
 | `@tanstack/charts/vue`          | Vue `>=3.5`                                                                                  |
-| `@tanstack/charts/solid`        | Solid `>=1.8`                                                                                |
+| `@tanstack/charts/solid`        | Solid `^1.8`                                                                                 |
+| `@tanstack/charts/solid/solid2` | Solid and `@solidjs/web` `>=2.0.0-rc.19 <3`                                                  |
 | `@tanstack/charts/svelte`       | Svelte `^5.20.0`                                                                             |
 | `@tanstack/charts/angular`      | Angular core and platform browser `>=19`                                                     |
 | `@tanstack/charts/lit`          | Lit `>=3.1.3`                                                                                |

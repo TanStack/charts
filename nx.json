@@ -84,6 +84,8 @@
       "{workspaceRoot}/packages/charts-scales/**/*",
       "{workspaceRoot}/packages/*-charts/**/*",
       "{workspaceRoot}/packages/react-18-compat/package.json",
+      "{workspaceRoot}/packages/solid-2-compat/package.json",
+      "{workspaceRoot}/scripts/solid-2-compat.mjs",
       "{workspaceRoot}/examples/charts-react-native/**/*",
       "{workspaceRoot}/examples/charts-expo/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",
@@ -109,6 +111,8 @@
       "{workspaceRoot}/vitest.solid*.config.ts",
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/solid-charts/**/*",
+      "{workspaceRoot}/packages/solid-2-compat/package.json",
+      "{workspaceRoot}/scripts/solid-2-compat.mjs",
       "!{workspaceRoot}/packages/*/dist/**/*",
       "!{workspaceRoot}/packages/**/CHANGELOG.md",
       "!{workspaceRoot}/packages/**/README.md",
@@ -188,6 +192,14 @@
       "inputs": ["testSolid"]
     },
     "test-solid-ssr": {
+      "cache": true,
+      "inputs": ["testSolid"]
+    },
+    "test-solid2": {
+      "cache": true,
+      "inputs": ["testSolid"]
+    },
+    "test-solid2-ssr": {
       "cache": true,
       "inputs": ["testSolid"]
     },

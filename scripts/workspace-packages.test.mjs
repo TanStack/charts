@@ -17,6 +17,7 @@ const internalPackages = [
   ['examples/sandbox', 'sandbox'],
   ['packages/charts-fixtures', 'fixtures'],
   ['packages/react-18-compat', 'react-18-compat'],
+  ['packages/solid-2-compat', 'solid-2-compat'],
 ]
 
 describe('workspace package boundaries', () => {

@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "paths": {
+      "solid-js": ["../solid-2-compat/node_modules/solid-js"],
+      "solid-js/*": ["../solid-2-compat/node_modules/solid-js/*"],
+      "@solidjs/web": ["../solid-2-compat/node_modules/@solidjs/web"],
+      "@solidjs/web/jsx-runtime": [
+        "../solid-2-compat/node_modules/@solidjs/web/types/jsx.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/solid2/**/*.ts",
+    "src/solid2/**/*.tsx",
+    "../charts-core/src/solid-solid2.ts"
+  ],
+  "exclude": []
+}
