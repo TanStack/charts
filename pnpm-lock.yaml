@@ -622,7 +622,7 @@ importers:
         specifier: '>=15.15.4 <16'
         version: 15.15.5(react-native@0.86.2(@babel/core@7.29.7(supports-color@10.2.2))(@react-native-community/cli@20.1.0(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
       solid-js:
-        specifier: '>=1.8'
+        specifier: ^1.8
         version: 1.9.14
       svelte:
         specifier: ^5.20.0
