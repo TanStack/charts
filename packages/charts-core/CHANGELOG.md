@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 1.2.1
+
+### Patch Changes
+
+- [#245](https://github.com/TanStack/charts/pull/245) [`3f2c82e`](https://github.com/TanStack/charts/commit/3f2c82e269888dda867ca6ac42abdec3d56e17a3) - Cap the `solid-js` peer range at `^1`. The previous open-ended `>=` range would accept Solid 2.0.0 once it is released, but these packages are built against Solid 1 and do not work with Solid 2.
+
 ## 1.2.0
 
 ### Minor Changes
