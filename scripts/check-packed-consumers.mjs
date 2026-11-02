@@ -3948,6 +3948,10 @@ async function verifyProductionBundles() {
       '/@tanstack/charts/dist/transform-rolling-window.js',
     ],
     spatialHexbin: ['/@tanstack/charts/dist/spatial-hexbin.js'],
+    spatialGridIndex: [
+      '/@tanstack/charts/dist/spatial-grid-index.js',
+      '/@tanstack/charts/dist/spatial-grid-index-internal.js',
+    ],
     spatialDensity: ['/@tanstack/charts/dist/spatial-density.js'],
     spatialContour: [
       '/@tanstack/charts/dist/spatial-contour.js',
@@ -4024,6 +4028,7 @@ async function verifyProductionBundles() {
           'spatialGrouping',
           'd3Contour',
           'spatialDelaunay',
+          'spatialGridIndex',
           'spatialVoronoi',
           'd3Delaunay',
           'polarPie',
@@ -4048,6 +4053,7 @@ async function verifyProductionBundles() {
           'spatialContour',
           'spatialGrouping',
           'spatialDelaunay',
+          'spatialGridIndex',
           'spatialVoronoi',
           'd3Delaunay',
           'transformFold',

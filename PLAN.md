@@ -641,6 +641,9 @@ builds that keep the TanStack scene and renderer, measure:
 | Compact number formatting  |     0.21 kB | 2.14 kB |       +1.93 kB | Keep native formatter                               |
 | General interpolation      |           — | 3.82 kB |              — | Too broad for mandatory motion                      |
 
+Note: the shipped default is still the linear scan. The grid became the opt-in
+`@tanstack/charts/spatial/grid-index` factory rather than a default.
+
 The consumer deltas are measured directly where a meaningful chart fixture
 exists: native versus D3 time ticks in the same UTC line, native versus D3
 monotone curves in the same SVG line, native versus D3 binning in the same

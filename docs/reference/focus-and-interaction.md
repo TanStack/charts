@@ -1009,6 +1009,39 @@ bounds and perform exact shape checks on its candidates.
 A custom `focus` strategy takes precedence over `spatialIndex` for pointer
 resolution.
 
+### Grid index
+
+`@tanstack/charts/spatial/grid-index` exports `gridSpatialIndex`, a ready-made
+point-only factory:
+
+```ts
+import { gridSpatialIndex } from '@tanstack/charts/spatial/grid-index'
+
+const chart = defineChart(spec, { spatialIndex: gridSpatialIndex })
+```
+
+It buckets each point's `x`/`y` anchor into a uniform grid with about one
+point per cell, then searches outward from the pointer's cell. Each query
+returns the same point as a linear anchor scan: the smallest squared anchor
+distance, the earliest point in `points` order on a tie, and `null` when that
+distance exceeds `maxDistance`. A negative `maxDistance` matches only exact
+anchors, and points with non-finite anchors stay searchable.
+
+Coordinates are captured when the index is built. If you call the factory
+outside the chart host, keep the points array and point identities unchanged
+for the index lifetime, and rebuild after changing anchors. The chart host
+rebuilds the index when the scene changes.
+
+It is nearest-center lookup, not shape hit testing. Like any index, it
+replaces primitive containment and affinity ranking, so a pointer inside a
+wide bar can resolve to a neighboring bar whose anchor is closer. Use it for
+dots and other marks whose anchor is the useful target. Points packed into
+one cell are scanned in order, so a pointer inside a dense cluster can cost
+more than the linear scan. Measure your workload before choosing this
+opt-in index. See
+[Large Data](../guides/large-data.md#indexed-nearest-point-lookup) for
+measured costs.
+
 ## Application-owned gestures
 
 Dragging, scrolling, custom crosshair overlays, and freeform range or lasso
