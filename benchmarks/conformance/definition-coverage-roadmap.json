@@ -6165,6 +6165,45 @@
       ]
     },
     {
+      "id": "198-gantt-dependencies",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/198-gantt-dependencies/example.tsx",
+        "cases/198-gantt-dependencies/tanstack.test.ts",
+        "cases/198-gantt-dependencies/case.json"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["plan.ts"],
+          "summary": "Order phase header lanes before their task lanes, roll task dates and duration-weighted progress into each phase, and resolve finish-to-start dependencies into lane and date endpoints."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "case",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["route.ts"],
+          "summary": "Route each dependency link through a case-local d3 curve that draws right-angle segments and an arrowhead from the link's two resolved endpoints."
+        },
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["example.tsx"],
+          "summary": "Compose native rect, dot, ruleX, and decorative link marks on band lanes and UTC time, with keyboard focus limited to phases, tasks, and the milestone."
+        }
+      ]
+    },
+    {
       "id": "bar-grouped",
       "coverage": "declarative",
       "disposition": "definition-now",
