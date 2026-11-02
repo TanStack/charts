@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '1.2.0'
+  library_version: '1.2.1'
 sources:
   - 'TanStack/charts:docs/guides/tooltips-and-focus.md'
   - 'TanStack/charts:docs/guides/interactions-and-selections.md'
