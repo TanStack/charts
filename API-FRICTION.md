@@ -8933,6 +8933,13 @@ Each entry records:
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
 
+- Documentation follow-up: wrapping a renderer surface with object spread
+  evaluates its live `element` getter before the first render. The SVG surface
+  creates its root during rendering, so that wrapper can throw or cache a stale
+  root. The custom-renderer contract now explains read timing and getter
+  forwarding. Verified against the SVG surface getter and host mount/render
+  order, with a private wrapper wiring check for deferred and changing roots.
+
 ### F-295 - Grouped tooltips did not identify the active series
 
 - Status: resolved

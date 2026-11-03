@@ -653,6 +653,12 @@ interface ChartRendererRenderContext<
 }
 ```
 
+`element` can be a live getter. Read it after the initial `render`; a renderer
+may not create its root during `mount`. When wrapping a surface, forward
+`element` through a getter instead of spreading the surface into a new object.
+Spreading evaluates the getter immediately and caches that root, so it can
+throw before rendering or keep an element that the renderer later replaces.
+
 `element` is the one accessible, interactive root. `surface.destroy()` releases animation work,
 subscriptions, and renderer resources. The mounting host owns removal of the
 chart root and cleanup of its interaction listeners.
