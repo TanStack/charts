@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import type {
   ChartTooltipBodyContext,
   ChartTooltipBodyTarget,
@@ -135,6 +135,25 @@ export function CanvasChart<
   )
 }
 
+const useIsomorphicLayoutEffect =
+  typeof document === 'undefined' ? React.useEffect : React.useLayoutEffect
+
+let hostCommit = false
+
+function HostCommitStart() {
+  useIsomorphicLayoutEffect(() => {
+    hostCommit = true
+  })
+  return null
+}
+
+function HostCommitEnd() {
+  useIsomorphicLayoutEffect(() => {
+    hostCommit = false
+  })
+  return null
+}
+
 function TooltipBody<
   TDatum,
   TXValue extends ChartValue,
@@ -163,7 +182,8 @@ function TooltipBody<
   > | null>(null)
   const onChange = React.useCallback(
     (nextTarget: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null) => {
-      setTarget(nextTarget)
+      if (nextTarget === null || hostCommit) setTarget(nextTarget)
+      else flushSync(() => setTarget(nextTarget))
     },
     [],
   )
@@ -173,7 +193,9 @@ function TooltipBody<
   const chart = React.useMemo(() => children(notify), [children, notify])
   return (
     <>
+      <HostCommitStart />
       {chart}
+      <HostCommitEnd />
       {renderTooltipBody && target
         ? createPortal(
             renderTooltipBody({
