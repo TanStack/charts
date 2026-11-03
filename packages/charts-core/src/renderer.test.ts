@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
 import { createChartCursor, cursorHost } from './cursor'
@@ -4164,3 +4164,143 @@ if (false) {
     renderer: numericRenderer,
   })
 }
+
+describe('raw input ownership feasibility', () => {
+  beforeEach(() => {
+    vi.stubGlobal('onpointerrawupdate', null)
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+  const rawDefinition = defineChart(definition, {
+    pointerEvent: 'pointerrawupdate',
+  })
+
+  it('falls back to pointermove when raw input is unsupported', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window,
+      'onpointerrawupdate',
+    )
+    Reflect.deleteProperty(window, 'onpointerrawupdate')
+    expect('onpointerrawupdate' in window).toBe(false)
+    const fake = createFakeRenderer()
+    const onFocusChange = vi.fn()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: rawDefinition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Raw fallback',
+      onFocusChange,
+    })
+    container.dispatchEvent(
+      new MouseEvent('pointerrawupdate', { bubbles: true }),
+    )
+    expect(onFocusChange).not.toHaveBeenCalled()
+    container.dispatchEvent(new MouseEvent('pointermove', { bubbles: true }))
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    host.destroy()
+    if (descriptor)
+      Object.defineProperty(window, 'onpointerrawupdate', descriptor)
+  })
+  it('switches listeners on update without processing both event streams', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const options = {
+      definition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Raw switching',
+    }
+    const host = mountChartRenderer(container, options)
+    const sample = (name: string) =>
+      container.dispatchEvent(new MouseEvent(name, { bubbles: true }))
+    sample('pointerrawupdate')
+    expect(fake.clientToScene).not.toHaveBeenCalled()
+    sample('pointermove')
+    expect(fake.clientToScene).toHaveBeenCalledOnce()
+    host.update({ ...options, definition: rawDefinition })
+    fake.clientToScene.mockClear()
+    sample('pointermove')
+    expect(fake.clientToScene).not.toHaveBeenCalled()
+    sample('pointerrawupdate')
+    expect(fake.clientToScene).toHaveBeenCalledOnce()
+    host.update(options)
+    fake.clientToScene.mockClear()
+    sample('pointerrawupdate')
+    expect(fake.clientToScene).not.toHaveBeenCalled()
+    sample('pointermove')
+    expect(fake.clientToScene).toHaveBeenCalledOnce()
+    host.destroy()
+  })
+  it.each(['mouseleave', 'pointercancel'])(
+    'clears pointer focus on %s',
+    (event) => {
+      const fake = createFakeRenderer()
+      const onFocusChange = vi.fn()
+      const container = document.createElement('div')
+      const host = mountChartRenderer(container, {
+        definition: rawDefinition,
+        renderer: fake.renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Raw input',
+        onFocusChange,
+      })
+      container.dispatchEvent(
+        new MouseEvent('pointerrawupdate', {
+          bubbles: true,
+          clientX: 20,
+          clientY: 30,
+        }),
+      )
+      expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[0])
+      container.dispatchEvent(new MouseEvent(event, { bubbles: true }))
+      expect(onFocusChange).toHaveBeenLastCalledWith(null)
+      host.destroy()
+    },
+  )
+  it('ignores raw samples when pointer interaction is disabled', () => {
+    const fake = createFakeRenderer()
+    const onFocusChange = vi.fn()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(rawDefinition, { pointer: false }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Raw input',
+      onFocusChange,
+    })
+    container.dispatchEvent(
+      new MouseEvent('pointerrawupdate', { bubbles: true }),
+    )
+    expect(onFocusChange).not.toHaveBeenCalled()
+    host.destroy()
+  })
+  it('removes the raw listener on destroy', () => {
+    const fake = createFakeRenderer()
+    const onFocusChange = vi.fn()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: rawDefinition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Raw input',
+      onFocusChange,
+    })
+    container.dispatchEvent(
+      new MouseEvent('pointerrawupdate', { bubbles: true }),
+    )
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    host.destroy()
+    onFocusChange.mockClear()
+    container.dispatchEvent(
+      new MouseEvent('pointerrawupdate', { bubbles: true }),
+    )
+    expect(onFocusChange).not.toHaveBeenCalled()
+  })
+})
