@@ -7733,6 +7733,15 @@ Each entry records:
   its reviewed 2,583-byte increase includes the default viewport and controlled
   interaction contracts.
 
+- Follow-up, issue #203: feeding early pointer samples through
+  `setControlledFocus` changes ownership, so ordinary pointer leave cannot
+  clear that application-owned focus. The opt-in `pointerEvent` option reuses
+  the existing pointer handler and changes only its subscribed stream.
+  Six focused cases cover fallback, listener replacement, leave, cancel,
+  pointer opt-out and destruction, with the same checks on the packed artifact
+  in Chromium, Firefox and WebKit. The default remains `pointermove`; no
+  hardware latency improvement has been established.
+
 ### F-244 — Focus cursor width depended on private band inference
 
 - Status: resolved

@@ -99,7 +99,7 @@ does not return or own them.
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
 `focusRing`, `selection`, `controls`, `cursor`, `maxFocusDistance`,
-`spatialIndex`, `svgAnimation`, `pointer`, `keyboard`, and `tooltip`. These options
+`spatialIndex`, `svgAnimation`, `pointer`, `pointerEvent`, `keyboard`, and `tooltip`. These options
 belong to both static and responsive definitions. Hosts and framework adapters
 do not override them.
 
