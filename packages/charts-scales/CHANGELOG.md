@@ -1,5 +1,11 @@
 # @tanstack/charts-scales
 
+## 1.3.0
+
+### Minor Changes
+
+- [#257](https://github.com/TanStack/charts/pull/257) [`9f5cacf`](https://github.com/TanStack/charts/commit/9f5cacf9cb3c410d89cbfecde17e5e3661b75a84) - Add `scaleUtc` from `@tanstack/charts/scales/time` for Date domains, UTC calendar ticks, inversion and copying without a D3 runtime dependency.
+
 ## 1.2.1
 
 ## 1.2.0
