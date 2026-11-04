@@ -544,11 +544,16 @@ const callbackInventory = {
       '$call clamp clamp.$return copy copy.$return domain domain.$return invert nice nice.$return range range.$return tickFormat tickFormat.$return ticks',
     ],
     [
+      '@tanstack/charts-scales:src/time.ts:UtcScale',
+      '$call clamp clamp.$return copy copy.$return domain domain.$return invert nice nice.$return range range.$return tickFormat tickFormat.$return ticks',
+    ],
+    [
       '@tanstack/charts-scales:src/ordinal.ts:OrdinalScale',
       '$call copy copy.$return domain domain.$return range range.$return unknown unknown.$return',
     ],
     ['@tanstack/charts-scales:src/band.ts:scaleBand', '$call.$return'],
     ['@tanstack/charts-scales:src/linear.ts:scaleLinear', '$call.$return'],
+    ['@tanstack/charts-scales:src/time.ts:scaleUtc', '$call.$return'],
     ['@tanstack/charts-scales:src/ordinal.ts:scaleOrdinal', '$call.$return'],
     ['@tanstack/charts-scales:src/point.ts:scalePoint', '$call.$return'],
     ['@tanstack/charts:src/d3-area-x.ts:d3AreaXCurve', '$call.curve'],

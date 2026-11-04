@@ -8008,6 +8008,11 @@ Each entry records:
   convert an absent output to the documented `currentColor` fallback.
 - Verification: 45 focused scale regressions cover short, long, nonfinite,
   empty-range, unknown, and configured-color cases; root TypeScript passes.
+- Follow-up observed in #206: UTC Date domains still required the larger D3
+  time scale even when the compact contract was sufficient. The additive
+  `scales/time` entry preserves two-stop validation, Date ownership, copying,
+  and responsive range ownership. Calendar parity and chart integration tests
+  cover reversed domains, leap days, formatting, mapping, and invalid inputs.
 
 ### F-254 — View composition exposed a broader type than its runtime contract
 

@@ -360,6 +360,7 @@ async function verifyUnifiedBundles(fixtureRoot) {
   const { build } = await import('esbuild')
   const entries = [
     ['Compact linear scale', '@tanstack/charts/scales/linear'],
+    ['Compact UTC scale', '@tanstack/charts/scales/time'],
     ['Compact band scale', '@tanstack/charts/scales/band'],
     ['React adapter', '@tanstack/charts/react'],
     ['React tooltip adapter', '@tanstack/charts/react/tooltip'],
