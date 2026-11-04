@@ -122,6 +122,7 @@
     "./band": "./src/band.ts",
     "./box": "./src/box.ts",
     "./canvas": "./src/canvas.ts",
+    "./layers": "./src/layers.ts",
     "./crosshair": "./src/crosshair.ts",
     "./cursor": "./src/cursor-public.ts",
     "./cursor/host": "./src/cursor-host.ts",
@@ -279,6 +280,10 @@
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
+      },
+      "./layers": {
+        "types": "./dist/layers.d.ts",
+        "import": "./dist/layers.js"
       },
       "./crosshair": {
         "types": "./dist/crosshair.d.ts",
