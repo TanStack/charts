@@ -1364,7 +1364,7 @@ const entries = [
     'Interactive legend + DOM host',
     'benchmarks/entries/charts-interactive-legend.ts',
     'TanStack DOM host',
-    2.8623046875,
+    2.86328125,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
