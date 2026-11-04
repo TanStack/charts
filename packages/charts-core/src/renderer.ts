@@ -1255,7 +1255,6 @@ export function mountChartRenderer<
       applyCursorState(false)
       return
     }
-    const visiblePoints = viewportInteractionPoints(scene, points)
     if (pointerPosition && pinnedKey === null) {
       updateFocus(
         resolvePointerFocus(
@@ -1268,6 +1267,7 @@ export function mountChartRenderer<
       return
     }
     if (!focusedPoint) return
+    const visiblePoints = viewportInteractionPoints(scene, points)
     const point = restoreChartFocusPoint(visiblePoints, focusedPoint)
     updateFocus(point ? focusPointsForPoint(point, visiblePoints) : [], true)
   }
