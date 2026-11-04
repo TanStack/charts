@@ -902,6 +902,7 @@ async function verifyEsmRuntime() {
     import { scaleBand, scaleLinear, scalePoint } from 'd3-scale'
     import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
     import { scaleLinear as compactScaleLinear } from '@tanstack/charts-scales/linear'
+    import { scaleUtc as compactScaleUtc } from '@tanstack/charts/scales/time'
     import { scaleOrdinal as compactScaleOrdinal } from '@tanstack/charts-scales/ordinal'
     import { scalePoint as compactScalePoint } from '@tanstack/charts-scales/point'
     import {
@@ -973,6 +974,10 @@ async function verifyEsmRuntime() {
       }
     }
     assert.equal(compactScaleLinear([0, 1], [0, 10])(0.5), 5)
+    const utc = compactScaleUtc([new Date(0), new Date(1000)], [0, 100])
+    assert.equal(utc(new Date(500)), 50)
+    assert.equal(+utc.invert(50), 500)
+    assert.deepEqual(utc.copy().ticks(2).map(Number), [0, 500, 1000])
     assert.equal(compactScaleBand(['a', 'b'], [0, 10]).domain().length, 2)
     assert.equal(compactScalePoint(['a', 'b'], [0, 10]).bandwidth(), 0)
     assert.equal(compactScaleOrdinal(['a'], ['red'])('a'), 'red')

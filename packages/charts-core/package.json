@@ -186,6 +186,7 @@
     "./scales/linear": "./src/scales-linear.ts",
     "./scales/ordinal": "./src/scales-ordinal.ts",
     "./scales/point": "./src/scales-point.ts",
+    "./scales/time": "./src/scales-time.ts",
     "./scene": "./src/scene.ts",
     "./solid": "./src/solid.ts",
     "./svg": "./src/svg.ts",
@@ -572,6 +573,10 @@
       "./scales/point": {
         "types": "./dist/scales/point.d.ts",
         "import": "./dist/scales/point.js"
+      },
+      "./scales/time": {
+        "types": "./dist/scales/time.d.ts",
+        "import": "./dist/scales/time.js"
       },
       "./scene": {
         "types": "./dist/scene.d.ts",
