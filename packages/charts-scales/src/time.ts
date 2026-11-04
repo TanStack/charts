@@ -94,7 +94,7 @@ export function scaleUtc(
       return [new Date(start), new Date(stop)]
     }
     const resolved = Array.from(values, (value) =>
-      new Date(Number(value)).getTime(),
+      value == null ? NaN : new Date(Number(value)).getTime(),
     )
     if (
       resolved.length !== 2 ||

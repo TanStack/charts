@@ -120,6 +120,8 @@ describe('compact UTC scale', () => {
       [0],
       [0, 1, 2],
       [0, NaN],
+      [0, null as unknown as number],
+      [null as unknown as number, 0],
       [0, Infinity],
       [0, 8.64e15 + 1],
       [new Date(NaN), new Date()],
