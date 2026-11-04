@@ -780,9 +780,6 @@ function configureTooltipSemantics(
   tooltipElement.setAttribute('role', 'status')
   tooltipElement.setAttribute('aria-live', 'polite')
   tooltipElement.removeAttribute('aria-modal')
-  if (!custom && typeof content === 'string') {
-    tooltipElement.removeAttribute('aria-label')
-  }
 }
 
 function createTooltipSwatch(document: Document, color: string) {

@@ -33,6 +33,45 @@ interface Input {
 }
 
 describe('dynamic chart runtime', () => {
+  it('clears a stale tooltip label only once when painting plain text', () => {
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          dot(
+            [
+              { x: 0, y: 1 },
+              { x: 1, y: 2 },
+            ],
+            { x: 'x', y: 'y' },
+          ),
+        ],
+        ...linearAxes([0, 1], [0, 3]),
+        tooltip: { use: tooltipExtension, format: () => 'Plain text' },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Tooltip semantics',
+    })
+    const svg = container.querySelector('svg')!
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    const element = container.querySelector<HTMLElement>('.ts-chart-tooltip')!
+    element.setAttribute('aria-label', 'Stale label')
+    const remove = vi.spyOn(element, 'removeAttribute')
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+    )
+    expect(element.textContent).toBe('Plain text')
+    expect(element.hasAttribute('aria-label')).toBe(false)
+    expect(element.getAttribute('role')).toBe('status')
+    expect(element.getAttribute('aria-live')).toBe('polite')
+    expect(element.style.whiteSpace).toBe('pre-wrap')
+    expect(
+      remove.mock.calls.filter(([name]) => name === 'aria-label'),
+    ).toHaveLength(1)
+    host.destroy()
+  })
+
   it('uses one platform theme for responsive builders and final scenes', () => {
     const build = vi.fn(({ defaultTheme }) => ({
       marks: [dot([{ id: 'a', x: 1, y: 2 }], { x: 'x', y: 'y' })],
