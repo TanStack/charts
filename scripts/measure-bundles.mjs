@@ -1250,7 +1250,7 @@ const entries = [
   budgeted(
     'Representative marks + mark Canvas renderer',
     'benchmarks/entries/charts-representative-mark-canvas.ts',
-    39.350390625,
+    40_399 / 1024,
     {
       rendererBoundary: 'mixed',
       inputBoundary: {
@@ -1628,7 +1628,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    45.6552734375,
+    46_846 / 1024,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',

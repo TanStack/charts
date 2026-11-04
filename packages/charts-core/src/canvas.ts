@@ -1683,11 +1683,37 @@ function resolvePaint(
       `Canvas gradient "${gradient.id}" requires geometry with measurable bounds.`,
     )
   }
+  const x = clampUnit(gradient.x1 ?? 0)
+  const y = clampUnit(gradient.y1 ?? 1)
+  const dx = clampUnit(gradient.x2 ?? 0) - x
+  const dy = clampUnit(gradient.y2 ?? 0) - y
+  const x0 = bounds.x + x * bounds.width
+  const y0 = bounds.y + y * bounds.height
+  let deltaX = dx * bounds.width
+  let deltaY = dy * bounds.height
+  if (
+    bounds.width &&
+    bounds.height &&
+    dx &&
+    dy &&
+    bounds.width !== bounds.height
+  ) {
+    // Transform the gradient normal, not just its endpoints. Nonuniform bounds
+    // scaling changes the direction perpendicular to equal-color lines.
+    const scale = Math.min(bounds.width, bounds.height)
+    const nx = dx * (scale / bounds.width)
+    const ny = dy * (scale / bounds.height)
+    const normal = Math.hypot(nx, ny)
+    const distance = Math.hypot(dx, dy)
+    const length = (distance / normal) * distance
+    deltaX = (nx / normal) * length * scale
+    deltaY = (ny / normal) * length * scale
+  }
   const canvasGradient = painter.context.createLinearGradient(
-    bounds.x + clampUnit(gradient.x1 ?? 0) * bounds.width,
-    bounds.y + clampUnit(gradient.y1 ?? 1) * bounds.height,
-    bounds.x + clampUnit(gradient.x2 ?? 0) * bounds.width,
-    bounds.y + clampUnit(gradient.y2 ?? 0) * bounds.height,
+    x0,
+    y0,
+    x0 + deltaX,
+    y0 + deltaY,
   )
   for (const stop of resolveGradientStops(painter, gradient.stops)) {
     canvasGradient.addColorStop(stop.offset, stop.color)
