@@ -436,7 +436,7 @@ interface MountedLayer {
   surface: ChartSurface<any, any, any>
 }
 
-function createLayeredChartRenderer(
+export function createLayeredChartRenderer(
   defaultRenderer: ChartRenderer<any, any, any>,
 ): ChartRenderer<any, any, any> {
   const renderer: ChartRenderer<any, any, any> = {
@@ -812,7 +812,8 @@ function createLayerContainer(root: HTMLDivElement, index: number) {
   return container
 }
 
-export const canvasChartRenderer = createUniversalCanvasChartRenderer()
+export const canvasChartRenderer =
+  /* @__PURE__ */ createUniversalCanvasChartRenderer()
 
 export function mountCanvasChart<
   TDatum,

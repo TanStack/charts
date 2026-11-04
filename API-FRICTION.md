@@ -8937,6 +8937,12 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+- Follow-up observed in #204: custom SVG layers could only reuse the compositor
+  through `canvasChartRenderer.compose`, retaining unrelated Canvas painting.
+  Add `@tanstack/charts/layers` with `composeChartLayers`, cached by default
+  renderer identity. Focused tests cover SSR adoption, ordered and adjacent
+  layers, stable updates, separate hosts, and no Canvas context allocation.
+  Packed consumer and bundle checks verify the new opt-in boundary.
 
 - Documentation follow-up: wrapping a renderer surface with object spread
   evaluates its live `element` getter before the first render. The SVG surface
