@@ -1989,6 +1989,7 @@ describe('renderer-neutral chart host', () => {
     expect(tooltip.getAttribute('popover')).toBe('manual')
     expect(popover.isOpen(tooltip)).toBe(true)
     expect(tooltip.style.position).toBe('fixed')
+    expect(tooltip.style.overflow).toBe('visible')
     expect(tooltip.dataset.placement).toBe('left')
     expect(tooltip.style.left).toBe('710px')
     expect(tooltip.style.top).toBe('245px')
