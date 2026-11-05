@@ -1,5 +1,15 @@
 # @tanstack/charts
 
+## 1.4.0
+
+### Minor Changes
+
+- [#260](https://github.com/TanStack/charts/pull/260) [`af1fbe6`](https://github.com/TanStack/charts/commit/af1fbe696130b86804194b49159d7adca8f4c97e) - Expose `composeChartLayers` from `@tanstack/charts/layers` so custom SVG layers can use the shared compositor without retaining Canvas painting code in their bundle.
+
+### Patch Changes
+
+- [#258](https://github.com/TanStack/charts/pull/258) [`0074ed8`](https://github.com/TanStack/charts/commit/0074ed84786c7bbc9d402c41e6ee475d9bbd9b5d) - Match SVG linear-gradient projection on non-square Canvas geometry.
+
 ## 1.3.0
 
 ### Minor Changes

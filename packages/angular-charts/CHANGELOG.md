@@ -1,5 +1,12 @@
 # @tanstack/angular-charts
 
+## 1.4.0
+
+### Patch Changes
+
+- Updated dependencies [[`0074ed8`](https://github.com/TanStack/charts/commit/0074ed84786c7bbc9d402c41e6ee475d9bbd9b5d), [`af1fbe6`](https://github.com/TanStack/charts/commit/af1fbe696130b86804194b49159d7adca8f4c97e)]:
+  - @tanstack/charts@1.4.0
+
 ## 1.3.0
 
 ### Patch Changes

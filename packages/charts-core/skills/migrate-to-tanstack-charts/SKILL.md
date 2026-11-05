@@ -7,7 +7,7 @@ description: >
 metadata:
   type: composition
   library: '@tanstack/charts'
-  library_version: '1.3.0'
+  library_version: '1.4.0'
 requires:
   - design-a-chart
   - debug-and-verify-charts
