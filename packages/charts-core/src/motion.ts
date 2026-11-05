@@ -21,8 +21,9 @@ import type {
   RollingPathSnapshot,
   RollingPathTransform,
 } from './motion-path'
-import { renderFocusGuideLayer } from './svg-renderer'
+import { renderFocusGuideLayer, type ChartSvgRenderHooks } from './svg-renderer'
 import {
+  createFocusGuideRenderHooks,
   detachSvgFocusGuideLayers,
   ensureSvgFocusGuideLayer,
   removeSvgFocusGuideLayer,
@@ -824,6 +825,7 @@ function createMotionSvgChartRenderer<
         (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => void
       >()
       let renderOptions: ChartSurfaceRenderOptions | undefined
+      let focusGuideHooks: ChartSvgRenderHooks | undefined
       let stateTransition: ChartMarkStateTransition | undefined
       let stateTransitions:
         Readonly<Record<string, ChartMarkStateTransition>> | undefined
@@ -950,6 +952,7 @@ function createMotionSvgChartRenderer<
           idPrefix: renderOptions.idPrefix,
           motion,
           visible: visibleFocusGuides,
+          hooks: focusGuideHooks,
         })
         return presented.scene
       }
@@ -1007,6 +1010,7 @@ function createMotionSvgChartRenderer<
           stateTransition = undefined
           scene = nextScene
           renderOptions = options
+          focusGuideHooks = createFocusGuideRenderHooks(nextScene)
           dataMotionActive = animate && !viewportMoved
           pendingStateFocus = dataMotionActive ? desiredStateFocus : undefined
           if (animate && !viewportMoved) {
@@ -1100,6 +1104,7 @@ function createMotionSvgChartRenderer<
               idPrefix: renderOptions.idPrefix,
               motion,
               visible: visibleFocusGuides,
+              hooks: focusGuideHooks,
             })
             return resolved.scene
           }
@@ -1171,6 +1176,7 @@ function paintMotionSvgFocusGuides<TDatum>(options: {
   idPrefix?: string
   motion: ChartSvgMotionDriver<TDatum>
   visible: Set<'under' | 'over'>
+  hooks?: ChartSvgRenderHooks
 }) {
   const {
     container,
@@ -1182,6 +1188,7 @@ function paintMotionSvgFocusGuides<TDatum>(options: {
     idPrefix = '',
     motion,
     visible,
+    hooks,
   } = options
   const presentation = resolveFocusGuides(scene, focus, pointer, cursor)
   const reduced =
@@ -1206,7 +1213,7 @@ function paintMotionSvgFocusGuides<TDatum>(options: {
       continue
     }
 
-    const markup = renderFocusGuideLayer(nodes, placement, idPrefix)
+    const markup = renderFocusGuideLayer(nodes, placement, idPrefix, hooks)
     if (reduced || !visible.has(placement)) {
       reconcileChartSvgFragment(layer, markup)
     } else {
