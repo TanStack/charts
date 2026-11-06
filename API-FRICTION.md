@@ -354,7 +354,7 @@ Each entry records:
 | F-315 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
 | F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
 | F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
-| F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | monitoring |
+| F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | resolved   |
 
 ## Findings
 
