@@ -76,6 +76,14 @@ describe('presentation subscriber re-entry', () => {
       armed = true
       surface.render(makeScene(2), { ariaLabel: 'two' })
       expect(observedInside).not.toContain(true)
+      frames.run(0)
+      frames.run(100)
+      expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe(
+        'three',
+      )
+      expect(
+        Number(container.querySelector('circle')?.getAttribute('cy')),
+      ).toBeCloseTo(makeScene(3).points[0]!.y)
     } finally {
       surface.destroy()
       frames.restore()

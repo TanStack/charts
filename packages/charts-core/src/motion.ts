@@ -1014,7 +1014,7 @@ function createMotionSvgChartRenderer<
         pendingStateFocus = dataMotionActive ? desiredStateFocus : undefined
         if (animate && !viewportMoved) {
           if (initial) reconcileChartSvg(container, markup)
-          cancelAnimation = motion.animateSvg({
+          const cancel = motion.animateSvg({
             container,
             scene: nextScene as ChartScene<TDatum>,
             previousScene: previousScene as ChartScene<TDatum> | undefined,
@@ -1023,18 +1023,21 @@ function createMotionSvgChartRenderer<
             markup,
             phase: initial ? 'initial' : 'update',
             setPresentationPoints(points) {
+              if (revision !== dataMotionRevision) return
               publishPresentationPoints(
                 points as readonly ChartPoint<TDatum, TXValue, TYValue>[],
               )
               if (
-                revision === dataMotionRevision &&
-                points === nextScene.points
+                points === nextScene.points &&
+                revision === dataMotionRevision
               ) {
                 dataMotionActive = false
                 queuePendingStateFocus()
               }
             },
           })
+          if (revision === dataMotionRevision) cancelAnimation = cancel
+          else cancel()
         } else {
           reconcileChartSvg(container, markup)
           publishPresentationPoints(nextScene.points)
@@ -1045,11 +1048,12 @@ function createMotionSvgChartRenderer<
             svgElement(),
             focusGuideLayers,
             (placement) =>
-              nextScene.focusGuides?.some(
+              scene?.focusGuides?.some(
                 (guide) => guide.placement === placement,
               ) === true,
           )
         }
+        if (revision !== dataMotionRevision) return
         scene = nextScene
         stateScene = undefined
         renderOptions = options
