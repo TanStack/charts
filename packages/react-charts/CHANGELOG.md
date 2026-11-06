@@ -1,5 +1,19 @@
 # @tanstack/react-charts
 
+## 1.4.0
+
+### Patch Changes
+
+- Updated dependencies [[`0074ed8`](https://github.com/TanStack/charts/commit/0074ed84786c7bbc9d402c41e6ee475d9bbd9b5d), [`af1fbe6`](https://github.com/TanStack/charts/commit/af1fbe696130b86804194b49159d7adca8f4c97e)]:
+  - @tanstack/charts@1.4.0
+
+## 1.3.0
+
+### Patch Changes
+
+- Updated dependencies [[`9f5cacf`](https://github.com/TanStack/charts/commit/9f5cacf9cb3c410d89cbfecde17e5e3661b75a84), [`278cb92`](https://github.com/TanStack/charts/commit/278cb921a56c785cbb6875d55c1cfc06eb655177), [`c6f214c`](https://github.com/TanStack/charts/commit/c6f214c5ec07e6795948373d9f1180620e7c7201), [`e0d0141`](https://github.com/TanStack/charts/commit/e0d01410d39002801ea848538f69d8837cd445db), [`6816b34`](https://github.com/TanStack/charts/commit/6816b34069772dc8d36b420e18cd6e51c470d140)]:
+  - @tanstack/charts@1.3.0
+
 ## 1.2.1
 
 ### Patch Changes

@@ -8,7 +8,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/charts'
-  library_version: '1.2.1'
+  library_version: '1.4.0'
 sources:
   - 'TanStack/charts:docs/concepts/scales-and-d3.md'
   - 'TanStack/charts:docs/reference/scales-guides-and-color.md'
@@ -64,7 +64,8 @@ export const chart = defineChart({
 - Categories with width → compact `scaleBand`.
 - Categories without width → compact `scalePoint`.
 - Stable categorical paint → compact `scaleOrdinal`.
-- Elapsed time, nonlinear transforms, radial mapping, statistical bins, or continuous color → exact `d3-scale` family.
+- UTC calendar time → compact `scaleUtc` from `@tanstack/charts/scales/time`.
+- Local-time calendars, nonlinear transforms, radial mapping, statistical bins, or continuous color → exact `d3-scale` family.
 
 Read [the ownership matrix](references/scale-guide-ownership.md) before configuring a D3 instance.
 

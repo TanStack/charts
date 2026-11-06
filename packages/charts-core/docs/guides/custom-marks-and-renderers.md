@@ -146,7 +146,29 @@ The selected renderer still decides whether it consumes that motion policy.
 Built-in marks expose the same renderer choice in their option object. A DOM
 renderer used this way must implement `ChartLayerRenderer`, including
 `compose(defaultRenderer)`, so one compositor can own the ordered child
-surfaces. `canvasChartRenderer` provides that composition.
+surfaces. `canvasChartRenderer` provides that composition. Custom SVG layers can
+use the same compositor without importing the Canvas renderer:
+
+```ts
+import { composeChartLayers } from '@tanstack/charts/layers'
+import { createSvgChartRenderer } from '@tanstack/charts/svg/renderer'
+import type { ChartLayerRenderer } from '@tanstack/charts'
+
+const svgLayer: ChartLayerRenderer = {
+  ...createSvgChartRenderer(),
+  kind: 'chart-layer-renderer',
+  compose: composeChartLayers,
+}
+```
+
+Keep the renderer token stable across updates. Adjacent marks using the same
+token share a surface, while different tokens or intervening layers create
+separate surfaces in authored order. `composeChartLayers` reuses its compositor
+for each default renderer object, but each mounted chart owns its own surfaces.
+
+Layer wrappers have `aria-hidden="true"` and `pointer-events: none`. The chart
+host owns accessibility and pointer interaction, so custom layers should not
+put interactive controls or separate accessible content inside those wrappers.
 
 When a custom mark emits data labels, an optional `layoutLabels(context)` can
 return those positioned `SceneLabel` nodes before render so unlocked margins
