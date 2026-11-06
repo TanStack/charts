@@ -1250,7 +1250,7 @@ const entries = [
   budgeted(
     'Representative marks + mark Canvas renderer',
     'benchmarks/entries/charts-representative-mark-canvas.ts',
-    39.350390625,
+    40_399 / 1024,
     {
       rendererBoundary: 'mixed',
       inputBoundary: {
@@ -1364,7 +1364,7 @@ const entries = [
     'Interactive legend + DOM host',
     'benchmarks/entries/charts-interactive-legend.ts',
     'TanStack DOM host',
-    2.8623046875,
+    2.86328125,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1628,7 +1628,7 @@ const entries = [
   budgeted(
     'React line consumer + mark Canvas renderer',
     'benchmarks/entries/charts-react-line-mark-canvas.ts',
-    45.6552734375,
+    46_846 / 1024,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'mixed',
@@ -1789,7 +1789,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    23_240 / 1024,
+    23_301 / 1024,
     {
       rendererBoundary: 'svg',
       inputBoundary: {

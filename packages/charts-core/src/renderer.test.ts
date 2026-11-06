@@ -1087,6 +1087,52 @@ describe('renderer-neutral chart host', () => {
     expect(unsubscribe).toHaveBeenCalledOnce()
   })
 
+  it('does not filter presentation points while focus is idle', () => {
+    const fake = createFakeRenderer()
+    let publish:
+      | ((points: ChartScene<Datum, number, number>['points']) => void)
+      | undefined
+    fake.surface.subscribePresentationPoints = (listener) => {
+      publish = listener
+      return () => {}
+    }
+    const host = mountChartRenderer(document.createElement('div'), {
+      definition: defineChart({
+        ...definition,
+        scales: {
+          ...definition.scales,
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            viewport: { domain: [0, 1] },
+          },
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Idle presentation',
+    })
+    const points = [...host.getScene().points]
+    const filter = vi.spyOn(points, 'filter')
+    fake.surface.getPresentationPoints = () => points
+    if (!publish) throw new Error('Expected presentation subscription')
+    try {
+      publish(points)
+      publish(points)
+      expect(filter).not.toHaveBeenCalled()
+      fake.element.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+      )
+      filter.mockClear()
+      publish(points)
+      expect(filter).toHaveBeenCalled()
+      expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary).toBe(points[0])
+    } finally {
+      host.destroy()
+      filter.mockRestore()
+    }
+  })
+
   it('keeps controlled pointer focus aligned with presentation geometry', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
@@ -1989,6 +2035,7 @@ describe('renderer-neutral chart host', () => {
     expect(tooltip.getAttribute('popover')).toBe('manual')
     expect(popover.isOpen(tooltip)).toBe(true)
     expect(tooltip.style.position).toBe('fixed')
+    expect(tooltip.style.overflow).toBe('visible')
     expect(tooltip.dataset.placement).toBe('left')
     expect(tooltip.style.left).toBe('710px')
     expect(tooltip.style.top).toBe('245px')
