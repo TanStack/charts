@@ -36,17 +36,8 @@
     }
   },
   "matrix": {
-    "chartTypes": [
-      "line",
-      "bar",
-      "area",
-      "scatter"
-    ],
-    "tiers": [
-      "basic",
-      "interactive",
-      "advanced"
-    ]
+    "chartTypes": ["line", "bar", "area", "scatter"],
+    "tiers": ["basic", "interactive", "advanced"]
   },
   "tolerance": {
     "relative": 0.03,
