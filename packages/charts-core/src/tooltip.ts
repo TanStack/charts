@@ -65,6 +65,9 @@ function createTooltipExtension<
   extensionContext: ChartTooltipExtensionContext<TDatum, TXValue, TYValue>,
 ): ChartTooltipExtensionInstance<TDatum, TXValue, TYValue> {
   let options: ChartTooltipOptions<TDatum, TXValue, TYValue> = {}
+  let showTimer: ReturnType<typeof setTimeout> | undefined
+  let hideTimer: ReturnType<typeof setTimeout> | undefined
+  let delayElapsed = false
   let element: HTMLDivElement | undefined
   let bodyElement: HTMLDivElement | undefined
   let activeBodyChange:
@@ -87,9 +90,23 @@ function createTooltipExtension<
   const tooltipMotion = extensionContext.motion
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
+    if (
+      options.showDelay !== nextOptions.showDelay &&
+      showTimer !== undefined
+    ) {
+      clearTimeout(showTimer)
+      showTimer = undefined
+    }
+    const restartHide =
+      options.hideDelay !== nextOptions.hideDelay && hideTimer !== undefined
+    if (restartHide) {
+      clearTimeout(hideTimer)
+      hideTimer = undefined
+    }
     if (options !== nextOptions) bodyDirty = true
     options = nextOptions
     if (element) syncPortal()
+    if (restartHide) hide(false, true)
   }
 
   function paint(
@@ -99,6 +116,23 @@ function createTooltipExtension<
     paintContext = nextContext
     if (options.visibility === 'pinned' && !nextContext.pinned) {
       hide()
+      return
+    }
+    if (hideTimer !== undefined) {
+      clearTimeout(hideTimer)
+      hideTimer = undefined
+    }
+    const delay = tooltipDelay(options.showDelay)
+    if (!delayElapsed && (!element || element.hidden) && delay > 0) {
+      if (showTimer === undefined) {
+        showTimer = setTimeout(() => {
+          showTimer = undefined
+          const latest = paintContext
+          if (!latest) return
+          delayElapsed = true
+          paint(latest)
+        }, delay)
+      }
       return
     }
     const tooltipElement = ensureElement()
@@ -329,10 +363,33 @@ function createTooltipExtension<
     bodyPoints = []
   }
 
-  function hide() {
+  function hide(immediate = false, restart = false) {
+    const hadContext = paintContext !== undefined
+    if (showTimer !== undefined) clearTimeout(showTimer)
+    showTimer = undefined
+    delayElapsed = false
     paintContext = undefined
     anchor = null
     const currentElement = element
+    if (!immediate && hideTimer !== undefined) return
+    const delay = tooltipDelay(options.hideDelay)
+    if (
+      !immediate &&
+      (hadContext || restart) &&
+      currentElement &&
+      !currentElement.hidden &&
+      delay > 0
+    ) {
+      if (hideTimer === undefined) {
+        hideTimer = setTimeout(() => {
+          hideTimer = undefined
+          hide(true)
+        }, delay)
+      }
+      return
+    }
+    if (hideTimer !== undefined) clearTimeout(hideTimer)
+    hideTimer = undefined
     if (!currentElement || currentElement.hidden) {
       portalInstance?.hide()
       hideTooltipBody()
@@ -348,7 +405,7 @@ function createTooltipExtension<
   }
 
   function destroy() {
-    hide()
+    hide(true)
     deactivateTooltipBody()
     portalInstance?.destroy()
     portalInstance = undefined
@@ -912,4 +969,10 @@ function chartValueEqual(left: ChartValue, right: ChartValue) {
   return left instanceof Date && right instanceof Date
     ? left.getTime() === right.getTime()
     : left === right
+}
+
+function tooltipDelay(value: number | undefined) {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? Math.min(value, 2_147_483_647)
+    : 0
 }

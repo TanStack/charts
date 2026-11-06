@@ -1895,7 +1895,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    57.4853515625,
+    59_140 / 1024,
   ),
   locked(
     'Custom-scale line scene',
@@ -2155,7 +2155,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    58.5732421875,
+    60_236 / 1024,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot minimal line', 'benchmarks/entries/minimal-line.ts'),

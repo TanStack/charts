@@ -1664,6 +1664,10 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  /** Delay in milliseconds before the built-in HTML tooltip appears. Defaults to zero. */
+  showDelay?: number
+  /** Delay in milliseconds before the built-in HTML tooltip starts hiding. Defaults to zero. */
+  hideDelay?: number
   /** Overrides tooltip motion from the active motion renderer; `false` keeps it immediate. */
   motion?: false | ChartMotionTransition
   portal?: ChartTooltipPortalInput
