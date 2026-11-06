@@ -235,15 +235,14 @@ function createChartSceneWithScaleResolver<
     ...layout,
     measureText: withChartTextTypography(layout.measureText, layout.typography),
   }
-  const platformTheme: ChartTheme = {
+  const theme: ChartTheme = {
     ...defaultChartTheme,
     ...layoutOptions.defaultTheme,
-    palette: layoutOptions.defaultTheme?.palette ?? defaultChartTheme.palette,
-  }
-  const theme: ChartTheme = {
-    ...platformTheme,
     ...definition.theme,
-    palette: definition.theme?.palette ?? platformTheme.palette,
+    palette:
+      definition.theme?.palette ??
+      layoutOptions.defaultTheme?.palette ??
+      defaultChartTheme.palette,
   }
   const initialized = definition.marks.map((mark, markIndex) =>
     mark.initialize({ markIndex }),
@@ -630,17 +629,12 @@ function collectRenderedPoints(
       }
       if (node.kind === 'label' || !node.interaction) continue
       const interaction = node.interaction
-      if (interaction.point) {
-        if (!seen.has(interaction.point)) {
-          seen.add(interaction.point)
-          points.push(interaction.point)
-        }
-      } else {
-        for (const point of interaction.points) {
-          if (seen.has(point)) continue
-          seen.add(point)
-          points.push(point)
-        }
+      for (const point of interaction.point
+        ? [interaction.point]
+        : interaction.points) {
+        if (seen.has(point)) continue
+        seen.add(point)
+        points.push(point)
       }
     }
   }
@@ -754,31 +748,27 @@ function resolveSceneLayout(
       width: Math.max(1, width - margin.left - margin.right),
       height: Math.max(1, height - margin.top - margin.bottom),
     }
-    const xTickCount = resolveTickCount(definition.x, chart.width, 92, 8)
-    const yTickCount = resolveTickCount(definition.y, chart.height, 48, 7)
-    const scales = {
-      x:
-        definition.x == null
-          ? createUnusedScale('x', xChannels.materialized, definition.x)
+    const scales: Record<string, ChartScene['scales'][string]> = {}
+    for (const axis of ['x', 'y'] as const) {
+      const channels = axis === 'x' ? xChannels : yChannels
+      const options = definition[axis]
+      scales[axis] =
+        options == null
+          ? createUnusedScale(axis, channels.materialized, options)
           : resolveScale({
-              id: 'x',
-              values: xChannels.values,
-              range: [chart.x, chart.x + chart.width],
-              options: definition.x,
-              tickCount: xTickCount,
-              includeZero: xChannels.includeZero,
-            }),
-      y:
-        definition.y == null
-          ? createUnusedScale('y', yChannels.materialized, definition.y)
-          : resolveScale({
-              id: 'y',
-              values: yChannels.values,
-              range: [chart.y + chart.height, chart.y],
-              options: definition.y,
-              tickCount: yTickCount,
-              includeZero: yChannels.includeZero,
-            }),
+              id: axis,
+              values: channels.values,
+              range:
+                axis === 'x'
+                  ? [chart.x, chart.x + chart.width]
+                  : [chart.y + chart.height, chart.y],
+              options,
+              tickCount:
+                axis === 'x'
+                  ? resolveTickCount(options, chart.width, 92, 8)
+                  : resolveTickCount(options, chart.height, 48, 7),
+              includeZero: channels.includeZero,
+            })
     }
     const marks = resolveMarkLayouts(initialized, {
       chart,
@@ -848,22 +838,7 @@ function resolveSceneLayout(
   function measureMargin(resolved: ResolvedSceneLayout): ChartMargin {
     const automatic = resolved.guideMargin
     if (resolved.legend) {
-      const legendHeight = resolved.legend.height(
-        resolved.colors.domain.length,
-        {
-          colors: resolved.colors,
-          chart: resolved.chart,
-          bounds: {
-            x: resolved.chart.x,
-            y: 0,
-            width: resolved.chart.width,
-            height: 0,
-          },
-          theme,
-          width,
-          height,
-        },
-      )
+      const legendHeight = resolved.legendBounds!.height
       if (resolved.legend.placement === 'bottom') {
         if (locks.bottom === undefined) automatic.bottom += legendHeight
       } else if (locks.top === undefined) {
@@ -932,7 +907,7 @@ function includeLabelMargin(
   measureText: ChartTextMeasurer | undefined,
 ) {
   const bounds = measureSceneLabelBounds(label, measureText)
-  if (!label.text) return bounds
+  if (!label.text && !label.svg) return bounds
   margin.top = Math.max(margin.top, chart.y - bounds.y + automaticGuideInset)
   margin.right = Math.max(
     margin.right,
@@ -1106,8 +1081,6 @@ function createAxes(
       },
     })
   }
-  const xTickLabels = tickLabelPresentation(xAxis)
-  const yTickLabels = tickLabelPresentation(yAxis)
   let xTickBottom = chart.y + chart.height
   let yTickLeft = chart.x
   const inset = axes ? automaticGuideInset : 0
@@ -1116,160 +1089,103 @@ function createAxes(
   const addLabel = (label: SceneLabel) =>
     includeLabelMargin(margin, chart, label, measureText)
 
-  const xTicks = xAxis?.ticks === false ? [] : scales.x.ticks
-  const yTicks = yAxis?.ticks === false ? [] : scales.y.ticks
-  const xTickSize = finiteMargin(
-    xAxis?.ticks === false ? 0 : (xAxis?.ticks?.size ?? 4),
-  )
-  const yTickSize = finiteMargin(
-    yAxis?.ticks === false ? 0 : (yAxis?.ticks?.size ?? 4),
-  )
-  const xTickPadding = finiteMargin(
-    xAxis?.ticks === false ? 0 : (xAxis?.ticks?.padding ?? 4),
-  )
-  const yTickPadding = finiteMargin(
-    yAxis?.ticks === false ? 0 : (yAxis?.ticks?.padding ?? 4),
-  )
-  const xLabelCandidates =
-    xTickLabels === false
-      ? []
-      : createTickLabelCandidates(
-          'x',
-          withKeptTicks(scales.x, definition.x, xTickLabels),
-          chart,
-          xTickSize,
-          xTickPadding,
-          xTickLabels,
-          scales.x.bandwidth,
-          width,
-          theme,
-          measureText,
-        )
-  const yLabelCandidates =
-    yTickLabels === false
-      ? []
-      : createTickLabelCandidates(
-          'y',
-          withKeptTicks(scales.y, definition.y, yTickLabels),
-          chart,
-          yTickSize,
-          yTickPadding,
-          yTickLabels,
-          scales.y.bandwidth,
-          width,
-          theme,
-          measureText,
-        )
-  const visibleXLabels =
-    xTickLabels === false
-      ? []
-      : thinTickLabels(xLabelCandidates, xTickLabels, scales.x.type === 'band')
-  const visibleYLabels =
-    yTickLabels === false
-      ? []
-      : thinTickLabels(yLabelCandidates, yTickLabels, false)
+  for (const axis of ['x', 'y'] as const) {
+    const presentation = axis === 'x' ? xAxis : yAxis
+    const tickLabels = tickLabelPresentation(presentation)
+    const ticks = presentation?.ticks
+    const size = finiteMargin(ticks === false ? 0 : (ticks?.size ?? 4))
+    const padding = finiteMargin(ticks === false ? 0 : (ticks?.padding ?? 4))
+    const candidates =
+      tickLabels === false
+        ? []
+        : createTickLabelCandidates(
+            axis,
+            withKeptTicks(scales[axis], definition[axis], tickLabels),
+            chart,
+            size,
+            padding,
+            tickLabels,
+            scales[axis].bandwidth,
+            width,
+            theme,
+            measureText,
+          )
+    const visibleLabels =
+      tickLabels === false
+        ? []
+        : thinTickLabels(
+            candidates,
+            tickLabels,
+            axis === 'x' && scales.x.type === 'band',
+          )
+    if (!(axis === 'x' ? showX : showY)) continue
 
-  for (const tick of showX ? xTicks : []) {
-    const key = valueKey(tick.value)
-    if (xTickSize > 0) {
-      children.push({
-        kind: 'rule',
-        key: `x-tick-rule:${key}`,
-        x1: tick.position,
-        x2: tick.position,
-        y1: chart.y + chart.height,
-        y2: chart.y + chart.height + xTickSize,
-        style: {
-          stroke: theme.foreground,
-          strokeOpacity: 0.28,
-        },
-      })
+    for (const tick of ticks === false ? [] : scales[axis].ticks) {
+      if (size > 0) {
+        children.push({
+          kind: 'rule',
+          key: `${axis}-tick-rule:${valueKey(tick.value)}`,
+          x1: axis === 'x' ? tick.position : chart.x - size,
+          x2: axis === 'x' ? tick.position : chart.x,
+          y1: axis === 'x' ? chart.y + chart.height : tick.position,
+          y2: axis === 'x' ? chart.y + chart.height + size : tick.position,
+          style: { stroke: theme.foreground, strokeOpacity: 0.28 },
+        })
+      }
+    }
+
+    for (const candidate of visibleLabels) {
+      const bounds = addLabel(candidate.label)
+      if (
+        axisLabelText(presentation) &&
+        axisLabelOffset(presentation) === 'auto'
+      ) {
+        if (axis === 'x')
+          xTickBottom = Math.max(xTickBottom, bounds.y + bounds.height)
+        else yTickLeft = Math.min(yTickLeft, bounds.x)
+      }
+      children.push(candidate.label)
     }
   }
 
-  for (const candidate of showX ? visibleXLabels : []) {
-    const bounds = addLabel(candidate.label)
-    if (axisLabelText(xAxis) && axisLabelOffset(xAxis) === 'auto') {
-      xTickBottom = Math.max(xTickBottom, bounds.y + bounds.height)
-    }
-    children.push(candidate.label)
-  }
-
-  for (const tick of showY ? yTicks : []) {
-    const key = valueKey(tick.value)
-    if (yTickSize > 0) {
-      children.push({
-        kind: 'rule',
-        key: `y-tick-rule:${key}`,
-        x1: chart.x - yTickSize,
-        x2: chart.x,
-        y1: tick.position,
-        y2: tick.position,
-        style: {
-          stroke: theme.foreground,
-          strokeOpacity: 0.28,
-        },
-      })
-    }
-  }
-
-  for (const candidate of showY ? visibleYLabels : []) {
-    const bounds = addLabel(candidate.label)
-    if (axisLabelText(yAxis) && axisLabelOffset(yAxis) === 'auto') {
-      yTickLeft = Math.min(yTickLeft, bounds.x)
-    }
-    children.push(candidate.label)
-  }
-
-  const xAxisLabel = axisLabelText(xAxis)
-  if (showX && xAxisLabel) {
-    const offset = axisLabelOffset(xAxis)
+  for (const axis of ['x', 'y'] as const) {
+    const presentation = axis === 'x' ? xAxis : yAxis
+    const text = axisLabelText(presentation)
+    if (!(axis === 'x' ? showX : showY) || !text) continue
+    const offset = axisLabelOffset(presentation)
     const hasOffset = offset !== 'auto'
     const label: SceneLabel = {
       kind: 'label',
-      key: 'x-label',
-      x: chart.x + chart.width / 2,
-      y: hasOffset
-        ? chart.y + chart.height + Math.max(0, finiteMargin(offset))
-        : xTickBottom + 8,
-      text: xAxisLabel,
+      key: `${axis}-label`,
+      x: axis === 'x' ? chart.x + chart.width / 2 : chart.x,
+      y:
+        axis === 'x'
+          ? hasOffset
+            ? chart.y + chart.height + Math.max(0, finiteMargin(offset))
+            : xTickBottom + 8
+          : chart.y + chart.height / 2,
+      text,
+      svg:
+        typeof presentation?.label === 'object'
+          ? presentation.label.svg
+          : undefined,
       anchor: 'middle',
-      baseline: hasOffset ? 'auto' : 'hanging',
-      fontSize: width < 360 ? 10 : 11,
+      baseline: axis === 'x' ? (hasOffset ? 'auto' : 'hanging') : 'middle',
+      rotate: axis === 'y' ? -90 : undefined,
+      fontSize: axis === 'x' && width < 360 ? 10 : 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.76 },
+    }
+    if (axis === 'y') {
+      const localBounds = hasOffset
+        ? undefined
+        : measureSceneLabelBounds({ ...label, x: 0, y: 0 }, measureText)
+      label.x = hasOffset
+        ? chart.x - Math.max(0, finiteMargin(offset))
+        : yTickLeft - 8 - (localBounds!.x + localBounds!.width)
     }
     addLabel(label)
     children.push(label)
-  }
-
-  const yAxisLabel = axisLabelText(yAxis)
-  if (showY && yAxisLabel) {
-    const yLabel: SceneLabel = {
-      kind: 'label',
-      key: 'y-label',
-      x: chart.x,
-      y: chart.y + chart.height / 2,
-      text: yAxisLabel,
-      anchor: 'middle',
-      baseline: 'middle',
-      rotate: -90,
-      fontSize: 11,
-      fontWeight: 600,
-      style: { fill: theme.foreground, fillOpacity: 0.76 },
-    }
-    const offset = axisLabelOffset(yAxis)
-    if (offset !== 'auto') {
-      yLabel.x = chart.x - Math.max(0, finiteMargin(offset))
-    } else {
-      const localBounds = measureSceneLabelBounds(
-        { ...yLabel, x: 0, y: 0 },
-        measureText,
-      )
-      yLabel.x = yTickLeft - 8 - (localBounds.x + localBounds.width)
-    }
-    addLabel(yLabel)
-    children.push(yLabel)
   }
 
   return {
@@ -1418,39 +1334,26 @@ function createTickLabelCandidates(
             : 'middle'
     const anchor =
       resolveTickLabelValue(options.anchor, context) ?? defaultAnchor
-    const label: SceneLabel =
-      axis === 'x'
-        ? {
-            kind: 'label',
-            key: `x-tick-label:${valueKey(tick.value)}`,
-            x: tick.position + dx,
-            y: chart.y + chart.height + size + padding + fontSize * 0.8 + dy,
-            text: tick.label,
-            anchor,
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
-        : {
-            kind: 'label',
-            key: `y-tick-label:${valueKey(tick.value)}`,
-            x: chart.x - size - padding + dx,
-            y: tick.position + dy,
-            text: tick.label,
-            anchor,
-            baseline: 'middle',
-            rotate,
-            fontSize,
-            fontWeight,
-            style: {
-              fill: theme.muted,
-              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
-            },
-          }
+    const label: SceneLabel = {
+      kind: 'label',
+      key: `${axis}-tick-label:${valueKey(tick.value)}`,
+      x: axis === 'x' ? tick.position + dx : chart.x - size - padding + dx,
+      y:
+        axis === 'x'
+          ? chart.y + chart.height + size + padding + fontSize * 0.8 + dy
+          : tick.position + dy,
+      text: tick.label,
+      anchor,
+      baseline: axis === 'y' ? 'middle' : undefined,
+      rotate,
+      fontSize,
+      fontWeight,
+      svg: resolveTickLabelValue(options.svg, context),
+      style: {
+        fill: theme.muted,
+        ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
+      },
+    }
     return {
       value: tick.value,
       label,

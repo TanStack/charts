@@ -1,3 +1,4 @@
+import { labelBox } from './label-box'
 import type {
   ChartScene,
   RenderChartSvgOptions,
@@ -68,7 +69,7 @@ export function renderFocusGuideLayer(
 }
 
 const focusGuideRenderHooks: ChartSvgRenderHooks = {
-  renderGroup: renderFocusGuideClip,
+  renderGroup: renderSvgClip,
 }
 
 function renderNode(
@@ -88,19 +89,12 @@ function renderNode(
       const focus = node.focus
         ? ` data-ts-focus-layer="${node.focus.placement}"${node.focus.retarget ? ' data-ts-focus-retarget="true"' : ''} visibility="hidden"`
         : ''
-      return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${node.children.map((child) => renderNode(child, hooks, idPrefix)).join('')}</g>`
+      return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${renderSceneNodes(node.children, idPrefix, hooks)}</g>`
     }
     case 'rule':
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`
     case 'polyline': {
-      const path =
-        node.path ??
-        node.points
-          .map(
-            ([x, y], index) =>
-              `${index === 0 ? 'M' : 'L'}${number(x)},${number(y)}`,
-          )
-          .join('')
+      const path = node.path ?? pointsPath(node.points, false)
       return `<path${common} d="${path}" vector-effect="non-scaling-stroke"/>`
     }
     case 'area': {
@@ -120,26 +114,30 @@ function renderNode(
         node.rotate === undefined
           ? ''
           : ` transform="rotate(${number(node.rotate)} ${number(node.x)} ${number(node.y)})"`
-      const anchor = node.anchor ? ` text-anchor="${node.anchor}"` : ''
-      const baseline = node.baseline
-        ? ` dominant-baseline="${node.baseline}"`
-        : ''
-      const fontSize =
-        node.fontSize === undefined
-          ? ''
-          : ` font-size="${number(node.fontSize)}"`
-      const fontWeight =
-        node.fontWeight === undefined
-          ? ''
-          : ` font-weight="${number(node.fontWeight)}"`
-      return `<text${common} x="${number(node.x)}" y="${number(node.y)}"${anchor}${baseline}${transform}${fontSize}${fontWeight} font-family="inherit">${escapeText(node.text)}</text>`
+      if (node.svg) {
+        const bounds = labelBox(
+          node.svg.width,
+          node.svg.height,
+          node.anchor,
+          node.baseline,
+        )
+        const href = 'data:image/svg+xml,' + encodeURIComponent(node.svg.source)
+        return `<image${common} x="${number(node.x + bounds.x)}" y="${number(node.y + bounds.y)}" width="${number(bounds.width)}" height="${number(bounds.height)}"${transform} href="${href}"><title>${escapeText(node.text)}</title></image>`
+      }
+      const attributes = renderAttributes([
+        ['text-anchor', node.anchor],
+        ['dominant-baseline', node.baseline],
+        ['font-size', node.fontSize],
+        ['font-weight', node.fontWeight],
+      ])
+      return `<text${common} x="${number(node.x)}" y="${number(node.y)}"${attributes}${transform} font-family="inherit">${escapeText(node.text)}</text>`
     }
   }
 }
 
 function polygonsPath(polygons: readonly ScenePolygon[]) {
   return polygons
-    .flatMap((polygon) => polygon)
+    .flat()
     .filter((ring) => ring.length > 0)
     .map((ring) => pointsPath(ring, true))
     .join('')
@@ -156,7 +154,7 @@ function pointsPath(
     .join('')}${close ? 'Z' : ''}`
 }
 
-function renderFocusGuideClip(node: SceneGroup, idPrefix: string) {
+export function renderSvgClip(node: SceneGroup, idPrefix: string) {
   if (!node.clip) return undefined
   const prefix = idPrefix.replaceAll(/[^a-zA-Z0-9_-]/g, '')
   const id = `${prefix ? `${prefix}-` : ''}ts-chart-clip-${stableId(node.key)}`
@@ -179,12 +177,13 @@ function renderCommon(
   hooks: ChartSvgRenderHooks | undefined,
   idPrefix: string,
 ): string {
-  const key = ` data-ts-key="${escapeAttribute(node.key)}"`
-  const className = node.className
-    ? ` class="${escapeAttribute(node.className)}"`
-    : ''
-  const ariaHidden = node.ariaHidden ? ' aria-hidden="true"' : ''
-  return `${key}${className}${ariaHidden}${renderStyle(node.style, hooks, idPrefix)}`
+  return (
+    renderAttributes([
+      ['data-ts-key', node.key],
+      ['class', node.className || undefined],
+      ['aria-hidden', node.ariaHidden ? 'true' : undefined],
+    ]) + renderStyle(node.style, hooks, idPrefix)
+  )
 }
 
 function renderStyle(
@@ -206,16 +205,22 @@ function renderStyle(
     ['stroke-linejoin', style.lineJoin],
     ['stroke-dasharray', style.strokeDasharray],
   ]
+  return renderAttributes(attributes)
+}
+
+function renderAttributes(
+  attributes: readonly (readonly [string, string | number | undefined])[],
+) {
   return attributes
-    .filter((entry): entry is [string, string | number] => entry[1] != null)
-    .map(
-      ([name, value]) =>
-        ` ${name}="${typeof value === 'number' ? number(value) : escapeAttribute(value)}"`,
+    .map(([name, value]) =>
+      value == null
+        ? ''
+        : ` ${name}="${typeof value === 'number' ? number(value) : escapeAttribute(value)}"`,
     )
     .join('')
 }
 
-function number(value: number): string {
+export function number(value: number): string {
   return String(Math.round(value * 100) / 100)
 }
 
@@ -226,6 +231,6 @@ function escapeText(value: string): string {
     .replaceAll('>', '&gt;')
 }
 
-function escapeAttribute(value: string): string {
+export function escapeAttribute(value: string): string {
   return escapeText(value).replaceAll('"', '&quot;')
 }

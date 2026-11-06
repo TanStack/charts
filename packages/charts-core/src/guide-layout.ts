@@ -1,3 +1,4 @@
+import { finiteNonNegative, labelBox, svgLabelBox } from './label-box'
 import type {
   ChartBounds,
   ChartMargin,
@@ -42,8 +43,10 @@ export function estimateSceneText(
   }
 
   let emWidth = 0
+  let characterCount = 0
   for (const character of text) {
     emWidth += estimateCharacterWidth(character)
+    characterCount++
   }
 
   const clampedWeight = Math.min(900, Math.max(100, fontWeight))
@@ -52,54 +55,52 @@ export function estimateSceneText(
   const width = Math.max(
     0,
     emWidth * fontSize * weightFactor +
-      Math.max(0, Array.from(text).length - 1) * letterSpacing,
+      Math.max(0, characterCount - 1) * letterSpacing,
   )
   const height = fontSize
-  const x =
-    style.anchor === 'middle' ? -width / 2 : style.anchor === 'end' ? -width : 0
-  const y =
-    style.baseline === 'middle'
-      ? -height / 2
-      : style.baseline === 'hanging'
-        ? 0
-        : -fontSize * 0.8
-
-  return { x, y, width, height }
+  return labelBox(width, height, style.anchor, style.baseline)
 }
 
 export function measureSceneLabelBounds(
   label: SceneLabel,
   measureText: ChartTextMeasurer = estimateSceneText,
 ): ChartBounds {
-  const fontSize = finiteNonNegative(label.fontSize, defaultFontSize)
-  const anchor = label.anchor ?? 'start'
-  const baseline = label.baseline ?? 'auto'
+  const bounds = label.svg
+    ? positionLabelBounds(label, svgLabelBox(label))
+    : measureSceneTextLabelBounds(label, measureText)
+  return label.rotate
+    ? rotateBounds(bounds, label.x, label.y, label.rotate)
+    : bounds
+}
+
+/** Unrotated text bounds for layout producers that author only text labels. */
+export function measureSceneTextLabelBounds(
+  label: SceneLabel,
+  measureText: ChartTextMeasurer = estimateSceneText,
+): ChartBounds {
   const measured =
     label.text.length === 0
       ? { x: 0, y: 0, width: 0, height: 0 }
       : measureText(label.text, {
-          fontSize,
+          fontSize: finiteNonNegative(label.fontSize, defaultFontSize),
           fontWeight: label.fontWeight,
           ...defaultTypography,
-          anchor,
-          baseline,
+          anchor: label.anchor ?? 'start',
+          baseline: label.baseline ?? 'auto',
         })
-  const x = finiteNumber(measured.x, 0)
-  const y = finiteNumber(measured.y, 0)
-  const width = finiteNonNegative(measured.width, 0)
-  const height = finiteNonNegative(measured.height, 0)
-  const bounds = {
-    x: label.x + x,
-    y: label.y + y,
-    width,
-    height,
-  }
+  return positionLabelBounds(label, measured)
+}
 
-  if (!label.rotate) {
-    return bounds
+function positionLabelBounds(
+  label: SceneLabel,
+  measured: ChartTextMetrics,
+): ChartBounds {
+  return {
+    x: label.x + finiteNumber(measured.x, 0),
+    y: label.y + finiteNumber(measured.y, 0),
+    width: finiteNonNegative(measured.width, 0),
+    height: finiteNonNegative(measured.height, 0),
   }
-
-  return rotateBounds(bounds, label.x, label.y, label.rotate)
 }
 
 export function withChartTextTypography(
@@ -206,21 +207,10 @@ function estimateCharacterWidth(character: string): number {
   return 0.54
 }
 
-function finiteNonNegative(
-  value: number | undefined,
-  fallback: number,
-): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0
-    ? value
-    : fallback
-}
-
 function finiteNumber(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) ? value : fallback
+  return Number.isFinite(value) ? value! : fallback
 }
 
 function finitePositive(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0
-    ? value
-    : fallback
+  return Number.isFinite(value) && value! > 0 ? value! : fallback
 }

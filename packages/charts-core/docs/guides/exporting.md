@@ -63,6 +63,44 @@ part of the intended artifact. This includes authored `whenFocused` geometry,
 the primary focus ring, and the currently painted crosshair or controlled
 cursor guide.
 
+## SVG axis labels
+
+Author SVG tick labels in the axis definition. The chart includes them in
+mounted SVG, server-rendered SVG, and SVG image exports automatically.
+
+```ts
+x: {
+  scale: scaleBand().domain(categories),
+  axis: {
+    tickLabels: {
+      svg: ({ value }) => ({
+        source: categoryIcons[value],
+        width: 24,
+        height: 24,
+      }),
+    },
+    label: {
+      text: 'Category',
+      svg: {
+        source: categoryTitleSvg,
+        width: 80,
+        height: 24,
+      },
+    },
+  },
+}
+```
+
+`source` is a complete SVG document with its own namespace and viewBox.
+Include its colors, styles, and resources in that document. Each SVG is
+embedded as an image, with the supplied dimensions in chart pixels.
+Automatic margins, rotation, offsets, and tick label thinning use those
+dimensions. Return `undefined` from the tick label accessor to keep a text
+label for that value.
+
+Keep the tick formatter or title `text` meaningful. It supplies the image
+title and the text fallback used by Canvas and React Native rendering.
+
 ## Export PNG, JPEG, or WebP
 
 Raster export is browser-only and is isolated behind the same export subpath:

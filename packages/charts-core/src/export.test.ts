@@ -3,6 +3,7 @@ import { scaleLinear } from 'd3-scale'
 import { crosshair } from './crosshair'
 import { dot } from './dot'
 import { renderChartImage, serializeChartSvg } from './export'
+import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
@@ -35,6 +36,62 @@ describe('optional export', () => {
     expect(result).toContain('height="260"')
     expect(result).toContain('aria-label="Exported chart"')
     expect(result).not.toContain('data-ts-focus-layer')
+  })
+
+  it('exports authored SVG tick labels and titles without overlay registration', () => {
+    const source =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="red"/></svg>'
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 3, 2])],
+        ...linearAxes([0, 2], [0, 3]),
+        x: {
+          scale: scaleLinear().domain([0, 2]),
+          axis: {
+            ticks: { values: [0, 1, 2] },
+            tickLabels: {
+              thin: false,
+              svg: ({ value }) =>
+                value === 1 ? { source, width: 40, height: 32 } : undefined,
+            },
+            label: {
+              text: 'Quarter',
+              svg: { source, width: 48, height: 24 },
+            },
+          },
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+    const labels = scene.nodes
+      .flatMap((node) => (node.kind === 'group' ? node.children : [node]))
+      .filter((node) => node.kind === 'label')
+    const tick = labels.find((node) => node.key === 'x-tick-label:number:1')
+    expect(tick?.svg).toEqual({ source, width: 40, height: 32 })
+    if (!tick) throw new Error('Expected SVG tick label')
+    expect(measureSceneLabelBounds(tick)).toMatchObject({
+      width: 40,
+      height: 32,
+    })
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, { ariaLabel: 'SVG labels' })
+    expect(container.querySelectorAll('image')).toHaveLength(2)
+    expect(container.querySelector('image')?.getAttribute('href')).toBe(
+      'data:image/svg+xml,' + encodeURIComponent(source),
+    )
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'SVG labels' })
+    const exported = document.createElement('div')
+    exported.innerHTML = serializeChartSvg(container)
+    expect(exported.querySelectorAll('image')).toHaveLength(2)
+    expect(
+      exported.querySelector('[data-ts-key="x-label"] title')?.textContent,
+    ).toBe('Quarter')
+    expect(
+      container.querySelector('[data-ts-key="x-tick-label:number:0"]')
+        ?.localName,
+    ).toBe('text')
+    surface.destroy()
   })
 
   it('inlines computed presentation for gradient stops', () => {

@@ -294,6 +294,7 @@ Each entry records:
 | F-255 | Public import maps could drift from package exports            | Documentation/Tooling | resolved   |
 | F-256 | Shared host policy retained browser-only modules               | API/Tooling           | resolved   |
 | F-257 | The release package graph leaked into application setup        | API/Docs/Tooling      | resolved   |
+| F-258 | SVG axis label overlays are omitted from SVG export             | API                   | resolved   |
 
 ## Findings
 
@@ -7691,3 +7692,29 @@ Each entry records:
 - Release verification: the focused contract covers ranged and unscoped
   dependencies. All 12 `0.9.0` release artifacts pass with the unified fixture
   installing from its isolated store.
+
+
+### F-258 — SVG axis label overlays are omitted from SVG export
+
+- Status: resolved
+- Owner: API
+- Observed in: Harry's chart uses SVG axis labels and draws them as overlays.
+  He reported having to add the same labels again after exporting the chart.
+- Expected: Render an SVG axis label once and have it appear in the export.
+- Actual: The SVG exporter clones the chart SVG subtree. Sibling overlays
+  fall outside that subtree, and the axis tick formatter returns text.
+- Decision: Author SVG content and dimensions in axis tick label and title
+  options. Store it on scene labels so live SVG, server rendering, and exports
+  use the same content. Keep text for image titles and other renderers.
+- Verification: Export regression covers authored tick icons and an axis
+  title, accessor fallback to text, measured icon bounds, and serialization
+  without overlay registration. Existing scene layout and SVG renderer tests pass.
+  Chromium also verified four chart-owned SVG images and their painted pixels
+  through the standard PNG exporter. Type checking and docs sync pass.
+- Size verification: The SVG serializer shares its geometry and escaping
+  helpers instead of retaining text measurement. Axis construction and scale
+  inference share repeated setup, and treemap uses a text-only bounds path.
+  All existing size caps pass. Every locked bundle is smaller in both
+  minified and gzip output, and the exact snapshots record those reductions.
+  Core and bundle-tooling checks pass with 885 tests, TypeScript passes, and
+  Chromium confirms SVG label pixels remain in the standard PNG export.

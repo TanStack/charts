@@ -341,6 +341,8 @@ export type ChartAxisTickLabelValue<TValue extends ChartValue, TOutput> =
   | ((context: ChartAxisTickLabelContext<TValue>) => TOutput | undefined)
 
 export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
+  /** Self-contained SVG image used by SVG rendering. Text remains the fallback. */
+  svg?: ChartAxisTickLabelValue<TValue, NonNullable<SceneLabel['svg']>>
   rotate?: number
   thin?: boolean | ChartAxisTickLabelThinOptions<TValue>
   fontSize?: ChartAxisTickLabelValue<TValue, number>
@@ -354,6 +356,7 @@ export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
 
 export interface ChartAxisLabelOptions {
   text: string
+  svg?: SceneLabel['svg']
   offset?: number | 'auto'
   motion?: ChartMotionDefinition
 }
@@ -1329,6 +1332,12 @@ export interface SceneRect extends InteractiveSceneNodeBase {
 
 export interface SceneLabel extends SceneNodeBase {
   kind: 'label'
+  /** Complete, self-contained SVG document. Dimensions are in scene pixels. */
+  svg?: {
+    source: string
+    width: number
+    height: number
+  }
   x: number
   y: number
   text: string

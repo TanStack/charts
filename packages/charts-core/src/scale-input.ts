@@ -95,48 +95,31 @@ function inferScaleDomain(
   }
 
   const temporal = scale.domain().some((value) => value instanceof Date)
-  if (temporal) {
-    const dates = observed.filter(
-      (value): value is Date => value instanceof Date,
+  let minimum = Infinity
+  let maximum = -Infinity
+  const invalidDomain = () => {
+    throw new TypeError(
+      temporal
+        ? 'A temporal scale factory requires Date channel values'
+        : 'A quantitative scale factory requires numeric values',
     )
-    if (dates.length !== observed.length) {
-      throw new TypeError(
-        'A temporal scale factory requires Date channel values',
-      )
+  }
+  for (const value of observed) {
+    if (temporal ? !(value instanceof Date) : !isFiniteNumber(value)) {
+      invalidDomain()
     }
-    let minimum = Infinity
-    let maximum = -Infinity
-    for (const value of dates) {
-      const number = value.getTime()
-      minimum = Math.min(minimum, number)
-      maximum = Math.max(maximum, number)
-    }
-    if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) {
-      throw new TypeError(
-        'A temporal scale factory requires Date channel values',
-      )
-    }
+    const number = value instanceof Date ? value.getTime() : (value as number)
+    minimum = Math.min(minimum, number)
+    maximum = Math.max(maximum, number)
+  }
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) invalidDomain()
+  if (temporal) {
     if (minimum === maximum) {
       const halfDay = 43_200_000
       minimum -= halfDay
       maximum += halfDay
     }
     return [new Date(minimum), new Date(maximum)]
-  }
-
-  let minimum = Infinity
-  let maximum = -Infinity
-  for (const value of observed) {
-    if (!isFiniteNumber(value)) {
-      throw new TypeError(
-        'A quantitative scale factory requires numeric values',
-      )
-    }
-    minimum = Math.min(minimum, value)
-    maximum = Math.max(maximum, value)
-  }
-  if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) {
-    throw new TypeError('A quantitative scale factory requires numeric values')
   }
 
   const logarithmic = isLogarithmicScale(scale)

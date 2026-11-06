@@ -6,7 +6,7 @@ import {
   treemapSliceDice,
   treemapSquarify,
 } from 'd3-hierarchy'
-import { measureSceneLabelBounds } from './guide-layout'
+import { measureSceneTextLabelBounds } from './guide-layout'
 import {
   aggregateFlatHierarchyValues,
   buildFlatHierarchy,
@@ -463,7 +463,7 @@ function materializeLabels<TDatum>(
   fontWeight: number | undefined,
   inset: number,
   padding: number,
-  measureText: Parameters<typeof measureSceneLabelBounds>[1],
+  measureText: Parameters<typeof measureSceneTextLabelBounds>[1],
   id: string,
 ): ReadonlyMap<string, SceneLabel> {
   if (channel === undefined) return new Map()
@@ -485,7 +485,7 @@ function materializeLabels<TDatum>(
       fontSize,
       fontWeight,
     }
-    const bounds = measureSceneLabelBounds(label, measureText)
+    const bounds = measureSceneTextLabelBounds(label, measureText)
     const left = cell.x0 + inset + padding
     const right = cell.x1 - inset - padding
     const top = cell.y0 + inset + padding

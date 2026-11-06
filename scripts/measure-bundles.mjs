@@ -258,7 +258,7 @@ const retainedInputGroups = {
   ],
   polarPie: [/(?:^|\/)packages\/charts-core\/src\/polar-pie\.ts$/u],
   markInfrastructure: [
-    /(?:^|\/)packages\/charts-core\/src\/(?:guide-layout|mark|mark-with-scale-values|scales)\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/(?:guide-layout|label-box|mark|mark-with-scale-values|scales)\.ts$/u,
   ],
   rectMark: [/(?:^|\/)packages\/charts-core\/src\/rect\.ts$/u],
   nativeTooltip: [
