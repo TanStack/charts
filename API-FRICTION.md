@@ -354,6 +354,7 @@ Each entry records:
 | F-315 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
 | F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
 | F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
+| F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | monitoring |
 
 ## Findings
 
@@ -9433,3 +9434,20 @@ Each entry records:
 - Verification: a strict compile probe of `barX(rows, { x1: 'start', x2:
 'end', y: 'lane' })` with `Date` fields fails with TS2322. Case 198 uses
   `rect` with `inset: 0`.
+
+### F-318 - HTML tooltip visibility had no delay lifecycle
+
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: issue #210, first-show delay reproduction on main6b99c693
+- Friction: authors could configure tooltip animation but not postpone its
+  visibility, cancel a pending appearance, or keep it visible briefly on leave.
+- Decision: prototype opt-in HTML `showDelay` and `hideDelay` in milliseconds,
+  keeping zero defaults and inherited tooltip motion. Native tooltip timing,
+  CSS presence attributes and per-phase motion remain separate.
+- Verification: 33 mounted lifecycle cases and the existing renderer/motion
+  tests pass, 108 total. Real mouse leave and reentry in Chromium, Firefox and
+  WebKit pass controlled-clock show and hide deadlines. All 2295 unit tests, public option typing, documentation contracts and the
+  packed Native/Expo/seven-adapter package gate pass. No change is shipped.
+  Two Stats consumer gzip ceilings fail.
