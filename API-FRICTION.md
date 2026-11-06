@@ -9455,17 +9455,19 @@ Each entry records:
 
 ### F-318 - HTML tooltip visibility had no delay lifecycle
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: issue #210, first-show delay reproduction on main6b99c693
 - Friction: authors could configure tooltip animation but not postpone its
   visibility, cancel a pending appearance, or keep it visible briefly on leave.
-- Decision: prototype opt-in HTML `showDelay` and `hideDelay` in milliseconds,
+- Decision: add opt-in HTML `showDelay` and `hideDelay` in milliseconds,
   keeping zero defaults and inherited tooltip motion. Native tooltip timing,
   CSS presence attributes and per-phase motion remain separate.
-- Verification: 33 mounted lifecycle cases and the existing renderer/motion
-  tests pass, 108 total. Real mouse leave and reentry in Chromium, Firefox and
-  WebKit pass controlled-clock show and hide deadlines. All 2295 unit tests, public option typing, documentation contracts and the
-  packed Native/Expo/seven-adapter package gate pass. No change is shipped.
-  Two Stats consumer gzip ceilings fail.
+- Verification: 109 relevant mounted lifecycle and renderer tests, strict
+  workspace types, documentation contracts, and the packed
+  Native/Expo/seven-adapter/unified artifact gate pass. Fresh packed browser
+  checks in Chromium, Firefox and WebKit cover show cancellation, hide reentry
+  and destruction. All 146 bundle policies pass with the approved Stats gzip
+  ceilings of 59.140 and 60.236 decimal kB. Numeric comparison records and the
+  other budgets are unchanged.
