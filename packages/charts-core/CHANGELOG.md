@@ -1,5 +1,15 @@
 # @tanstack/charts
 
+## 1.5.0
+
+### Minor Changes
+
+- [#262](https://github.com/TanStack/charts/pull/262) [`587f708`](https://github.com/TanStack/charts/commit/587f7089da780cfc09a3116b137eb3d2f3ed2dde) - Add optional show and hide delays to the built-in HTML tooltip, with cancellation on target loss, reentry, option updates and destruction. Preserve immediate defaults and inherited motion.
+
+### Patch Changes
+
+- [#235](https://github.com/TanStack/charts/pull/235) [`233d29b`](https://github.com/TanStack/charts/commit/233d29b4fc28ef49acd9517fb3e1dd872cd3759b) - Keep presentation subscribers and animation completion on the newest scene when a subscriber renders another scene.
+
 ## 1.4.0
 
 ### Minor Changes
