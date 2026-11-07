@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { barY, defineChart, stack, type ChartPoint } from '@tanstack/charts'
 import { RendererChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -47,12 +46,9 @@ export function createExampleChart() {
       tooltip: {
         use: tooltip,
         className: 'sc-chart-tooltip',
-        anchor: (_points, context) => ({
-          x: context.surface.width * 0.271,
-          y: context.surface.height * 0.554,
-        }),
+        anchor: 'pointer',
         placement: 'bottom-right',
-        offset: 0,
+        offset: 12,
         sort: 'color-domain',
         content: () => ({ rows: [] }),
       },
@@ -165,7 +161,6 @@ export interface ExampleProps {
   height?: number
 }
 export default function Example({ width = 640, height = 600 }: ExampleProps) {
-  const seededTooltip = useRef(false)
   const contentWidth = Math.max(1, width - 50)
   const chartWidth = contentWidth
   const chartHeight = (contentWidth * 9) / 16
@@ -189,19 +184,6 @@ export default function Example({ width = 640, height = 600 }: ExampleProps) {
               initialWidth={chartWidth}
               height={chartHeight}
               ariaLabel="Tooltip - Formatter"
-              onRender={({ scene, interaction }) => {
-                if (seededTooltip.current) return
-                const point = scene.points.find(
-                  (candidate) =>
-                    (candidate.datum as ShadcnActivityDatum).date ===
-                    '2024-07-16',
-                )
-                if (!point) return
-                seededTooltip.current = true
-                interaction.setControlledFocus(point, {
-                  source: 'programmatic',
-                })
-              }}
               renderTooltipBody={({ points }) => (
                 <ShadcnTooltipBody
                   points={points as readonly ChartPoint<ShadcnActivityDatum>[]}
