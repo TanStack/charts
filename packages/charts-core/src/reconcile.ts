@@ -99,6 +99,38 @@ function reconcileElement(
 
   const currentChildren = [...current.children]
   const nextChildren = [...next.children]
+  // Stable sibling order needs no identity maps. Keep ambiguous keys, text,
+  // and animated updates on the general reconciliation path.
+  if (
+    !tweens &&
+    currentChildren.length === nextChildren.length &&
+    current.childNodes.length === currentChildren.length &&
+    next.childNodes.length === nextChildren.length
+  ) {
+    const seen = new Set<string>()
+    let same = true
+    for (let index = 0; index < currentChildren.length; index++) {
+      const previous = currentChildren[index]
+      const following = nextChildren[index]
+      const key = previous.getAttribute('data-ts-key')
+      if (
+        previous.namespaceURI !== following.namespaceURI ||
+        previous.localName !== following.localName ||
+        key !== following.getAttribute('data-ts-key') ||
+        (key && seen.has(key))
+      ) {
+        same = false
+        break
+      }
+      if (key) seen.add(key)
+    }
+    if (same) {
+      for (let index = 0; index < currentChildren.length; index++) {
+        reconcileElement(currentChildren[index], nextChildren[index], tweens)
+      }
+      return
+    }
+  }
   const currentByIdentity = indexChildren(currentChildren)
   const nextIdentities = identities(nextChildren)
   const unmatched = new Set(currentChildren)
