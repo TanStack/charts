@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
+import { pie, polar, radialLabels } from '@tanstack/charts/polar'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
 import {
@@ -658,6 +660,48 @@ describe('React Native SVG scene renderer', () => {
     expect(markup.indexOf('#222222')).toBeLessThan(markup.indexOf('#fef3c7'))
     expect(markup).toContain('<clipPath')
     expect(markup).toContain('fill="#fef3c7"')
+  })
+})
+
+describe('React Native radialLabels', () => {
+  it('renders connectors as paths and labels as native text', () => {
+    const slices = pie(
+      [
+        { name: 'Large', value: 80 },
+        { name: 'Small', value: 3 },
+        { name: 'Tiny', value: 2 },
+      ],
+      { value: 'value' },
+    )
+    const labelScene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            radiusRatio: 0.5,
+            scales: {
+              angle: { scale: d3ScaleLinear().domain([0, Math.PI * 2]) },
+              radius: { scale: d3ScaleLinear().domain([0, 1]) },
+            },
+            marks: [radialLabels(slices, { text: 'name', key: 'name' })],
+          }),
+        ],
+        scales: { x: null, y: null },
+      }),
+      { width: 400, height: 300 },
+    )
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={labelScene}
+        color="#111827"
+        idPrefix="native-labels"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    for (const name of ['Large', 'Small', 'Tiny']) {
+      expect(markup).toContain(`>${name}</text>`)
+    }
+    expect(markup.match(/<path [^>]*d="M[^"]+L[^"]+L[^"]+"/g)).toHaveLength(3)
   })
 })
 
