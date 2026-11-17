@@ -29,8 +29,8 @@
     "@tanstack/charts": "workspace:*"
   },
   "peerDependencies": {
-    "@solidjs/web": ">=2.0.0-rc.19 <3.0.0",
-    "solid-js": "^1.8 || >=2.0.0-rc.19 <3.0.0"
+    "@solidjs/web": "^2.0.0",
+    "solid-js": "^1.8 || ^2.0.0"
   },
   "peerDependenciesMeta": {
     "@solidjs/web": {
