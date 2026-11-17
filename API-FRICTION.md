@@ -351,6 +351,10 @@ Each entry records:
 | F-312 | Tick stubs could not be styled independently                   | API                   | resolved   |
 | F-313 | Initial observer precision cancelled entrance motion           | Tooling               | resolved   |
 | F-314 | Framework ticks and immediate focus layers were unclear        | Documentation         | resolved   |
+| F-315 | Orthogonal dependency connectors need a hand-built curve       | API                   | monitoring |
+| F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
+| F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
+| F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | resolved   |
 
 ## Findings
 
@@ -7730,6 +7734,15 @@ Each entry records:
   its reviewed 2,583-byte increase includes the default viewport and controlled
   interaction contracts.
 
+- Follow-up, issue #203: feeding early pointer samples through
+  `setControlledFocus` changes ownership, so ordinary pointer leave cannot
+  clear that application-owned focus. The opt-in `pointerEvent` option reuses
+  the existing pointer handler and changes only its subscribed stream.
+  Six focused cases cover fallback, listener replacement, leave, cancel,
+  pointer opt-out and destruction, with the same checks on the packed artifact
+  in Chromium, Firefox and WebKit. The default remains `pointermove`; no
+  hardware latency improvement has been established.
+
 ### F-244 — Focus cursor width depended on private band inference
 
 - Status: resolved
@@ -7996,6 +8009,11 @@ Each entry records:
   convert an absent output to the documented `currentColor` fallback.
 - Verification: 45 focused scale regressions cover short, long, nonfinite,
   empty-range, unknown, and configured-color cases; root TypeScript passes.
+- Follow-up observed in #206: UTC Date domains still required the larger D3
+  time scale even when the compact contract was sufficient. The additive
+  `scales/time` entry preserves two-stop validation, Date ownership, copying,
+  and responsive range ownership. Calendar parity and chart integration tests
+  cover reversed domains, leap days, formatting, mapping, and invalid inputs.
 
 ### F-254 — View composition exposed a broader type than its runtime contract
 
@@ -8920,6 +8938,19 @@ Each entry records:
   React Native Metro gates, and framework package checks pass. Bundle boundary
   checks keep SVG-only entries free of Canvas and measure the opt-in mixed
   representative and React consumers at 35.68 KiB and 41.63 KiB gzip.
+- Follow-up observed in #204: custom SVG layers could only reuse the compositor
+  through `canvasChartRenderer.compose`, retaining unrelated Canvas painting.
+  Add `@tanstack/charts/layers` with `composeChartLayers`, cached by default
+  renderer identity. Focused tests cover SSR adoption, ordered and adjacent
+  layers, stable updates, separate hosts, and no Canvas context allocation.
+  Packed consumer and bundle checks verify the new opt-in boundary.
+
+- Documentation follow-up: wrapping a renderer surface with object spread
+  evaluates its live `element` getter before the first render. The SVG surface
+  creates its root during rendering, so that wrapper can throw or cache a stale
+  root. The custom-renderer contract now explains read timing and getter
+  forwarding. Verified against the SVG surface getter and host mount/render
+  order, with a private wrapper wiring check for deferred and changing roots.
 
 ### F-295 - Grouped tooltips did not identify the active series
 
@@ -9354,3 +9385,89 @@ Each entry records:
   direction changes. A focus dot appears during entrance while the data path
   and its running animation remain intact. Concurrent inline states remain a
   separate feature; this addresses the documented alternatives requested.
+
+### F-315 - Orthogonal dependency connectors need a hand-built curve
+
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: `link` draws a straight segment and `arrow` draws a straight
+  arrow. A right-angle connector that leaves the predecessor's right edge,
+  steps, and enters the successor's left edge, plus its arrowhead, had to be
+  written as a d3 `CurveFactory` passed to the link's `curve` through
+  `d3Curve`. The curve sees only the two endpoint pixels. It cannot read the
+  resolved band step, so the definition estimates the lane gutter for backward
+  detours from the outer chart height. It cannot tell a bar from a milestone,
+  so dependencies into the milestone need a second link mark with a larger end
+  gap.
+- Decision: keep the recipe. The public curve hook is enough and adds no bytes
+  to other charts. Consider a connector primitive with resolved band geometry
+  and target-aware end gaps only if a second timeline or network case repeats
+  this routing.
+- Verification: case 198 passes the standard 320, 640, and 960 px light and
+  dark conformance matrix, before and after its revision update, with 13
+  right-angle connectors in both renderers. The same curve factory drives the
+  Observable Plot reference.
+
+### F-316 - Keyboard focus cannot follow a dependency
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with finish-to-start
+  dependencies
+- Friction: default keyboard navigation steps through focusable points by x
+  center, then y, so phase summaries interleave with tasks instead of
+  following the lane tree. Changing only the order requires a complete focus
+  strategy. Its `resolve` receives points but not the scene, so the default
+  geometry-aware pointer hit test (`findNearestPoint` needs the scene) cannot
+  be reused; the recipe spreads `focusNearestY` and replaces `navigation` with
+  a y-then-x sort. Decorative connectors correctly add no focus stops, but no
+  key moves from a task to its predecessor or successor. The recipe names each
+  task's predecessors in its tooltip text instead.
+- Decision: accept the lane-order strategy and text description for this
+  recipe. Graph navigation would add interaction state to the default host,
+  which is outside the current stop boundary. Revisit with a second dependency
+  or network case.
+- Verification: the case 198 unit tests confirm one focus stop per phase,
+  task, and milestone, none for connectors or progress fills, and a
+  navigation order that matches the lane order.
+
+### F-317 - Time-ranged bars cannot inset only their lane edges
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: catalog case 198, a Gantt plan with phase summary bars
+- Friction: `rect` `inset` removes pixels from all four edges, so a thinner
+  phase summary bar inside its band lane would also shorten its time extent.
+  `barX` `inset` trims only the categorical edges, but `barX` rejects `Date`
+  fields for `x1` and `x2` on a UTC axis (TS2322). The recipe uses
+  full-height bars and band padding instead of thinner summary bars.
+- Decision: keep full-height bars for now. Consider either `Date` endpoints
+  on `barX` or an axis-specific `rect` inset if another timeline case needs
+  bars thinner than their lane.
+- Verification: a strict compile probe of `barX(rows, { x1: 'start', x2:
+'end', y: 'lane' })` with `Date` fields fails with TS2322. Case 198 uses
+  `rect` with `inset: 0`.
+
+### F-318 - HTML tooltip visibility had no delay lifecycle
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: issue #210, first-show delay reproduction on main6b99c693
+- Friction: authors could configure tooltip animation but not postpone its
+  visibility, cancel a pending appearance, or keep it visible briefly on leave.
+- Decision: add opt-in HTML `showDelay` and `hideDelay` in milliseconds,
+  keeping zero defaults and inherited tooltip motion. Native tooltip timing,
+  CSS presence attributes and per-phase motion remain separate.
+- Verification: 109 relevant mounted lifecycle and renderer tests, strict
+  workspace types, documentation contracts, and the packed
+  Native/Expo/seven-adapter/unified artifact gate pass. Fresh packed browser
+  checks in Chromium, Firefox and WebKit cover show cancellation, hide reentry
+  and destruction. All 146 bundle policies pass with the approved Stats gzip
+  ceilings of 59.140 and 60.236 decimal kB. Numeric comparison records and the
+  other budgets are unchanged.

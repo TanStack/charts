@@ -107,6 +107,7 @@ function createPortal(
       right: 'auto',
       bottom: 'auto',
       margin: '0',
+      overflow: 'visible',
     })
   }
 

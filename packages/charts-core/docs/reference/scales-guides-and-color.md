@@ -20,7 +20,7 @@ const scales = {
 ```
 
 Start with the exact compact scale entry for numeric linear, band, point, or
-ordinal mappings. Upgrade one mapping to D3 only when it needs temporal,
+ordinal or UTC time mappings. Upgrade one mapping to D3 only when it needs local-time,
 nonlinear, radial, interpolated, or statistical scale semantics. The
 [Scales](../concepts/scales-and-d3.md) guide owns that decision and direct
 dependency guidance. This page documents the TanStack Charts contract around
@@ -28,7 +28,7 @@ both implementations.
 
 ## Default compact scale entries
 
-`@tanstack/charts` supplies four exact, tree-shakeable scale entries:
+`@tanstack/charts` supplies five exact, tree-shakeable scale entries:
 
 | Entry                             | Runtime export | Type contract  |
 | --------------------------------- | -------------- | -------------- |
@@ -36,6 +36,7 @@ both implementations.
 | `@tanstack/charts/scales/band`    | `scaleBand`    | `BandScale`    |
 | `@tanstack/charts/scales/point`   | `scalePoint`   | `PointScale`   |
 | `@tanstack/charts/scales/ordinal` | `scaleOrdinal` | `OrdinalScale` |
+| `@tanstack/charts/scales/time`    | `scaleUtc`     | `UtcScale`     |
 
 `LinearScale` supports numeric two-stop domains and ranges, `invert`, `clamp`,
 `ticks`, basic `tickFormat`, `nice`, and `copy`. `BandScale` supports
@@ -54,8 +55,22 @@ const y = {
 
 The factories and returned instances satisfy `ChartScaleInput` directly. They
 are a documented subset, not a complete `d3-scale` compatibility claim. Use D3
-for temporal or transformed domains, piecewise and nonnumeric interpolation,
+for local-time or transformed domains, piecewise and nonnumeric interpolation,
 and full D3 formatting semantics.
+
+`UtcScale` supports two-stop Date domains and finite numeric ranges, elapsed-time
+mapping, Date-valued `invert`, `clamp`, calendar-aware `ticks(count)`,
+`tickFormat(count)`, `nice(count)`, and independent `copy`. Domain setters accept
+Dates or millisecond timestamps and getters return new Dates. Invalid domains
+throw without changing the scale. Invalid mapped values return `undefined`.
+
+Ticks use UTC seconds, minutes, hours, epoch-aligned days, Sunday weeks, months,
+quarters, and years. Default labels use English UTC calendar formatting.
+`nice` expands both ascending and descending domains. Counts are hints, not an
+exact number of ticks; nonpositive or nonfinite counts produce no ticks and
+leave `nice` unchanged. Unlike D3, this compact entry does not accept interval
+objects, format specifiers, locale configuration, or piecewise domains. Use a
+guide formatter for application-specific labels or D3 for those scale features.
 
 `ConfiguredScaleLike` may expose `invert(position)`. Charts copies that
 capability onto `ResolvedScale.invert` after assigning the responsive range.

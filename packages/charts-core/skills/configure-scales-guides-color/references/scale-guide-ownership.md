@@ -16,14 +16,14 @@ Never assign positional pixel ranges in authored chart code.
 
 ## Scale Family Decision
 
-| Meaning                            | Start with                           | Upgrade condition                                             |
-| ---------------------------------- | ------------------------------------ | ------------------------------------------------------------- |
-| Numeric position                   | `@tanstack/charts/scales/linear`     | piecewise, nonnumeric interpolation, log/power/symlog/radial  |
-| Categorical position with width    | `@tanstack/charts/scales/band`       | required behavior exceeds compact contract                    |
-| Categorical position without width | `@tanstack/charts/scales/point`      | elapsed time matters                                          |
-| Stable categorical paint           | `@tanstack/charts/scales/ordinal`    | sequential/diverging/quantile/threshold semantics             |
-| Calendar time                      | `d3-scale` `scaleTime` or `scaleUtc` | always; point/band dates do not preserve elapsed duration     |
-| Sequential/diverging quantity      | D3 color scale                       | center, interpolation, or statistical thresholds are semantic |
+| Meaning                            | Start with                        | Upgrade condition                                             |
+| ---------------------------------- | --------------------------------- | ------------------------------------------------------------- |
+| Numeric position                   | `@tanstack/charts/scales/linear`  | piecewise, nonnumeric interpolation, log/power/symlog/radial  |
+| Categorical position with width    | `@tanstack/charts/scales/band`    | required behavior exceeds compact contract                    |
+| Categorical position without width | `@tanstack/charts/scales/point`   | elapsed time matters                                          |
+| Stable categorical paint           | `@tanstack/charts/scales/ordinal` | sequential/diverging/quantile/threshold semantics             |
+| UTC calendar time                  | `@tanstack/charts/scales/time`    | local time, custom interval objects, or full D3 formatting    |
+| Sequential/diverging quantity      | D3 color scale                    | center, interpolation, or statistical thresholds are semantic |
 
 ## Guide Decision
 

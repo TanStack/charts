@@ -22,6 +22,7 @@ const responsiveDefinitions = [
   '161-shadcn-line-step/example.tsx',
   '181-shadcn-radar-label-custom/example.tsx',
   '186-shadcn-radial-label/example.tsx',
+  '198-gantt-dependencies/example.tsx',
   '29-waterfall/example.tsx',
   '85-scrollable-resource-lanes/example.tsx',
   '92-editable-event-range/example.tsx',

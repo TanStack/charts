@@ -359,7 +359,9 @@ export async function verifyUnifiedCoreArtifact({
 async function verifyUnifiedBundles(fixtureRoot) {
   const { build } = await import('esbuild')
   const entries = [
+    ['DOM layer compositor', '@tanstack/charts/layers'],
     ['Compact linear scale', '@tanstack/charts/scales/linear'],
+    ['Compact UTC scale', '@tanstack/charts/scales/time'],
     ['Compact band scale', '@tanstack/charts/scales/band'],
     ['React adapter', '@tanstack/charts/react'],
     ['React tooltip adapter', '@tanstack/charts/react/tooltip'],
@@ -434,6 +436,13 @@ async function verifyUnifiedBundles(fixtureRoot) {
             fixtureRoot,
           })
     assert.ok(bundled.bytes > 0, `${label} bundle is empty`)
+    if (specifier === '@tanstack/charts/layers') {
+      assert.doesNotMatch(
+        bundled.code,
+        /getContext|ts-chart-canvas|Path2D/u,
+        'The packed layer compositor retained Canvas painting code',
+      )
+    }
     const retainedInputs = bundled.inputs
     assert.ok(
       retainedInputs.some(
@@ -494,6 +503,7 @@ async function bundleJavaScriptEntry({
       0,
     ),
     inputs: Object.keys(result.metafile.inputs),
+    code: result.outputFiles.map((output) => output.text).join('\n'),
   }
 }
 

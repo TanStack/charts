@@ -11,7 +11,7 @@ describe('compact scale exports', () => {
     )
 
     expect(Object.hasOwn(packageJson.exports, '.')).toBe(false)
-    expect(modules).toHaveLength(4)
+    expect(modules).toHaveLength(5)
     expect(modules.every((module) => Object.keys(module).length > 0)).toBe(true)
   })
 })

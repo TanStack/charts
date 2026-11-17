@@ -569,7 +569,17 @@ interface UniversalChartLayerRenderer
 
 The first non-default mark renderer supplies the compositor. The built-in
 Canvas renderer can compose normal `ChartRenderer` surfaces and exposes the
-result as one `ChartSurface`.
+result as one `ChartSurface`. Custom DOM layer renderers can set
+`compose: composeChartLayers`, imported from `@tanstack/charts/layers`, to reuse
+that orchestration without retaining Canvas painting code. The function accepts
+a `ChartRenderer<TDatum, TXValue, TYValue>` and returns a compositor with the
+same types, cached by default renderer object identity.
+
+The lower-level `createLayeredChartRenderer` factory is also exported from
+`@tanstack/charts/canvas`. It creates a new compositor on each call and uses the
+type-erased renderer contract needed for heterogeneous layers. Prefer the typed,
+cached `composeChartLayers` callback for custom mark renderers so updates do not
+replace the compositor and remount its surfaces.
 
 Mark motion and renderer selection are independent in the authoring API. The
 built-in factories preserve both options, and `createMark` keeps motion as its
@@ -652,6 +662,12 @@ interface ChartRendererRenderContext<
   interaction: ChartInteractionController<TDatum, TXValue, TYValue>
 }
 ```
+
+`element` can be a live getter. Read it after the initial `render`; a renderer
+may not create its root during `mount`. When wrapping a surface, forward
+`element` through a getter instead of spreading the surface into a new object.
+Spreading evaluates the getter immediately and caches that root, so it can
+throw before rendering or keep an element that the renderer later replaces.
 
 `element` is the one accessible, interactive root. `surface.destroy()` releases animation work,
 subscriptions, and renderer resources. The mounting host owns removal of the

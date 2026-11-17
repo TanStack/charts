@@ -971,6 +971,8 @@ export interface ChartDefinitionOptions<
   motion?: ChartMotionDefinition<NoInfer<TDatum>>
   /** Enables chart-owned pointer focus and selection. Defaults to true. */
   pointer?: boolean
+  /** DOM pointer focus stream. Raw input falls back to pointermove when unsupported. */
+  pointerEvent?: 'pointermove' | 'pointerrawupdate'
   keyboard?: boolean
   selection?: ChartSelectionController<
     NoInfer<TDatum>,
@@ -997,6 +999,7 @@ interface StoredChartDefinitionOptions<TTooltipHost extends string = string> {
   svgAnimation?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>
   pointer?: boolean
+  pointerEvent?: 'pointermove' | 'pointerrawupdate'
   keyboard?: boolean
   selection?: ChartSelectionController<any, any, any>
   controls?: readonly ChartControl<any, any>[]
@@ -1661,6 +1664,10 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  /** Delay in milliseconds before the built-in HTML tooltip appears. Defaults to zero. */
+  showDelay?: number
+  /** Delay in milliseconds before the built-in HTML tooltip starts hiding. Defaults to zero. */
+  hideDelay?: number
   /** Overrides tooltip motion from the active motion renderer; `false` keeps it immediate. */
   motion?: false | ChartMotionTransition
   portal?: ChartTooltipPortalInput

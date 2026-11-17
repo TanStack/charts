@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/charts",
-  "version": "1.1.0",
+  "version": "1.5.0",
   "private": false,
   "license": "MIT",
   "keywords": [
@@ -230,7 +230,9 @@
     "./violin": "./src/violin.ts",
     "./view": "./src/view.ts",
     "./vue": "./src/vue.ts",
-    "./waffle": "./src/waffle.ts"
+    "./waffle": "./src/waffle.ts",
+    "./layers": "./src/layers.ts",
+    "./scales/time": "./src/scales-time.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -716,6 +718,14 @@
       "./waffle": {
         "types": "./dist/waffle.d.ts",
         "import": "./dist/waffle.js"
+      },
+      "./layers": {
+        "types": "./dist/layers.d.ts",
+        "import": "./dist/layers.js"
+      },
+      "./scales/time": {
+        "types": "./dist/scales/time.d.ts",
+        "import": "./dist/scales/time.js"
       }
     }
   }

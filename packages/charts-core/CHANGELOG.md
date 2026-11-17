@@ -1,5 +1,67 @@
 # @tanstack/charts
 
+## 1.5.0
+
+### Minor Changes
+
+- [#262](https://github.com/TanStack/charts/pull/262) [`587f708`](https://github.com/TanStack/charts/commit/587f7089da780cfc09a3116b137eb3d2f3ed2dde) - Add optional show and hide delays to the built-in HTML tooltip, with cancellation on target loss, reentry, option updates and destruction. Preserve immediate defaults and inherited motion.
+
+### Patch Changes
+
+- [#235](https://github.com/TanStack/charts/pull/235) [`233d29b`](https://github.com/TanStack/charts/commit/233d29b4fc28ef49acd9517fb3e1dd872cd3759b) - Keep presentation subscribers and animation completion on the newest scene when a subscriber renders another scene.
+
+## 1.4.0
+
+### Minor Changes
+
+- [#260](https://github.com/TanStack/charts/pull/260) [`af1fbe6`](https://github.com/TanStack/charts/commit/af1fbe696130b86804194b49159d7adca8f4c97e) - Expose `composeChartLayers` from `@tanstack/charts/layers` so custom SVG layers can use the shared compositor without retaining Canvas painting code in their bundle.
+
+### Patch Changes
+
+- [#258](https://github.com/TanStack/charts/pull/258) [`0074ed8`](https://github.com/TanStack/charts/commit/0074ed84786c7bbc9d402c41e6ee475d9bbd9b5d) - Match SVG linear-gradient projection on non-square Canvas geometry.
+
+## 1.3.0
+
+### Minor Changes
+
+- [#257](https://github.com/TanStack/charts/pull/257) [`9f5cacf`](https://github.com/TanStack/charts/commit/9f5cacf9cb3c410d89cbfecde17e5e3661b75a84) - Add `scaleUtc` from `@tanstack/charts/scales/time` for Date domains, UTC calendar ticks, inversion and copying without a D3 runtime dependency.
+
+- [#250](https://github.com/TanStack/charts/pull/250) [`278cb92`](https://github.com/TanStack/charts/commit/278cb921a56c785cbb6875d55c1cfc06eb655177) - Add an opt-in raw pointer event stream for DOM chart hosts while preserving pointer focus ownership and falling back to pointermove when unsupported.
+
+### Patch Changes
+
+- [#256](https://github.com/TanStack/charts/pull/256) [`c6f214c`](https://github.com/TanStack/charts/commit/c6f214c5ec07e6795948373d9f1180620e7c7201) - Skip unused presentation-point viewport filtering while focus is idle and avoid filtering twice for pointer focus.
+
+- [#254](https://github.com/TanStack/charts/pull/254) [`e0d0141`](https://github.com/TanStack/charts/commit/e0d01410d39002801ea848538f69d8837cd445db) - Avoid clearing a plain-text tooltip's accessible label twice during each paint.
+
+- [#255](https://github.com/TanStack/charts/pull/255) [`6816b34`](https://github.com/TanStack/charts/commit/6816b34069772dc8d36b420e18cd6e51c470d140) - Keep custom tooltip shadows visible in popover portals instead of clipping them at the host box.
+
+## 1.2.1
+
+### Patch Changes
+
+- [#245](https://github.com/TanStack/charts/pull/245) [`3f2c82e`](https://github.com/TanStack/charts/commit/3f2c82e269888dda867ca6ac42abdec3d56e17a3) - Cap the `solid-js` peer range at `^1`. The previous open-ended `>=` range would accept Solid 2.0.0 once it is released, but these packages are built against Solid 1 and do not work with Solid 2.
+
+## 1.2.0
+
+### Minor Changes
+
+- [#232](https://github.com/TanStack/charts/pull/232) [`9d80699`](https://github.com/TanStack/charts/commit/9d806998e0140b87cce44e53e665a4115270c37e) - Add the opt-in `motionLite()` renderer from `@tanstack/charts/motion/lite` for whole-chart fade entrances and keyed SVG transitions without the full motion engine. Existing `motion()` behavior is unchanged.
+
+### Patch Changes
+
+- [#237](https://github.com/TanStack/charts/pull/237) [`a2e82ab`](https://github.com/TanStack/charts/commit/a2e82ab9b415b54318da2fb2d17be123938a3924) - Accept React Native 0.88 for Expo SDK 58 while preserving React Native 0.86 support.
+
+- [#225](https://github.com/TanStack/charts/pull/225) [`a66cdbf`](https://github.com/TanStack/charts/commit/a66cdbf0d448aa89c0195519a4d526d275c81b95) - Speed up viewport interaction filtering by skipping ownership lookups for visible points and checking axis channels directly for offscreen points.
+
+- [#218](https://github.com/TanStack/charts/pull/218) [`3b8e03c`](https://github.com/TanStack/charts/commit/3b8e03cf7225aa61ca53f85323abc99b796aa7b4) - Let tooltip exits finish when hide is requested repeatedly, and release finished tooltip animations so their effects do not linger.
+
+- [#222](https://github.com/TanStack/charts/pull/222) [`a691036`](https://github.com/TanStack/charts/commit/a691036b07655adda97aa0dc3052428989e2b811) - Measure animation elapsed time from when an update is scheduled, so early or delayed first frames do not shift its timing.
+
+- [#224](https://github.com/TanStack/charts/pull/224) [`01ff033`](https://github.com/TanStack/charts/commit/01ff033022a3d72652bdc368a568e9d8dd116023) - Avoid rebuilding sunburst hit-test boundaries when projecting animation frames.
+
+- [#244](https://github.com/TanStack/charts/pull/244) [`778f2cc`](https://github.com/TanStack/charts/commit/778f2cc6ca174256ba9d9f6cf603af94bb70db8b) - Handle floating-point rounding at treemap plot boundaries and omit empty tiles collapsed outside the plot by inner padding.
+
 ## 1.1.0
 
 ### Minor Changes

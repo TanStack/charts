@@ -452,6 +452,12 @@ does not require `pointer: false` or `focusDisabled`.
 
 ## Brush selection
 
+`brushX` owns a persistent range and its handles. For a range that exists only
+while dragging, use [application-owned pointer handling](#controlled-point-inspection)
+and [invert the resolved scale](#invert-resolved-scales). Clear the temporary
+range on release or cancellation; forward idle hover through `resolvePointer`
+and `setControlledFocus` to retain the chart's focus and tooltip.
+
 A complete brush owns:
 
 - drag start, move, end, and cancellation;

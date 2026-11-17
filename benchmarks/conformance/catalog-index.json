@@ -12407,6 +12407,62 @@
       "entries": {
         "example": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/example.tsx"
       }
+    },
+    {
+      "schemaVersion": 1,
+      "height": 520,
+      "order": 1990,
+      "id": "198-gantt-dependencies",
+      "title": "Project Gantt with nested phases and dependencies",
+      "family": "interval",
+      "intent": "Show a small project plan as phase header lanes with indented task lanes, progress fills, a milestone, a status-date rule, and right-angle finish-to-start dependency arrows, with every task reachable by keyboard.",
+      "support": "composed",
+      "features": [
+        "gantt chart",
+        "band lanes over a UTC time scale",
+        "phase summary lanes with indented child lanes",
+        "progress fill over each task",
+        "milestone marker",
+        "status-date reference rule",
+        "orthogonal finish-to-start dependency arrows",
+        "decorative connectors outside keyboard focus",
+        "keyboard task descriptions"
+      ],
+      "geometry": [
+        {
+          "role": "rect",
+          "count": 24,
+          "maxCount": 24,
+          "rendererRoles": {
+            "observable-plot": "bar"
+          }
+        },
+        {
+          "role": "link",
+          "count": 13,
+          "maxCount": 13
+        },
+        {
+          "role": "dot",
+          "count": 1,
+          "maxCount": 1
+        },
+        {
+          "role": "rule",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "Highcharts Gantt dependencies between tasks",
+        "url": "https://www.highcharts.com/docs/gantt/gantt-task-dependencies"
+      },
+      "ai": {
+        "create": "Create a responsive Gantt chart from typed project tasks with phase, dates, progress, and finish-to-start predecessors: phase header lanes followed by indented task lanes on a band scale, UTC time, progress fills, a milestone, a status-date rule, and right-angle dependency arrows that stay out of keyboard focus.",
+        "maintain": "Add a task and a predecessor to one phase without changing lane order rules, breaking the phase roll-up, adding focus stops for connectors, or routing any dependency segment diagonally."
+      },
+      "entries": {
+        "example": "benchmarks/conformance/cases/198-gantt-dependencies/example.tsx"
+      }
     }
   ]
 }

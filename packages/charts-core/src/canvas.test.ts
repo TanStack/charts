@@ -1104,10 +1104,84 @@ describe('Canvas renderer', () => {
 
     const painted = contexts.get(surface.sceneCanvas)
     if (!painted) throw new Error('Expected a painted scene canvas')
-    expect(painted.linearGradients).toEqual([[10, 20, 110, 60]])
+    expect(painted.linearGradients).toHaveLength(1)
+    const [x0, y0, x1, y1] = painted.linearGradients[0]!
+    expect([x0, y0]).toEqual([10, 20])
+    expect(x1).toBeCloseTo(37.5862068966)
+    expect(y1).toBeCloseTo(88.9655172414)
     expect(painted.gradientStops.map(([offset]) => offset)).toEqual([1, 1])
     surface.destroy()
   })
+
+  it.each([
+    [80, 40, 0, 0, 1, 1],
+    [40, 80, 1, 0, 0, 1],
+    [80, 40, 0.2, 0.3, 0.8, 0.6],
+    [80, 40, 0, 0, 0, 1],
+    [40, 80, 0, 0, 1, 0],
+    [40, 40, 0, 0, 1, 1],
+    [8e155, 4e155, 0, 0, 1, 1],
+    [1.7e308, 1.6e308, 0, 0, 1, 1],
+    [8e-309, 4e-309, 0, 0, 1, 1],
+  ])(
+    'preserves unit-space linear gradient projection (%s by %s)',
+    (width, height, startX, startY, endX, endY) => {
+      const container = document.createElement('div')
+      const surface = createCanvasChartRenderer().mount(container, () => {})
+      surface.render(
+        scene(
+          [
+            {
+              kind: 'rect',
+              key: 'gradient',
+              x: 0,
+              y: 0,
+              width,
+              height,
+              style: { fill: 'url(#linear)' },
+            },
+          ],
+          [
+            {
+              id: 'linear',
+              x1: startX,
+              y1: startY,
+              x2: endX,
+              y2: endY,
+              stops: [
+                { offset: 0, color: 'red' },
+                { offset: 1, color: 'blue' },
+              ],
+            },
+          ],
+        ),
+        renderOptions(),
+      )
+      const painted = contexts.get(surface.sceneCanvas)
+      if (!painted) throw new Error('Expected a painted scene canvas')
+      const [x0, y0, x1, y1] = painted.linearGradients[0]!
+      const scale = Math.max(width, height)
+      const vx = (x1 - x0) / scale
+      const vy = (y1 - y0) / scale
+      const dx = endX - startX
+      const dy = endY - startY
+      for (const [u, v] of [
+        [0, 0],
+        [1, 0],
+        [0, 1],
+        [1, 1],
+        [0.3, 0.7],
+      ] as const) {
+        const actual =
+          (((u * width - x0) / scale) * vx + ((v * height - y0) / scale) * vy) /
+          (vx * vx + vy * vy)
+        const expected =
+          ((u - startX) * dx + (v - startY) * dy) / (dx * dx + dy * dy)
+        expect(actual).toBeCloseTo(expected, 10)
+      }
+      surface.destroy()
+    },
+  )
 
   it('paints radial fills inside normalized object-bounding-box clips', () => {
     const container = document.createElement('div')

@@ -959,7 +959,33 @@ export function mountChartRenderer<
       updateFocus(point ? focusPointsForPoint(point) : [])
     }
   }
-  container.addEventListener('pointermove', handlePointerMove)
+  const pointerListener = { handleEvent: handlePointerMove }
+  const changePointerListener = (
+    add: boolean,
+    event: 'pointermove' | 'pointerrawupdate',
+  ) => {
+    if (event === 'pointerrawupdate')
+      container[add ? 'addEventListener' : 'removeEventListener'](
+        event,
+        pointerListener,
+      )
+    else if (add) container.addEventListener('pointermove', handlePointerMove)
+    else container.removeEventListener('pointermove', handlePointerMove)
+  }
+  let pointerEvent: 'pointermove' | 'pointerrawupdate' | undefined
+  const configurePointerEvent = () => {
+    const next =
+      options.definition.pointerEvent === 'pointerrawupdate' &&
+      view &&
+      'onpointerrawupdate' in view
+        ? 'pointerrawupdate'
+        : 'pointermove'
+    if (next === pointerEvent) return
+    if (pointerEvent) changePointerListener(false, pointerEvent)
+    pointerEvent = next
+    changePointerListener(true, pointerEvent)
+  }
+  configurePointerEvent()
   container.addEventListener('pointerdown', handlePointerDown)
   container.addEventListener('pointercancel', clearPointerFocus)
   container.addEventListener('mouseleave', clearPointerFocus)
@@ -1015,6 +1041,7 @@ export function mountChartRenderer<
         nextOptions.definition.pointer === false &&
         focusOwner === 'pointer'
       options = nextOptions
+      configurePointerEvent()
       configureCursorController()
       syncTooltip()
       if (pointerDisabled) {
@@ -1060,7 +1087,7 @@ export function mountChartRenderer<
       unsubscribePresentation = undefined
       surface?.destroy()
       runtime.destroy()
-      container.removeEventListener('pointermove', handlePointerMove)
+      if (pointerEvent) changePointerListener(false, pointerEvent)
       container.removeEventListener('pointerdown', handlePointerDown)
       container.removeEventListener('pointercancel', clearPointerFocus)
       container.removeEventListener('mouseleave', clearPointerFocus)
@@ -1228,7 +1255,6 @@ export function mountChartRenderer<
       applyCursorState(false)
       return
     }
-    const visiblePoints = viewportInteractionPoints(scene, points)
     if (pointerPosition && pinnedKey === null) {
       updateFocus(
         resolvePointerFocus(
@@ -1241,6 +1267,7 @@ export function mountChartRenderer<
       return
     }
     if (!focusedPoint) return
+    const visiblePoints = viewportInteractionPoints(scene, points)
     const point = restoreChartFocusPoint(visiblePoints, focusedPoint)
     updateFocus(point ? focusPointsForPoint(point, visiblePoints) : [], true)
   }
