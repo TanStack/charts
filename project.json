@@ -24,7 +24,7 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit --incremental --tsBuildInfoFile .nx/typescript/tsconfig.tsbuildinfo -p tsconfig.json"
+        "command": "tsc --noEmit --incremental --tsBuildInfoFile .nx/typescript/tsconfig.tsbuildinfo -p tsconfig.json && tsc --noEmit -p packages/solid-charts/tsconfig.solid2.json"
       },
       "outputs": ["{workspaceRoot}/.nx/typescript/tsconfig.tsbuildinfo"]
     },
@@ -44,6 +44,18 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "vitest run --config vitest.solid-ssr.config.ts"
+      }
+    },
+    "test-solid2": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.solid2.config.ts"
+      }
+    },
+    "test-solid2-ssr": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.solid2-ssr.config.ts"
       }
     },
     "test-svelte": {
@@ -76,6 +88,8 @@
         "test-dom",
         "test-solid",
         "test-solid-ssr",
+        "test-solid2",
+        "test-solid2-ssr",
         "test-svelte",
         "test-svelte-ssr",
         "test-octane",
@@ -168,6 +182,8 @@
         "test-dom",
         "test-solid",
         "test-solid-ssr",
+        "test-solid2",
+        "test-solid2-ssr",
         "test-svelte",
         "test-svelte-ssr",
         "test-octane",
@@ -195,6 +211,8 @@
         "test-dom",
         "test-solid",
         "test-solid-ssr",
+        "test-solid2",
+        "test-solid2-ssr",
         "test-svelte",
         "test-svelte-ssr",
         "test-octane",

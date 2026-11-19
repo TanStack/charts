@@ -475,6 +475,10 @@ const callbackInventory = {
       'render resolvePaint',
     ],
     [
+      '@tanstack/solid-charts:src/solid2/types.ts:ChartTooltipBodyRenderProps',
+      'renderTooltipBody',
+    ],
+    [
       '@tanstack/solid-charts:src/types.ts:ChartTooltipBodyRenderProps',
       'renderTooltipBody',
     ],
