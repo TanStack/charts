@@ -177,7 +177,7 @@ function TooltipBodyPortal<
       return props.target().pinned
     },
     // A stable handler, so `onClick={context.dismiss}` needs no tracking.
-    dismiss: () => untrack(props.target).dismiss(),
+    dismiss: () => props.target().dismiss(),
   }
   const body = props.render(context)
 
