@@ -6,8 +6,6 @@ import {
   createSignal,
   createUniqueId,
   onCleanup,
-  onSettled,
-  untrack,
 } from 'solid-js'
 import { Portal } from '@solidjs/web'
 import type { Accessor, Element } from 'solid-js'
@@ -48,17 +46,28 @@ export function Chart<
       renderer(),
       setTooltipBodyTarget,
     )
-  const adapter = createChartRendererAdapter(untrack(options))
-  const initialMarkup = adapter.prerender()
+  // Built in a memo, so the chart waits under `Loading` while an option (such
+  // as `data` from a query) is still loading, instead of throwing. Once built
+  // the memo returns it without reading anything.
+  let built:
+    | ReturnType<typeof createChartRendererAdapter<TDatum, TXValue, TYValue>>
+    | undefined
+  const adapter = createMemo(
+    () => built ?? (built = createChartRendererAdapter(options())),
+  )
+  const initialMarkup = createMemo(() => adapter().prerender())
   let container!: HTMLDivElement
 
-  createEffect(options, (next) => {
-    adapter.update(next)
-  })
-  onSettled(() => {
+  createEffect(
+    () => [adapter(), options()] as const,
+    ([adapter, next]) => {
+      adapter.update(next)
+    },
+  )
+  createEffect(adapter, (adapter) => {
     adapter.mount(container)
   })
-  onCleanup(() => adapter.destroy())
+  onCleanup(() => built?.destroy())
 
   const aspectRatio = () =>
     typeof props.aspectRatio === 'number' &&
@@ -89,7 +98,7 @@ export function Chart<
           ref={container}
           class="ts-chart-surface"
           style={{ width: '100%', height: '100%' }}
-          innerHTML={initialMarkup}
+          innerHTML={initialMarkup()}
         />
       </div>
       <Show when={props.renderTooltipBody} keyed>

@@ -1,7 +1,7 @@
 /** @jsxImportSource @solidjs/web */
 import { resolve } from 'node:path'
 import { hydrate, render } from '@solidjs/web'
-import { createSignal, flush } from 'solid-js'
+import { Loading, createMemo, createSignal, flush } from 'solid-js'
 import { createServer } from 'vite'
 import type { Element } from 'solid-js'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
@@ -154,6 +154,36 @@ describe('Solid 2 adapter', () => {
     expect(svg?.getAttribute('aria-label')).toBe('Updated revenue')
     dispose()
     expect(target.childElementCount).toBe(0)
+  })
+
+  it('waits under Loading for an async definition', async () => {
+    const target = document.createElement('div')
+    let resolveDefinition!: (value: typeof definition) => void
+    const dispose = render(() => {
+      const asyncDefinition = createMemo(
+        () => new Promise<typeof definition>((r) => (resolveDefinition = r)),
+      )
+      return (
+        <Loading fallback={<p>loading</p>}>
+          <Chart
+            definition={asyncDefinition()}
+            width={480}
+            height={260}
+            ariaLabel="Revenue"
+          />
+        </Loading>
+      )
+    }, target)
+    flush()
+    expect(target.textContent).toBe('loading')
+
+    resolveDefinition(definition)
+    await new Promise((r) => setTimeout(r, 0))
+    flush()
+    expect(target.querySelector('svg')?.getAttribute('aria-label')).toBe(
+      'Revenue',
+    )
+    dispose()
   })
 
   it('composes and cleans up a pinned tooltip body', () => {
