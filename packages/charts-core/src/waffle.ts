@@ -34,6 +34,10 @@ export interface WaffleOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   unit?: number
   /** Rounds cumulative unit boundaries before allocating cells. */
   round?: boolean
+  /** Mirror horizontal cell positions, including partial cells. Defaults to false. */
+  reverseX?: boolean
+  /** Mirror vertical cell positions, including partial cells. Defaults to false. */
+  reverseY?: boolean
   /** Empty pixels between complete cells. Defaults to 1. */
   gap?: number
   radius?: number
@@ -168,6 +172,8 @@ function waffle<TDatum>(
             orientation,
             fixedMultiple,
             gap,
+            options.reverseX ?? false,
+            options.reverseY ?? false,
           )
 
           return {
@@ -324,6 +330,8 @@ function layoutWaffle(
   orientation: WaffleOrientation,
   fixedMultiple: number | undefined,
   gap: number,
+  reverseX: boolean,
+  reverseY: boolean,
 ): readonly WaffleLayoutSegment[] {
   const cellCount = Math.ceil(segments.at(-1)?.endUnit ?? 0)
   if (cellCount <= 0) return []
@@ -360,7 +368,7 @@ function layoutWaffle(
       const cellY = gridY + (rows - row - 1) * cellSize + inset
       const complete = start === 0 && end === 1
 
-      fragments.push(
+      const fragment: WaffleFragment =
         orientation === 'y'
           ? {
               x: cellX,
@@ -375,8 +383,12 @@ function layoutWaffle(
               width: (end - start) * paintSize,
               height: paintSize,
               complete,
-            },
-      )
+            }
+      if (reverseX)
+        fragment.x = 2 * gridX + gridWidth - fragment.x - fragment.width
+      if (reverseY)
+        fragment.y = 2 * gridY + gridHeight - fragment.y - fragment.height
+      fragments.push(fragment)
     }
 
     return { ...segment, fragments }

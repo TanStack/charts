@@ -10,6 +10,112 @@ import { waffleX, waffleY } from './waffle'
 import type { ChartScene, SceneNode, SceneRect } from './types'
 
 describe('waffle marks', () => {
+  it.each([
+    ['y', false],
+    ['x', false],
+    ['y', true],
+    ['x', true],
+  ] as const)(
+    'reverses %s packing independently with responsive=%s',
+    (orientation, responsive) => {
+      const data = [
+        { id: 'a', value: 0.4 },
+        { id: 'b', value: 2.6 },
+        { id: 'c', value: 1.5 },
+      ]
+      const render = (reverseX = false, reverseY = false) => {
+        const common = {
+          key: 'id' as const,
+          color: 'id' as const,
+          gap: 2,
+          radius: 3,
+          reverseX,
+          reverseY,
+        }
+        return createChartScene(
+          defineChart({
+            marks: [
+              orientation === 'y'
+                ? waffleY(data, {
+                    ...common,
+                    y: 'value',
+                    ...(responsive ? {} : { columns: 3 }),
+                  })
+                : waffleX(data, {
+                    ...common,
+                    x: 'value',
+                    ...(responsive ? {} : { rows: 3 }),
+                  }),
+            ],
+            scales: { x: null, y: null },
+            guides: false,
+            focusRing: false,
+            margin: { top: 13, right: 19, bottom: 23, left: 17 },
+            color: { legend: colorLegend({ label: 'Category' }) },
+          }),
+          { width: 240, height: 180 },
+        )
+      }
+      const initial = render()
+      const original = sceneRects(initial)
+      for (const [reverseX, reverseY] of [
+        [true, false],
+        [false, true],
+        [true, true],
+      ]) {
+        const reversed = render(reverseX, reverseY)
+        const rectangles = sceneRects(reversed)
+        expect(rectangles.map((rect) => rect.key)).toEqual(
+          original.map((rect) => rect.key),
+        )
+        expect(reversed.colors.domain).toEqual(initial.colors.domain)
+        for (const [index, rect] of rectangles.entries()) {
+          const before = original[index]!
+          expect(rect.x).toBeCloseTo(
+            reverseX
+              ? 2 * initial.chart.x +
+                  initial.chart.width -
+                  before.x -
+                  before.width
+              : before.x,
+          )
+          expect(rect.y).toBeCloseTo(
+            reverseY
+              ? 2 * initial.chart.y +
+                  initial.chart.height -
+                  before.y -
+                  before.height
+              : before.y,
+          )
+          expect(rect.width).toBe(before.width)
+          expect(rect.height).toBe(before.height)
+          expect(rect.radius).toBe(before.radius)
+          expect(rect.interaction?.point?.datum).toBe(
+            before.interaction?.point?.datum,
+          )
+          expect(contains(reversed, rect)).toBe(true)
+        }
+        for (const [index, point] of reversed.points.entries()) {
+          const before = initial.points[index]!
+          expect(point.key).toBe(before.key)
+          expect(point.datum).toBe(before.datum)
+          expect(point.xValue).toBe(before.xValue)
+          expect(point.yValue).toBe(before.yValue)
+          expect(point.x).toBeCloseTo(
+            reverseX
+              ? 2 * initial.chart.x + initial.chart.width - before.x
+              : before.x,
+          )
+          expect(point.y).toBeCloseTo(
+            reverseY
+              ? 2 * initial.chart.y + initial.chart.height - before.y
+              : before.y,
+          )
+        }
+      }
+    },
+  )
+
   it('rounds cumulative boundaries and preserves source-level identity', () => {
     const rows = [
       { id: 'a', value: 0.126, series: 'A' },
