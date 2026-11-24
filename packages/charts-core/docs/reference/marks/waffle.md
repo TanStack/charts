@@ -29,6 +29,16 @@ Both marks are also exported from `@tanstack/charts` and
 left-to-right, then bottom-to-top. `waffleX` transposes the contract: `x`
 contains the contribution and units advance bottom-to-top, then left-to-right.
 
+Set `reverseY: true` on either mark to fill from top to bottom. Set
+`reverseX: true` to fill from right to left. The options are independent and
+mirror partial cells as well as complete cells, without changing source order,
+color, keys, or quantitative values. Both default to `false`.
+
+```ts
+const topDown = waffleY(rows, { y: 'share', columns: 10, reverseY: true })
+const rightToLeft = waffleX(rows, { x: 'share', rows: 10, reverseX: true })
+```
+
 ```ts
 function waffleY<TDatum>(
   source: Iterable<TDatum>,
@@ -55,6 +65,8 @@ motion fields. `WaffleYOptions<TDatum>` adds `y` and `columns`;
 | `round`                                           | `boolean`                                  | `false`          | Round cumulative unit boundaries before allocating cells   |
 | `columns`                                         | `number`                                   | Responsive       | Fixed cells per row for `waffleY`                          |
 | `rows`                                            | `number`                                   | Responsive       | Fixed cells per column for `waffleX`                       |
+| `reverseX`                                        | `boolean`                                  | `false`          | Mirror horizontal cell positions                           |
+| `reverseY`                                        | `boolean`                                  | `false`          | Mirror vertical cell positions                             |
 | `gap`                                             | `number`                                   | `1`              | Empty pixels between complete cells                        |
 | `radius`                                          | `number`                                   | None             | Corner radius for complete cells                           |
 | `id`                                              | `string`                                   | Layer-derived    | Stable mark ID                                             |
