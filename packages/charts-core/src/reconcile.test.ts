@@ -2,6 +2,28 @@ import { describe, expect, it, vi } from 'vitest'
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 
 describe('keyed SVG reconciliation', () => {
+  it('preserves mixed keyed and unkeyed siblings through stable updates and reordering', () => {
+    const container = document.createElement('div')
+    const group = (value: number) =>
+      `<svg><g><circle data-ts-key="a" cx="${value}"/><rect width="${value}"/><circle cx="${value}"/><circle data-ts-key="" cx="${value}"/></g></svg>`
+    reconcileChartSvg(container, group(1))
+    const children = [...container.querySelector('g')!.children]
+    reconcileChartSvg(container, group(2))
+    expect([...container.querySelector('g')!.children]).toEqual(children)
+    expect(children[0].getAttribute('cx')).toBe('2')
+    expect(children[1].getAttribute('width')).toBe('2')
+    reconcileChartSvg(
+      container,
+      '<svg><g><rect width="3"/><circle data-ts-key="a" cx="3"/><circle cx="3"/><circle data-ts-key="" cx="3"/></g></svg>',
+    )
+    expect([...container.querySelector('g')!.children]).toEqual([
+      children[1],
+      children[0],
+      children[2],
+      children[3],
+    ])
+  })
+
   it.each([
     ['<tspan data-ts-key="a">old</tspan>', 'new'],
     ['old', '<tspan data-ts-key="a">new</tspan>'],
