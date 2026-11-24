@@ -634,41 +634,36 @@ function splitRenderLayers(
   nodes: readonly SceneNode[],
   defaultRenderer: ChartRenderer<any, any, any>,
 ): { layers: ChartRenderLayer[]; hasCustomRenderer: boolean } {
-  const layers: ChartRenderLayer[] = []
+  type BuildingLayer = Omit<ChartRenderLayer, 'nodes'> & { nodes: SceneNode[] }
+  const layers: BuildingLayer[] = []
   let hasCustomRenderer = false
-  const append = (layer: ChartRenderLayer) => {
+  const append = (renderer: ChartRenderer<any, any, any>, node: SceneNode) => {
     const previous = layers.at(-1)
-    if (previous?.renderer === layer.renderer) {
-      previous.nodes = [...previous.nodes, ...layer.nodes]
+    if (previous?.renderer === renderer) {
+      previous.nodes.push(node)
     } else {
-      layers.push(layer)
+      layers.push({ renderer, nodes: [node] })
     }
   }
   for (const node of nodes) {
     if (node.renderer) {
       const renderer = requiredLayerRenderer(node.renderer)
       hasCustomRenderer ||= renderer !== defaultRenderer
-      append({
-        renderer,
-        nodes: [{ ...node, renderer: undefined }],
-      })
+      append(renderer, { ...node, renderer: undefined })
       continue
     }
     if (node.kind !== 'group') {
-      append({ renderer: defaultRenderer, nodes: [node] })
+      append(defaultRenderer, node)
       continue
     }
     const children = splitRenderLayers(node.children, defaultRenderer)
     if (!children.hasCustomRenderer) {
-      append({ renderer: defaultRenderer, nodes: [node] })
+      append(defaultRenderer, node)
       continue
     }
     hasCustomRenderer = true
     for (const layer of children.layers) {
-      append({
-        renderer: layer.renderer,
-        nodes: [{ ...node, children: layer.nodes }],
-      })
+      append(layer.renderer, { ...node, children: layer.nodes })
     }
   }
   return { layers, hasCustomRenderer }
