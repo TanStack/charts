@@ -337,4 +337,18 @@ describe('layoutRadialLabels', () => {
       false,
     ])
   })
+
+  it('keeps a narrow label when a wider higher-priority label does not fit', () => {
+    const placements = layoutRadialLabels(
+      [label(90, { priority: 2, width: 500 }), label(90, { priority: 1 })],
+      { ...options, top: -8, bottom: 8 },
+    )
+
+    expect(placements[0]).toEqual({ visible: false })
+    expect(placements[1]).toMatchObject({
+      visible: true,
+      x: expect.closeTo(134, 8),
+      y: expect.closeTo(0, 8),
+    })
+  })
 })

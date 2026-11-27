@@ -82,12 +82,24 @@ export function layoutRadialLabels(
       (side === 'left' ? -options.left : options.right) -
       options.elbow -
       options.padding
-    const byHeight = (indexes: readonly number[]) =>
-      [...indexes].sort((a, b) => ideal(a) - ideal(b) || a - b)
-    // Labels that height or maxShift hides must not widen the column.
-    const placeable = placeSide(byHeight(sides[side]), ideal, labels, options)
-    const candidates = fitColumn([...placeable.keys()], elbowX, room, labels)
-    const positions = placeSide(byHeight(candidates), ideal, labels, options)
+    const first = options.top + options.lineHeight / 2
+    const last = options.bottom - options.lineHeight / 2
+    // A label that cannot meet maxShift even alone must not widen the column.
+    const reachable = (index: number) => {
+      const y = ideal(index)
+      return (
+        first <= last &&
+        Math.abs(Math.min(Math.max(y, first), last) - y) <= options.maxShift
+      )
+    }
+    const candidates = fitColumn(
+      sides[side].filter(reachable),
+      elbowX,
+      room,
+      labels,
+    )
+    const ordered = [...candidates].sort((a, b) => ideal(a) - ideal(b) || a - b)
+    const positions = placeSide(ordered, ideal, labels, options)
     const column = columnFor([...positions.keys()])
     const direction = side === 'left' ? -1 : 1
     for (const [index, y] of positions) {
