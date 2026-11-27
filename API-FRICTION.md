@@ -355,6 +355,7 @@ Each entry records:
 | F-316 | Keyboard focus cannot follow a dependency                      | API                   | monitoring |
 | F-317 | Time-ranged bars cannot inset only their lane edges            | API                   | monitoring |
 | F-318 | HTML tooltip visibility had no delay lifecycle                 | API                   | resolved   |
+| F-319 | Crowded pie labels overlapped                                  | API                   | resolved   |
 
 ## Findings
 
@@ -9471,3 +9472,17 @@ Each entry records:
   and destruction. All 146 bundle policies pass with the approved Stats gzip
   ceilings of 59.140 and 60.236 decimal kB. Numeric comparison records and the
   other budgets are unchanged.
+
+### F-319 - Crowded pie labels overlapped
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: issue #227, `radialRule` plus `radialText` labels of small
+  adjacent slices overlapped, so the application owned its own label layout
+- Decision: add `radialLabels`, which stacks labels in one column per side,
+  moves overlapping labels apart, and hides lower-priority labels that do not
+  fit the chart height, width, or optional `maxShift`.
+- Verification: layout and rendered tests cover spacing, bounds, priority
+  ties, connectors clear of other labels, stable keys, motion, and SVG,
+  Canvas, and React Native output.
