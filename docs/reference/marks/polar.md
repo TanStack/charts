@@ -386,10 +386,10 @@ crowded labels readable.
 | ------------------------------ | -------------------------------------------------------------- |
 | `id`, `className`              | Stable layer ID and optional class                             |
 | `angle`                        | Angle channel; defaults to datum `angle`                       |
-| `radius`                       | Connector start radius; defaults to `1`                        |
+| `radius`                       | Each label's connector start radius; defaults to `1`           |
 | `text`                         | Label text                                                     |
 | `priority`                     | Lower priority hides first; defaults to datum `value`          |
-| `maxShift`                     | Hides a label that would move more pixels from its slice       |
+| `maxShift`                     | Hides labels from groups that would move more pixels than this |
 | `key`                          | Stable label identity; defaults to top/nested `id`, then index |
 | `z`                            | Interaction group                                              |
 | `color`                        | Color-scale value; defaults to `z`                             |
@@ -401,12 +401,16 @@ crowded labels readable.
 
 Labels stack on each side of the center in angular order, `fontSize * 1.4`
 pixels apart. Overlapping labels move apart as little as possible and stay
-inside the chart bounds. Each side places its text in one column outside its
-outermost visible connector elbow, so no connector crosses another label.
+inside the chart bounds. Each connector starts at its own mapped radius and
+bends at an elbow 16 pixels outside the largest mapped radius. Each side
+places its text in one column outside its outermost visible elbow, so no
+connector crosses another label.
 
-A label is hidden when its side runs out of height, when its estimated text
-width would cross the left or right chart edge, or when it would move more
-than `maxShift` pixels. Lower-priority labels hide first; on equal priority, the later row
+A label is hidden when its side runs out of height or when its estimated text
+width would cross the left or right chart edge. When any label in a crowded
+group would move more than `maxShift` pixels, the lowest-priority label of
+that group hides, even if it moved less itself, and the group lays out again.
+Lower-priority labels hide first; on equal priority, the later row
 hides first, except that the width check hides the outermost-elbow label
 first because it sets the column. Edge containment is estimated, not
 guaranteed: widths come from the built-in text estimate used by static SVG,
