@@ -8,10 +8,12 @@ export interface RadialLabelInput {
   readonly priority: number
   /** Measured text width in pixels. */
   readonly width: number
+  /** Pixel radius where this label's connector starts. */
+  readonly radius: number
 }
 
 export interface RadialLabelLayoutOptions {
-  /** Pixel radius where connectors start. */
+  /** Largest connector start radius; elbows sit `offset` pixels outside it. */
   readonly radius: number
   /** Pixel gap between `radius` and the connector elbow. */
   readonly offset: number
@@ -80,9 +82,12 @@ export function layoutRadialLabels(
       (side === 'left' ? -options.left : options.right) -
       options.elbow -
       options.padding
-    const candidates = fitColumn(sides[side], elbowX, room, labels)
-    const ordered = [...candidates].sort((a, b) => ideal(a) - ideal(b) || a - b)
-    const positions = placeSide(ordered, ideal, labels, options)
+    const byHeight = (indexes: readonly number[]) =>
+      [...indexes].sort((a, b) => ideal(a) - ideal(b) || a - b)
+    // Labels that height or maxShift hides must not widen the column.
+    const placeable = placeSide(byHeight(sides[side]), ideal, labels, options)
+    const candidates = fitColumn([...placeable.keys()], elbowX, room, labels)
+    const positions = placeSide(byHeight(candidates), ideal, labels, options)
     const column = columnFor([...positions.keys()])
     const direction = side === 'left' ? -1 : 1
     for (const [index, y] of positions) {
@@ -93,7 +98,7 @@ export function layoutRadialLabels(
         y,
         side,
         connector: [
-          point(angle, options.radius),
+          point(angle, labels[index]!.radius),
           point(angle, elbowRadius),
           [direction * column, y],
         ],

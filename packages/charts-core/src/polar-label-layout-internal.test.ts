@@ -23,9 +23,13 @@ const degrees = (value: number) => (value * Math.PI) / 180
 
 function label(
   angle: number,
-  { priority = 1, width = 40 }: { priority?: number; width?: number } = {},
+  {
+    priority = 1,
+    width = 40,
+    radius = 100,
+  }: { priority?: number; width?: number; radius?: number } = {},
 ): RadialLabelInput {
-  return { angle: degrees(angle), priority, width }
+  return { angle: degrees(angle), priority, width, radius }
 }
 
 function visible(placements: readonly RadialLabelPlacement[]) {
@@ -305,6 +309,32 @@ describe('layoutRadialLabels', () => {
       false,
       true,
       true,
+    ])
+  })
+
+  it('starts each connector at its own radius', () => {
+    const [inner, outer] = layoutRadialLabels(
+      [label(60, { radius: 50 }), label(120, { radius: 100 })],
+      options,
+    )
+
+    expect(inner).toMatchObject({ visible: true })
+    expect(outer).toMatchObject({ visible: true })
+    if (!inner?.visible || !outer?.visible) return
+    expect(Math.hypot(...inner.connector[0]!)).toBeCloseTo(50, 8)
+    expect(Math.hypot(...outer.connector[0]!)).toBeCloseTo(100, 8)
+    expect(Math.hypot(...inner.connector[1]!)).toBeCloseTo(120, 8)
+  })
+
+  it('does not let a label hidden by maxShift widen the column', () => {
+    const placements = layoutRadialLabels(
+      [label(90, { priority: 1 }), label(10, { priority: 2, width: 60 })],
+      { ...options, top: -50, bottom: 50, right: 180, maxShift: 8 },
+    )
+
+    expect(placements.map((placement) => placement.visible)).toEqual([
+      true,
+      false,
     ])
   })
 })
