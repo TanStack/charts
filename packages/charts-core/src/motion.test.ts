@@ -4844,7 +4844,7 @@ describe('radialLabels motion', () => {
     const middleD = smallConnector?.getAttribute('d')
     const gone = label('Gone')
     expect(gone).not.toBeNull()
-    expect(Number(gone?.getAttribute('opacity'))).toBeLessThan(1)
+    expect(Number(gone?.getAttribute('opacity') ?? 1)).toBeLessThan(1)
 
     frames.run(100)
     const toY = Number(smallLabel?.getAttribute('y'))

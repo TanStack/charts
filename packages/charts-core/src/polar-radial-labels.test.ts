@@ -177,18 +177,14 @@ describe('radialLabels', () => {
 
   it('keys labels and connectors by datum key across renders and data changes', () => {
     const first = render({ width: 640, height: 480 })
-    const changed = render(
+    const reordered = render(
       { width: 640, height: 480 },
-      {
-        rows: browsers.map((row) =>
-          row.name === 'Edge' ? { ...row, share: 9 } : row,
-        ),
-      },
+      { rows: [...browsers].reverse() },
     )
-    const keys = (labels: readonly SceneLabel[]) =>
-      labels.map((label) => label.key).sort()
+    const keysByText = (labels: readonly SceneLabel[]) =>
+      new Map(labels.map((label) => [label.text, label.key]))
 
-    expect(keys(changed.labels)).toEqual(keys(first.labels))
+    expect(keysByText(reordered.labels)).toEqual(keysByText(first.labels))
     first.labels.forEach((label) => {
       expect(label.key).toMatch(/^labels:.+:.+$/)
       expect(
