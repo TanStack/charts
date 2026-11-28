@@ -259,6 +259,13 @@ function isInteractionScenario(
     value !== null &&
     'id' in value &&
     typeof value.id === 'string' &&
+    (!('renderers' in value) ||
+      (Array.isArray(value.renderers) &&
+        value.renderers.length > 0 &&
+        value.renderers.every(
+          (renderer) =>
+            typeof renderer === 'string' && isConformanceRenderer(renderer),
+        ))) &&
     'steps' in value &&
     Array.isArray(value.steps) &&
     value.steps.length > 0 &&
@@ -349,6 +356,12 @@ function isInteractionStep(
       isPositiveInteger(value.durationMs) &&
       value.durationMs <= 5_000
     )
+  }
+  if (value.type === 'printStart') {
+    return 'width' in value && isPositiveInteger(value.width)
+  }
+  if (value.type === 'printEnd') {
+    return true
   }
   if (value.type === 'assert') {
     return (
